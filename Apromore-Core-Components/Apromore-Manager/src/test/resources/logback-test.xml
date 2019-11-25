@@ -49,6 +49,8 @@
 
 
     <logger name="org.apromore" level="INFO" />
+    <logger name="org.ehcache" level="TRACE" />
+    <logger name="com.esotericsoftware.kryo" level="TRACE" />
     <logger name="com.jolbox.bonecp" level="ERROR" />
     <logger name="org.eclipse.persistence" level="ERROR" />
     <logger name="org.springframework" level="ERROR"/>

@@ -171,6 +171,13 @@
             <artifactId>commons-math3</artifactId>
         </dependency>
 
+        <!-- Put Kryo in the front to avoid asm lib version conflict with spring and EclipseLink-->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- Clients -->
         <dependency>
             <groupId>org.apromore</groupId>
@@ -658,6 +665,14 @@
             <artifactId>org.apache.servicemix.bundles.ehcache</artifactId>
             <version>2.6.11_1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.1.4</version>
+        </dependency>
+
+
 
         <dependency>
             <groupId>org.apromore</groupId>
