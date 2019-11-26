@@ -29,7 +29,7 @@ import org.apromore.portal.dialogController.MainController;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 /**
  * Stores the Signavio Session information for an edit session.

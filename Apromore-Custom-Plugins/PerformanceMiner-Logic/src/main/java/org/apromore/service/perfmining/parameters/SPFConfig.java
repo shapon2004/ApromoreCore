@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.processmining.contexts.uitopia.UIPluginContext;
 
 /*

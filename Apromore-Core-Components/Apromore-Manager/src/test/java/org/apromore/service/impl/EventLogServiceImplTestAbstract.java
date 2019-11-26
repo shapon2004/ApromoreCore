@@ -1,12 +1,12 @@
 package org.apromore.service.impl;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XLifecycleExtension;
-import org.deckfour.xes.extension.std.XOrganizationalExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.model.*;
-import org.deckfour.xes.model.impl.*;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.extension.std.XLifecycleExtension;
+import org.apromore.xes.extension.std.XOrganizationalExtension;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.model.XTrace;
+import org.apromore.xes.model.impl.XAttributeLiteralImpl;
 import org.junit.Before;
 
 import java.lang.management.ManagementFactory;
@@ -64,28 +64,28 @@ public class EventLogServiceImplTestAbstract {
         return eventPool[random.nextInt(EVENT_POOL_SIZE)];
     }
 
-    protected void readRandom(XLog log) {
+    protected void readRandom(org.apromore.xes.model.XLog log) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
         System.out.println("Reading all attributes via values() of random traces & events: ");
         long attributeCounter = 0;
         int traceCounter = 0;
         while (traceCounter < log.size()) {
-            XTrace trace = log.get(random.nextInt(log.size()));
+            org.apromore.xes.model.XTrace trace = log.get(random.nextInt(log.size()));
             int eventCounter = 0;
             while (eventCounter < trace.size()) {
-                XEvent event = trace.get(random.nextInt(trace.size()));
+                org.apromore.xes.model.XEvent event = trace.get(random.nextInt(trace.size()));
                 for (String key : event.getAttributes().keySet()) {
-                    XAttribute attr = event.getAttributes().get(key);
+                    org.apromore.xes.model.XAttribute attr = event.getAttributes().get(key);
                     assertNotNull(attr);
-                    if (attr instanceof XAttributeBoolean) {
-                        assertNotNull(((XAttributeBoolean) attr).getValue());
-                    } else if (attr instanceof XAttributeLiteral) {
-                        assertNotNull(((XAttributeLiteral) attr).getValue());
-                    } else if (attr instanceof XAttributeContinuous) {
-                        assertNotNull(((XAttributeContinuous) attr).getValue());
-                    } else if (attr instanceof XAttributeDiscrete) {
-                        assertNotNull(((XAttributeDiscrete) attr).getValue());
+                    if (attr instanceof org.apromore.xes.model.XAttributeBoolean) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeBoolean) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeLiteral) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeLiteral) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeContinuous) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeContinuous) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeDiscrete) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeDiscrete) attr).getValue());
                     }
                     attributeCounter++;
                 }
@@ -102,25 +102,25 @@ public class EventLogServiceImplTestAbstract {
         System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
     }
 
-    protected void readSequentially(XLog log) {
+    protected void readSequentially(org.apromore.xes.model.XLog log) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
         System.out.println("Reading all attributes via values(): ");
         long attributeCounter = 0;
-        for (XTrace trace : log) {
-            for (XEvent event : trace) {
-                for (XAttribute attr : event.getAttributes().values()) {
+        for (org.apromore.xes.model.XTrace trace : log) {
+            for (org.apromore.xes.model.XEvent event : trace) {
+                for (org.apromore.xes.model.XAttribute attr : event.getAttributes().values()) {
                     assertNotNull(attr.getKey());
-                    if (attr instanceof XAttributeBoolean) {
-                        assertNotNull(((XAttributeBoolean) attr).getValue());
-                    } else if (attr instanceof XAttributeLiteral) {
-                        assertNotNull(((XAttributeLiteral) attr).getValue());
-                    } else if (attr instanceof XAttributeContinuous) {
-                        assertNotNull(((XAttributeContinuous) attr).getValue());
-                    } else if (attr instanceof XAttributeDiscrete) {
-                        assertNotNull(((XAttributeDiscrete) attr).getValue());
-                    } else if (attr instanceof XAttributeTimestamp) {
-                        assertNotNull(((XAttributeTimestamp) attr).getValue());
+                    if (attr instanceof org.apromore.xes.model.XAttributeBoolean) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeBoolean) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeLiteral) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeLiteral) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeContinuous) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeContinuous) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeDiscrete) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeDiscrete) attr).getValue());
+                    } else if (attr instanceof org.apromore.xes.model.XAttributeTimestamp) {
+                        assertNotNull(((org.apromore.xes.model.XAttributeTimestamp) attr).getValue());
                     }
                     attributeCounter++;
                 }
@@ -139,14 +139,14 @@ public class EventLogServiceImplTestAbstract {
         System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
     }
 
-    protected void readSequentiallyCommon(XLog log) {
+    protected void readSequentiallyCommon(org.apromore.xes.model.XLog log) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
         System.out.println("Reading concept:name, lifecycle:transition, org:resource: ");
         long attributeCounter = 0;
-        for (XTrace trace : log) {
-            for (XEvent event : trace) {
-                XAttributeMap attributes = event.getAttributes();
+        for (org.apromore.xes.model.XTrace trace : log) {
+            for (org.apromore.xes.model.XEvent event : trace) {
+                org.apromore.xes.model.XAttributeMap attributes = event.getAttributes();
                 assertNotNull(attributes.get(XConceptExtension.KEY_NAME));
                 assertNotNull(attributes.get(XLifecycleExtension.KEY_TRANSITION));
                 assertNotNull(attributes.get(XTimeExtension.KEY_TIMESTAMP));
@@ -166,35 +166,35 @@ public class EventLogServiceImplTestAbstract {
         System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
     }
 
-    protected void changeAttributes(XLog log) {
+    protected void changeAttributes(org.apromore.xes.model.XLog log) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
         System.out.println("Changing all attributes via entrySet(): ");
         long attributeCounter = 0;
-        for (XTrace trace : log) {
-            for (XEvent event : trace) {
-                for (Map.Entry<String, XAttribute> attrEntry : event.getAttributes().entrySet()) {
-                    if (attrEntry.getValue() instanceof XAttributeBoolean) {
-                        attrEntry.setValue(new XAttributeBooleanImpl(attrEntry.getKey(),
-                                !((XAttributeBoolean) attrEntry.getValue()).getValue(),
+        for (org.apromore.xes.model.XTrace trace : log) {
+            for (org.apromore.xes.model.XEvent event : trace) {
+                for (Map.Entry<String, org.apromore.xes.model.XAttribute> attrEntry : event.getAttributes().entrySet()) {
+                    if (attrEntry.getValue() instanceof org.apromore.xes.model.XAttributeBoolean) {
+                        attrEntry.setValue(new org.apromore.xes.model.impl.XAttributeBooleanImpl(attrEntry.getKey(),
+                                !((org.apromore.xes.model.XAttributeBoolean) attrEntry.getValue()).getValue(),
                                 attrEntry.getValue().getExtension()));
-                    } else if (attrEntry.getValue() instanceof XAttributeLiteral) {
+                    } else if (attrEntry.getValue() instanceof org.apromore.xes.model.XAttributeLiteral) {
                         if (attrEntry.getKey().equals(XConceptExtension.KEY_NAME)) {
-                            attrEntry.setValue(new XAttributeLiteralImpl(attrEntry.getKey(),
-                                    ((XAttributeLiteral) attrEntry.getValue()).getValue().concat(" NEW"),
+                            attrEntry.setValue(new org.apromore.xes.model.impl.XAttributeLiteralImpl(attrEntry.getKey(),
+                                    ((org.apromore.xes.model.XAttributeLiteral) attrEntry.getValue()).getValue().concat(" NEW"),
                                     attrEntry.getValue().getExtension()));
                         } else {
                             attrEntry.setValue(new XAttributeLiteralImpl(attrEntry.getKey(), getRandomString(),
                                     attrEntry.getValue().getExtension()));
                         }
-                    } else if (attrEntry.getValue() instanceof XAttributeContinuous) {
-                        attrEntry.setValue(new XAttributeContinuousImpl(attrEntry.getKey(), random.nextDouble(),
+                    } else if (attrEntry.getValue() instanceof org.apromore.xes.model.XAttributeContinuous) {
+                        attrEntry.setValue(new org.apromore.xes.model.impl.XAttributeContinuousImpl(attrEntry.getKey(), random.nextDouble(),
                                 attrEntry.getValue().getExtension()));
-                    } else if (attrEntry.getValue() instanceof XAttributeDiscrete) {
-                        attrEntry.setValue(new XAttributeDiscreteImpl(attrEntry.getKey(), random.nextInt(),
+                    } else if (attrEntry.getValue() instanceof org.apromore.xes.model.XAttributeDiscrete) {
+                        attrEntry.setValue(new org.apromore.xes.model.impl.XAttributeDiscreteImpl(attrEntry.getKey(), random.nextInt(),
                                 attrEntry.getValue().getExtension()));
-                    } else if (attrEntry.getValue() instanceof XAttributeTimestamp) {
-                        attrEntry.setValue(new XAttributeTimestampImpl(attrEntry.getKey(), Math.abs(random.nextLong()),
+                    } else if (attrEntry.getValue() instanceof org.apromore.xes.model.XAttributeTimestamp) {
+                        attrEntry.setValue(new org.apromore.xes.model.impl.XAttributeTimestampImpl(attrEntry.getKey(), Math.abs(random.nextLong()),
                                 attrEntry.getValue().getExtension()));
                     }
                     attributeCounter++;
@@ -214,15 +214,15 @@ public class EventLogServiceImplTestAbstract {
         System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
     }
 
-    protected XLog createRandomLog(XFactory factory, int traces) {
+    protected org.apromore.xes.model.XLog createRandomLog(XFactory factory, int traces) {
         return createLog(factory, 40, traces, 2);
     }
 
-    public XLog createLog(XFactory factory, int events, int traces, int attributes) {
+    public org.apromore.xes.model.XLog createLog(XFactory factory, int events, int traces, int attributes) {
         return createLog(factory, events, traces, attributes, false);
     }
 
-    public XLog createLog(XFactory factory, int events, int traces, int attributes, boolean minimalAttributes) {
+    public org.apromore.xes.model.XLog createLog(XFactory factory, int events, int traces, int attributes, boolean minimalAttributes) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         NumberFormat integerFormat = NumberFormat.getIntegerInstance();
         long startTime = System.nanoTime();
@@ -232,7 +232,7 @@ public class EventLogServiceImplTestAbstract {
         int standardAttributes = minimalAttributes ? 1 : 4;
         long totalAttributes = events * traces * ((attributes * 4) + standardAttributes);
         System.out.println(integerFormat.format(totalAttributes) + " attributes");
-        XLog testLog = factory.createLog();
+        org.apromore.xes.model.XLog testLog = factory.createLog();
         int traceCounter = 0;
         while (traceCounter++ < traces) {
             XTrace t = factory.createTrace();
@@ -243,9 +243,9 @@ public class EventLogServiceImplTestAbstract {
             createAttributes(factory, t, attributes, traceCounter);
 
             int eventCounter = 0;
-            List<XEvent> eventList = new ArrayList<>();
+            List<org.apromore.xes.model.XEvent> eventList = new ArrayList<>();
             while (eventCounter++ < events) {
-                XEvent e = factory.createEvent();
+                org.apromore.xes.model.XEvent e = factory.createEvent();
                 createAttributes(factory, e, attributes, eventCounter);
                 if (!minimalAttributes) {
                     addAttribute(e, factory.createAttributeTimestamp(XTimeExtension.KEY_TIMESTAMP,
@@ -281,7 +281,7 @@ public class EventLogServiceImplTestAbstract {
         return memoryMXBean.getHeapMemoryUsage();
     }
 
-    private void createAttributes(XFactory factory, XAttributable a, int attributes, int currentIndex) {
+    private void createAttributes(XFactory factory, org.apromore.xes.model.XAttributable a, int attributes, int currentIndex) {
         int attributesCounter = 0;
         while (attributesCounter++ < attributes) {
             addAttribute(a, factory.createAttributeBoolean("boolean" + attributesCounter, random.nextBoolean(), null));
@@ -293,7 +293,7 @@ public class EventLogServiceImplTestAbstract {
         }
     }
 
-    private void addAttribute(XAttributable a, XAttribute attr) {
+    private void addAttribute(org.apromore.xes.model.XAttributable a, org.apromore.xes.model.XAttribute attr) {
         a.getAttributes().put(attr.getKey(), attr);
     }
 

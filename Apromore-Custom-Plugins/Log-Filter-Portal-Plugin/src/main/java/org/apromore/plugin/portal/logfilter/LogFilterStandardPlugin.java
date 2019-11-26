@@ -25,7 +25,7 @@ import org.apromore.plugin.portal.logfilter.generic.LogFilterOutputResult;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterResultListener;
 import org.apromore.portal.context.PluginPortalContext;
 import org.apromore.service.EventLogService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.zkoss.zk.ui.SuspendNotAllowedException;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;

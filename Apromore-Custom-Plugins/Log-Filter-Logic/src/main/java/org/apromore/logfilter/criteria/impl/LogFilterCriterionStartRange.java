@@ -3,11 +3,10 @@ package org.apromore.logfilter.criteria.impl;
 import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
-import org.deckfour.xes.model.XAttributeTimestamp;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XAttributeTimestamp;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XTrace;
 
-import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Set;
 

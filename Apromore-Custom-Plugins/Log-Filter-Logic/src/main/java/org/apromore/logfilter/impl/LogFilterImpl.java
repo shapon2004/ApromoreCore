@@ -22,16 +22,14 @@ package org.apromore.logfilter.impl;
 
 import org.apromore.logfilter.LogFilterService;
 import org.apromore.logfilter.criteria.LogFilterCriterion;
-import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Level;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryNaiveImpl;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryNaiveImpl;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**

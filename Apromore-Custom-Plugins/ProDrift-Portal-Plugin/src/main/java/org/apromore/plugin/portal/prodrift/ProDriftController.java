@@ -31,8 +31,7 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.service.EventLogService;
 import org.apromore.service.prodrift.ProDriftDetectionException;
 import org.apromore.service.prodrift.ProDriftDetectionService;
-import org.deckfour.xes.model.XLog;
-import org.zkoss.bind.annotation.Command;
+import org.apromore.xes.model.XLog;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.SuspendNotAllowedException;
@@ -44,7 +43,6 @@ import org.zkoss.zul.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

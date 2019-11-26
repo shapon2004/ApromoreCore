@@ -1,7 +1,6 @@
 package org.apromore.prodrift.util;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,15 +12,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_EventStream;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XAttributeMap;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
-import org.deckfour.xes.model.impl.XAttributeTimestampImpl;
-import org.deckfour.xes.model.impl.XLogImpl;
-import org.deckfour.xes.model.impl.XTraceImpl;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.model.XAttribute;
+import org.apromore.xes.model.XAttributeMap;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
+import org.apromore.xes.model.impl.XAttributeTimestampImpl;
+import org.apromore.xes.model.impl.XLogImpl;
+import org.apromore.xes.model.impl.XTraceImpl;
 
 
 public class LogStreamer {

@@ -26,7 +26,7 @@ import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_RunStream;
 import org.apromore.prodrift.model.ProDriftDetectionResult;
 import org.apromore.service.prodrift.ProDriftDetectionException;
 import org.apromore.service.prodrift.ProDriftDetectionService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

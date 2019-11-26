@@ -24,8 +24,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 
-import org.deckfour.xes.classification.XEventClass;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.classification.XEventClass;
+import org.apromore.xes.model.XLog;
 import org.processmining.framework.util.Pair;
 import org.processmining.plugins.log.logabstraction.BasicLogRelations;
 

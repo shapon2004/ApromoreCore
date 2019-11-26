@@ -20,21 +20,14 @@
 
 package org.apromore.service.stagemining.impl;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import org.apromore.service.stagemining.StageMiningService;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
-import org.joda.time.DateTime;
+import org.apromore.xes.model.XLog;
 import org.processmining.stagemining.algorithms.AbstractStageMining;
 import org.processmining.stagemining.models.DecompositionTree;
 import org.processmining.stagemining.algorithms.StageMiningHighestModularity;

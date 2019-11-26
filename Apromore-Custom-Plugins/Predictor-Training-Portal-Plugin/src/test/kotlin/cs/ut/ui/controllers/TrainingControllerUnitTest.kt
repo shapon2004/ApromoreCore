@@ -7,10 +7,8 @@ import java.io.StringReader
 import java.util.Arrays
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.deckfour.xes.`in`.XesXmlParser
-import org.deckfour.xes.model.XLog
+import org.apromore.xes.`in`.XesXmlParser
 import org.json.JSONObject
-import org.junit.Ignore
 import org.junit.Test
 
 class TrainingControllerUnitTest {

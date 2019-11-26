@@ -20,7 +20,7 @@
 package org.apromore.prodrift.driftcharacterization;
 
 import org.apromore.prodrift.config.BehaviorRelation;
-import org.deckfour.xes.classification.XEventClass;
+import org.apromore.xes.classification.XEventClass;
 import org.processmining.framework.util.Pair;
 
 public class PairRelation 

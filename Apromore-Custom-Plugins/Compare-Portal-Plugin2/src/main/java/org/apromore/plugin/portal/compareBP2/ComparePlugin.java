@@ -45,12 +45,11 @@ import org.apromore.model.LogSummaryType;
 import org.apromore.model.VersionSummaryType;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.service.compare.CompareService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.jbpt.petri.Flow;
 import org.jbpt.petri.NetSystem;
 import org.jbpt.hypergraph.abs.Vertex;
 import org.jbpt.petri.io.PNMLSerializer;
-import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 
 // Local packages

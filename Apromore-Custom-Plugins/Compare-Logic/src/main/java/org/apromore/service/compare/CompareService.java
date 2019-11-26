@@ -23,8 +23,7 @@ package org.apromore.service.compare;
 import ee.ut.eventstr.comparison.differences.Differences;
 import ee.ut.eventstr.comparison.differences.DifferencesML;
 import ee.ut.eventstr.comparison.differences.ModelAbstractions;
-import hub.top.petrinet.PetriNet;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 import java.util.HashSet;
 import java.util.Set;

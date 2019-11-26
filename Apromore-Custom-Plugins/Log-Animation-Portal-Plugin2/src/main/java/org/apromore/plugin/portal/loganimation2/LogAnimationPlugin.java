@@ -41,7 +41,6 @@ import org.apromore.portal.dialogController.MainController;
 import org.apromore.portal.dialogController.dto.SignavioSession;
 import org.apromore.service.EventLogService;
 import org.apromore.service.loganimation.LogAnimationService;
-import org.deckfour.xes.model.XLog;
 
 public class LogAnimationPlugin extends DefaultPortalPlugin {
 

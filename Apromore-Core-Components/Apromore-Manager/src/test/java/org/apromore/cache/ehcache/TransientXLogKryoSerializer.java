@@ -5,11 +5,10 @@ import com.esotericsoftware.kryo.Registration;
 import com.esotericsoftware.kryo.io.ByteBufferInputStream;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.apromore.cache.ehcache.model.Description;
-import org.apromore.cache.ehcache.model.Employee;
-import org.apromore.cache.ehcache.model.Person;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.impl.*;
+import de.javakaffee.kryoserializers.*;
+import org.apromore.xes.extension.std.XLifecycleExtension;
+import org.apromore.xes.model.impl.*;
+import org.apromore.xes.model.impl.XLogImpl;
 import org.ehcache.spi.serialization.Serializer;
 import org.ehcache.spi.serialization.SerializerException;
 
@@ -17,6 +16,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ import java.util.Map;
  *
  */
 // tag::thirdPartyTransientSerializer[]
-public class TransientXLogKryoSerializer implements Serializer<XLog>, Closeable{
+public class TransientXLogKryoSerializer implements Serializer<XLogImpl>, Closeable{
 
     protected static final Kryo kryo = new Kryo();
 
@@ -34,7 +35,15 @@ public class TransientXLogKryoSerializer implements Serializer<XLog>, Closeable{
     }
 
     public TransientXLogKryoSerializer(ClassLoader loader) {
-        populateObjectHeadersMap(kryo.register(XLog.class));  // <2>
+
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+//
+//        kryo.register( Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer() );
+
+//        populateObjectHeadersMap(kryo.register(XLog.class));  // <2>
+
+        kryo.register(XLogImpl.class);
+
         populateObjectHeadersMap(kryo.register(XLogImpl.class));  // <2>
         populateObjectHeadersMap(kryo.register(XTraceImpl.class));  // <3>
         populateObjectHeadersMap(kryo.register(XEventImpl.class)); // <4>
@@ -58,7 +67,41 @@ public class TransientXLogKryoSerializer implements Serializer<XLog>, Closeable{
     }
 
     @Override
-    public ByteBuffer serialize(XLog object) throws SerializerException {
+    public ByteBuffer serialize(XLogImpl object) throws SerializerException {
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+        kryo.register(XLogImpl.class);
+        kryo.register(XTraceImpl.class);
+        kryo.register(XEventImpl.class);
+        kryo.register(XAttributeBooleanImpl.class);
+        kryo.register(XAttributeCollectionImpl.class);
+        kryo.register(XAttributeContainerImpl.class);
+        kryo.register(XAttributeContinuousImpl.class);
+        kryo.register(XAttributeDiscreteImpl.class);
+        kryo.register(XAttributeIDImpl.class);
+        kryo.register(XAttributeListImpl.class);
+        kryo.register(XAttributeLiteralImpl.class);
+        kryo.register(XAttributeMapImpl.class);
+        kryo.register(XAttributeTimestampImpl.class);
+        kryo.register(XAttributeImpl.class);
+        kryo.register(XAttributeMapLazyImpl.class);
+        kryo.register(XsDateTimeFormat.class);
+
+        kryo.register(XLifecycleExtension.class);
+        kryo.register(org.eclipse.collections.impl.set.mutable.UnifiedSet.class);
+
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+        kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer() );
+        kryo.register( Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer() );
+        kryo.register( Collections.EMPTY_MAP.getClass(), new CollectionsEmptyMapSerializer() );
+        kryo.register( Collections.EMPTY_SET.getClass(), new CollectionsEmptySetSerializer() );
+        kryo.register( Collections.singletonList( "" ).getClass(), new CollectionsSingletonListSerializer() );
+        kryo.register( Collections.singleton( "" ).getClass(), new CollectionsSingletonSetSerializer() );
+        kryo.register( Collections.singletonMap( "", "" ).getClass(), new CollectionsSingletonMapSerializer() );
+        UnmodifiableCollectionsSerializer.registerSerializers( kryo );
+        SynchronizedCollectionsSerializer.registerSerializers( kryo );
+
         Output output = new Output(new ByteArrayOutputStream());
         kryo.writeObject(output, object);
         output.close();
@@ -67,13 +110,34 @@ public class TransientXLogKryoSerializer implements Serializer<XLog>, Closeable{
     }
 
     @Override
-    public XLog read(final ByteBuffer binary) throws ClassNotFoundException, SerializerException {
+    public XLogImpl read(final ByteBuffer binary) throws ClassNotFoundException, SerializerException {
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+//        ((Kryo.DefaultInstantiatorStrategy) kryo.getInstantiatorStrategy()).setFallbackInstantiatorStrategy(new StdInstantiatorStrategy());
+
+//        kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+
+//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+
+        kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer() );
+        kryo.register( Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer() );
+        kryo.register( Collections.EMPTY_MAP.getClass(), new CollectionsEmptyMapSerializer() );
+        kryo.register( Collections.EMPTY_SET.getClass(), new CollectionsEmptySetSerializer() );
+        kryo.register( Collections.singletonList( "" ).getClass(), new CollectionsSingletonListSerializer() );
+        kryo.register( Collections.singleton( "" ).getClass(), new CollectionsSingletonSetSerializer() );
+        kryo.register( Collections.singletonMap( "", "" ).getClass(), new CollectionsSingletonMapSerializer() );
+        UnmodifiableCollectionsSerializer.registerSerializers( kryo );
+        SynchronizedCollectionsSerializer.registerSerializers( kryo );
+
+
         Input input =  new Input(new ByteBufferInputStream(binary)) ;
-        return kryo.readObject(input, XLog.class);
+        return kryo.readObject(input, XLogImpl.class);
     }
 
     @Override
-    public boolean equals(final XLog object, final ByteBuffer binary) throws ClassNotFoundException, SerializerException {
+    public boolean equals(final XLogImpl object, final ByteBuffer binary) throws ClassNotFoundException, SerializerException {
         return object.equals(read(binary));
     }
 

@@ -18,16 +18,14 @@
 
 package org.processmining.stagemining.utils;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XLifecycleExtension;
-import org.deckfour.xes.extension.std.XOrganizationalExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryNaiveImpl;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.model.*;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.extension.std.XLifecycleExtension;
+import org.apromore.xes.extension.std.XOrganizationalExtension;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.model.XTrace;
 import org.joda.time.DateTime;
-import org.xeslite.external.XFactoryExternalStore;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.DateFormat;
@@ -37,55 +35,55 @@ import java.util.*;
 
 public class LogUtilites {
 
-	public static String getConceptName(XAttributable attrib) {
+	public static String getConceptName(org.apromore.xes.model.XAttributable attrib) {
 		String name = XConceptExtension.instance().extractName(attrib);
 		return (name != null ? name : "<no name>");
 	}
 
-	public static void setConceptName(XAttributable attrib, String name) {
+	public static void setConceptName(org.apromore.xes.model.XAttributable attrib, String name) {
 		XConceptExtension.instance().assignName(attrib, name);
 	}
 
-	public static String getLifecycleTransition(XEvent event) {
+	public static String getLifecycleTransition(org.apromore.xes.model.XEvent event) {
 		String name = XLifecycleExtension.instance().extractTransition(event);
 		return (name != null ? name : "<no transition>");
 	}
 
-	public static void setLifecycleTransition(XEvent event, String transition) {
+	public static void setLifecycleTransition(org.apromore.xes.model.XEvent event, String transition) {
 		XLifecycleExtension.instance().assignTransition(event, transition);
 	}
 
-	public static void setTimestamp(XEvent event, Date timestamp) {
+	public static void setTimestamp(org.apromore.xes.model.XEvent event, Date timestamp) {
 		XTimeExtension.instance().assignTimestamp(event, timestamp);
 	}
 
-	public static DateTime getTimestamp(XEvent event) {
+	public static DateTime getTimestamp(org.apromore.xes.model.XEvent event) {
 		Date date = XTimeExtension.instance().extractTimestamp(event);
 		return new DateTime(date);
 	}
 	
 	
 
-	public static String getOrganizationalResource(XEvent event) {
+	public static String getOrganizationalResource(org.apromore.xes.model.XEvent event) {
 		String name = XOrganizationalExtension.instance().extractResource(event);
 		return (name != null ? name : "<no resource>");
 	}
 
-	public static String getValue(XAttribute attr) {
-		if (attr instanceof XAttributeBoolean) {
-			Boolean b = ((XAttributeBoolean) attr).getValue();
+	public static String getValue(org.apromore.xes.model.XAttribute attr) {
+		if (attr instanceof org.apromore.xes.model.XAttributeBoolean) {
+			Boolean b = ((org.apromore.xes.model.XAttributeBoolean) attr).getValue();
 			return b.toString();
-		} else if (attr instanceof XAttributeContinuous) {
-			Double d = ((XAttributeContinuous) attr).getValue();
+		} else if (attr instanceof org.apromore.xes.model.XAttributeContinuous) {
+			Double d = ((org.apromore.xes.model.XAttributeContinuous) attr).getValue();
 			return d.toString();
-		} else if (attr instanceof XAttributeDiscrete) {
-			Long l = ((XAttributeDiscrete) attr).getValue();
+		} else if (attr instanceof org.apromore.xes.model.XAttributeDiscrete) {
+			Long l = ((org.apromore.xes.model.XAttributeDiscrete) attr).getValue();
 			return l.toString();
-		} else if (attr instanceof XAttributeLiteral) {
-			String s = ((XAttributeLiteral) attr).getValue();
+		} else if (attr instanceof org.apromore.xes.model.XAttributeLiteral) {
+			String s = ((org.apromore.xes.model.XAttributeLiteral) attr).getValue();
 			return s;
-		} else if (attr instanceof XAttributeTimestamp) {
-			Date d = ((XAttributeTimestamp) attr).getValue();
+		} else if (attr instanceof org.apromore.xes.model.XAttributeTimestamp) {
+			Date d = ((org.apromore.xes.model.XAttributeTimestamp) attr).getValue();
 			return d.toString();
 		}
 		return "";
@@ -100,19 +98,19 @@ public class LogUtilites {
 	 * Note: if one event is never an ending event in a trace, it will NOT
 	 * be in the returning result.
 	 */
-	public static Map<String,Double> computeDistinctEventsStatToEnd(XLog log) {
+	public static Map<String,Double> computeDistinctEventsStatToEnd(org.apromore.xes.model.XLog log) {
 		Map<String,Double> result = new HashMap<String,Double>();
 		Map<String,Integer> countOccurs = new HashMap<String,Integer>();
 		Set<String> visited = new HashSet<String>();
-		for (XTrace trace : log) {
+		for (org.apromore.xes.model.XTrace trace : log) {
 			//Count the number of distinct event in a trace
 			visited.clear();
-			for (XEvent evt : trace) {
+			for (org.apromore.xes.model.XEvent evt : trace) {
 				visited.add(LogUtilites.getConceptName(evt).toLowerCase());
 			}
 			
 			//Cumulatively add the number of distinct events in different traces
-			XEvent last = trace.get(trace.size()-2); //exclude the added ending event
+			org.apromore.xes.model.XEvent last = trace.get(trace.size()-2); //exclude the added ending event
 			String lastName = LogUtilites.getConceptName(last).toLowerCase();
 			if (!countOccurs.containsKey(lastName)) {
 				countOccurs.put(lastName, 1);
@@ -139,19 +137,19 @@ public class LogUtilites {
 		return result;
 	}
 	
-	public static Map<String,Double> computeDistinctEventsStatFromStart(XLog log) {
+	public static Map<String,Double> computeDistinctEventsStatFromStart(org.apromore.xes.model.XLog log) {
 		Map<String,Double> result = new HashMap<String,Double>();
 		Map<String,Integer> countOccurs = new HashMap<String,Integer>();
 		Set<String> visited = new HashSet<String>();
-		for (XTrace trace : log) {
+		for (org.apromore.xes.model.XTrace trace : log) {
 			//Count the number of distinct event in a trace
 			visited.clear();
-			for (XEvent evt : trace) {
+			for (org.apromore.xes.model.XEvent evt : trace) {
 				visited.add(LogUtilites.getConceptName(evt).toLowerCase());
 			}
 			
 			//Cumulatively add the number of distinct events in different traces
-			XEvent first = trace.get(1); //exclude the added start event
+			org.apromore.xes.model.XEvent first = trace.get(1); //exclude the added start event
 			String firstName = LogUtilites.getConceptName(first).toLowerCase();
 			if (!countOccurs.containsKey(firstName)) {
 				countOccurs.put(firstName, 1);
@@ -184,7 +182,7 @@ public class LogUtilites {
 	 * @param log
 	 * @return: event name
 	 */
-	public static String computeMainstreamEndingEventName(XLog log, boolean fromStart) {
+	public static String computeMainstreamEndingEventName(org.apromore.xes.model.XLog log, boolean fromStart) {
 		Map<String,Double> mapDistinctEvent = null;
 		if (fromStart) {
 			mapDistinctEvent = LogUtilites.computeDistinctEventsStatFromStart(log);
@@ -203,10 +201,10 @@ public class LogUtilites {
 		return maxName;
 	}
 	
-	public static int getDistinctEventClassCount(XLog log) {
+	public static int getDistinctEventClassCount(org.apromore.xes.model.XLog log) {
 		Set<String> eventSet = new HashSet<String>();
-		for (XTrace trace : log) {
-			for (XEvent e : trace) {
+		for (org.apromore.xes.model.XTrace trace : log) {
+			for (org.apromore.xes.model.XEvent e : trace) {
 				eventSet.add(LogUtilites.getConceptName(e).toLowerCase());
 			}
 		}
@@ -218,9 +216,9 @@ public class LogUtilites {
 	 * @param log
 	 * @throws ParseException
 	 */
-	public static void addStartEndEvents(XLog log) throws ParseException {
+	public static void addStartEndEvents(org.apromore.xes.model.XLog log) throws ParseException {
 		// Do not add again if the log has been added start and end events before.
-		for (XTrace trace : log) {
+		for (org.apromore.xes.model.XTrace trace : log) {
 			String firstEvent = LogUtilites.getConceptName(trace.get(0)).toLowerCase();
 			String lastEvent = LogUtilites.getConceptName(trace.get(trace.size()-1)).toLowerCase();
 			if (firstEvent.equals("start") && lastEvent.equals("end")) {
@@ -238,22 +236,22 @@ public class LogUtilites {
 			XFactory factory = XFactoryRegistry.instance().currentDefault().getClass().getConstructor().newInstance();
 //			XFactory factory = XFactoryRegistry.instance().currentDefault();
 
-			XEvent startEvent = factory.createEvent();
-			XAttributeMap startEventMap = factory.createAttributeMap();
+			org.apromore.xes.model.XEvent startEvent = factory.createEvent();
+			org.apromore.xes.model.XAttributeMap startEventMap = factory.createAttributeMap();
 			startEventMap.put("concept:name", factory.createAttributeLiteral("concept:name", "start", null));
 			startEventMap.put("lifecycle:transition", factory.createAttributeLiteral("lifecycle:transition", "complete", null));
 			startEventMap.put("time:timestamp", factory.createAttributeTimestamp("time:timestamp", df.parse("01/01/1970"), null));
 			startEvent.setAttributes(startEventMap);
 
-			XEvent endEvent = factory.createEvent();
-			XAttributeMap endEventMap = factory.createAttributeMap();
+			org.apromore.xes.model.XEvent endEvent = factory.createEvent();
+			org.apromore.xes.model.XAttributeMap endEventMap = factory.createAttributeMap();
 			endEventMap.put("concept:name", factory.createAttributeLiteral("concept:name", "end", null));
 			endEventMap.put("lifecycle:transition", factory.createAttributeLiteral("lifecycle:transition", "complete", null));
 			endEventMap.put("time:timestamp", factory.createAttributeTimestamp("time:timestamp", df.parse("01/01/2020"), null));
 			endEvent.setAttributes(endEventMap);
 
 			for (XTrace trace : log) {
-				XEvent preEvt = null;
+				org.apromore.xes.model.XEvent preEvt = null;
 				trace.add(0, startEvent);
 				trace.add(endEvent);
 			}

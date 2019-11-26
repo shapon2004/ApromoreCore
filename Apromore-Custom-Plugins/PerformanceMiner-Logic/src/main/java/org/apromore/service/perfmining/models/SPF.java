@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.apromore.service.perfmining.database.ConnectionManager;

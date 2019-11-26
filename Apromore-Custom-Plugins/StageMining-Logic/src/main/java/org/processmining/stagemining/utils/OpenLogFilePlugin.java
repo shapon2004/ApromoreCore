@@ -12,14 +12,14 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.in.XMxmlParser;
-import org.deckfour.xes.in.XParser;
-import org.deckfour.xes.in.XParserRegistry;
-import org.deckfour.xes.in.XesXmlParser;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.in.XMxmlParser;
+import org.apromore.xes.in.XParser;
+import org.apromore.xes.in.XParserRegistry;
+import org.apromore.xes.in.XesXmlParser;
+import org.apromore.xes.model.XLog;
 
 public class OpenLogFilePlugin extends AbstractImportPlugin {
 

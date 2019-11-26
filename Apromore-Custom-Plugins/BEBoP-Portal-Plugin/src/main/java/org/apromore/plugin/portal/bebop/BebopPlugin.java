@@ -20,13 +20,10 @@
 
 package org.apromore.plugin.portal.bebop;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.*;
-import java.util.stream.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -36,19 +33,14 @@ import java.util.Map;
 
 // Third party packages
 import org.apromore.model.SummaryType;
-import org.apromore.service.EventLogService;
-import org.deckfour.xes.model.XLog;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.zkoss.zk.ui.event.*;
 import org.zkoss.zul.*;
 
 // Local packages
-import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.helper.Version;
 import org.apromore.model.ProcessSummaryType;
 import org.apromore.model.VersionSummaryType;
@@ -58,10 +50,7 @@ import org.apromore.portal.custom.gui.tab.impl.TabRowValue;
 import org.apromore.service.ProcessService;
 import org.apromore.service.bpmndiagramimporter.BPMNDiagramImporter;
 import org.apromore.service.bebop.BebopService;
-import org.apromore.helper.Version;
-import org.apromore.model.ExportFormatResultType;
 
-import org.apromore.graph.canonical.Canonical;
 import au.edu.qut.bpmn.exporter.impl.BPMNDiagramExporterImpl;
 /**
  * Bebop service. Created by Fabrizio Fornari 18/05/2017

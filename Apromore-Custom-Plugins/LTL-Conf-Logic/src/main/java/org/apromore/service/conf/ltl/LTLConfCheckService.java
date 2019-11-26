@@ -21,17 +21,11 @@
 package org.apromore.service.conf.ltl;
 
 import au.ltl.domain.Constraint;
-import au.ltl.main.ModelChecker;
 import au.ltl.main.RuleVisualization;
 import au.ltl.utils.ModelAbstractions;
-import org.deckfour.xes.model.XLog;
 
-import au.ltl.domain.Actions;
-
-import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 

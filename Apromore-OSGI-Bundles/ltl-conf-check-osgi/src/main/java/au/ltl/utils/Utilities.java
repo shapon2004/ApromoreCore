@@ -12,15 +12,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Vector;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XLifecycleExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
-import org.deckfour.xes.out.XesXmlSerializer;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.extension.std.XLifecycleExtension;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
+import org.apromore.xes.out.XesXmlSerializer;
 
 import au.ltl.domain.CombinationOfAcceptingStates;
 import au.ltl.domain.CombinationOfRelevantTransitions;

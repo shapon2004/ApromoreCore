@@ -3,8 +3,8 @@ package org.apromore.logfilter.criteria.impl;
 import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XTrace;
 
 import java.util.Set;
 

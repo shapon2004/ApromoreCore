@@ -27,7 +27,6 @@ import ee.ut.eventstr.comparison.differences.ModelAbstractions;
 //import hub.top.petrinet.PetriNet;
 //import hub.top.petrinet.Place;
 //import hub.top.petrinet.Transition;
-import org.apache.commons.io.IOUtils;
 
 // Java 2 Enterprise Edition packages
 import javax.inject.Inject;
@@ -43,13 +42,8 @@ import org.apromore.model.ProcessSummaryType;
 import org.apromore.model.SummaryType;
 import org.apromore.model.LogSummaryType;
 import org.apromore.model.VersionSummaryType;
-import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.service.compare.CompareService;
-import org.deckfour.xes.model.XLog;
-import org.jbpt.petri.Flow;
-import org.jbpt.petri.NetSystem;
-import org.jbpt.hypergraph.abs.Vertex;
-import org.jbpt.petri.io.PNMLSerializer;
+import org.apromore.xes.model.XLog;
 import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 

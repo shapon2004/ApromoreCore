@@ -52,10 +52,10 @@ import org.apromore.prodrift.util.PrecisionRecallCurve;
 import org.apromore.prodrift.util.Utils;
 import org.apromore.prodrift.util.XLogManager;
 import org.apromore.prodrift.util.confusionMat;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.jfree.chart.JFreeChart;
 
 import jsc.contingencytables.ContingencyTable;

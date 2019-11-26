@@ -1,16 +1,16 @@
 package org.apromore.xlog.singletonlog;
 
-import org.deckfour.xes.extension.XExtension;
-import org.deckfour.xes.id.XID;
-import org.deckfour.xes.id.XIDFactory;
-import org.deckfour.xes.model.*;
-import org.deckfour.xes.util.XAttributeUtils;
+import org.apromore.xes.extension.XExtension;
+import org.apromore.xes.id.XID;
+import org.apromore.xes.id.XIDFactory;
+import org.apromore.xes.model.XTrace;
+import org.apromore.xes.util.XAttributeUtils;
 
 import java.util.Set;
 
-public class XEventSingletonImpl implements XEvent {
+public class XEventSingletonImpl implements org.apromore.xes.model.XEvent {
     private XID id;
-    private XAttributeMap attributes;
+    private org.apromore.xes.model.XAttributeMap attributes;
 
     public XEventSingletonImpl() {
         this(XIDFactory.instance().createId(), new XAttributeMapSingletonImpl());
@@ -20,20 +20,20 @@ public class XEventSingletonImpl implements XEvent {
         this(id, new XAttributeMapSingletonImpl());
     }
 
-    public XEventSingletonImpl(XAttributeMap attributes) {
+    public XEventSingletonImpl(org.apromore.xes.model.XAttributeMap attributes) {
         this(XIDFactory.instance().createId(), attributes);
     }
 
-    public XEventSingletonImpl(XID id, XAttributeMap attributes) {
+    public XEventSingletonImpl(XID id, org.apromore.xes.model.XAttributeMap attributes) {
         this.id = id;
         this.attributes = attributes;
     }
 
-    public XAttributeMap getAttributes() {
+    public org.apromore.xes.model.XAttributeMap getAttributes() {
         return this.attributes;
     }
 
-    public void setAttributes(XAttributeMap attributes) {
+    public void setAttributes(org.apromore.xes.model.XAttributeMap attributes) {
         this.attributes = attributes;
     }
 
@@ -55,7 +55,7 @@ public class XEventSingletonImpl implements XEvent {
         }
 
         clone.id = XIDFactory.instance().createId();
-        clone.attributes = (XAttributeMap)this.attributes.clone();
+        clone.attributes = (org.apromore.xes.model.XAttributeMap)this.attributes.clone();
         return clone;
     }
 
@@ -75,9 +75,9 @@ public class XEventSingletonImpl implements XEvent {
         this.id = id;
     }
 
-    public void accept(XVisitor visitor, XTrace trace) {
+    public void accept(org.apromore.xes.model.XVisitor visitor, XTrace trace) {
         visitor.visitEventPre(this, trace);
-        for(XAttribute attribute : attributes.values()) {
+        for(org.apromore.xes.model.XAttribute attribute : attributes.values()) {
             attribute.accept(visitor, this);
         }
 

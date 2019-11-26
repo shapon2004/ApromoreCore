@@ -22,7 +22,6 @@ package org.apromore.manager.client;
 
 import org.apromore.model.*;
 import org.apromore.plugin.property.RequestParameterType;
-import org.deckfour.xes.model.XLog;
 
 import javax.activation.DataHandler;
 import java.io.InputStream;

@@ -2,10 +2,11 @@ package org.apromore.cache.ehcache;
 
 import org.apromore.cache.ehcache.model.Description;
 import org.apromore.cache.ehcache.model.Employee;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.in.XesXmlParser;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.in.XesXmlParser;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.impl.XLogImpl;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.CacheConfiguration;
@@ -220,15 +221,15 @@ public class SerializerTest {
     public void testTransientXLogKryoSerializer() throws Exception {
         // tag::transientKryoSerializer[]
         CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
-        CacheConfiguration<Long, XLog> cacheConfig =
-                CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, XLog.class, ResourcePoolsBuilder.heap(10))
+        CacheConfiguration<Long, XLogImpl> cacheConfig =
+                CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, XLogImpl.class, ResourcePoolsBuilder.heap(10))
                         .withValueSerializer(TransientXLogKryoSerializer.class)
                         .build();
 
-        Cache<Long, XLog> employeeCache = cacheManager.createCache("xLogCache", cacheConfig);
+        Cache<Long, XLogImpl> employeeCache = cacheManager.createCache("xLogCache", cacheConfig);
 
         List<XLog> parsedLog = null;
-        XLog xLog;
+        XLogImpl xLog;
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         XesXmlParser parser = new XesXmlParser(factory);
         try {
@@ -237,7 +238,7 @@ public class SerializerTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        xLog = parsedLog.iterator().next();
+        xLog = (XLogImpl) parsedLog.iterator().next();
 
 
         employeeCache.put(1L, xLog);
@@ -248,9 +249,9 @@ public class SerializerTest {
     @Test
     public void testPersistentXLogKryoSerializer() throws Exception {
         // tag::persistentKryoSerializer[]
-        CacheConfiguration<Long, XLog> cacheConfig =
+        CacheConfiguration<Long, XLogImpl> cacheConfig =
                 CacheConfigurationBuilder.newCacheConfigurationBuilder(
-                        Long.class, XLog.class,
+                        Long.class, XLogImpl.class,
                         ResourcePoolsBuilder.heap(10).disk(100, MemoryUnit.MB, true))
                         .withValueSerializer(PersistentXLogKryoSerializer.class)
                         .build();
@@ -260,10 +261,10 @@ public class SerializerTest {
                 .withCache("xLogCache", cacheConfig)
                 .build(true);
 
-        Cache<Long, XLog> employeeCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
+        Cache<Long, XLogImpl> employeeCache = cacheManager.getCache("xLogCache", Long.class, XLogImpl.class);
 
         List<XLog> parsedLog = null;
-        XLog xLog;
+        XLogImpl xLog;
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         XesXmlParser parser = new XesXmlParser(factory);
         try {
@@ -272,7 +273,7 @@ public class SerializerTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        xLog = parsedLog.iterator().next();
+        xLog = (XLogImpl) parsedLog.iterator().next();
 
         employeeCache.put(1L, xLog);
         XLog newEmp = employeeCache.get(1L);
@@ -280,7 +281,7 @@ public class SerializerTest {
 
         cacheManager.close();
         cacheManager.init();
-        employeeCache = cacheManager.getCache("employeeCache", Long.class, XLog.class);
+        employeeCache = cacheManager.getCache("employeeCache", Long.class, XLogImpl.class);
         assertThat(employeeCache.get(1L), is(xLog));
         // end::persistentKryoSerializer[]
     }

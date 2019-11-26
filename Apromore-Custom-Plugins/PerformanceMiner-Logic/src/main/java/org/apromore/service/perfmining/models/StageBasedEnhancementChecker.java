@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.apromore.service.perfmining.parameters.SPFConfig;
 import org.apromore.service.perfmining.util.LogUtilites;
 import org.apromore.service.perfmining.util.Logger;

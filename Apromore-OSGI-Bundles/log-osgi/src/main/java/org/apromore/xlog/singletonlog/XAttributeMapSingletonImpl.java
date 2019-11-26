@@ -1,7 +1,7 @@
 package org.apromore.xlog.singletonlog;
 
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XAttributeMap;
+import org.apromore.xes.model.XAttribute;
+import org.apromore.xes.model.XAttributeMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.util.Map;

@@ -25,9 +25,9 @@ import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowElement;
 import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.Process;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryNaiveImpl;
-import org.deckfour.xes.model.*;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryNaiveImpl;
+import org.apromore.xes.model.*;
 
 import java.util.Date;
 import java.util.List;

@@ -46,22 +46,20 @@ import java.io.FileOutputStream
 import java.io.PrintWriter
 import java.io.OutputStream
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.TimeZone
 import cs.ut.providers.Dir
 import cs.ut.providers.DirectoryConfiguration
 import org.apromore.model.LogSummaryType
 import org.apromore.plugin.portal.predictortraining.PortalPlugin
-import org.deckfour.xes.model.XAttribute
-import org.deckfour.xes.model.XAttributeBoolean
-import org.deckfour.xes.model.XAttributeContinuous
-import org.deckfour.xes.model.XAttributeDiscrete
-import org.deckfour.xes.model.XAttributeLiteral
-import org.deckfour.xes.model.XAttributeTimestamp
-import org.deckfour.xes.model.XEvent
-import org.deckfour.xes.model.XLog
-import org.deckfour.xes.model.XTrace
-import org.json.JSONArray
+import org.apromore.xes.model.XAttribute
+import org.apromore.xes.model.XAttributeBoolean
+import org.apromore.xes.model.XAttributeContinuous
+import org.apromore.xes.model.XAttributeDiscrete
+import org.apromore.xes.model.XAttributeLiteral
+import org.apromore.xes.model.XAttributeTimestamp
+import org.apromore.xes.model.XEvent
+import org.apromore.xes.model.XLog
+import org.apromore.xes.model.XTrace
 import org.json.JSONObject
 
 class TrainingController : SelectorComposer<Component>(), Redirectable, UIComponent {

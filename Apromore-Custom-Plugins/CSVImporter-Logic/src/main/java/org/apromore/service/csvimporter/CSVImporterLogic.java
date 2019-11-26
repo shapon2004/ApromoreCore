@@ -2,13 +2,11 @@ package org.apromore.service.csvimporter;
 
 import com.opencsv.CSVReader;
 import org.apromore.service.csvimporter.impl.LogModel;
-import org.deckfour.xes.model.XLog;
-import org.zkoss.util.media.Media;
+import org.apromore.xes.model.XLog;
 import org.zkoss.zul.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 

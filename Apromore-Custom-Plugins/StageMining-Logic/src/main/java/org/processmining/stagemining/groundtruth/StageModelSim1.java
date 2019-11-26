@@ -1,17 +1,11 @@
 package org.processmining.stagemining.groundtruth;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
-import org.jbpt.hypergraph.abs.IVertex;
-import org.processmining.stagemining.utils.LogUtilites;
+import org.apromore.xes.model.XLog;
 
 public class StageModelSim1 extends ExampleClass {
 	public List<Set<String>> getGroundTruth(XLog log) throws Exception {

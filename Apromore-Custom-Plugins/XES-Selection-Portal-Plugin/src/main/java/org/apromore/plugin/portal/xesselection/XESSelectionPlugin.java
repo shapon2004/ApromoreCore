@@ -21,11 +21,11 @@
 package org.apromore.plugin.portal.xesselection;
 
 import java.util.Locale;
-import javax.inject.Inject;
+
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
-import org.deckfour.xes.factory.XFactoryBufferedImpl;
-import org.deckfour.xes.factory.XFactoryRegistry;
+import org.apromore.xes.factory.XFactoryBufferedImpl;
+import org.apromore.xes.factory.XFactoryRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

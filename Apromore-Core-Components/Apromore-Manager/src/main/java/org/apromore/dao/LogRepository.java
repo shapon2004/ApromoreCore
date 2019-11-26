@@ -21,7 +21,6 @@
 package org.apromore.dao;
 
 import org.apromore.dao.model.Log;
-import org.deckfour.xes.model.XLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

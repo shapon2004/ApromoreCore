@@ -20,8 +20,6 @@
 
 package org.apromore.service.bpmnminer.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.*;
 import javax.swing.UIManager;
 
@@ -39,9 +37,9 @@ import com.raffaeleconforti.foreignkeydiscovery.functionaldependencies.Data;
 import com.raffaeleconforti.foreignkeydiscovery.functionaldependencies.NoEntityException;
 import com.raffaeleconforti.log.util.LogOptimizer;
 import com.raffaeleconforti.wrappers.settings.MiningSettings;
-import org.deckfour.xes.classification.XEventNameClassifier;
-import org.deckfour.xes.info.XLogInfoFactory;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.classification.XEventNameClassifier;
+import org.apromore.xes.info.XLogInfoFactory;
+import org.apromore.xes.model.XLog;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.processmining.contexts.uitopia.UIContext;
 import org.processmining.contexts.uitopia.UIPluginContext;

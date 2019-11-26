@@ -436,6 +436,12 @@
                 <groupId>com.raffaeleconforti</groupId>
                 <artifactId>assembly</artifactId>
                 <version>1.0.20190812</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.deckfour</groupId>
+                        <artifactId>openxes</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>

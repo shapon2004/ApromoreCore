@@ -31,7 +31,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 
 // Third party packages
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 //import org.processmining.plugins.signaturediscovery.encoding.EncodeTraces;

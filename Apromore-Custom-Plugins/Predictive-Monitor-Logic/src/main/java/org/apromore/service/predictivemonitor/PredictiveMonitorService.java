@@ -21,13 +21,12 @@
 package org.apromore.service.predictivemonitor;
 
 // Java 2 Standard Edition
-import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Observer;
 
 // Third party packages
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 public interface PredictiveMonitorService {
 

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,19 +42,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 // Local
 import de.hpi.bpmn2_0.exceptions.BpmnConverterException;
 import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
-import de.hpi.bpmn2_0.replay.AnimationLog;
-import de.hpi.bpmn2_0.replay.Optimizer;
-import de.hpi.bpmn2_0.replay.ReplayParams;
-import de.hpi.bpmn2_0.replay.Replayer;
 import de.hpi.bpmn2_0.transformation.Diagram2BpmnConverter;
 import org.apromore.service.loganimation.LogAnimationService;
 import org.oryxeditor.server.diagram.basic.BasicDiagram;

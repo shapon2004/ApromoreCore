@@ -21,7 +21,7 @@
 package org.apromore.service.metrics;
 
 import org.apromore.graph.canonical.Canonical;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 
 import java.util.Map;

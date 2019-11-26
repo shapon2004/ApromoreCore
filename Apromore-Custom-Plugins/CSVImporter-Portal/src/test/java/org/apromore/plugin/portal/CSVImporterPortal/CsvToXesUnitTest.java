@@ -10,7 +10,7 @@
 //
 //import org.apromore.service.csvimporter.CSVImporterLogic;
 //import org.apromore.service.csvimporter.impl.LogModel;
-//import org.deckfour.xes.model.XLog;
+//import XLog;
 //import org.junit.Ignore;
 //import org.junit.Test;
 //

@@ -26,7 +26,7 @@ import de.hpi.bpmn2_0.replay.BPMNDiagramHelper;
 import de.hpi.bpmn2_0.replay.LogUtility;
 import de.hpi.bpmn2_0.replay.ORJoinEnactmentManager;
 import de.hpi.bpmn2_0.replay.ReplayParams;
-import java.util.Collection;
+
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -36,10 +36,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.model.XAttributeLiteral;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.model.XTrace;
 
 /*
 * An abstraction of state of a node

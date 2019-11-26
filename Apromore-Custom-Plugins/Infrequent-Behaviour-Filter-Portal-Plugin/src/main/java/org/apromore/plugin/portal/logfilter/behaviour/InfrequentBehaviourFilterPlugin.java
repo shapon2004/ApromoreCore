@@ -33,13 +33,11 @@ import java.util.Locale;
 import java.util.Map;
 
 // Third party packages
-import org.apromore.common.Constants;
-import org.apromore.dao.LogRepository;
 import org.apromore.model.LogSummaryType;
 import org.apromore.model.SummaryType;
 import org.apromore.service.EventLogService;
 import org.apromore.service.logfilter.behaviour.InfrequentBehaviourFilterService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

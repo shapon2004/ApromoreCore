@@ -1,11 +1,11 @@
 package org.apromore.service.logfilter.activity.impl;
 
-import org.deckfour.xes.classification.XEventClass;
-import org.deckfour.xes.classification.XEventClasses;
-import org.deckfour.xes.classification.XEventClassifier;
-import org.deckfour.xes.info.XLogInfo;
-import org.deckfour.xes.info.impl.XLogInfoImpl;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.classification.XEventClass;
+import org.apromore.xes.classification.XEventClasses;
+import org.apromore.xes.classification.XEventClassifier;
+import org.apromore.xes.info.XLogInfo;
+import org.apromore.xes.info.impl.XLogInfoImpl;
+import org.apromore.xes.model.XLog;
 import org.processmining.framework.util.collection.AlphanumComparator;
 import org.processmining.plugins.log.logfilters.impl.DefaultLogFilter;
 import org.processmining.plugins.log.logfilters.impl.EventLogFilter;

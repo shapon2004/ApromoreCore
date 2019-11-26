@@ -20,7 +20,7 @@
 
 package org.apromore.service.logfilter.behaviour;
 
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 /**
  * Created by Raffaele Conforti on 18/04/2016.

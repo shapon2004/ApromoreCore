@@ -35,7 +35,7 @@ import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_RunStream;
 import org.apromore.prodrift.exception.ProDriftDetectionException;
 import org.apromore.prodrift.model.ProDriftDetectionResult;
 import org.apromore.prodrift.util.XLogManager;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.ui.ApplicationFrame;

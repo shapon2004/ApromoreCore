@@ -21,36 +21,27 @@
 package org.apromore.plugin.portal.compareBP;
 
 // Java 2 Standard packages
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.*;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 // Third party packages
 import ee.ut.eventstr.comparison.differences.*;
 import org.apromore.plugin.editor.EditorPlugin;
 import org.apromore.portal.context.EditorPluginResolver;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.spring.SpringUtil;
-import org.zkoss.zk.au.AuResponse;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Button;
-import org.zkoss.zul.Hbox;
-import org.zkoss.zul.Label;
 import org.zkoss.zul.Toolbar;
-import org.zkoss.zul.Window;
 
 // Local packages
 import org.apromore.model.EditSessionType;
@@ -60,7 +51,6 @@ import org.apromore.model.ProcessSummaryType;
 import org.apromore.model.UserType;
 import org.apromore.model.VersionSummaryType;
 import org.apromore.plugin.property.RequestParameterType;
-import org.apromore.portal.ConfigBean;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.dialogController.dto.SignavioSession;
 import org.apromore.portal.exception.ExceptionFormats;

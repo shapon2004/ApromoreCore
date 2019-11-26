@@ -1,16 +1,15 @@
 import java.util.Date;
 
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XLifecycleExtension;
-import org.deckfour.xes.extension.std.XSoftwareEventExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XAttributeList;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.extension.std.XLifecycleExtension;
+import org.apromore.xes.extension.std.XSoftwareEventExtension;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.factory.XFactoryRegistry;
+import org.apromore.xes.model.XAttributeList;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 
 /*
  * OpenXES

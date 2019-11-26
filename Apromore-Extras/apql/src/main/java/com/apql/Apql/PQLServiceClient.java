@@ -20,21 +20,13 @@
 
 package com.apql.Apql;
 
-import org.apromore.helper.PluginHelper;
-import org.apromore.manager.client.helper.DeleteProcessVersionHelper;
-import org.apromore.manager.client.helper.MergeProcessesHelper;
-import org.apromore.manager.client.helper.SearchForSimilarProcessesHelper;
-import org.apromore.manager.client.util.StreamUtil;
 import org.apromore.model.Detail;
 import org.apromore.model.SummariesType;
-import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.service.pql.DatabaseService;
 import org.apromore.service.pql.ExternalId;
 import org.apromore.service.pql.PQLService;
 
 import org.apromore.service.pql.ws.model.*;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.out.XesXmlSerializer;
 import org.pql.index.IndexStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,20 +36,14 @@ import static org.springframework.ws.soap.SoapVersion.SOAP_11;
 import org.springframework.ws.soap.saaj.SaajSoapMessageFactory;
 import org.springframework.ws.transport.http.HttpComponentsMessageSender;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
 import javax.xml.bind.JAXBElement;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
-import java.awt.*;
-import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * SOAP proxy to the Process Query Language (PQL) service.

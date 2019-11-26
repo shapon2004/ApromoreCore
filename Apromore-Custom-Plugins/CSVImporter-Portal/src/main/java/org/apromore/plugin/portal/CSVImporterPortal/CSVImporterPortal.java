@@ -23,8 +23,6 @@ package org.apromore.plugin.portal.CSVImporterPortal;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Calendar;
 import javax.inject.Inject;
@@ -33,7 +31,6 @@ import javax.xml.datatype.DatatypeFactory;
 import com.opencsv.*;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
 import org.apache.commons.lang.StringUtils;
-import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.FileImporterPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.service.EventLogService;
@@ -43,16 +40,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.zkoss.util.media.Media;
-import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zk.ui.metainfo.ZScript;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 import org.zkoss.zul.*;
 
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 
 @Component("csvImporterPortalPlugin")

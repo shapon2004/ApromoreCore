@@ -24,13 +24,10 @@ import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
 import org.apromore.logfilter.util.TimeConverter;
-import org.deckfour.xes.model.XAttributeTimestamp;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XAttributeTimestamp;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XTrace;
 
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
 import java.util.Set;
 
 public class LogFilterCriterionDuration extends AbstractLogFilterCriterion {

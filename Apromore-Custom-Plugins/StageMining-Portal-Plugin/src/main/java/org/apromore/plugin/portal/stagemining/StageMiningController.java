@@ -29,15 +29,13 @@ import org.zkoss.zk.ui.event.UploadEvent;
 import org.zkoss.zul.*;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Map;
 import org.apromore.service.stagemining.StageMiningService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 import org.json.JSONException;
 import org.processmining.stagemining.models.DecompositionTree;
 import org.processmining.stagemining.utils.LogUtilites;
 import org.zkoss.zk.ui.SuspendNotAllowedException;
-import org.zkoss.zul.ext.Selectable;
 
 
 public class StageMiningController {

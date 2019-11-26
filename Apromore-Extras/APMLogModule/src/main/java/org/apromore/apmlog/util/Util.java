@@ -1,9 +1,9 @@
 package org.apromore.apmlog.util;
 
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.in.XesXmlGZIPParser;
-import org.deckfour.xes.in.XesXmlParser;
-import org.deckfour.xes.model.*;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.in.XesXmlGZIPParser;
+import org.apromore.xes.in.XesXmlParser;
+import org.apromore.xes.model.XTrace;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -24,19 +24,19 @@ public class Util {
         return s;
     }
 
-    public static ZonedDateTime zonedDateTimeOf(XEvent xEvent) {
-        XAttribute da =
+    public static ZonedDateTime zonedDateTimeOf(org.apromore.xes.model.XEvent xEvent) {
+        org.apromore.xes.model.XAttribute da =
                 xEvent.getAttributes().get(XTimeExtension.KEY_TIMESTAMP);
-        Date d = ((XAttributeTimestamp) da).getValue();
+        Date d = ((org.apromore.xes.model.XAttributeTimestamp) da).getValue();
         ZonedDateTime z =
                 ZonedDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
         return z;
     }
 
-    public static List<ZonedDateTime> allTimestampsOf(XTrace xTrace){
+    public static List<ZonedDateTime> allTimestampsOf(org.apromore.xes.model.XTrace xTrace){
         List<ZonedDateTime> allTimestamps = new ArrayList<ZonedDateTime>();
         for(int j=0; j<xTrace.size(); j++){
-            XEvent xEvent = xTrace.get(j);
+            org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
             ZonedDateTime zdt = zonedDateTimeOf(xEvent);
             allTimestamps.add(zdt);
         }
@@ -44,12 +44,12 @@ public class Util {
         return  allTimestamps;
     }
 
-    public static List<Long> allTimestampMillisOf(XLog xLog){
+    public static List<Long> allTimestampMillisOf(org.apromore.xes.model.XLog xLog){
         List<Long> allTimestamps = new ArrayList<Long>();
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 long timeMilli = epochMilliOf(zonedDateTimeOf(xEvent));
                 allTimestamps.add(timeMilli);
             }
@@ -58,11 +58,11 @@ public class Util {
         return  allTimestamps;
     }
 
-    public static List<Long> allEndTimestampMillisOf(XLog xLog){
+    public static List<Long> allEndTimestampMillisOf(org.apromore.xes.model.XLog xLog){
         List<Long> allTimestamps = new ArrayList<Long>();
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
-            XEvent endXEvent = xTrace.get(xTrace.size()-1);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XEvent endXEvent = xTrace.get(xTrace.size()-1);
             long endTimeMilli = epochMilliOf(zonedDateTimeOf(endXEvent));
             allTimestamps.add(endTimeMilli);
         }
@@ -70,12 +70,12 @@ public class Util {
         return  allTimestamps;
     }
 
-    public static long firstTimeMilliOf(XLog xlog){
+    public static long firstTimeMilliOf(org.apromore.xes.model.XLog xlog){
         ZonedDateTime fTime = zonedDateTimeOf(xlog.get(0).get(0));
         for(int i=0; i<xlog.size(); i++){
-            XTrace xTrace = xlog.get(0);
+            org.apromore.xes.model.XTrace xTrace = xlog.get(0);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 ZonedDateTime xeTime = zonedDateTimeOf(xEvent);
                 if(xeTime.isBefore(fTime)){
                     fTime = xeTime;
@@ -85,12 +85,12 @@ public class Util {
         return epochMilliOf(fTime);
     }
 
-    public static long lastTimeMilliOf(XLog xlog){
+    public static long lastTimeMilliOf(org.apromore.xes.model.XLog xlog){
         ZonedDateTime lTime = zonedDateTimeOf(xlog.get(0).get(0));
         for(int i=0; i<xlog.size(); i++){
-            XTrace xTrace = xlog.get(0);
+            org.apromore.xes.model.XTrace xTrace = xlog.get(0);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 ZonedDateTime xeTime = zonedDateTimeOf(xEvent);
                 if(xeTime.isAfter(lTime)){
                     lTime = xeTime;
@@ -100,12 +100,12 @@ public class Util {
         return epochMilliOf(lTime);
     }
 
-    public static List<ZonedDateTime> allTimestampsOf(XLog xLog){
+    public static List<ZonedDateTime> allTimestampsOf(org.apromore.xes.model.XLog xLog){
         List<ZonedDateTime> allTimestamps = new ArrayList<ZonedDateTime>();
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 if(xEvent.getAttributes().containsKey("lifecycle:transition")) {
                     String life = xEvent.getAttributes().get(
                             "lifecycle:transition").toString().toLowerCase();
@@ -120,14 +120,14 @@ public class Util {
         return allTimestamps;
     }
 
-    public static List<ZonedDateTime> allTimestampsOf(List<XLog> xLogList){
+    public static List<ZonedDateTime> allTimestampsOf(List<org.apromore.xes.model.XLog> xLogList){
         List<ZonedDateTime> allTimestamps = new ArrayList<ZonedDateTime>();
         for(int k=0; k<xLogList.size(); k++){
-            XLog xLog = xLogList.get(k);
+            org.apromore.xes.model.XLog xLog = xLogList.get(k);
             for(int i=0; i<xLog.size(); i++){
-                XTrace xTrace = xLog.get(i);
+                org.apromore.xes.model.XTrace xTrace = xLog.get(i);
                 for(int j=0; j<xTrace.size(); j++){
-                    XEvent xEvent = xTrace.get(j);
+                    org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                     ZonedDateTime zdt = zonedDateTimeOf(xEvent);
                     allTimestamps.add(zdt);
                 }
@@ -137,7 +137,7 @@ public class Util {
         return allTimestamps;
     }
 
-    public static String xAxisBaseUnitOf(XLog xLog){
+    public static String xAxisBaseUnitOf(org.apromore.xes.model.XLog xLog){
         Duration duration = durationOf(xLog);
         int durationSeconds = (int) duration.getSeconds();
         String mode = "second";
@@ -170,7 +170,7 @@ public class Util {
         return mode;
     }
 
-    public static List<Long> defaultTimelineMilliOf(List<XLog> xLogList){
+    public static List<Long> defaultTimelineMilliOf(List<org.apromore.xes.model.XLog> xLogList){
         String mode = xAxisBaseUnitOf(xLogList.get(0));
         List<ZonedDateTime> allTimestamps = allTimestampsOf(xLogList);
         ZonedDateTime d1 = allTimestamps.get(0);
@@ -196,7 +196,7 @@ public class Util {
         return defaultTimeline;
     }
 
-    public static List<Long> defaultTimelineMilliOf(XLog xLog){
+    public static List<Long> defaultTimelineMilliOf(org.apromore.xes.model.XLog xLog){
         String mode = xAxisBaseUnitOf(xLog);
         List<ZonedDateTime> allTimestamps = allTimestampsOf(xLog);
         ZonedDateTime d1 = allTimestamps.get(0);
@@ -222,7 +222,7 @@ public class Util {
         return defaultTimeline;
     }
 
-    public static Duration durationOf(XTrace xTrace){
+    public static Duration durationOf(org.apromore.xes.model.XTrace xTrace){
         List<ZonedDateTime> timestamps = allTimestampsOf(xTrace);
         ZonedDateTime firstTimestamp = timestamps.get(0);
         ZonedDateTime lastTimestamp = timestamps.get(timestamps.size()-1);
@@ -230,7 +230,7 @@ public class Util {
         return duration;
     }
 
-    public static Duration durationOf(XLog xLog){
+    public static Duration durationOf(org.apromore.xes.model.XLog xLog){
         List<ZonedDateTime> allTimestamps = allTimestampsOf(xLog);
         Collections.sort(allTimestamps);
         ZonedDateTime firstTimestamp = allTimestamps.get(0);
@@ -239,7 +239,7 @@ public class Util {
         return duration;
     }
 
-    public static Duration durationOf(List<XLog> xLogList){
+    public static Duration durationOf(List<org.apromore.xes.model.XLog> xLogList){
         List<ZonedDateTime> allTimestamps = allTimestampsOf(xLogList);
         Collections.sort(allTimestamps);
         ZonedDateTime firstTimestamp = allTimestamps.get(0);
@@ -321,7 +321,7 @@ public class Util {
         return newZDT;
     }
 
-    public static List<XLog> parseXLogFile(File xLogFile) throws Exception {
+    public static List<org.apromore.xes.model.XLog> parseXLogFile(File xLogFile) throws Exception {
         XesXmlParser parser  =new XesXmlParser();
         String fileName = xLogFile.getName();
         String extension = fileName.substring(fileName.lastIndexOf("."));
@@ -480,10 +480,10 @@ public class Util {
         return newTimestamps;
     }
 
-    public static List<String> sequencedEventNamesOf(XTrace xTrace){
+    public static List<String> sequencedEventNamesOf(org.apromore.xes.model.XTrace xTrace){
         List<String> eventNames = new ArrayList<String>();
         for(int i=0; i<xTrace.size(); i++){
-            XEvent xEvent = xTrace.get(i);
+            org.apromore.xes.model.XEvent xEvent = xTrace.get(i);
             String eName = xEvent.getAttributes().get("concept:name").toString();
             eventNames.add(eName);
         }
@@ -607,15 +607,15 @@ public class Util {
     }
 
 
-    public static List<String> allEventNamesOf(XLog xLog){
+    public static List<String> allEventNamesOf(org.apromore.xes.model.XLog xLog){
         List<String> nameList = new ArrayList<String>();
 
         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
 
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 String name =
                         xEvent.getAttributes().get("concept:name").toString();
                 tempMap.put(name, 0);
@@ -630,7 +630,7 @@ public class Util {
         return nameList;
     }
 
-    public static List<String> allActivityNamesOf(XLog theLog){
+    public static List<String> allActivityNamesOf(org.apromore.xes.model.XLog theLog){
         List<String> nameList = new ArrayList<String>();
 
         HashMap<Long, Integer> markedTimeMilliHM =
@@ -639,9 +639,9 @@ public class Util {
         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
 
         for(int i=0; i<theLog.size(); i++){
-            XTrace xTrace = theLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = theLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 long jETime = epochMilliOf(Util.zonedDateTimeOf(xEvent));
                 String name = xEvent.getAttributes().get(
                         "concept:name").toString();
@@ -650,7 +650,7 @@ public class Util {
                 if(lifecycle.equals("start")) {
                     //find and mark the end of the activity
                     for(int k=j; k<xTrace.size();k++) {
-                        XEvent kEvent = xTrace.get(k);
+                        org.apromore.xes.model.XEvent kEvent = xTrace.get(k);
                         String kName = kEvent.getAttributes().get(
                                 "concept:name").toString();
                         String kLife = kEvent.getAttributes().get(
@@ -675,12 +675,12 @@ public class Util {
         return nameList;
     }
 
-    public static HashMap<String, Integer> activityFrequencyOf(XLog xLog){
+    public static HashMap<String, Integer> activityFrequencyOf(org.apromore.xes.model.XLog xLog){
         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 String name = xEvent.getAttributes().get(
                         "concept:name").toString();
                 String lifecycle = xEvent.getAttributes().get(
@@ -723,14 +723,14 @@ public class Util {
         return relativeFreq;
     }
 
-    public static List<String> allFirstInCaseOf(XLog xLog){
+    public static List<String> allFirstInCaseOf(org.apromore.xes.model.XLog xLog){
         List<String> nameList = new ArrayList<String>();
 
         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
         for(int i=0; i<xLog.size();i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size();j++){
-                XEvent e0 = xTrace.get(0);
+                org.apromore.xes.model.XEvent e0 = xTrace.get(0);
                 String name =
                         e0.getAttributes().get("concept:name").toString();
                 tempMap.put(name, 0);
@@ -746,13 +746,13 @@ public class Util {
         return firstInCaseList;
     }
 
-    public static List<String> allLastInCaseOf(XLog xLog){
+    public static List<String> allLastInCaseOf(org.apromore.xes.model.XLog xLog){
         List<String> lastInCaseList = new ArrayList<String>();
         HashMap<String, Integer> tempMap = new HashMap<String, Integer>();
 
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
-            XEvent xEvent = xTrace.get(xTrace.size()-1);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XEvent xEvent = xTrace.get(xTrace.size()-1);
             String xeName =
                     xEvent.getAttributes().get("concept:name").toString();
             tempMap.put(xeName, 0);
@@ -919,10 +919,10 @@ public class Util {
     }
 
 
-    public static int eventOccurCount(String eventName, XTrace xTrace){
+    public static int eventOccurCount(String eventName, org.apromore.xes.model.XTrace xTrace){
         int count = 0;
         for(int i=0; i<xTrace.size(); i++){
-            XEvent xEvent = xTrace.get(i);
+            org.apromore.xes.model.XEvent xEvent = xTrace.get(i);
             String name = xEvent.getAttributes().get("concept:name").toString();
             if(name.equals(eventName)){
                 count+=1;
@@ -938,14 +938,14 @@ public class Util {
      * @param xTrace
      * @return
      */
-    public static long activityDurationOf(String eventName, XTrace xTrace){
+    public static long activityDurationOf(String eventName, org.apromore.xes.model.XTrace xTrace){
         int count = eventOccurCount(eventName, xTrace);
         if(count <= 1) return 0;
 
         ZonedDateTime startTime = null;
         ZonedDateTime endTime = null;
         for(int i=0; i<xTrace.size(); i++){
-            XEvent xEvent = xTrace.get(i);
+            org.apromore.xes.model.XEvent xEvent = xTrace.get(i);
             String xeName =
                     xEvent.getAttributes().get("concept:name").toString();
             String lifecycle =
@@ -962,13 +962,13 @@ public class Util {
     }
 
     public static List<Long> activityDurationListOf(
-            String eventName, XLog xLog)
+            String eventName, org.apromore.xes.model.XLog xLog)
     {
         List<Long> durationList = new ArrayList<Long>();
         for(int i=0; i<xLog.size(); i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 String xeName =
                         xEvent.getAttributes().get("concept:name").toString();
                 int occur = eventOccurCount(xeName, xTrace);
@@ -981,14 +981,14 @@ public class Util {
         return durationList;
     }
 
-    public static HashMap<String, List<Long>> durationListHashMapOf(XLog xLog){
+    public static HashMap<String, List<Long>> durationListHashMapOf(org.apromore.xes.model.XLog xLog){
         HashMap<String, List<Long>> durationHashMap =
                 new HashMap<String, List<Long>>();
 
         for(int i=0; i<xLog.size();i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
 
                 String name =
                         xEvent.getAttributes().get(
@@ -1006,7 +1006,7 @@ public class Util {
 
                 if(life.equals("start") && (eventCount>0)){
                     for(int k=j; k<xTrace.size();k++){
-                        XEvent kEvent = xTrace.get(k);
+                        org.apromore.xes.model.XEvent kEvent = xTrace.get(k);
                         String kName = kEvent.getAttributes().get(
                                 "concept:name").toString();
                         String kLife = kEvent.getAttributes().get(
@@ -1036,7 +1036,7 @@ public class Util {
     }
 
 
-    public static HashMap<String, Long> activityAggregateDurationOf(XLog xLog){
+    public static HashMap<String, Long> activityAggregateDurationOf(org.apromore.xes.model.XLog xLog){
         HashMap<String, List<Long>>
                 actDurListHashMap = durationListHashMapOf(xLog);
 
@@ -1076,12 +1076,12 @@ public class Util {
         return timeMillis - stMillis;
     }
 
-    public static int eventsSizeOf(XLog xLog) {
+    public static int eventsSizeOf(org.apromore.xes.model.XLog xLog) {
         int num = 0;
         for(int i=0; i<xLog.size();i++){
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             for(int j=0; j<xTrace.size(); j++){
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 String life = "";
                 if(xEvent.getAttributes().containsKey("lifecycle:transition")){
                     life = xEvent.getAttributes().get(
@@ -1095,14 +1095,14 @@ public class Util {
         return num;
     }
 
-    public static XLog validateXLog(XLog xLog) {
-        List<XTrace> tobeRemoved = new ArrayList<XTrace>();
+    public static org.apromore.xes.model.XLog validateXLog(org.apromore.xes.model.XLog xLog) {
+        List<org.apromore.xes.model.XTrace> tobeRemoved = new ArrayList<org.apromore.xes.model.XTrace>();
         for(int i=0; i<xLog.size(); i++) {
-            XTrace xTrace = xLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = xLog.get(i);
             if(xTrace.size() < 1) {
                 tobeRemoved.add(xTrace);
             }
-            for(XEvent xEvent : xTrace) {
+            for(org.apromore.xes.model.XEvent xEvent : xTrace) {
                 if(!xEvent.getAttributes().containsKey("time:timestamp")) {
                     tobeRemoved.add(xTrace);
                 }
@@ -1114,26 +1114,26 @@ public class Util {
 
 
 
-    public static XLog filteredLogOfTimeperiod(
-            ZonedDateTime minTime, ZonedDateTime maxTime, XLog theLog,
+    public static org.apromore.xes.model.XLog filteredLogOfTimeperiod(
+            ZonedDateTime minTime, ZonedDateTime maxTime, org.apromore.xes.model.XLog theLog,
             String filteredLogName)
     {
 
         for(int i=0; i<theLog.size(); i++) {
-            XTrace xTrace = theLog.get(i);
+            org.apromore.xes.model.XTrace xTrace = theLog.get(i);
             for(int j=0; j<xTrace.size(); j++) {
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 ZonedDateTime zdt = Util.zonedDateTimeOf(xEvent);
 
             }
         }
 
-        List<XTrace> tobeRemovedTraces = new ArrayList<XTrace>();
+        List<org.apromore.xes.model.XTrace> tobeRemovedTraces = new ArrayList<org.apromore.xes.model.XTrace>();
         for(int i=0; i<theLog.size(); i++) {
             XTrace xTrace = theLog.get(i);
-            List<XEvent> tobeRemoved = new ArrayList<XEvent>();
+            List<org.apromore.xes.model.XEvent> tobeRemoved = new ArrayList<org.apromore.xes.model.XEvent>();
             for(int j=0; j<xTrace.size(); j++) {
-                XEvent xEvent = xTrace.get(j);
+                org.apromore.xes.model.XEvent xEvent = xTrace.get(j);
                 ZonedDateTime zdt = Util.zonedDateTimeOf(xEvent);
 
 

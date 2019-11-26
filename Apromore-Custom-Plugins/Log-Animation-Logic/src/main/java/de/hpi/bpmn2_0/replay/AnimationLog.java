@@ -32,9 +32,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.apromore.service.loganimation.LogAnimationService;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

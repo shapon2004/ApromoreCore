@@ -34,8 +34,8 @@ import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_EventStream;
 import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_RunStream;
 import org.apromore.prodrift.main.Main;
 import org.apromore.prodrift.model.DriftPoint;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 
 
 public class MeanDelayCurve {

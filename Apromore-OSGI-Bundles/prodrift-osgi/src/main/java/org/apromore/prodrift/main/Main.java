@@ -36,7 +36,7 @@ import org.apromore.prodrift.driftdetector.ControlFlowDriftDetector_EventStream;
 import org.apromore.prodrift.model.ProDriftDetectionResult;
 import org.apromore.prodrift.util.LogStreamer;
 import org.apromore.prodrift.util.XLogManager;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 
 public class Main {

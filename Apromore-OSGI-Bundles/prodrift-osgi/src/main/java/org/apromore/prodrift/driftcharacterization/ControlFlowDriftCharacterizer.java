@@ -1,7 +1,5 @@
 package org.apromore.prodrift.driftcharacterization;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -27,10 +25,10 @@ import org.apromore.prodrift.exception.ProDriftDetectionException;
 import org.apromore.prodrift.main.Main;
 import org.apromore.prodrift.util.Utils;
 import org.apromore.prodrift.util.XLogManager;
-import org.deckfour.xes.classification.XEventClass;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.classification.XEventClass;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 
 import org.processmining.framework.util.Pair;
 

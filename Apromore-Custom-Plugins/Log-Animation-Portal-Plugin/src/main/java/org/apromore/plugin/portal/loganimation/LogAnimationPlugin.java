@@ -28,7 +28,6 @@ import javax.inject.Inject;
 
 // Third party packages
 import org.apromore.model.*;
-import org.springframework.stereotype.Component;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Messagebox;
 
@@ -42,7 +41,7 @@ import org.apromore.portal.dialogController.MainController;
 import org.apromore.portal.dialogController.dto.SignavioSession;
 import org.apromore.service.EventLogService;
 import org.apromore.service.loganimation.LogAnimationService;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimationPluginInterface {
 

@@ -7,11 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
-import org.jbpt.hypergraph.abs.IVertex;
-import org.processmining.stagemining.utils.LogUtilites;
+import org.apromore.xes.model.XLog;
 
 public class StageModelSimulationPhaseModel8_3 extends ExampleClass {
 	public List<Set<String>> getGroundTruth(XLog log) throws Exception {

@@ -1,11 +1,11 @@
 package org.apromore.xlog.singletonlog;
 
-import org.deckfour.xes.extension.XExtension;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.id.XID;
-import org.deckfour.xes.id.XIDFactory;
-import org.deckfour.xes.model.*;
-import org.deckfour.xes.model.impl.XAttributeContainerImpl;
+import org.apromore.xes.model.XTrace;
+import org.apromore.xes.model.impl.*;
+import org.apromore.xes.extension.XExtension;
+import org.apromore.xes.factory.XFactory;
+import org.apromore.xes.id.XID;
+import org.apromore.xes.id.XIDFactory;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.map.mutable.primitive.DoubleObjectHashMap;
 import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
@@ -62,54 +62,54 @@ public class XFactorySingletonImpl implements XFactory {
         return "xes-standard.org";
     }
 
-    public XLog createLog() {
+    public org.apromore.xes.model.XLog createLog() {
         if(useLinkedList) return new XLogLinkedListSingletonImpl(new XAttributeMapSingletonImpl());
         else return new XLogArrayListSingletonImpl(new XAttributeMapSingletonImpl());
     }
 
-    public XLog createLog(XAttributeMap attributes) {
+    public org.apromore.xes.model.XLog createLog(org.apromore.xes.model.XAttributeMap attributes) {
         if(useLinkedList) return new XLogLinkedListSingletonImpl(attributes);
         else return new XLogArrayListSingletonImpl(attributes);
     }
 
-    public XTrace createTrace() {
+    public org.apromore.xes.model.XTrace createTrace() {
         if(useLinkedList) return new XTraceLinkedListSingletonImpl(new XAttributeMapSingletonImpl());
         else return new XTraceArrayListSingletonImpl(new XAttributeMapSingletonImpl());
     }
 
-    public XTrace createTrace(XAttributeMap attributes) {
+    public XTrace createTrace(org.apromore.xes.model.XAttributeMap attributes) {
         if(useLinkedList) return new XTraceLinkedListSingletonImpl(attributes);
         else return new XTraceArrayListSingletonImpl(attributes);
     }
 
-    public XEvent createEvent() {
+    public org.apromore.xes.model.XEvent createEvent() {
         return new XEventSingletonImpl(fakeXID);
     }
 
-    public XEvent createEvent(XAttributeMap attributes) {
+    public org.apromore.xes.model.XEvent createEvent(org.apromore.xes.model.XAttributeMap attributes) {
         return new XEventSingletonImpl(fakeXID, attributes);
     }
 
-    public XEvent createEvent(XID id, XAttributeMap attributes) {
+    public org.apromore.xes.model.XEvent createEvent(XID id, org.apromore.xes.model.XAttributeMap attributes) {
         return new XEventSingletonImpl(id, attributes);
     }
 
-    public XAttributeMap createAttributeMap() {
+    public org.apromore.xes.model.XAttributeMap createAttributeMap() {
         return new XAttributeMapSingletonImpl();
     }
 
-    public XAttributeBoolean createAttributeBoolean(String key, boolean value, XExtension extension) {
-        return new org.deckfour.xes.model.impl.XAttributeBooleanImpl(getKey(key), value, extension);
+    public org.apromore.xes.model.XAttributeBoolean createAttributeBoolean(String key, boolean value, XExtension extension) {
+        return new XAttributeBooleanImpl(getKey(key), value, extension);
     }
 
-    public XAttributeContinuous createAttributeContinuous(String key, double value, XExtension extension) {
+    public org.apromore.xes.model.XAttributeContinuous createAttributeContinuous(String key, double value, XExtension extension) {
         String keyMap = getKey(key);
         Double valueMap = doubleMap.get(value);
         if(valueMap == null) {
             valueMap = value;
             doubleMap.put(value, valueMap);
         }
-        XAttributeContinuous attributeContinuous = getAttributeContinuousMap(keyMap, valueMap);
+        org.apromore.xes.model.XAttributeContinuous attributeContinuous = getAttributeContinuousMap(keyMap, valueMap);
         if(attributeContinuous == null) {
             attributeContinuous = new XAttributeContinuousSingletonImpl(keyMap, valueMap, extension);
             putAttributeContinuousMap(keyMap, valueMap, attributeContinuous);
@@ -117,14 +117,14 @@ public class XFactorySingletonImpl implements XFactory {
         return attributeContinuous;
     }
 
-    public XAttributeDiscrete createAttributeDiscrete(String key, long value, XExtension extension) {
+    public org.apromore.xes.model.XAttributeDiscrete createAttributeDiscrete(String key, long value, XExtension extension) {
         String keyMap = getKey(key);
         Long valueMap = longMap.get(value);
         if(valueMap == null) {
             valueMap = value;
             longMap.put(value, valueMap);
         }
-        XAttributeDiscrete attributeDiscrete = getAttributeDiscreteMap(keyMap, valueMap);
+        org.apromore.xes.model.XAttributeDiscrete attributeDiscrete = getAttributeDiscreteMap(keyMap, valueMap);
         if(attributeDiscrete == null) {
             attributeDiscrete = new XAttributeDiscreteSingletonImpl(keyMap, valueMap, extension);
             putAttributeDiscreteMap(keyMap, valueMap, attributeDiscrete);
@@ -132,44 +132,44 @@ public class XFactorySingletonImpl implements XFactory {
         return attributeDiscrete;
     }
 
-    public XAttributeLiteral createAttributeLiteral(String key, String value, XExtension extension) {
+    public org.apromore.xes.model.XAttributeLiteral createAttributeLiteral(String key, String value, XExtension extension) {
         String keyMap = getKey(key);
         String valueMap = getKey(value);
-        XAttributeLiteral attributeLiteral = getAttributeLiteralMap(keyMap, valueMap);
+        org.apromore.xes.model.XAttributeLiteral attributeLiteral = getAttributeLiteralMap(keyMap, valueMap);
         if(attributeLiteral == null) {
-            attributeLiteral = new org.deckfour.xes.model.impl.XAttributeLiteralImpl(keyMap, valueMap, extension);
+            attributeLiteral = new XAttributeLiteralImpl(keyMap, valueMap, extension);
             putAttributeLiteralMap(keyMap, valueMap, attributeLiteral);
         }
         return attributeLiteral;
     }
 
-    public XAttributeTimestamp createAttributeTimestamp(String key, Date value, XExtension extension) {
+    public org.apromore.xes.model.XAttributeTimestamp createAttributeTimestamp(String key, Date value, XExtension extension) {
         Date valueMap = dateMap.get(value.getTime());
         if(valueMap == null) {
             valueMap = value;
             dateMap.put(value.getTime(), valueMap);
         }
-        return new org.deckfour.xes.model.impl.XAttributeTimestampImpl(getKey(key), valueMap, extension);
+        return new XAttributeTimestampImpl(getKey(key), valueMap, extension);
     }
 
-    public XAttributeTimestamp createAttributeTimestamp(String key, long millis, XExtension extension) {
+    public org.apromore.xes.model.XAttributeTimestamp createAttributeTimestamp(String key, long millis, XExtension extension) {
         Date valueMap = dateMap.get(millis);
         if(valueMap == null) {
             valueMap = new Date(millis);
             dateMap.put(millis, valueMap);
         }
-        return new org.deckfour.xes.model.impl.XAttributeTimestampImpl(getKey(key), valueMap, extension);
+        return new XAttributeTimestampImpl(getKey(key), valueMap, extension);
     }
 
-    public XAttributeID createAttributeID(String key, XID value, XExtension extension) {
-        return new org.deckfour.xes.model.impl.XAttributeIDImpl(getKey(key), value, extension);
+    public org.apromore.xes.model.XAttributeID createAttributeID(String key, XID value, XExtension extension) {
+        return new XAttributeIDImpl(getKey(key), value, extension);
     }
 
-    public XAttributeList createAttributeList(String key, XExtension extension) {
-        return new org.deckfour.xes.model.impl.XAttributeListImpl(getKey(key), extension);
+    public org.apromore.xes.model.XAttributeList createAttributeList(String key, XExtension extension) {
+        return new XAttributeListImpl(getKey(key), extension);
     }
 
-    public XAttributeContainer createAttributeContainer(String key, XExtension extension) {
+    public org.apromore.xes.model.XAttributeContainer createAttributeContainer(String key, XExtension extension) {
         return new XAttributeContainerImpl(getKey(key), extension);
     }
 
@@ -182,13 +182,13 @@ public class XFactorySingletonImpl implements XFactory {
         return keyMap;
     }
 
-    private XAttributeLiteral getAttributeLiteralMap(String key1, String key2) {
+    private org.apromore.xes.model.XAttributeLiteral getAttributeLiteralMap(String key1, String key2) {
 //        return attributeLiteralMap.get(key1, key2);
 //        if((mapLiteral = attributeLiteralMap.get(key1)) != null) return mapLiteral.get(key2);
         return null;
     }
 
-    private void putAttributeLiteralMap(String key1, String key2, XAttributeLiteral value) {
+    private void putAttributeLiteralMap(String key1, String key2, org.apromore.xes.model.XAttributeLiteral value) {
 //        attributeLiteralMap.put(key1, key2, value);
 //        if((mapLiteral = attributeLiteralMap.get(key1)) == null) {
 //            mapLiteral = new UnifiedMap<>();
@@ -197,13 +197,13 @@ public class XFactorySingletonImpl implements XFactory {
 //        mapLiteral.put(key2, value);
     }
 
-    private XAttributeContinuous getAttributeContinuousMap(String key1, Double key2) {
+    private org.apromore.xes.model.XAttributeContinuous getAttributeContinuousMap(String key1, Double key2) {
 //        return attributeContinuousMap.get(key1, key2);
 //        if((mapContinuous = attributeContinuousMap.get(key1)) != null) return mapContinuous.get(key2);
         return null;
     }
 
-    private void putAttributeContinuousMap(String key1, Double key2, XAttributeContinuous value) {
+    private void putAttributeContinuousMap(String key1, Double key2, org.apromore.xes.model.XAttributeContinuous value) {
 //        attributeContinuousMap.put(key1, key2, value);
 //        if((mapContinuous = attributeContinuousMap.get(key1)) == null) {
 //            mapContinuous = new DoubleObjectHashMap<>();
@@ -212,13 +212,13 @@ public class XFactorySingletonImpl implements XFactory {
 //        mapContinuous.put(key2, value);
     }
 
-    private XAttributeDiscrete getAttributeDiscreteMap(String key1, Long key2) {
+    private org.apromore.xes.model.XAttributeDiscrete getAttributeDiscreteMap(String key1, Long key2) {
 //        return attributeDiscreteMap.get(key1, key2);
 //        if((mapDiscrete = attributeDiscreteMap.get(key1)) != null) return mapDiscrete.get(key2);
         return null;
     }
 
-    private void putAttributeDiscreteMap(String key1, Long key2, XAttributeDiscrete value) {
+    private void putAttributeDiscreteMap(String key1, Long key2, org.apromore.xes.model.XAttributeDiscrete value) {
 //        attributeDiscreteMap.put(key1, key2, value);
 //        if((mapDiscrete = attributeDiscreteMap.get(key1)) == null) {
 //            mapDiscrete = new LongObjectHashMap<>();

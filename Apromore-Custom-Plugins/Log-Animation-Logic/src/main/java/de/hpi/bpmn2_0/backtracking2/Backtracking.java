@@ -22,7 +22,6 @@ package de.hpi.bpmn2_0.backtracking2;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.replay.BPMNDiagramHelper;
-import de.hpi.bpmn2_0.replay.LogUtility;
 import de.hpi.bpmn2_0.replay.ReplayParams;
 import de.hpi.bpmn2_0.replay.Replayer;
 import java.util.Collection;
@@ -30,7 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XTrace;
 
 /**
  * Implement state exploration with backtracking algorithm

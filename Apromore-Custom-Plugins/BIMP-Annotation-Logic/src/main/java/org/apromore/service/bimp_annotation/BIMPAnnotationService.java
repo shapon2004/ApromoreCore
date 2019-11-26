@@ -22,7 +22,7 @@ package org.apromore.service.bimp_annotation;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-import org.deckfour.xes.model.XLog;
+import org.apromore.xes.model.XLog;
 
 /**
  * @author <a href="mailto:simon.raboczi@uqconnect.edu.au"/>Simon Raboczi</a>

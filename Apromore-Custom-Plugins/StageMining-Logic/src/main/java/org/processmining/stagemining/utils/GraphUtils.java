@@ -2,9 +2,9 @@ package org.processmining.stagemining.utils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.jbpt.algo.tree.rpst.IRPST;
 import org.jbpt.algo.tree.rpst.RPST;
 import org.jbpt.graph.abs.IDirectedEdge;

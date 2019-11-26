@@ -93,13 +93,13 @@ import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.ProcessService;
 import org.apromore.service.bimp_annotation.BIMPAnnotationService;
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.extension.std.XOrganizationalExtension;
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.extension.std.XConceptExtension;
+import org.apromore.xes.extension.std.XOrganizationalExtension;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.model.XAttribute;
+import org.apromore.xes.model.XEvent;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectIntHashMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import org.json.JSONArray;
@@ -137,20 +137,9 @@ import org.zkoss.zul.Slider;
 import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
-import org.zkoss.zul.*;
-import javax.swing.*;
-import javax.xml.datatype.DatatypeFactory;
-import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static org.apromore.processdiscoverer.VisualizationAggregation.*;
-import static org.apromore.processdiscoverer.VisualizationType.DURATION;
-import static org.apromore.processdiscoverer.VisualizationType.FREQUENCY;
 
 import au.com.bytecode.opencsv.CSVWriter;
 

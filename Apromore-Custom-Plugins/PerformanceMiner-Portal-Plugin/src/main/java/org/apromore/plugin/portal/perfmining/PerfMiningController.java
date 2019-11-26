@@ -21,8 +21,6 @@
 package org.apromore.plugin.portal.perfmining;
 
 import org.apromore.plugin.portal.PortalContext;
-import org.zkoss.zk.ui.Session;
-import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.UploadEvent;
@@ -37,19 +35,17 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.apromore.plugin.portal.perfmining.util.LogUtilites;
 import org.apromore.plugin.portal.perfmining.view.ResultWindowController;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XEvent;
+import org.apromore.xes.model.XAttribute;
+import org.apromore.xes.model.XEvent;
 import org.apromore.service.perfmining.models.SPF;
-import org.deckfour.xes.model.XLog;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.xes.model.XLog;
+import org.apromore.xes.model.XTrace;
 import org.joda.time.DateTime;
-import org.json.JSONException;
 import org.apromore.service.perfmining.PerfMiningService;
 import org.apromore.service.perfmining.filter.TraceAttributeFilterParameters;
 import org.apromore.service.perfmining.models.SPFManager;
 import org.apromore.service.perfmining.parameters.SPFConfig;
 import org.zkoss.zk.ui.SuspendNotAllowedException;
-import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.ext.Selectable;
 
 

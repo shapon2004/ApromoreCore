@@ -27,13 +27,12 @@ import java.util.concurrent.TimeUnit;
 
 import jsc.independentsamples.SmirnovTest;
 
-import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.model.*;
+import org.apromore.xes.extension.std.XTimeExtension;
+import org.apromore.xes.model.XTrace;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalUnit;
 
 
 public class XLogStats {
@@ -90,7 +89,7 @@ public class XLogStats {
 
 	
 	//compute activity frequency per time slot (days, week, month)
-	private static Map<String,List<Integer>> activities_freq_time(XLog log, TimeUnit timeslot) throws ParseException {
+	private static Map<String,List<Integer>> activities_freq_time(org.apromore.xes.model.XLog log, TimeUnit timeslot) throws ParseException {
 		Map<String,List<Integer>> histos = new HashMap<String, List<Integer>>();
 		List<String> activities = XLogManager.getActivities(log);
 //		System.out.println(specificEventHistogram(log, activities.get(0)));
@@ -102,7 +101,7 @@ public class XLogStats {
 	}
 	
 //compute activity duration per trace
-	public static Map<String,List<Long>> activities_duration_trace(XLog log, TimeUnit timeunit) throws ParseException {
+	public static Map<String,List<Long>> activities_duration_trace(org.apromore.xes.model.XLog log, TimeUnit timeunit) throws ParseException {
 		
 		Map<String,List<Long>> histos = new HashMap<String, List<Long>>();
 //		Map<String,Integer> histos = new HashMap<String, Integer>();
@@ -116,7 +115,7 @@ public class XLogStats {
 		Long act_duration;
 		
 		for (int i = 0; i < log.size(); i++) {
-			XTrace tr = log.get(i);
+			org.apromore.xes.model.XTrace tr = log.get(i);
 			for (int j = 0; j < tr.size(); j++) {
 				String actName = XLogManager.getEventName(tr.get(j));
 //				if (histos.get(actName).get(i)==null)
@@ -141,11 +140,11 @@ public class XLogStats {
 	}	
 
 	//compute activity duration postEvent-preEvent
-	private static Long getEventDuration(XEvent postEvent, XEvent preEvent) {		
+	private static Long getEventDuration(org.apromore.xes.model.XEvent postEvent, org.apromore.xes.model.XEvent preEvent) {
 		Long diff = null;
 		XLogManager.getEventTime(preEvent);
-		XAttributeTimestamp t_start = XLogManager.getEventTime(preEvent);
-		XAttributeTimestamp t_end = XLogManager.getEventTime(postEvent);
+		org.apromore.xes.model.XAttributeTimestamp t_start = XLogManager.getEventTime(preEvent);
+		org.apromore.xes.model.XAttributeTimestamp t_end = XLogManager.getEventTime(postEvent);
 		if (t_start != null && t_end!=null)
 			diff = t_end.getValue().getTime() - t_start.getValue().getTime();	
 		if (diff < 0)
@@ -154,7 +153,7 @@ public class XLogStats {
 	}
 
 	//compute average event per active case in a time slot (days, week, month)
-	private static List<Integer> avg_event_activecase_time(XLog log) throws ParseException {
+	private static List<Integer> avg_event_activecase_time(org.apromore.xes.model.XLog log) throws ParseException {
 		List<Integer> event_histo = eventHistogram(log);
 		List<Integer> case_histo = activeCaseHistogram(log, null);
 		List<Integer> histo = new ArrayList<Integer>();
@@ -166,7 +165,7 @@ public class XLogStats {
 	}
 	
 	//compute events per time slot (day, week, month, ...)
-	private static List<Integer> eventHistogram(XLog log) throws ParseException {
+	private static List<Integer> eventHistogram(org.apromore.xes.model.XLog log) throws ParseException {
 		
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		
@@ -179,8 +178,8 @@ public class XLogStats {
 		List<Integer> histo = new ArrayList<Integer>();
 		List<LocalDateTime> dates = new ArrayList<LocalDateTime>();
 		
-		Date startDate = ((XAttributeTimestamp)(log.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
-		Date endDate = ((XAttributeTimestamp)(log.get(log.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date startDate = ((org.apromore.xes.model.XAttributeTimestamp)(log.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date endDate = ((org.apromore.xes.model.XAttributeTimestamp)(log.get(log.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 		
 		System.out.println(startDate);
 		System.out.println(endDate);
@@ -198,8 +197,8 @@ public class XLogStats {
 		
 		for (int i = 0; i < log.size(); i++) {
 			
-			XTrace tr1 = log.get(i);
-			Date t1 = ((XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+			org.apromore.xes.model.XTrace tr1 = log.get(i);
+			Date t1 = ((org.apromore.xes.model.XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 			
 //			if (i==54374) System.out.println("DATE event "+i+" = "+t1);
 			
@@ -219,7 +218,7 @@ public class XLogStats {
 	}
 	
 	//compute events of class eventName per time slot (day, week, month, ...)
-	public static List<Integer> specificEventHistogram(XLog log, String eventName, TimeUnit timeslot) throws ParseException {
+	public static List<Integer> specificEventHistogram(org.apromore.xes.model.XLog log, String eventName, TimeUnit timeslot) throws ParseException {
 		
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		
@@ -232,8 +231,8 @@ public class XLogStats {
 		List<Integer> histo = new ArrayList<Integer>();
 		List<LocalDateTime> dates = new ArrayList<LocalDateTime>();
 		
-		Date startDate = ((XAttributeTimestamp)(log.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
-		Date endDate = ((XAttributeTimestamp)(log.get(log.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date startDate = ((org.apromore.xes.model.XAttributeTimestamp)(log.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date endDate = ((org.apromore.xes.model.XAttributeTimestamp)(log.get(log.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 		
 //		System.out.println(startDate);
 //		System.out.println(endDate);
@@ -252,8 +251,8 @@ public class XLogStats {
 		
 		for (int i = 0; i < log.size(); i++) {
 			
-			XTrace tr1 = log.get(i);
-			Date t1 = ((XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+			org.apromore.xes.model.XTrace tr1 = log.get(i);
+			Date t1 = ((org.apromore.xes.model.XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 			
 //				if (i==54374) System.out.println("DATE event "+i+" = "+t1);
 			
@@ -281,18 +280,18 @@ public class XLogStats {
 		
 	
 	//compute average active case in time slot (day, week, month, ...)
-	private static List<Integer> activeCaseHistogram(XLog log, TimeUnit timeslot) throws ParseException {
+	private static List<Integer> activeCaseHistogram(org.apromore.xes.model.XLog log, TimeUnit timeslot) throws ParseException {
 		
 //		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-		XLog logStream = LogStreamer.logStreamer(log, null, null);
+		org.apromore.xes.model.XLog logStream = LogStreamer.logStreamer(log, null, null);
 		
 		List<Integer> histo = new ArrayList<Integer>();
 		List<LocalDateTime> dates = new ArrayList<LocalDateTime>();
 		
-		Date startDate = ((XAttributeTimestamp)(logStream.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
-		Date endDate = ((XAttributeTimestamp)(logStream.get(logStream.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date startDate = ((org.apromore.xes.model.XAttributeTimestamp)(logStream.get(0).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+		Date endDate = ((org.apromore.xes.model.XAttributeTimestamp)(logStream.get(logStream.size()-1).get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 		
 		System.out.println(startDate);
 		System.out.println(endDate);
@@ -310,8 +309,8 @@ public class XLogStats {
 		for (int i = 0; i < dates.size()-1; i++) {
 			int number_case = 0;
 			for (int j = 0; j < log.size(); j++) {
-				XTrace tr1 = log.get(j);
-				Date t_start = ((XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+				org.apromore.xes.model.XTrace tr1 = log.get(j);
+				Date t_start = ((org.apromore.xes.model.XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 //				Date t_end = ((XAttributeTimestamp)(tr1.get(tr1.size()-1).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 				Date t_end = null;
 				if (XLogManager.getTraceCompletionTime(tr1)!=null)
@@ -370,15 +369,15 @@ public class XLogStats {
 
 	
 	//compute case duration 
-	public static List<Long> caseDurations(XLog log, TimeUnit timeunit) throws ParseException {
+	public static List<Long> caseDurations(org.apromore.xes.model.XLog log, TimeUnit timeunit) throws ParseException {
 		
 		
 		List<Long> durations = new ArrayList<Long>();
 
 //		System.out.println("log size "+log.size());
 		for (int j = 0; j < log.size(); j++) {
-			XTrace tr1 = log.get(j);
-			Date t_start = ((XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
+			org.apromore.xes.model.XTrace tr1 = log.get(j);
+			Date t_start = ((org.apromore.xes.model.XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 //				Date t_end = ((XAttributeTimestamp)(tr1.get(tr1.size()-1).getAttributes().get(XTimeExtension.KEY_TIMESTAMP))).getValue();
 			Date t_end = null;
 			if (XLogManager.getTraceCompletionTime(tr1)!=null)
@@ -399,8 +398,8 @@ public class XLogStats {
 		return durations;
 	}
 	
-	private static String interArrivalTwoSlidingWinTest(XLog xl_non_ordered) {
-		XLog log = XLogManager.orderByTraceStartTimeStamp(xl_non_ordered);
+	private static String interArrivalTwoSlidingWinTest(org.apromore.xes.model.XLog xl_non_ordered) {
+		org.apromore.xes.model.XLog log = XLogManager.orderByTraceStartTimeStamp(xl_non_ordered);
 		
 		ArrayList<Long> intArr = getInterArrivalTimes(log, TimeUnit.HOURS);
 				
@@ -420,14 +419,14 @@ public class XLogStats {
 		return pvalString;
 	}
 
-	private static ArrayList<Long> getInterArrivalTimes(XLog log, TimeUnit timeunit) {
+	private static ArrayList<Long> getInterArrivalTimes(org.apromore.xes.model.XLog log, TimeUnit timeunit) {
 		
 		ArrayList<Long> intArr = new ArrayList<Long>();
 		
 		for (int i = 0; i < log.size()-1; i++) {
 			XTrace tr1 = log.get(i), tr2 = log.get(i+1);
-			XAttributeTimestamp t1 = (XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP));
-			XAttributeTimestamp t2 = (XAttributeTimestamp)(tr2.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP));
+			org.apromore.xes.model.XAttributeTimestamp t1 = (org.apromore.xes.model.XAttributeTimestamp)(tr1.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP));
+			org.apromore.xes.model.XAttributeTimestamp t2 = (org.apromore.xes.model.XAttributeTimestamp)(tr2.get(0).getAttributes().get(XTimeExtension.KEY_TIMESTAMP));
 			long diff =t2.getValueMillis() - t1.getValueMillis(); 
 			intArr.add(timeunit.convert(diff, TimeUnit.MILLISECONDS));
 			}
