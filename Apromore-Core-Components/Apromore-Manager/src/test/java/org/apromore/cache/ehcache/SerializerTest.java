@@ -174,6 +174,7 @@ public class SerializerTest {
     }
 
     @Test
+    @Ignore
     public void testTransientKryoSerializer() throws Exception {
         // tag::transientKryoSerializer[]
         CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
@@ -190,6 +191,7 @@ public class SerializerTest {
     }
 
     @Test
+    @Ignore
     public void testPersistentKryoSerializer() throws Exception {
         // tag::persistentKryoSerializer[]
         CacheConfiguration<Long, Employee> cacheConfig =
@@ -268,10 +270,10 @@ public class SerializerTest {
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         XesXmlParser parser = new XesXmlParser(factory);
         try {
-//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
-//            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
-            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/Hospital_Billing.xes.gz").getPath());
-            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
+            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
+            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
+//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes.gz").getPath());
+//            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
         } catch (Exception e) {
             e.printStackTrace();
         }
