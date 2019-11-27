@@ -56,16 +56,11 @@ public class XAttributeLiteralImpl extends XAttributeImpl implements
 	 * 
 	 */
 	private static final long serialVersionUID = -1844032762689490775L;
-	private static final String key = ;
 
 	/**
 	 * Value of the attribute.
 	 */
 	private String value;
-
-	public XAttributeLiteralImpl() {
-		super(key, extension);
-	}
 
 	/**
 	 * Creates a new instance.

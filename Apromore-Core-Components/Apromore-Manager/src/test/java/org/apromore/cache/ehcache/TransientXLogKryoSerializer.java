@@ -6,11 +6,13 @@ import com.esotericsoftware.kryo.io.ByteBufferInputStream;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import de.javakaffee.kryoserializers.*;
+import org.apromore.xes.extension.XExtension;
 import org.apromore.xes.extension.std.XLifecycleExtension;
 import org.apromore.xes.model.impl.*;
 import org.apromore.xes.model.impl.XLogImpl;
 import org.ehcache.spi.serialization.Serializer;
 import org.ehcache.spi.serialization.SerializerException;
+import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -87,6 +89,7 @@ public class TransientXLogKryoSerializer implements Serializer<XLogImpl>, Closea
         kryo.register(XAttributeMapLazyImpl.class);
         kryo.register(XsDateTimeFormat.class);
 
+        kryo.register(XExtension.class);
         kryo.register(XLifecycleExtension.class);
         kryo.register(org.eclipse.collections.impl.set.mutable.UnifiedSet.class);
 
@@ -119,7 +122,7 @@ public class TransientXLogKryoSerializer implements Serializer<XLogImpl>, Closea
 
 //        kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 
-//        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+        kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
         kryo.register( Arrays.asList( "" ).getClass(), new ArraysAsListSerializer() );
         kryo.register( Collections.EMPTY_LIST.getClass(), new CollectionsEmptyListSerializer() );

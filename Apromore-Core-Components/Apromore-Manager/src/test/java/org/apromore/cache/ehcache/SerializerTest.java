@@ -268,8 +268,10 @@ public class SerializerTest {
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         XesXmlParser parser = new XesXmlParser(factory);
         try {
-            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
-            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
+//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
+//            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
+            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/Hospital_Billing.xes.gz").getPath());
+            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -281,7 +283,7 @@ public class SerializerTest {
 
         cacheManager.close();
         cacheManager.init();
-        employeeCache = cacheManager.getCache("employeeCache", Long.class, XLogImpl.class);
+        employeeCache = cacheManager.getCache("xLogCache", Long.class, XLogImpl.class);
         assertThat(employeeCache.get(1L), is(xLog));
         // end::persistentKryoSerializer[]
     }
