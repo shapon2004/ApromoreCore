@@ -31,7 +31,7 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.service.EventLogService;
 import org.apromore.service.prodrift.ProDriftDetectionException;
 import org.apromore.service.prodrift.ProDriftDetectionService;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.SuspendNotAllowedException;

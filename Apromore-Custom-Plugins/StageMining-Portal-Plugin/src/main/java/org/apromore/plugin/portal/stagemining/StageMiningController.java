@@ -31,7 +31,7 @@ import org.zkoss.zul.*;
 import java.io.IOException;
 import java.util.Map;
 import org.apromore.service.stagemining.StageMiningService;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.json.JSONException;
 import org.processmining.stagemining.models.DecompositionTree;
 import org.processmining.stagemining.utils.LogUtilites;

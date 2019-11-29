@@ -21,13 +21,13 @@
 package org.apromore.plugin.portal.stagemining;
 
 import org.apromore.plugin.portal.PortalContext;
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryNaiveImpl;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.out.XesXmlSerializer;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryNaiveImpl;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.out.XesXmlSerializer;
 import org.json.JSONException;
 import org.processmining.stagemining.models.DecompositionTree;
 import org.zkoss.zk.ui.event.Event;

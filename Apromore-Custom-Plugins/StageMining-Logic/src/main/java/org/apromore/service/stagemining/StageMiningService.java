@@ -20,7 +20,7 @@
 
 package org.apromore.service.stagemining;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.processmining.stagemining.models.DecompositionTree;
 
 /**

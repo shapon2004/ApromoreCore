@@ -22,18 +22,18 @@ package org.apromore.prodrift.config;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.extension.std.XLifecycleExtension;
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XAttributeTimestamp;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.model.impl.XAttributeTimestampImpl;
-import org.apromore.xes.model.impl.XLogImpl;
-import org.apromore.xes.model.impl.XTraceImpl;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.model.impl.XAttributeTimestampImpl;
+import org.deckfour.xes.model.impl.XLogImpl;
+import org.deckfour.xes.model.impl.XTraceImpl;
 
 
 public class LogStreamer {

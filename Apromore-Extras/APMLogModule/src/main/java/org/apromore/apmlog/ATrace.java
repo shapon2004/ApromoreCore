@@ -1,8 +1,8 @@
 package org.apromore.apmlog;
 
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 

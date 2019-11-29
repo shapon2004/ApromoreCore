@@ -7,7 +7,7 @@ import java.io.StringReader
 import java.util.Arrays
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.apromore.xes.`in`.XesXmlParser
+import org.deckfour.xes.`in`.XesXmlParser
 import org.json.JSONObject
 import org.junit.Test
 

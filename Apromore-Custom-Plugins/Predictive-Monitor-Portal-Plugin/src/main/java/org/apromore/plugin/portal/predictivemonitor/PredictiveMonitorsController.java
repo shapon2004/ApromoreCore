@@ -35,12 +35,12 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 // Third party packages
-import org.apromore.xes.model.XAttributable;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeLiteral;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XAttributable;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeLiteral;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.json.JSONException;
 import org.json.JSONArray;
 import org.json.JSONObject;

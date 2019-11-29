@@ -1,9 +1,9 @@
 package org.apromore.xlog.singletonlog;
 
-import org.apromore.xes.extension.XExtension;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeDiscrete;
-import org.apromore.xes.model.impl.XAttributeImpl;
+import org.deckfour.xes.extension.XExtension;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeDiscrete;
+import org.deckfour.xes.model.impl.XAttributeImpl;
 
 public class XAttributeDiscreteSingletonImpl extends XAttributeImpl implements XAttributeDiscrete {
     private static final long serialVersionUID = -1789813595800348876L;

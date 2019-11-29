@@ -31,7 +31,7 @@ import ee.ut.eventstr.comparison.LogBasedPartialSynchronizedProduct.Operation;
 import ee.ut.eventstr.comparison.LogBasedPartialSynchronizedProduct.State;
 import ee.ut.org.processmining.framework.util.Pair;
 import ee.ut.utilities.Quadruplet;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XTrace;
 import org.eclipse.collections.impl.bag.mutable.primitive.IntHashBag;
 
 import java.util.*;

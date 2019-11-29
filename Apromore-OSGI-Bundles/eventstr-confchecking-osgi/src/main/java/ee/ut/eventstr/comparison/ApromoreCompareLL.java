@@ -31,12 +31,12 @@ import ee.ut.mining.log.poruns.PORun;
 import ee.ut.mining.log.poruns.PORuns;
 import ee.ut.mining.log.poruns.pes.PORuns2PES;
 import ee.ut.utilities.Quadruplet;
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.extension.std.XLifecycleExtension;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.eclipse.collections.impl.map.mutable.primitive.IntIntHashMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 

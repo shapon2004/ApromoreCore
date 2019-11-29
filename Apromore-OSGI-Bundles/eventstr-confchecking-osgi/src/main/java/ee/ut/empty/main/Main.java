@@ -30,8 +30,8 @@ import ee.ut.mining.log.poruns.PORun;
 import ee.ut.mining.log.poruns.PORuns;
 import ee.ut.mining.log.poruns.pes.PORuns2PES;
 import hub.top.petrinet.PetriNet;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.jdom.Element;
 
 import java.io.File;

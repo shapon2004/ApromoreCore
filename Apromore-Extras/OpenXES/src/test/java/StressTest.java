@@ -12,19 +12,19 @@ import java.util.Random;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryNaiveImpl;
-import org.apromore.xes.factory.XFactoryRegistry;
-import org.apromore.xes.in.XesXmlParser;
-import org.apromore.xes.model.XAttributable;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.out.XesXmlSerializer;
-import org.apromore.xes.util.XTimer;
-import org.apromore.xes.xstream.XesXStreamPersistency;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryNaiveImpl;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.model.XAttributable;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.out.XesXmlSerializer;
+import org.deckfour.xes.util.XTimer;
+import org.deckfour.xes.xstream.XesXStreamPersistency;
 
 import com.thoughtworks.xstream.XStream;
 

@@ -32,12 +32,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.extension.std.XLifecycleExtension;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.util.Pair;
 
 import com.google.common.collect.HashMultimap;

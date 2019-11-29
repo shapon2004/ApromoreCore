@@ -1,10 +1,10 @@
 package org.apromore.dao.jpa;
 
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryRegistry;
-import org.apromore.xes.info.XLogInfo;
-import org.apromore.xes.info.XLogInfoFactory;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.info.XLogInfoFactory;
+import org.deckfour.xes.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ public class LogRepositoryCustomImplTest {
 //            XFactory factory = new XFactoryLiteImpl();
             XFactory factory = XFactoryRegistry.instance().currentDefault();
 
-            org.apromore.xes.model.XLog log = logRepo.importFromFile(factory, name);
+            XLog log = logRepo.importFromFile(factory, name);
 
 //            XFactory factory = new XFactoryNaiveImpl();
 //            XLog log = logRepo.importFromInputStream(fis, new XesXmlParser(factory));
@@ -92,25 +92,25 @@ public class LogRepositoryCustomImplTest {
 
     }
 
-    protected void readSequentially(org.apromore.xes.model.XLog log) {
+    protected void readSequentially(XLog log) {
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
         System.out.println("Reading all attributes via values(): ");
         long attributeCounter = 0;
-        for (org.apromore.xes.model.XTrace trace : log) {
-            for (org.apromore.xes.model.XEvent event : trace) {
-                for (org.apromore.xes.model.XAttribute attr : event.getAttributes().values()) {
+        for (XTrace trace : log) {
+            for (XEvent event : trace) {
+                for (XAttribute attr : event.getAttributes().values()) {
                     assertNotNull(attr.getKey());
-                    if (attr instanceof org.apromore.xes.model.XAttributeBoolean) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeBoolean) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeLiteral) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeLiteral) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeContinuous) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeContinuous) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeDiscrete) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeDiscrete) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeTimestamp) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeTimestamp) attr).getValue());
+                    if (attr instanceof XAttributeBoolean) {
+                        assertNotNull(((XAttributeBoolean) attr).getValue());
+                    } else if (attr instanceof XAttributeLiteral) {
+                        assertNotNull(((XAttributeLiteral) attr).getValue());
+                    } else if (attr instanceof XAttributeContinuous) {
+                        assertNotNull(((XAttributeContinuous) attr).getValue());
+                    } else if (attr instanceof XAttributeDiscrete) {
+                        assertNotNull(((XAttributeDiscrete) attr).getValue());
+                    } else if (attr instanceof XAttributeTimestamp) {
+                        assertNotNull(((XAttributeTimestamp) attr).getValue());
                     }
                     attributeCounter++;
                 }
@@ -129,7 +129,7 @@ public class LogRepositoryCustomImplTest {
         System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
     }
 
-    protected void readRandom(org.apromore.xes.model.XLog log) {
+    protected void readRandom(XLog log) {
         Random random = new Random();
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         long startTime = System.nanoTime();
@@ -140,18 +140,18 @@ public class LogRepositoryCustomImplTest {
             XTrace trace = log.get(random.nextInt(log.size()));
             int eventCounter = 0;
             while (eventCounter < trace.size()) {
-                org.apromore.xes.model.XEvent event = trace.get(random.nextInt(trace.size()));
+                XEvent event = trace.get(random.nextInt(trace.size()));
                 for (String key : event.getAttributes().keySet()) {
-                    org.apromore.xes.model.XAttribute attr = event.getAttributes().get(key);
+                    XAttribute attr = event.getAttributes().get(key);
                     assertNotNull(attr);
-                    if (attr instanceof org.apromore.xes.model.XAttributeBoolean) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeBoolean) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeLiteral) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeLiteral) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeContinuous) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeContinuous) attr).getValue());
-                    } else if (attr instanceof org.apromore.xes.model.XAttributeDiscrete) {
-                        assertNotNull(((org.apromore.xes.model.XAttributeDiscrete) attr).getValue());
+                    if (attr instanceof XAttributeBoolean) {
+                        assertNotNull(((XAttributeBoolean) attr).getValue());
+                    } else if (attr instanceof XAttributeLiteral) {
+                        assertNotNull(((XAttributeLiteral) attr).getValue());
+                    } else if (attr instanceof XAttributeContinuous) {
+                        assertNotNull(((XAttributeContinuous) attr).getValue());
+                    } else if (attr instanceof XAttributeDiscrete) {
+                        assertNotNull(((XAttributeDiscrete) attr).getValue());
                     }
                     attributeCounter++;
                 }

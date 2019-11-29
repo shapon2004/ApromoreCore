@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apromore.logfilter.criteria.LogFilterCriterion;
 import org.apromore.plugin.portal.generic.PluginInputParams;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 public class LogFilterInputParams extends PluginInputParams {
     private XLog log;

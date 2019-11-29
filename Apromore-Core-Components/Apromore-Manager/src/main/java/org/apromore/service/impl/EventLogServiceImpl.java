@@ -32,15 +32,15 @@ import org.apromore.service.UserService;
 import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.util.StatType;
 import org.apromore.util.UuidAdapter;
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryRegistry;
-import org.apromore.xes.in.XParser;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.out.XSerializer;
-import org.apromore.xes.out.XesXmlGZIPSerializer;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.in.*;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XesXmlGZIPSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -105,16 +105,16 @@ public class EventLogServiceImpl implements EventLogService {
     }
 
     public static XLog importFromStream(XFactory factory, InputStream is, String extension) throws Exception {
-        org.apromore.xes.in.XParser parser;
+        XParser parser;
         parser = null;
         if (extension.endsWith("mxml")) {
-            parser = new org.apromore.xes.in.XMxmlParser(factory);
+            parser = new XMxmlParser(factory);
         } else if (extension.endsWith("mxml.gz")) {
-            parser = new org.apromore.xes.in.XMxmlGZIPParser(factory);
+            parser = new XMxmlGZIPParser(factory);
         } else if (extension.endsWith("xes")) {
-            parser = new org.apromore.xes.in.XesXmlParser(factory);
+            parser = new XesXmlParser(factory);
         } else if (extension.endsWith("xes.gz")) {
-            parser = new org.apromore.xes.in.XesXmlGZIPParser(factory);
+            parser = new XesXmlGZIPParser(factory);
         }
 
         Collection<XLog> logs;
@@ -126,7 +126,7 @@ public class EventLogServiceImpl implements EventLogService {
         }
         if (logs == null) {
             // try any other parser
-            for (XParser p : org.apromore.xes.in.XParserRegistry.instance().getAvailable()) {
+            for (XParser p : XParserRegistry.instance().getAvailable()) {
                 if (p == parser) {
                     continue;
                 }

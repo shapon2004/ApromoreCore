@@ -25,11 +25,11 @@ import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
 import org.apromore.logfilter.criteria.model.LogFilterTypeSelector;
 import org.apromore.logfilter.criteria.model.Type;
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeTimestamp;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.util.Calendar;

@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XTrace;
 
 import com.google.common.collect.Multimap;
 

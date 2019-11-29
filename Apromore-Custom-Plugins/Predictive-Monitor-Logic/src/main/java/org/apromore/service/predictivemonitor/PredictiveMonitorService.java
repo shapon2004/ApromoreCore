@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Observer;
 
 // Third party packages
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 public interface PredictiveMonitorService {
 

@@ -1,11 +1,11 @@
 package org.apromore.apmlog;
 
 import org.apromore.apmlog.util.Util;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.model.impl.XAttributeLiteralImpl;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.model.impl.XAttributeLiteralImpl;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;

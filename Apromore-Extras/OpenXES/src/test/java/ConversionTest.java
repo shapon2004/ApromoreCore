@@ -45,14 +45,14 @@ import java.util.Collection;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import org.apromore.xes.in.XParser;
-import org.apromore.xes.in.XParserRegistry;
-import org.apromore.xes.info.XLogInfo;
-import org.apromore.xes.info.XLogInfoFactory;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.out.XSerializer;
-import org.apromore.xes.out.XSerializerRegistry;
-import org.apromore.xes.util.XTimer;
+import org.deckfour.xes.in.XParser;
+import org.deckfour.xes.in.XParserRegistry;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.info.XLogInfoFactory;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XSerializerRegistry;
+import org.deckfour.xes.util.XTimer;
 
 
 /**

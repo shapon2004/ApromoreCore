@@ -28,12 +28,12 @@ import org.apromore.apmlog.APMLogService;
 import org.apromore.dao.CacheRepository;
 import org.apromore.dao.LogRepositoryCustom;
 import org.apromore.dao.model.Log;
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryRegistry;
-import org.apromore.xes.in.XParser;
-import org.apromore.xes.out.XMxmlGZIPSerializer;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.in.*;
+import org.deckfour.xes.out.*;
+import org.deckfour.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -300,13 +300,13 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
     public XLog importFromFile(XFactory factory, String location) throws Exception {
         if (location.endsWith("mxml.gz")) {
-            return importFromInputStream(new FileInputStream(location), new org.apromore.xes.in.XMxmlGZIPParser(factory));
+            return importFromInputStream(new FileInputStream(location), new XMxmlGZIPParser(factory));
         } else if (location.endsWith("mxml")) {
-            return importFromInputStream(new FileInputStream(location), new org.apromore.xes.in.XMxmlParser(factory));
+            return importFromInputStream(new FileInputStream(location), new XMxmlParser(factory));
         } else if (location.endsWith("xes.gz")) {
-            return importFromInputStream(new FileInputStream(location), new org.apromore.xes.in.XesXmlGZIPParser(factory));
+            return importFromInputStream(new FileInputStream(location), new XesXmlGZIPParser(factory));
         } else if (location.endsWith("xes")) {
-            return importFromInputStream(new FileInputStream(location), new org.apromore.xes.in.XesXmlParser(factory));
+            return importFromInputStream(new FileInputStream(location), new XesXmlParser(factory));
         }
         return null;
     }
@@ -315,15 +315,15 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         if (name.endsWith("mxml.gz")) {
             exportToInputStream(log, path, name, new XMxmlGZIPSerializer());
         } else if (name.endsWith("mxml")) {
-            exportToInputStream(log, path, name, new org.apromore.xes.out.XMxmlSerializer());
+            exportToInputStream(log, path, name, new XMxmlSerializer());
         } else if (name.endsWith("xes.gz")) {
-            exportToInputStream(log, path, name, new org.apromore.xes.out.XesXmlGZIPSerializer());
+            exportToInputStream(log, path, name, new XesXmlGZIPSerializer());
         } else if (name.endsWith("xes")) {
-            exportToInputStream(log, path, name, new org.apromore.xes.out.XesXmlSerializer());
+            exportToInputStream(log, path, name, new XesXmlSerializer());
         }
     }
 
-    public XLog importFromInputStream(InputStream inputStream, org.apromore.xes.in.XParser parser) throws Exception {
+    public XLog importFromInputStream(InputStream inputStream, XParser parser) throws Exception {
         Collection<XLog> logs;
         try {
             logs = parser.parse(inputStream);
@@ -333,7 +333,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         }
         if (logs == null) {
             // try any other parser
-            for (XParser p : org.apromore.xes.in.XParserRegistry.instance().getAvailable()) {
+            for (XParser p : XParserRegistry.instance().getAvailable()) {
                 if (p == parser) {
                     continue;
                 }
@@ -367,7 +367,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
         return log;
     }
 
-    public void exportToInputStream(XLog log, String path, String name, org.apromore.xes.out.XSerializer serializer) {
+    public void exportToInputStream(XLog log, String path, String name, XSerializer serializer) {
         FileOutputStream outputStream;
         try {
             File directory = new File(path);

@@ -28,7 +28,7 @@ import org.apromore.logman.stats.LogStatistics;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterOutputResult;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterResultListener;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Button;

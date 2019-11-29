@@ -22,7 +22,7 @@ package org.apromore.dao;
 
 import org.apromore.apmlog.APMLog;
 import org.apromore.dao.model.Log;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 import java.util.List;
 

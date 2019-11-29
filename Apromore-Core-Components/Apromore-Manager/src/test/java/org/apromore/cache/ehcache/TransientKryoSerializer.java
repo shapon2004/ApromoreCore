@@ -45,6 +45,7 @@ public class TransientKryoSerializer implements Serializer<Employee>, Closeable{
     @Override
     public ByteBuffer serialize(Employee object) throws SerializerException {
         Output output = new Output(new ByteArrayOutputStream());
+        kryo.setReferences(false);
         kryo.writeObject(output, object);
         output.close();
 
@@ -54,6 +55,7 @@ public class TransientKryoSerializer implements Serializer<Employee>, Closeable{
     @Override
     public Employee read(final ByteBuffer binary) throws ClassNotFoundException, SerializerException {
         Input input =  new Input(new ByteBufferInputStream(binary)) ;
+        kryo.setReferences(false);
         return kryo.readObject(input, Employee.class);
     }
 

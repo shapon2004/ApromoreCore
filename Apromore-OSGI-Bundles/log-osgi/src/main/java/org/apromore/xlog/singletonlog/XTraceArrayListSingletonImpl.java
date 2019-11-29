@@ -1,22 +1,22 @@
 package org.apromore.xlog.singletonlog;
 
-import org.apromore.xes.extension.XExtension;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.util.XAttributeUtils;
+import org.deckfour.xes.extension.XExtension;
+import org.deckfour.xes.model.*;
+import org.deckfour.xes.util.XAttributeUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
 
-public class XTraceArrayListSingletonImpl extends ArrayList<org.apromore.xes.model.XEvent> implements XTrace {
+public class XTraceArrayListSingletonImpl extends ArrayList<XEvent> implements XTrace {
     private static final long serialVersionUID = 843122019760036963L;
-    private org.apromore.xes.model.XAttributeMap attributes;
+    private XAttributeMap attributes;
 
-    public XTraceArrayListSingletonImpl(org.apromore.xes.model.XAttributeMap attributeMap) {
+    public XTraceArrayListSingletonImpl(XAttributeMap attributeMap) {
         this.attributes = attributeMap;
     }
 
-    public org.apromore.xes.model.XAttributeMap getAttributes() {
+    public XAttributeMap getAttributes() {
         return this.attributes;
     }
 
@@ -24,7 +24,7 @@ public class XTraceArrayListSingletonImpl extends ArrayList<org.apromore.xes.mod
         return XAttributeUtils.extractExtensions(this.attributes);
     }
 
-    public void setAttributes(org.apromore.xes.model.XAttributeMap attributes) {
+    public void setAttributes(XAttributeMap attributes) {
         this.attributes = attributes;
     }
 
@@ -34,36 +34,36 @@ public class XTraceArrayListSingletonImpl extends ArrayList<org.apromore.xes.mod
 
     public Object clone() {
         XTraceArrayListSingletonImpl clone = (XTraceArrayListSingletonImpl)super.clone();
-        clone.attributes = (org.apromore.xes.model.XAttributeMap)this.attributes.clone();
+        clone.attributes = (XAttributeMap)this.attributes.clone();
         clone.clear();
 
-        for(org.apromore.xes.model.XEvent event : this) {
-            clone.add((org.apromore.xes.model.XEvent)event.clone());
+        for(XEvent event : this) {
+            clone.add((XEvent)event.clone());
         }
 
         return clone;
     }
 
-    public synchronized int insertOrdered(org.apromore.xes.model.XEvent event) {
+    public synchronized int insertOrdered(XEvent event) {
         if (this.size() == 0) {
             this.add(event);
             return 0;
         } else {
-            org.apromore.xes.model.XAttribute insTsAttr = event.getAttributes().get("time:timestamp");
+            XAttribute insTsAttr = event.getAttributes().get("time:timestamp");
             if (insTsAttr == null) {
                 this.add(event);
                 return this.size() - 1;
             } else {
-                Date insTs = ((org.apromore.xes.model.XAttributeTimestamp)insTsAttr).getValue();
+                Date insTs = ((XAttributeTimestamp)insTsAttr).getValue();
 
                 for(int i = this.size() - 1; i >= 0; --i) {
-                    org.apromore.xes.model.XAttribute refTsAttr = this.get(i).getAttributes().get("time:timestamp");
+                    XAttribute refTsAttr = this.get(i).getAttributes().get("time:timestamp");
                     if (refTsAttr == null) {
                         this.add(event);
                         return this.size() - 1;
                     }
 
-                    Date refTs = ((org.apromore.xes.model.XAttributeTimestamp)refTsAttr).getValue();
+                    Date refTs = ((XAttributeTimestamp)refTsAttr).getValue();
                     if (!insTs.before(refTs)) {
                         this.add(i + 1, event);
                         return i + 1;
@@ -76,14 +76,14 @@ public class XTraceArrayListSingletonImpl extends ArrayList<org.apromore.xes.mod
         }
     }
 
-    public void accept(org.apromore.xes.model.XVisitor visitor, org.apromore.xes.model.XLog log) {
+    public void accept(XVisitor visitor, XLog log) {
         visitor.visitTracePre(this, log);
 
-        for(org.apromore.xes.model.XAttribute attribute : attributes.values()) {
+        for(XAttribute attribute : attributes.values()) {
             attribute.accept(visitor, this);
         }
 
-        for(org.apromore.xes.model.XEvent event : this) {
+        for(XEvent event : this) {
             event.accept(visitor, this);
         }
 

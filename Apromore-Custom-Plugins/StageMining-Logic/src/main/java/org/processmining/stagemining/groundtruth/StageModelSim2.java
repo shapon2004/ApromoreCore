@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 public class StageModelSim2 extends ExampleClass {
 	public List<Set<String>> getGroundTruth(XLog log) throws Exception {

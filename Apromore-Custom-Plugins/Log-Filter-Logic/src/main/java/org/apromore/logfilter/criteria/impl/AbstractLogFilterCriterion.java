@@ -25,8 +25,8 @@ import org.apromore.logfilter.criteria.LogFilterCriterion;
 import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 import java.util.Set;
 
 /**

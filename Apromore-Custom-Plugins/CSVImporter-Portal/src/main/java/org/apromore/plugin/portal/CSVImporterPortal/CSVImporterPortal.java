@@ -21,7 +21,6 @@
 package org.apromore.plugin.portal.CSVImporterPortal;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.Calendar;
@@ -47,7 +46,7 @@ import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 import org.zkoss.zul.*;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 
 @Component("csvImporterPortalPlugin")

@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.extension.std.XLifecycleExtension;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeMap;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

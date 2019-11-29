@@ -24,9 +24,9 @@ import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
 import org.apromore.logfilter.util.TimeConverter;
-import org.apromore.xes.model.XAttributeTimestamp;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 
 import java.util.Set;
 

@@ -22,11 +22,11 @@ package ee.ut.mining.log;
 
 import java.io.File;
 
-import org.apromore.xes.in.XMxmlGZIPParser;
-import org.apromore.xes.in.XMxmlParser;
-import org.apromore.xes.in.XesXmlGZIPParser;
-import org.apromore.xes.in.XesXmlParser;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.in.XMxmlGZIPParser;
+import org.deckfour.xes.in.XMxmlParser;
+import org.deckfour.xes.in.XesXmlGZIPParser;
+import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.model.XLog;
 
 public class XLogReader {
 	public static XLog openLog(String inputLogFileName) throws Exception {

@@ -28,7 +28,7 @@ import java.util.*;
 import ee.ut.eventstr.comparison.differences.*;
 import org.apromore.plugin.editor.EditorPlugin;
 import org.apromore.portal.context.EditorPluginResolver;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

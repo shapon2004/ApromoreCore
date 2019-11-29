@@ -33,7 +33,7 @@ import java.util.Map;
 import org.apromore.model.LogSummaryType;
 import org.apromore.model.SummaryType;
 import org.apromore.service.EventLogService;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

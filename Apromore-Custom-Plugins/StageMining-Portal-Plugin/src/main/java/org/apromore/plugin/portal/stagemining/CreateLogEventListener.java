@@ -5,7 +5,7 @@
  */
 package org.apromore.plugin.portal.stagemining;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.processmining.stagemining.models.DecompositionTree;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;

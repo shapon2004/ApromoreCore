@@ -35,8 +35,8 @@ import ee.ut.nets.unfolding.Unfolding2PES;
 import ee.ut.pnml.PNMLReader;
 import hub.top.petrinet.PetriNet;
 import hub.top.petrinet.Transition;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 
 import java.io.*;
 import java.util.*;

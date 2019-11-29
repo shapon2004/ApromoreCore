@@ -22,7 +22,7 @@ package org.apromore.service.prodrift;
 
 import org.apromore.prodrift.config.DriftDetectionSensitivity;
 import org.apromore.prodrift.model.ProDriftDetectionResult;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 /**
  * Interface for the Process Drift Detection Service. Defines all the methods that will do the majority of the work for

@@ -25,9 +25,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.service.logfilter.behaviour.InfrequentBehaviourFilterService;
-import org.apromore.xes.classification.XEventClassifier;
-import org.apromore.xes.classification.XEventNameClassifier;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventNameClassifier;
+import org.deckfour.xes.model.XLog;
 import org.springframework.stereotype.Service;
 
 import java.io.File;

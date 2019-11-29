@@ -1,7 +1,7 @@
 package org.processmining.stagemining.algorithms;
 
 import org.processmining.stagemining.models.DecompositionTree;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 public abstract class AbstractStageMining {
 	protected boolean debug = false;

@@ -6,20 +6,20 @@ import java.util.zip.GZIPInputStream;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.factory.XFactoryBufferedImpl;
-import org.apromore.xes.factory.XFactoryNaiveImpl;
-import org.apromore.xes.factory.XFactoryRegistry;
-import org.apromore.xes.id.XID;
-import org.apromore.xes.in.XesXmlParser;
-import org.apromore.xes.model.*;
-import org.apromore.xes.model.buffered.XAttributeMapSerializer;
-import org.apromore.xes.model.buffered.XAttributeMapSerializerImpl;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryBufferedImpl;
+import org.deckfour.xes.factory.XFactoryNaiveImpl;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.id.XID;
+import org.deckfour.xes.in.XesXmlParser;
+import org.deckfour.xes.model.*;
+import org.deckfour.xes.model.buffered.XAttributeMapSerializer;
+import org.deckfour.xes.model.buffered.XAttributeMapSerializerImpl;
 //import org.apromore.xes.model.buffered.XAttributeMapSerializerKyroImpl;
-import org.apromore.xes.nikefs2.NikeFS2RandomAccessStorage;
-import org.apromore.xes.nikefs2.NikeFS2StorageProvider;
-import org.apromore.xes.nikefs2.NikeFS2VirtualFileSystem;
-import org.apromore.xes.util.XTimer;
+import org.deckfour.xes.nikefs2.NikeFS2RandomAccessStorage;
+import org.deckfour.xes.nikefs2.NikeFS2StorageProvider;
+import org.deckfour.xes.nikefs2.NikeFS2VirtualFileSystem;
+import org.deckfour.xes.util.XTimer;
 
 
 public class SerializationTest {

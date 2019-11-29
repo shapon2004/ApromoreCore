@@ -20,18 +20,18 @@ package org.apromore.service.perfmining.util;
 
 import java.util.Date;
 
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.extension.std.XLifecycleExtension;
-import org.apromore.xes.extension.std.XOrganizationalExtension;
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XAttributable;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeBoolean;
-import org.apromore.xes.model.XAttributeContinuous;
-import org.apromore.xes.model.XAttributeDiscrete;
-import org.apromore.xes.model.XAttributeLiteral;
-import org.apromore.xes.model.XAttributeTimestamp;
-import org.apromore.xes.model.XEvent;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XLifecycleExtension;
+import org.deckfour.xes.extension.std.XOrganizationalExtension;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.XAttributable;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeBoolean;
+import org.deckfour.xes.model.XAttributeContinuous;
+import org.deckfour.xes.model.XAttributeDiscrete;
+import org.deckfour.xes.model.XAttributeLiteral;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
 import org.joda.time.DateTime;
 
 public class LogUtilites {

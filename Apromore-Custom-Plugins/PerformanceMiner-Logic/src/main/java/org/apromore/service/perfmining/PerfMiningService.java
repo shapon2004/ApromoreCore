@@ -20,7 +20,7 @@
 
 package org.apromore.service.perfmining;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.apromore.service.perfmining.filter.TraceAttributeFilterParameters;
 import org.apromore.service.perfmining.models.SPF;
 import org.apromore.service.perfmining.parameters.SPFConfig;

@@ -15,7 +15,7 @@ import org.processmining.stagemining.utils.GraphUtils;
 import org.processmining.stagemining.utils.LogUtilites;
 import org.processmining.stagemining.utils.Measure;
 import org.processmining.stagemining.utils.OpenLogFilePlugin;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import com.aliasi.cluster.LinkDendrogram;
 //import com.rapidminer.RapidMiner;
 

@@ -22,7 +22,7 @@ package org.apromore.service.loganimation;
 
 import java.util.List;
 
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 public interface LogAnimationService {
 

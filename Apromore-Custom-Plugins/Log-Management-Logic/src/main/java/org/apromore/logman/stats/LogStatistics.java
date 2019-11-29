@@ -4,10 +4,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.*;
 
-import org.apromore.xes.model.impl.XAttributeLiteralImpl;
+import org.deckfour.xes.model.impl.XAttributeLiteralImpl;
 
 import static java.util.Map.Entry.comparingByValue;
 
@@ -24,7 +24,7 @@ public class LogStatistics {
 	private Map<String, Map<String, Integer>> options_frequency;
     private long min = Long.MAX_VALUE; //the earliest timestamp of the log
     private long max = 0; //the latest timestamp of the log
-	private org.apromore.xes.model.XLog log;
+	private XLog log;
 	private String eventClassifier = DEFAULT_CLASSIFIER_KEY;
 //	private Map<String, Set<String>> directFollowMap = new HashMap<String, Set<String>>();
 //    private Map<String, Set<String>> eventualFollowMap = new HashMap<String, Set<String>>();
@@ -34,13 +34,13 @@ public class LogStatistics {
     private Map<List<String>, Integer> variantFrequencyMap; //2019-10-05
     private Map<List<String>, Integer> variantIdMap = new HashMap<>(); //2019-10-05
 
-	public LogStatistics(org.apromore.xes.model.XLog log) {
+	public LogStatistics(XLog log) {
 		this.log = log;
 		this.eventClassifier = DEFAULT_CLASSIFIER_KEY;
 		options_frequency = this.generateStatistics(log, true);
 	}
 	
-	public LogStatistics(org.apromore.xes.model.XLog log, String eventClassifier) {
+	public LogStatistics(XLog log, String eventClassifier) {
 		this.log = log;
 		this.eventClassifier = eventClassifier;
 		options_frequency = this.generateStatistics(log, true);
@@ -123,7 +123,7 @@ public class LogStatistics {
 	
 	
 	
-	public org.apromore.xes.model.XLog getLog() {
+	public XLog getLog() {
 		return log;
 	}
 	
@@ -134,7 +134,7 @@ public class LogStatistics {
      * Value: map (key: attribute value, value: frequency count of the value)
      * @param log
      */
-    private Map<String, Map<String, Integer>> generateStatistics(org.apromore.xes.model.XLog log, boolean attributeStat) {
+    private Map<String, Map<String, Integer>> generateStatistics(XLog log, boolean attributeStat) {
         //boolean firstTime = (options_frequency.keySet().size() == 0);
 //        Multimap<String, String> tmp_options = HashMultimap.create(); //map from attribute key to attribute values
         
@@ -157,14 +157,14 @@ public class LogStatistics {
 //        XAttributeMap xm = this.log.get(0).getAttributes();
 //        System.out.println(xm);
 
-        for (org.apromore.xes.model.XTrace trace : log) {
+        for (XTrace trace : log) {
 
             if (attributeStat) {
 
                 if(trace.getAttributes().containsKey("concept:name")) caseEventMap.put(trace.getAttributes().get("concept:name").toString(), trace.size()); //2019-09-25
 
-                for (org.apromore.xes.model.XEvent event : trace) {
-	                for (org.apromore.xes.model.XAttribute attribute : event.getAttributes().values()) {
+                for (XEvent event : trace) {
+	                for (XAttribute attribute : event.getAttributes().values()) {
 	                    String key = attribute.getKey();
 	                    if (!(key.equals("lifecycle:model") || key.equals(TIMESTAMP_KEY))) {
 //	                        tmp_options.put(key, attribute.toString());
@@ -175,8 +175,8 @@ public class LogStatistics {
 	                        else tmp_options_frequency.get(key).put(attribute.toString(), i + 1);
 	                    }
 	                    if (key.equals(TIMESTAMP_KEY)) {
-	                        min = Math.min(min, ((org.apromore.xes.model.XAttributeTimestamp) attribute).getValueMillis());
-	                        max = Math.max(max, ((org.apromore.xes.model.XAttributeTimestamp) attribute).getValueMillis());
+	                        min = Math.min(min, ((XAttributeTimestamp) attribute).getValueMillis());
+	                        max = Math.max(max, ((XAttributeTimestamp) attribute).getValueMillis());
 	                    }
 	                }
 	                if(event.getAttributes().containsKey(this.eventClassifier)) eventNameSet.add(event.getAttributes().get(this.eventClassifier).toString());
@@ -232,14 +232,14 @@ public class LogStatistics {
         return tmp_options_frequency;
     }
 
-    private org.apromore.xes.model.XLog logWithVariant(org.apromore.xes.model.XLog log, Map<List<String>, Integer> variantIdMap) {
+    private XLog logWithVariant(XLog log, Map<List<String>, Integer> variantIdMap) {
         for(int i=0; i<log.size(); i++) {
-            org.apromore.xes.model.XTrace trace = log.get(i);
+            XTrace trace = log.get(i);
             List<String> actList = activitySequenceOf(trace);
             if(actList.size() > 0) {
                 int variantId = variantIdMap.get(actList);
                 variantEventsMap.put(variantId, actList);
-                org.apromore.xes.model.XAttribute attribute = new XAttributeLiteralImpl(CASE_VARIANT_KEY, Integer.toString(variantId));
+                XAttribute attribute = new XAttributeLiteralImpl(CASE_VARIANT_KEY, Integer.toString(variantId));
                 log.get(i).getAttributes().put(CASE_VARIANT_KEY, attribute);
             }
         }
@@ -262,10 +262,10 @@ public class LogStatistics {
         return variIdMap;
     }
 
-    private Map<List<String>, Integer> variantFrequencyMapOf(org.apromore.xes.model.XLog theLog) {
+    private Map<List<String>, Integer> variantFrequencyMapOf(XLog theLog) {
         Map<List<String>, Integer> variFreqMap = new HashMap<List<String>, Integer>();
         for(int i=0; i<theLog.size(); i++) {
-            org.apromore.xes.model.XTrace trace = theLog.get(i);
+            XTrace trace = theLog.get(i);
             List<String> actSeq = activitySequenceOf(trace);
             if(actSeq.size() > 0) {
                 if(variFreqMap.containsKey(actSeq)) {
@@ -289,7 +289,7 @@ public class LogStatistics {
         HashMap<ZonedDateTime, Integer> markedMap = new HashMap<ZonedDateTime, Integer>();
 
         for(int i=0; i < trace.size(); i++) {
-            org.apromore.xes.model.XEvent iEvent = trace.get(i);
+            XEvent iEvent = trace.get(i);
             boolean hasStart = true;
             String iActName = "";
             if(iEvent.getAttributes().containsKey(DEFAULT_CLASSIFIER_KEY)) {
@@ -341,7 +341,7 @@ public class LogStatistics {
             ZonedDateTime iZdt = zonedDateTimeOf(iEvent);
             if(iLifecycle.equals("start")) {
                 for(int j=(i+1); j < trace.size(); j++) {
-                    org.apromore.xes.model.XEvent jEvent = trace.get(j);
+                    XEvent jEvent = trace.get(j);
                     String jActName = "";
                     if(jEvent.getAttributes().containsKey(DEFAULT_CLASSIFIER_KEY)) {
                         jActName = jEvent.getAttributes().get(DEFAULT_CLASSIFIER_KEY).toString();
@@ -370,11 +370,11 @@ public class LogStatistics {
         return activitySequence;
     }
 
-    public static ZonedDateTime zonedDateTimeOf(org.apromore.xes.model.XEvent xEvent) {
-        org.apromore.xes.model.XAttribute da =
+    public static ZonedDateTime zonedDateTimeOf(XEvent xEvent) {
+        XAttribute da =
                 xEvent.getAttributes().get(XTimeExtension.KEY_TIMESTAMP);
         if(da==null) return null;//2019-09-24
-        Date d = ((org.apromore.xes.model.XAttributeTimestamp) da).getValue();
+        Date d = ((XAttributeTimestamp) da).getValue();
         ZonedDateTime z =
                 ZonedDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault());
         return z;

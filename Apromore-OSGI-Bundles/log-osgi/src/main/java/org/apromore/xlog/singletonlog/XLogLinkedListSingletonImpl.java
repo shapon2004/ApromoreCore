@@ -1,9 +1,9 @@
 package org.apromore.xlog.singletonlog;
 
-import org.apromore.xes.classification.XEventClassifier;
-import org.apromore.xes.extension.XExtension;
-import org.apromore.xes.info.XLogInfo;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.extension.XExtension;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.model.*;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.util.ArrayList;
@@ -11,17 +11,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.model.XTrace> implements org.apromore.xes.model.XLog {
+public class XLogLinkedListSingletonImpl extends LinkedList<XTrace> implements XLog {
     private static final long serialVersionUID = -9192919845877466525L;
-    private org.apromore.xes.model.XAttributeMap attributes;
+    private XAttributeMap attributes;
     private Set<XExtension> extensions;
     private List<XEventClassifier> classifiers;
-    private List<org.apromore.xes.model.XAttribute> globalTraceAttributes;
-    private List<org.apromore.xes.model.XAttribute> globalEventAttributes;
+    private List<XAttribute> globalTraceAttributes;
+    private List<XAttribute> globalEventAttributes;
     private XEventClassifier cachedClassifier;
     private XLogInfo cachedInfo;
 
-    public XLogLinkedListSingletonImpl(org.apromore.xes.model.XAttributeMap attributeMap) {
+    public XLogLinkedListSingletonImpl(XAttributeMap attributeMap) {
         this.attributes = attributeMap;
         this.extensions = new UnifiedSet<>();
         this.classifiers = new ArrayList();
@@ -31,11 +31,11 @@ public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.mod
         this.cachedInfo = null;
     }
 
-    public org.apromore.xes.model.XAttributeMap getAttributes() {
+    public XAttributeMap getAttributes() {
         return this.attributes;
     }
 
-    public void setAttributes(org.apromore.xes.model.XAttributeMap attributes) {
+    public void setAttributes(XAttributeMap attributes) {
         this.attributes = attributes;
     }
 
@@ -49,7 +49,7 @@ public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.mod
 
     public Object clone() {
         XLogLinkedListSingletonImpl clone = (XLogLinkedListSingletonImpl)super.clone();
-        clone.attributes = (org.apromore.xes.model.XAttributeMap)this.attributes.clone();
+        clone.attributes = (XAttributeMap)this.attributes.clone();
         clone.extensions = new UnifiedSet(this.extensions);
         clone.classifiers = new ArrayList(this.classifiers);
         clone.globalTraceAttributes = new ArrayList(this.globalTraceAttributes);
@@ -58,8 +58,8 @@ public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.mod
         clone.cachedInfo = null;
         clone.clear();
 
-        for(org.apromore.xes.model.XTrace trace : this) {
-            clone.add((org.apromore.xes.model.XTrace)trace.clone());
+        for(XTrace trace : this) {
+            clone.add((XTrace)trace.clone());
         }
 
         return clone;
@@ -69,15 +69,15 @@ public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.mod
         return this.classifiers;
     }
 
-    public List<org.apromore.xes.model.XAttribute> getGlobalEventAttributes() {
+    public List<XAttribute> getGlobalEventAttributes() {
         return this.globalEventAttributes;
     }
 
-    public List<org.apromore.xes.model.XAttribute> getGlobalTraceAttributes() {
+    public List<XAttribute> getGlobalTraceAttributes() {
         return this.globalTraceAttributes;
     }
 
-    public boolean accept(org.apromore.xes.model.XVisitor visitor) {
+    public boolean accept(XVisitor visitor) {
         if (!visitor.precondition()) {
             return false;
         } else {
@@ -92,7 +92,7 @@ public class XLogLinkedListSingletonImpl extends LinkedList<org.apromore.xes.mod
                 classifier.accept(visitor, this);
             }
 
-            for(org.apromore.xes.model.XAttribute attribute : attributes.values()) {
+            for(XAttribute attribute : attributes.values()) {
                 attribute.accept(visitor, this);
             }
 

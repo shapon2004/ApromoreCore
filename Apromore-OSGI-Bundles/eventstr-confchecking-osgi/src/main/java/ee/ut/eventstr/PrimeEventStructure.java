@@ -22,7 +22,7 @@ package ee.ut.eventstr;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashMultimap;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XTrace;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;

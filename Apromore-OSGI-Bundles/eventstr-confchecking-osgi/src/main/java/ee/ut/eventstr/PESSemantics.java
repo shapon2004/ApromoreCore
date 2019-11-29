@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.model.XTrace;
 import org.jbpt.graph.DirectedEdge;
 import org.jbpt.graph.DirectedGraph;
 import org.jbpt.hypergraph.abs.Vertex;

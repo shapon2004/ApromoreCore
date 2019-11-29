@@ -1,9 +1,9 @@
 import java.util.Iterator;
 
-import org.apromore.xes.factory.XFactoryBufferedImpl;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.factory.XFactoryBufferedImpl;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 
 /*
  * OpenXES

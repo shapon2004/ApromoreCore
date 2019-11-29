@@ -20,9 +20,9 @@
 
 package de.hpi.bpmn2_0.replay;
 
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
-import org.apromore.xes.model.impl.XTraceImpl;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.model.impl.XTraceImpl;
 
 /*
 * Similar to XTrace but with added dropFirst and equals method

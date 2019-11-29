@@ -31,12 +31,12 @@ import java.util.Set;
 
 import org.apromore.prodrift.config.BehaviorRelation;
 import org.apromore.prodrift.util.Utils;
-import org.apromore.xes.classification.XEventClass;
-import org.apromore.xes.classification.XEventClasses;
-import org.apromore.xes.info.XLogInfo;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XLog;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.classification.XEventClass;
+import org.deckfour.xes.classification.XEventClasses;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.processmining.framework.util.Pair;
 
 public class BasicLogRelationsExt {

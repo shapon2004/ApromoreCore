@@ -3,9 +3,9 @@ package org.apromore.logfilter.criteria.impl;
 import org.apromore.logfilter.criteria.model.Action;
 import org.apromore.logfilter.criteria.model.Containment;
 import org.apromore.logfilter.criteria.model.Level;
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;

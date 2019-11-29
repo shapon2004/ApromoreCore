@@ -24,7 +24,7 @@ import ee.ut.eventstr.comparison.*;
 import ee.ut.eventstr.comparison.differences.Differences;
 import ee.ut.eventstr.comparison.differences.DifferencesML;
 import ee.ut.eventstr.comparison.differences.ModelAbstractions;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

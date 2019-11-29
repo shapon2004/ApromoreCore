@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.apromore.service.perfmining.filter.TraceAttributeFilterParameters;
 import org.apromore.service.perfmining.models.SPF;
 import org.apromore.service.perfmining.models.SPFManager;

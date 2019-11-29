@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.json.JSONException;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 

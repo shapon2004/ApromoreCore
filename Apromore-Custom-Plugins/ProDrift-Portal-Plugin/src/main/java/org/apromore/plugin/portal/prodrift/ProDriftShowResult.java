@@ -27,7 +27,7 @@ import org.apromore.prodrift.util.XLogManager;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.prodrift.model.Drift;
 import org.apromore.service.EventLogService;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.util.Clients;

@@ -2,7 +2,7 @@ package org.apromore.service.csvimporter;
 
 import com.opencsv.CSVReader;
 import org.apromore.service.csvimporter.impl.LogModel;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.zkoss.zul.*;
 
 import java.io.FileNotFoundException;

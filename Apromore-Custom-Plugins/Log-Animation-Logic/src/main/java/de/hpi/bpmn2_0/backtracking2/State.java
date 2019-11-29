@@ -36,8 +36,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.apromore.xes.extension.std.XConceptExtension;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.model.XTrace;
 
 /*
 * An abstraction of state of a node

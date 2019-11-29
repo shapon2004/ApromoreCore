@@ -43,7 +43,7 @@ import org.apromore.model.SummaryType;
 import org.apromore.model.LogSummaryType;
 import org.apromore.model.VersionSummaryType;
 import org.apromore.service.compare.CompareService;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 

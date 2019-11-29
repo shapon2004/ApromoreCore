@@ -1,7 +1,7 @@
 package org.apromore.plugin.portal.loganimation;
 
 import org.apromore.plugin.portal.PortalContext;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 /**
  * Created by Raffaele Conforti (conforti.raffaele@gmail.com) on 27/10/17.

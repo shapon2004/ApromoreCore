@@ -1,11 +1,11 @@
 package org.apromore.logfilter.criteria.impl;
 
 import org.apromore.logfilter.criteria.model.*;
-import org.apromore.xes.extension.std.XTimeExtension;
-import org.apromore.xes.model.XAttribute;
-import org.apromore.xes.model.XAttributeTimestamp;
-import org.apromore.xes.model.XEvent;
-import org.apromore.xes.model.XTrace;
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XTrace;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;

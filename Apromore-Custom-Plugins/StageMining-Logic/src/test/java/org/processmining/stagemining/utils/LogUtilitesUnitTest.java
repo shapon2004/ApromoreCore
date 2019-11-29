@@ -3,8 +3,8 @@ package org.processmining.stagemining.utils;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import org.apromore.xes.factory.XFactory;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.model.XLog;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;

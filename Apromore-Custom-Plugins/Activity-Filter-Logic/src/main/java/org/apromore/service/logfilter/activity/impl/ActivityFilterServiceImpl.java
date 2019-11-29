@@ -22,12 +22,12 @@ package org.apromore.service.logfilter.activity.impl;
 
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.service.logfilter.activity.ActivityFilterService;
-import org.apromore.xes.classification.XEventClass;
-import org.apromore.xes.classification.XEventClasses;
-import org.apromore.xes.classification.XEventClassifier;
-import org.apromore.xes.info.XLogInfo;
-import org.apromore.xes.info.impl.XLogInfoImpl;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.classification.XEventClass;
+import org.deckfour.xes.classification.XEventClasses;
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.info.XLogInfo;
+import org.deckfour.xes.info.impl.XLogInfoImpl;
+import org.deckfour.xes.model.XLog;
 import org.springframework.stereotype.Service;
 
 /**

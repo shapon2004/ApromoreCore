@@ -26,7 +26,7 @@ import org.apromore.exception.*;
 import org.apromore.model.ExportLogResultType;
 import org.apromore.model.SummariesType;
 import org.apromore.util.StatType;
-import org.apromore.xes.model.XLog;
+import org.deckfour.xes.model.XLog;
 
 import java.io.InputStream;
 import java.io.OutputStream;
