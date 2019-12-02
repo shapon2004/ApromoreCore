@@ -446,6 +446,40 @@
 			<string key="lifecycle:transition" value="complete"/>
 		</event>
 	</trace>
+	<trace>
+		<string key="concept:name" value="A"/>
+		<event>
+			<float key="Leucocytes" value="9.6"/>
+			<string key="org:group" value="B"/>
+			<string key="lifecycle:transition" value="complete"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="A"/>
+		<event>
+			<float key="Leucocytes" value="9.6"/>
+			<string key="org:group" value="B"/>
+			<string key="lifecycle:transition" value="complete"/>
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="A"/>
+		<event>
+			<float key="Leucocytes" value="9.6"/>
+			<string key="org:group" value="B"/>
+			<string key="lifecycle:transition" value="complete"/>
+		</event>
+	</trace>
+
+	<!-- Error start-->
+	<trace>
+		<string key="concept:name" value="A"/>
+		<event>
+			<float key="Leucocytes" value="9.6"/>
+			<string key="org:group" value="B"/>
+			<string key="lifecycle:transition" value="complete"/>
+		</event>
+	</trace>
 
 
 </log>

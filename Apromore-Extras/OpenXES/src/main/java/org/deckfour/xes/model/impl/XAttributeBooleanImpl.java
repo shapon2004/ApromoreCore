@@ -73,6 +73,9 @@ public class XAttributeBooleanImpl extends XAttributeImpl implements
 	public XAttributeBooleanImpl(String key, boolean value) {
 		this(key, value, null);
 	}
+	public XAttributeBooleanImpl() {
+		this("", false, null);
+	}
 
 	/**
 	 * Creates a new instance.

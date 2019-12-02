@@ -14,16 +14,16 @@ import java.util.Map;
 // tag::thirdPartyPersistentSerializer[]
 public class PersistentKryoSerializer extends TransientKryoSerializer {
 
-  private final File stateFile;
+//  private final File stateFile;
 
-  public PersistentKryoSerializer(ClassLoader loader, FileBasedPersistenceContext persistence) throws IOException, ClassNotFoundException {
-    stateFile = new File(persistence.getDirectory(), "PersistentKryoSerializerState.ser");
-    if(stateFile.exists()) {  // <1>
-      restoreState();   // <2>
-      for(Map.Entry<Class, Integer> entry: objectHeaderMap.entrySet()) {  // <3>
-        kryo.register(entry.getKey(), entry.getValue());  // <4>
-      }
-    }
+  public PersistentKryoSerializer(ClassLoader loader) throws IOException, ClassNotFoundException {
+//    stateFile = new File(persistence.getDirectory(), "PersistentKryoSerializerState.ser");
+//    if(stateFile.exists()) {  // <1>
+//      restoreState();   // <2>
+//      for(Map.Entry<Class, Integer> entry: objectHeaderMap.entrySet()) {  // <3>
+//        kryo.register(entry.getKey(), entry.getValue());  // <4>
+//      }
+//    }
   }
 
   @Override
@@ -32,21 +32,21 @@ public class PersistentKryoSerializer extends TransientKryoSerializer {
   }
 
   private void persistState() throws FileNotFoundException {
-    Output output = new Output(new FileOutputStream(stateFile));
-    try {
-      kryo.writeObject(output, objectHeaderMap);
-    } finally {
-      output.close();
-    }
+//    Output output = new Output(new FileOutputStream(stateFile));
+//    try {
+//      kryo.writeObject(output, objectHeaderMap);
+//    } finally {
+//      output.close();
+//    }
   }
 
   private void restoreState() throws FileNotFoundException {
-    Input input = new Input(new FileInputStream(stateFile));
-    try {
-      objectHeaderMap = kryo.readObject(input, HashMap.class);
-    } finally {
-      input.close();
-    }
+//    Input input = new Input(new FileInputStream(stateFile));
+//    try {
+//      objectHeaderMap = kryo.readObject(input, HashMap.class);
+//    } finally {
+//      input.close();
+//    }
   }
 
 }

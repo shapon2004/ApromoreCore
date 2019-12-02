@@ -73,6 +73,9 @@ public class XAttributeLiteralImpl extends XAttributeImpl implements
 	public XAttributeLiteralImpl(String key, String value) {
 		this(key, value, null);
 	}
+	public XAttributeLiteralImpl() {
+		this("", "", null);
+	}
 
 	/**
 	 * Creates a new instance.

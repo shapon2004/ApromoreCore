@@ -73,6 +73,9 @@ public class XAttributeDiscreteImpl extends XAttributeImpl implements
 	public XAttributeDiscreteImpl(String key, long value) {
 		this(key, value, null);
 	}
+	public XAttributeDiscreteImpl() {
+		this("", 0, null);
+	}
 
 	/**
 	 * Creates a new instance.

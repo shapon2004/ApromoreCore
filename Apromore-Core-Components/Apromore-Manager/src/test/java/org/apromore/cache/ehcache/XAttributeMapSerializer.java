@@ -98,6 +98,9 @@ public class XAttributeMapSerializer extends Serializer<XAttributeMap> {
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         int size = in.readInt();
         XAttributeMapImpl map = new XAttributeMapImpl(size * 2);
+
+        kryo.reference(map);
+
         for (int i = 0; i < size; i++) {
             // read attribute key
             String key = in.readString();

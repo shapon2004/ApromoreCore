@@ -7,6 +7,7 @@ import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.impl.XLogImpl;
+import org.deckfour.xes.util.XTimer;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.CacheConfiguration;
@@ -33,23 +34,9 @@ public class SerializerTest {
 
     private static final String PERSISTENCE_PATH = "/Users/frank/terracotta";
 
-
-
     @Test
     @Ignore
     public void runTest () throws Exception {
-
-//        List<Employee> parsedLog = null;
-//        Employee Employee;
-//        XFactory factory = XFactoryRegistry.instance().currentDefault();
-//        XesXmlParser parser = new XesXmlParser(factory);
-//        try {
-//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes.gz").getPath());
-//            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        Employee = parsedLog.iterator().next();
 
         // tag::persistentKryoSerializer[]
         CacheConfiguration<Long, Employee> cacheConfig =
@@ -265,28 +252,44 @@ public class SerializerTest {
 
         Cache<Long, XLog> employeeCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
 
+        XTimer timer = new XTimer();
         List<XLog> parsedLog = null;
         XLog xLog;
         XFactory factory = XFactoryRegistry.instance().currentDefault();
         XesXmlParser parser = new XesXmlParser(factory);
         try {
-            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
-            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
-//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes.gz").getPath());
-//            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
+//            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
+//            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
+            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes.gz").getPath());
+            parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        xLog = (XLog) parsedLog.iterator().next();
+        xLog = parsedLog.iterator().next();
 
+        timer.stop();
+        System.out.println("Imported log:");
+        System.out.println("Duration: " + timer.getDurationString());
+
+        timer.start();
         employeeCache.put(1L, xLog);
+        timer.stop();
+        System.out.println("Cached log:");
+        System.out.println("Duration: " + timer.getDurationString());
+
         XLog newEmp = employeeCache.get(1L);
         assertThat(newEmp, is(xLog));
 
         cacheManager.close();
         cacheManager.init();
         employeeCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
-        assertThat(employeeCache.get(1L), is(xLog));
+
+        timer.start();
+        XLog recoveredXLog = employeeCache.get(1L);
+        System.out.println("Recovered log:");
+        System.out.println("Duration: " + timer.getDurationString());
+
+        assertThat(recoveredXLog, is(xLog));
         // end::persistentKryoSerializer[]
     }
 

@@ -74,6 +74,10 @@ public class XAttributeContinuousImpl extends XAttributeImpl implements
 		this(key, value, null);
 	}
 
+	public XAttributeContinuousImpl() {
+		this("", 0, null);
+	}
+
 	/**
 	 * Creates a new instance.
 	 * 
