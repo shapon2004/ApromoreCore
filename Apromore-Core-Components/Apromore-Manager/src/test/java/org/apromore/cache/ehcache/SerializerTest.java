@@ -22,6 +22,9 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -241,7 +244,7 @@ public class SerializerTest {
         CacheConfiguration<Long, XLog> cacheConfig =
                 CacheConfigurationBuilder.newCacheConfigurationBuilder(
                         Long.class, XLog.class,
-                        ResourcePoolsBuilder.heap(100000).disk(1000, MemoryUnit.MB, true))
+                        ResourcePoolsBuilder.heap(100000).disk(5000, MemoryUnit.MB, true))
                         .withValueSerializer(PersistentXLogKryoSerializer.class)
                         .build();
 
@@ -260,7 +263,7 @@ public class SerializerTest {
         try {
 //            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath());
 //            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
-            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes.gz").getPath());
+            Path lgPath = Paths.get(ClassLoader.getSystemResource("XES_logs/procmin20180612_F2_5M.xes.gz").getPath());
             parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
         } catch (Exception e) {
             e.printStackTrace();
@@ -270,6 +273,14 @@ public class SerializerTest {
         timer.stop();
         System.out.println("Imported log:");
         System.out.println("Duration: " + timer.getDurationString());
+
+        // Memory footprint Profiling
+        System.gc();
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+        }
+        System.out.println("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
 
         timer.start();
         employeeCache.put(1L, xLog);
@@ -291,6 +302,11 @@ public class SerializerTest {
 
         assertThat(recoveredXLog, is(xLog));
         // end::persistentKryoSerializer[]
+    }
+
+    protected MemoryUsage getMemoryUsage() {
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+        return memoryMXBean.getHeapMemoryUsage();
     }
 
 }

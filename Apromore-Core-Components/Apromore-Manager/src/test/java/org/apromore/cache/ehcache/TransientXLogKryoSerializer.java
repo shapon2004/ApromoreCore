@@ -272,11 +272,11 @@ public class TransientXLogKryoSerializer implements Serializer<XLog>, Closeable{
 
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
-        Output output = new Output( new DeflaterOutputStream(new ByteArrayOutputStream()), 1024 * 1024 * 1024 * 5);
+        Output output = new Output(new ByteArrayOutputStream(), 1024 * 1024 * 800);
         kryo.writeObject(output, object);
         System.out.println("**************** Kryo serialisation size: " + output.toBytes().length / 1024 / 1024 + " " +
                 "MB");
-        output.flush();
+//        output.flush();
         output.close();
 
 
