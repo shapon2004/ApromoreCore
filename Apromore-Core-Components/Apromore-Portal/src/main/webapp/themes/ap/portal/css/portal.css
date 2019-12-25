@@ -242,13 +242,6 @@
   line-height: 14px;
 }
 
-.ap-navigation .z-treerow .z-treecell {
-  background-color: transparent;
-}
-
-.ap-navigation .z-treerow-selected .z-treecell {
-  background-color: rgb(232, 245, 255);
-}
 
 .ap-process-detail {
   border-radius: 7px;
@@ -578,4 +571,8 @@
 img[src="img/icon/bpmn-22x22.png"] {
   background-image: url('../../common/img/icons/bpmn-model.svg') !important;
   width: 26px !important;
+}
+
+.z-menuitem-image {
+  filter: var(--ap-filter-ico-normal-dark);
 }

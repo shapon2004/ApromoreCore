@@ -38,6 +38,47 @@
     border-top: 1px solid var(--ap-c-grey-minor);
 }
 
+.ap-chart-time-frame {
+    height: calc(100% - 90px) !important;
+}
+
+.ap-lfee-casevar-north {
+    height: calc(100% - 180px) !important;
+}
+.ap-lfee-perf-north {
+    height: calc(100% - 90px) !important;
+}
+
+.ap-chart-contained .highcharts-container {
+    height: 100% !important;
+}
+
+.ap-chart-contained .highcharts-container svg {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.ap-range {
+    border-top: 1px solid var(--ap-c-grey-minor);
+    margin: 0;
+    height: 12px;
+}
+
+.ap-range span {
+    background-color: white;
+    padding: 0 8px;
+    position: relative;
+    top: -8px;
+}
+
+.ap-lfee .z-listcell-content .z-button {
+    padding: 0 4px !important;
+}
+
+.ap-lfee .z-listcell-content .z-button i {
+    margin: 0;
+}
+
 /* -- Overwrite style in logFilter.zul */
 
 .z-loading { top: 0% !important; left: 0% !important; align:

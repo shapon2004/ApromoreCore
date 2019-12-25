@@ -79,7 +79,7 @@
                     <label value="*: mandatory fields."/>
                 </row>
                 <row spans="2">
-                    <div align="center">
+                    <div align="right">
                         <button label="OK" iconSclass="z-icon-check-circle"></button>
                         <button label="Cancel" iconSclass="z-icon-times-circle"></button>
                         <button label="Cancel all" iconSclass="z-icon-times-circle" tooltiptext="Cancel export of all remaining process models."></button>

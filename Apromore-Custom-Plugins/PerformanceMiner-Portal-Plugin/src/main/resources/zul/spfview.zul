@@ -6,7 +6,7 @@
     <div> 
       <button id="updateButton" xmlns:w="client" w:onClick="sendToServer();">Show/Update Summary Metrics</button>
       <grid id="perfminingresult_summarygrid" height="350px" 
-          emptyMessage="Nothing in the box">        
+          emptyMessage="Nothing in the box" sclass="ap-grid">
           <columns>
               <column width="100px" label="" />
               <column width="100px" label="Arrival Rate" />

@@ -30,7 +30,7 @@
             </hbox>
         </div>
 
-        <grid id="prodriftGrid" height="200px" width="100%">
+        <grid id="prodriftGrid" height="200px" width="100%" sclass="ap-grid">
             <columns>
                 <column label="Detected drifts" sort="auto" style="font-size: 14px; font-weight: bold;"/>
             </columns>

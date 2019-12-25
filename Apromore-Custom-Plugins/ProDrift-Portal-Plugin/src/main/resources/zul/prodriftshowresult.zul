@@ -33,7 +33,7 @@
         <div align="left">
             <label id="characterizationLabel" value="Please click on each detected drift below to see its characterization statements." />
         </div>
-        <grid id="prodriftGrid" height="200px" width="100%">
+        <grid id="prodriftGrid" height="200px" width="100%" sclass="ap-grid ap-form">
             <columns>
                 <column label="Detected drifts" style="font-size: 14px; font-weight: bold;"/>
             </columns>

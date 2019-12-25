@@ -219,7 +219,7 @@
                     <hbox id="pagingandbuttons" sclass="ap-portal-menu-actions" height="32px" width="100%" spacing="0"  >
                         <paging sclass="ap-portal-paging" id="pg" width="140px" style="border: 0" visible="false" />
                         <hbox sclass="ap-portal-action-buttons" id="buttons" align="start" pack="start" width="300px" spacing="0">
-                            <button sclass="ap-icon ap-icon-redo" id="refreshB" tooltiptext="Reload data" />
+                            <button sclass="ap-icon ap-icon-sync" id="refreshB" tooltiptext="Reload data" />
                             <!--<button id="showVisualisation" label="" style="background: transparent; border:none" image="img/clustering.png" tooltiptext="Show Clustering" />-->
                             <button sclass="ap-icon ap-icon-folder-add" id="btnAddFolder" tooltiptext="Create folder"/>
                             <button sclass="ap-icon ap-icon-bpmn-add" id="btnAddProcess" tooltiptext="Create model"/>

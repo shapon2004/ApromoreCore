@@ -1,0 +1,50 @@
+.ap-folder-tree [class^="ap-ico-"] > div:first-child {
+    --icon-height: 26px;
+    --bg-height: 20px;
+    box-sizing: border-box !important;
+    height: var(--icon-height) !important;
+    border: none !important;
+    margin: 0 4px !important;
+    background-size: auto var(--bg-height) !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-origin: padding-box !important;
+    border-radius: 3px !important;
+    padding: 0 !important;
+    margin: 0 2px 0 0 !important;
+    cursor: pointer;
+    display: inline-block;
+
+    filter: var(--ap-filter-ico-static);
+}
+
+.ap-folder-tree [class^="ap-ico-"] .z-image {
+    display: none;
+}
+
+.ap-folder-tree .z-listitem-selected [class^="ap-ico-"] > div:first-child {
+    filter: none;
+}
+
+.ap-folder-tree .ap-ico-folder > div:first-child {
+    background-image: url('../../common/img/icons/folder.svg') !important;
+    width: 26.390625px !important;
+}
+
+.ap-folder-tree .z-treerow-selected .ap-ico-folder > div:first-child {
+    background-image: url('../../common/img/icons/folder-open.svg') !important;
+    width: 28.5px !important;
+}
+
+.ap-folder-tree .ap-ico-home > div:first-child {
+    background-image: url('../../common/img/icons/folder-home.svg') !important;
+    width: 26.390625px !important;
+}
+
+.ap-simsearch .z-window-content {
+    padding: 0;
+}
+
+.ap-simsearch-toolbar {
+    border-top: 1px solid var(--ap-c-line-layout);
+}

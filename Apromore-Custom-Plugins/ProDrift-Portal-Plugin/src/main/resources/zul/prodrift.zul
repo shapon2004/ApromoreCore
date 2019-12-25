@@ -42,7 +42,7 @@
 
     </style>
     <vbox>
-        <grid>
+        <grid sclass="ap-grid ap-form">
             <columns sizable="true">
                 <column width="50%"></column>
                 <column width="50%"></column>
@@ -110,7 +110,7 @@
                            maximizable="false" minimizable="false" border="normal" collapsible="true" closable="false">
 
                         <panelchildren>
-                            <grid sclass="GridLayoutNoBorder">
+                            <grid sclass="GridLayoutNoBorder ap-grid ap-form">
                                 <columns>
                                     <column/>
                                     <column/>

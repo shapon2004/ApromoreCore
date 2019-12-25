@@ -14,12 +14,14 @@
 
 /* ZK overrides
  We put them here (not as a separate import) for faster loading
+ TO DO: These should be moved to Chiaruscuro Theme
  */
 
 /* Typography */
 .z-a,
 .z-bandbox-input,
 .z-button,
+.z-caption-content,
 .z-center-header,
 .z-checkbox-content,
 .z-combobox-input,
@@ -72,6 +74,7 @@ input {
 
 .z-button,
 .z-combobutton-content {
+  color: var(--ap-c-button-text);
   background-color: var(--ap-c-button);
 }
 
@@ -93,6 +96,15 @@ input {
 
 .z-combobutton-button {
   border-left: 1px solid var(--ap-c-button-sep);
+}
+
+.z-window-content > .z-button {
+  margin: 7px 0px !important;
+}
+
+.z-window-content > .z-button:first-child,
+.z-window-content > .z-button:last-child{
+  margin-left: 7px !important;
 }
 
 /* Checkbox */
@@ -165,6 +177,10 @@ input[type="radio"]:checked:before {
   background-color: var(--ap-c-bg-lighter);
 }
 
+.z-window-content {
+  padding: 0;
+}
+
 .z-window-modal,
 .z-window-overlapped,
 .z-messagebox-window {
@@ -209,6 +225,7 @@ input[type="radio"]:checked:before {
           #fee8c8 20%,
           #edf7fb 60%
   );
+  border-bottom: 1px solid var(--ap-c-grey-light-5) !important;
 }
 
 .z-messagebox-window .z-window-header {
@@ -218,10 +235,12 @@ input[type="radio"]:checked:before {
   color: white;
   line-height: 16px;
   height: 32px;
+  border-bottom: 1px solid var(--ap-c-grey-light-5) !important;
 }
 
 .z-window-modal .z-window-content {
-  padding: 7px 10px 7px 7px;
+  /* padding: 7px 10px 7px 7px; */
+  padding: 0;
   font-family: var(--ap-font-base);
   font-size: 14px;
   background-color: transparent;
@@ -295,14 +314,19 @@ input[type="radio"]:checked:before {
 }
 
 .z-listitem.z-listitem-selected > .z-listcell {
-  background-color: var(--ap-c-grid-row-bg-selected);
+  background-color: var(--ap-c-grid-row-bg-selected) !important;
   border-top: 0;
   border-bottom: 1px solid var(--ap-c-line-sep-selected);
+}
+
+.z-listitem:hover>.z-listcell {
+  background: var(--ap-c-grid-row-bg-selected) !important;
 }
 
 .z-listitem .z-listcell {
   border-top: 0;
   border-bottom: 1px solid var(--ap-c-line-sep);
+  background-color: transparent;
 }
 
 .z-grid-header,
@@ -321,6 +345,18 @@ input[type="radio"]:checked:before {
 
 .z-listitem-checkable {
   vertical-align: middle;
+}
+
+.z-treerow > .z-treecell {
+  background-color: transparent;
+}
+
+.z-treerow-selected > .z-treecell {
+  background-color: var(--ap-c-grid-row-bg-selected) !important;
+}
+
+.z-treerow:hover > .z-treecell {
+  background-color: var(--ap-c-grid-row-bg-selected) !important;
 }
 
 /* Fixes for CSV importer list */
@@ -378,7 +414,22 @@ tr.z-row-disabled td.z-row-inner .z-slider-area {
   color: var(--ap-c-menu-text-selected);
 }
 
-/* */
+.z-menu-content:hover,.z-menuitem-content:hover {
+  background-color: var(--ap-c-menu-bg-hover);
+}
+
+.z-menu-content:focus,.z-menuitem-content:focus {
+  background-color: var(--ap-c-menu-bg-hover);
+}
+
+.z-menu-content:active,.z-menuitem-content:active {
+  background-color: var(--ap-c-menu-bg-hover);
+}
+
+/* Layout */
+.z-north-body, .z-south-body, .z-west-body, .z-center-body, .z-east-body {
+  padding: 0;
+}
 
 .z-west-icon.z-icon-caret-left {
   left: -4px;
@@ -417,4 +468,12 @@ tr.z-row-disabled td.z-row-inner .z-slider-area {
 
 .z-messagebox-error {
   background-image: url(../img/msgbox/stop.svg);
+}
+
+.z-groupbox .z-caption {
+  background-color: white !important;
+}
+
+.z-window-content {
+  padding: 0;
 }

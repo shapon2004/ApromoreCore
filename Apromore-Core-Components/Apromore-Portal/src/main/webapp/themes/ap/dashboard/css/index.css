@@ -46,6 +46,11 @@ body {
     display: inline-block;
 }
 
+
+.highcharts-button-box {
+    transform: translate(0px, 5px);
+}
+
 /* HACK */
 .ap-dashboard-right-menu .myMenu:last-child {
     display: none;
@@ -80,12 +85,12 @@ body {
     height: 29px;
     border-bottom-width: 2px;
     color: var(--ap-c-tab-text-normal);
-    border-bottom: 2px solid var(--ap-c-tab-bar-normal);
+    /* border-bottom: 2px solid var(--ap-c-tab-bar-normal); */
 }
 
 .ap-dashboard .ap-radio-c input[checked="checked"] + .z-radio-content {
     color: var(--ap-c-tab-text-selected);
-    border-bottom: 2px solid var(--ap-c-tab-bar-selected);
+    /* border-bottom: 2px solid var(--ap-c-tab-bar-selected); */
 }
 
 .ap-dashboard .ap-radio-c input[checked="checked"] + .z-radio-content .ap-icon {
@@ -102,6 +107,17 @@ body {
 
 .ap-slide-menu-c .slider {
     display: none;
+}
+
+.ap-slide-menu-bar {
+    padding: 0 !important;
+    cursor: none !important;
+    position: absolute;
+    background-color: var(--ap-c-tab-bar-selected);
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    width: 0px;
 }
 
 /*.ap-radio-c input[type="radio"]:checked ~ .z-radio-content,*/

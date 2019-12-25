@@ -166,6 +166,16 @@
     content: "\f0ce"
 }
 
+.z-icon-expand:before {
+    content: "\f065"
+}
+
+.z-icon-remove:before,
+.z-icon-close:before,
+.z-icon-times:before {
+    content: "\f00d"
+}
+
 /* Symbols */
 
 .z-icon-wrench:before {
@@ -174,4 +184,8 @@
 
 .z-icon-keyboard-o:before {
     content: "\f11c"
+}
+
+.z-icon-calendar:before {
+    content: "\f073"
 }

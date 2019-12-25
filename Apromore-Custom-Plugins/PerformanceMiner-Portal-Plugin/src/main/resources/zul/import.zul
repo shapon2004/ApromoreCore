@@ -30,7 +30,7 @@
 
     </style>
     <vbox>
-        <grid>
+        <grid sclass="ap-grid ap-form">
             <columns sizable="true">
                 <column width="50%"></column>
                 <column width="50%"></column>

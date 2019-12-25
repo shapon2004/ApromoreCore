@@ -30,7 +30,7 @@
 
     </style>
     <vbox>
-        <grid>
+        <grid sclass="ap-grid">
             <columns sizable="true">
                 <column width="50%"></column>
                 <column width="50%"></column>
@@ -44,7 +44,7 @@
                 <row width="100%" spans="2">
                     <groupbox width="100%">
                         <caption label="Parameters"/>
-                        <grid sclass="GridLayoutNoBorder">
+                        <grid sclass="GridLayoutNoBorder ap-grid ap-form">
                             <columns>
                                 <column/>
                                 <column/>
@@ -62,7 +62,7 @@
                 </row>
 
                 <row id="Buttons" spans="2">
-                    <div align="center">
+                    <div align="right">
                         <button id="createLogOKButton" label="OK" iconSclass="z-icon-check-circle" disabled="false" height="30px"></button>
                         <button id="createLogCancelButton" label="Cancel" iconSclass="z-icon-times-circle" height="30px"></button>
                     </div>
