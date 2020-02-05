@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -40,7 +40,7 @@ package org.deckfour.xes.info.impl;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.deckfour.xes.classification.XEventAttributeClassifier;
@@ -176,7 +176,7 @@ public class XLogInfoImpl implements XLogInfo {
 	 * Map of timestamp boundaries for each trace, indexed
 	 * by reference to the respective trace.
 	 */
-	protected UnifiedMap<XTrace,XTimeBoundsImpl> traceBoundaries;
+	protected HashMap<XTrace,XTimeBoundsImpl> traceBoundaries;
 	/**
 	 * Attribute information registry on the log level.
 	 */
@@ -206,7 +206,7 @@ public class XLogInfoImpl implements XLogInfo {
 		if(classifiers == null) {
 			classifiers = Collections.emptyList();
 		}
-		this.eventClasses = new UnifiedMap<XEventClassifier,XEventClasses>(classifiers.size() + 4);
+		this.eventClasses = new HashMap<XEventClassifier,XEventClasses>(classifiers.size() + 4);
 		for(XEventClassifier classifier : classifiers) {
 			this.eventClasses.put(classifier, new XEventClasses(classifier));
 		}
@@ -217,7 +217,7 @@ public class XLogInfoImpl implements XLogInfo {
 		this.numberOfEvents = 0;
 		this.numberOfTraces = 0;
 		this.logBoundaries = new XTimeBoundsImpl();
-		this.traceBoundaries = new UnifiedMap<XTrace,XTimeBoundsImpl>();
+		this.traceBoundaries = new HashMap<XTrace,XTimeBoundsImpl>();
 		this.logAttributeInfo = new XAttributeInfoImpl();
 		this.traceAttributeInfo = new XAttributeInfoImpl();
 		this.eventAttributeInfo = new XAttributeInfoImpl();

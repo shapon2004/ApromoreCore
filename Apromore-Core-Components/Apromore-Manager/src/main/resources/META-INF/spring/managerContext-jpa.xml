@@ -87,20 +87,21 @@
         <constructor-arg type="javax.sql.DataSource" ref="dataSource"/>
     </bean>
 
-    <tx:annotation-driven  />
+    <!-- Disabled after migrating to EhCache3-->
+    <!--<tx:annotation-driven  />-->
 
-    <bean id="cacheRepo" class="org.apromore.dao.jpa.CacheRepositoryImpl">
-        <property name="cacheName" value="xlog"/> <!-- cache name defined in ehcache.xml -->
-        <property name="ehCacheCacheManager" ref="ehCacheCacheManager"/>
-    </bean>
+    <!--<bean id="cacheRepo" class="org.apromore.dao.jpa.CacheRepositoryImpl">-->
+        <!--<property name="cacheName" value="xlog"/> &lt;!&ndash; cache name defined in ehcache.xml &ndash;&gt;-->
+        <!--<property name="ehCacheCacheManager" ref="ehCacheCacheManager"/>-->
+    <!--</bean>-->
 
-    <bean id="ehCacheCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
-        <property name="cacheManager" ref="ehcache"/>
-    </bean>
+    <!--<bean id="ehCacheCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">-->
+        <!--<property name="cacheManager" ref="ehcache"/>-->
+    <!--</bean>-->
 
-    <bean id="ehcache"
-          class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
-        <property name="configLocation" value="classpath:ehcache.xml"/>
-    </bean>
+    <!--<bean id="ehcache"-->
+          <!--class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">-->
+        <!--<property name="configLocation" value="classpath:ehcache.xml"/>-->
+    <!--</bean>-->
 
 </beans>

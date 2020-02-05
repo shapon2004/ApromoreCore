@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2009 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -39,7 +39,7 @@
 package org.deckfour.xes.util;
 
 import java.text.ParseException;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -228,7 +228,7 @@ public class XAttributeUtils {
 	 */
 	public static Set<XExtension> extractExtensions(
 			Map<String, XAttribute> attributeMap) {
-		UnifiedSet<XExtension> extensions = new UnifiedSet<XExtension>();
+		HashSet<XExtension> extensions = new HashSet<XExtension>();
 		for (XAttribute attribute : attributeMap.values()) {
 			XExtension extension = attribute.getExtension();
 			if (extension != null) {

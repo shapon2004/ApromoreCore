@@ -56,7 +56,7 @@ import org.deckfour.xes.util.XAttributeUtils;
  * @author Christian W. Guenther (christian@deckfour.org)
  * 
  */
-public abstract class XAttributeImpl implements XAttribute  {
+public abstract class XAttributeImpl implements XAttribute {
 
 	/**
 	 * 
@@ -128,8 +128,10 @@ public abstract class XAttributeImpl implements XAttribute  {
 	public XAttributeMap getAttributes() {
 		// This is not thread-safe, but we don't give any thread safety guarantee anyway
 		if (attributes == null) {
-			this.attributes = new XAttributeMapLazyImpl<XAttributeMapImpl>(
-					XAttributeMapImpl.class); // uses lazy implementation by default
+			// uses XAttributeMapImpl to walk around kryo serialisation issue
+			this.attributes = new XAttributeMapImpl();
+//			this.attributes = new XAttributeMapLazyImpl<XAttributeMapImpl>(
+//					XAttributeMapImpl.class); // uses lazy implementation by default
 		}
 		return attributes;
 	}
@@ -146,7 +148,7 @@ public abstract class XAttributeImpl implements XAttribute  {
 	}
 	
 	/* (non-Javadoc)
-	 * @see XAttributable#hasAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#hasAttributes()
 	 */
 	@Override
 	public boolean hasAttributes() {
@@ -223,7 +225,7 @@ public abstract class XAttributeImpl implements XAttribute  {
 	 * Runs the given visitor for the given parent on this attribute.
 	 * 
 	 * (non-Javadoc)
-	 * @see XAttribute#accept(XVisitor, XAttributable)
+	 * @see org.deckfour.xes.model.XAttribute#accept(org.deckfour.xes.model.XVisitor, org.deckfour.xes.model.XAttributable)
 	 */
 	public void accept(XVisitor visitor, XAttributable parent) {
 		/*

@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -38,7 +38,7 @@
  */
 package org.deckfour.xes.info.impl;
 
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import java.util.HashMap;
 
 import org.deckfour.xes.info.XAttributeNameMap;
 import org.deckfour.xes.model.XAttribute;
@@ -58,7 +58,7 @@ public class XAttributeNameMapImpl implements XAttributeNameMap {
 	/**
 	 * Map for storing the name mapping.
 	 */
-	private UnifiedMap<String,String> mapping;
+	private HashMap<String,String> mapping;
 	
 	/**
 	 * Creates a new attribute name mapping instance.
@@ -67,7 +67,7 @@ public class XAttributeNameMapImpl implements XAttributeNameMap {
 	 */
 	public XAttributeNameMapImpl(String name) {
 		this.name = name;
-		this.mapping = new UnifiedMap<String,String>();
+		this.mapping = new HashMap<String,String>();
 	}
 
 	/* (non-Javadoc)

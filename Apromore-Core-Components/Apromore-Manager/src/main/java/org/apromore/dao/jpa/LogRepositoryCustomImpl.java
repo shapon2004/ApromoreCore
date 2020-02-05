@@ -25,8 +25,9 @@ package org.apromore.dao.jpa;
 
 import org.apromore.apmlog.APMLog;
 import org.apromore.apmlog.APMLogService;
-import org.apromore.apmlog.impl.APMLogServiceImpl;
-import org.apromore.dao.CacheRepository;
+import org.apromore.cache.ehcache.APMLogKryoSerializer;
+import org.apromore.cache.ehcache.EhCacheManager;
+import org.apromore.cache.ehcache.EhcacheXLogSerializer;
 import org.apromore.dao.LogRepositoryCustom;
 import org.apromore.dao.model.Log;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -35,11 +36,19 @@ import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.*;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.out.*;
+import org.ehcache.CacheManager;
+import org.ehcache.config.CacheConfiguration;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.units.MemoryUnit;
+import org.ehcache.core.spi.service.StatisticsService;
+import org.ehcache.core.statistics.DefaultStatisticsService;
+import org.ehcache.impl.config.persistence.CacheManagerPersistenceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -53,6 +62,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+//import org.apromore.cache.ehcache.EhcacheXLogSerializer;
+
 /**
  * implementation of the org.apromore.dao.LogRepositoryCustom interface.
  * @author <a href="mailto:raffaele.conforti@unimelb.edu.au">Raffaele Conforti</a>
@@ -61,20 +72,59 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogRepositoryCustomImpl.class);
 
-    private static final String APMLOG_CACHE_KEY_SUFFIX = "APMLog";
     private static final String GET_ALL_LOGS_JPA = "SELECT l FROM Log l ";
     private static final String GET_ALL_LOGS_FOLDER_JPA = "SELECT l FROM Log l JOIN l.folder f ";
     private static final String GET_ALL_FOLDER_JPA = "f.id = ";
     private static final String GET_ALL_SORT_JPA = " ORDER by l.id";
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+
+    private static final String APMLOG_CACHE_KEY_SUFFIX = "APMLog";
+
     @PersistenceContext
     private EntityManager em;
 
     /**
      * Inject the CacheRepository instance
      */
-    @Resource
-    private CacheRepository cacheRepo;
+
+//    @Resource
+//    private EhCacheManager ehCacheCacheManager = new EhCacheManager();
+//    private Cache<Object, Object>  cacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_XLOG);
+//    private Cache<Object, Object>  apmlogCacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_APMLOG);
+
+    final String PERSISTENCE_PATH = "/Users/frank/terracotta";
+
+    CacheConfiguration<Long, XLog> cacheConfig =
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, XLog.class,
+                    ResourcePoolsBuilder.heap(1).disk(10000, MemoryUnit.MB, true))
+                    .withValueSerializer(EhcacheXLogSerializer.class)
+                    .build();
+
+    CacheConfiguration<Long, APMLog> apmlogCacheConfig =
+            CacheConfigurationBuilder.newCacheConfigurationBuilder(Long.class, APMLog.class,
+                    ResourcePoolsBuilder.heap(1).disk(10000, MemoryUnit.MB, true))
+                    .withValueSerializer(APMLogKryoSerializer.class)
+                    .build();
+
+    StatisticsService statisticsService = new DefaultStatisticsService();
+
+
+    CacheManager cacheManager =
+            CacheManagerBuilder.newCacheManagerBuilder()
+                    .with(new CacheManagerPersistenceConfiguration(new File(PERSISTENCE_PATH)))
+                    .withCache("xLogCache", cacheConfig)
+                    .withCache("apmLogCache", apmlogCacheConfig)
+                    .using(statisticsService)
+                    .build(true);
+
+    org.ehcache.Cache<Long, XLog> cacheRepo = cacheManager.getCache("xLogCache", Long.class,
+            XLog.class);
+
+    org.ehcache.Cache<Long, APMLog> apmlogCacheRepo = cacheManager.getCache("apmLogCache", Long.class,
+            APMLog.class);
+
+//    @Resource
+//    private CacheRepository cacheRepo;
 
     @Resource
     private APMLogService apmLogService;
@@ -139,14 +189,15 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
                 exportToFile("../Event-Logs-Repository/", name, log);
 
                 // Store corresponding object into cache
-                cacheRepo.put(logNameId, log);
-                cacheRepo.put(logNameId + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(log));
-                LOGGER.info("Put XLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName() + "] " +
+//                Cache<String, Object>  cacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_XLOG);
+                cacheRepo.put(Long.parseLong(logNameId), log);
+                apmlogCacheRepo.put(Long.parseLong(logNameId), apmLogService.findAPMLogForXLog(log));
+                LOGGER.info("Put XLog [hash: " + log.hashCode() + "] into Cache [" + EhCacheManager.CACHE_ALIAS_XLOG + "] " +
                         "using Key [" + logNameId + "]. ");
-                LOGGER.info("Put APMLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName() + "] " +
+                LOGGER.info("Put APMLog [hash: " + log.hashCode() + "] into Cache [" + EhCacheManager.CACHE_ALIAS_XLOG + "] " +
                         "using Key [" + logNameId + "APMLog]. ");
 //                LOGGER.info("The size that EhCache is using in memory   = " + cacheRepo.getMemoryUsage() / 1024 / 1024 + " MB ");
-                LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//                LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
                 return logNameId;
             } catch (Exception e) {
                 LOGGER.error("Error " + e.getMessage());
@@ -164,10 +215,11 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
                 file.delete();
 
                 // Remove corresponding object from cache
-                String key = log.getFilePath();
-                cacheRepo.evict(key);
-                cacheRepo.evict(key + APMLOG_CACHE_KEY_SUFFIX);
-                LOGGER.info("Delete XLog [ KEY: " + key + "] from cache [" + cacheRepo.getCacheName() + "]");
+                Long key = Long.parseLong(log.getFilePath());
+//                Cache<String, Object> cacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_XLOG);
+                cacheRepo.remove(key);
+                apmlogCacheRepo.remove(key);
+                LOGGER.info("Delete XLog [ KEY: " + key + "] from cache [" + EhCacheManager.CACHE_ALIAS_XLOG + "]");
 
             } catch (Exception e) {
                 LOGGER.error("Error " + e.getMessage());
@@ -189,7 +241,8 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             long elapsedNanos;
             // *******  profiling code end here ********
 
-            String key = log.getFilePath();
+//            Cache<String, Object>  cacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_XLOG);
+            Long key = Long.parseLong(log.getFilePath());
             XLog element = (XLog) cacheRepo.get(key);
 
             if (element == null) {
@@ -211,12 +264,13 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
                     // Log POJO has one constraint that span 2 columns (@UniqueConstraint(columnNames = {"name",
                     // "folderId"}))
                     cacheRepo.put(key, xlog);
-                    cacheRepo.put(key + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(xlog));
+                    apmlogCacheRepo.put(key, apmLogService.findAPMLogForXLog(xlog));
                     elapsedNanos = System.nanoTime() - startTime;
                     LOGGER.info("Put object [KEY:" + key + "] into Cache. Elapsed time: " + elapsedNanos / 1000000 +
                             " ms.");
 //                    LOGGER.info("The size that EhCache is using in memory   = " + cacheRepo.getMemoryUsage() / 1024 / 1024 + " MB ");
-                    LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//                    LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+
 //                    LOGGER.info("Current Memory Usage: " + cache.calculateInMemorySize() / 1024 / 1024 + " MB");
 //                    LOGGER.info("Current Memory Store Size: " + cache.getMemoryStoreSize() / 1000 + " MB");
 //                    LOGGER.info("Current Disk Store Size: " + cache.calculateOnDiskSize() / 1024 / 1024 + " MB");
@@ -228,7 +282,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
             } else {
                 // If cache hit
-                LOGGER.info("Got object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache [" + cacheRepo.getCacheName() + "]");
+                LOGGER.info("Got object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache [" + EhCacheManager.CACHE_ALIAS_XLOG + "]");
                 return element;
             }
         }
@@ -248,8 +302,9 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
             long elapsedNanos;
             // *******  profiling code end here ********
 
-            String key = log.getFilePath() + APMLOG_CACHE_KEY_SUFFIX;
-            APMLog element = (APMLog) cacheRepo.get(key);
+//            Cache<String, Object>  cacheRepo = ehCacheCacheManager.getCache(EhCacheManager.CACHE_ALIAS_XLOG);
+            Long key = Long.parseLong(log.getFilePath());
+            APMLog element = (APMLog) apmlogCacheRepo.get(key);
 
             if (element == null) {
                 // If doesn't hit cache
@@ -258,12 +313,12 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
                 try {
                     APMLog apmLog = apmLogService.findAPMLogForXLog(getProcessLog(log, null));
 
-                    cacheRepo.put(key, apmLog);
+                    apmlogCacheRepo.put(key, apmLog);
                     elapsedNanos = System.nanoTime() - startTime;
                     LOGGER.info("Put object [KEY:" + key + "] into Cache. Elapsed time: " + elapsedNanos / 1000000 +
                             " ms.");
 //                    LOGGER.info("The size that EhCache is using in memory   = " + cacheRepo.getMemoryUsage() / 1024 / 1024 + " MB ");
-                    LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//                    LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
 //                    LOGGER.info("Current Memory Usage: " + cache.calculateInMemorySize() / 1024 / 1024 + " MB");
 //                    LOGGER.info("Current Memory Store Size: " + cache.getMemoryStoreSize() / 1000 + " MB");
 //                    LOGGER.info("Current Disk Store Size: " + cache.calculateOnDiskSize() / 1024 / 1024 + " MB");
@@ -275,7 +330,7 @@ public class LogRepositoryCustomImpl implements LogRepositoryCustom {
 
             } else {
                 // If cache hit
-                LOGGER.info("Get object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache [" + cacheRepo.getCacheName() + "]");
+                LOGGER.info("Get object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache [" + EhCacheManager.CACHE_ALIAS_APMLOG + "]");
                 return element;
             }
         }

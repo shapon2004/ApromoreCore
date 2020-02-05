@@ -104,7 +104,7 @@
         <module>Apromore-OSGI-Bundles/declare-visualizer-osgi</module>
         <module>Apromore-OSGI-Bundles/raffaeleconforti-osgi</module>
         <module>Apromore-OSGI-Bundles/eventstr-confchecking-osgi</module>
-
+        <module>Apromore-OSGI-Bundles/ehcache-virgo</module>
 
         <!-- ZK Osgi -->
         <module>Apromore-OSGI-Bundles/zk-osgi</module>

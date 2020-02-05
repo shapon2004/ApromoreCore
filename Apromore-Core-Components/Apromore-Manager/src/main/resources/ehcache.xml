@@ -1,92 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd">
+
+<ehcache:config
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:ehcache='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.8.xsd">
 
     <!-- Disk cache path -->
-    <diskStore path="java.io.tmpdir/ehcache"/>
+    <ehcache:persistence directory="java.io.tmpdir/ehcache"/>
 
-    <!--Since XES Log file could be huge, the default limit of 1,000 object references could be reached while
-    attempting to calculate the size of the object graph and severe performance degradation could occur. So manually
-     control how deep the SizeOf engine can go when sizing on-heap elements. -->
-    <!--<sizeOfPolicy maxDepth="100" maxDepthExceededBehavior="abort"/>-->
+    <ehcache:cache alias="test">
+        <ehcache:key-type>java.lang.Long</ehcache:key-type>
+        <ehcache:value-type>java.lang.String</ehcache:value-type>
+        <ehcache:resources>
+            <ehcache:heap unit="entries">100</ehcache:heap>
+            <ehcache:offheap unit="MB">1</ehcache:offheap>
+        </ehcache:resources>
+    </ehcache:cache>
 
-    <!--Predefined caches.  Add your cache configuration settings here.
-        If you do not have a configuration for your cache a WARNING will be issued when the
-        CacheManager starts
+    <ehcache:cache alias="xlog">
+        <ehcache:key-type serializer="org.ehcache.impl.serialization.CompactJavaSerializer">java.lang.Object</ehcache:key-type>
+        <ehcache:value-type serializer="org.apromore.cache.ehcache.PersistentXLogKryoSerializer">java.lang.Object</ehcache:value-type>
+        <ehcache:resources>
+            <ehcache:heap unit="entries">1</ehcache:heap>
+            <ehcache:offheap unit="GB">1</ehcache:offheap>
+            <ehcache:disk unit="GB" persistent="true">10</ehcache:disk>
+        </ehcache:resources>
+    </ehcache:cache>
 
-        The following attributes are required for defaultCache:
+    <!--<ehcache:cache alias="apmlog">-->
+        <!--<ehcache:key-type serializer="org.ehcache.impl.serialization.CompactJavaSerializer">java.lang.Object</ehcache:key-type>-->
+        <!--<ehcache:value-type serializer="org.ehcache.impl.serialization.CompactJavaSerializer">java.lang.Object</ehcache:value-type>-->
+        <!--<ehcache:resources>-->
+            <!--<ehcache:heap unit="entries">100</ehcache:heap>-->
+            <!--<ehcache:offheap unit="GB">1</ehcache:offheap>-->
+            <!--<ehcache:disk unit="GB" persistent="true">10</ehcache:disk>-->
+        <!--</ehcache:resources>-->
+    <!--</ehcache:cache>-->
 
-        name              - Sets the name of the cache. This is used to identify the cache. It must be unique.
-        maxInMemory       - Sets the maximum number of objects that will be created in memory
-        eternal           - Sets whether elements are eternal. If eternal,  timeouts are ignored and the element
-                            is never expired.
-        timeToIdleSeconds - Sets the time to idle for an element before it expires. Is only used
-                            if the element is not eternal. Idle time is now - last accessed time
-        timeToLiveSeconds - Sets the time to live for an element before it expires. Is only used
-                            if the element is not eternal. TTL is now - creation time
-        overflowToDisk    - Sets whether elements can overflow to disk when the in-memory cache
-                            has reached the maxInMemory limit.
+    <ehcache:cache-template name="defaultCacheConfiguration">
+        <ehcache:expiry>
+            <ehcache:tti unit="seconds">120</ehcache:tti>
+        </ehcache:expiry>
+        <ehcache:heap unit="entries">10000</ehcache:heap>
+    </ehcache:cache-template>
 
-        -->
-    <defaultCache
-            maxEntriesLocalHeap="10000"
-            timeToIdleSeconds="120"
-            timeToLiveSeconds="120"
-            maxEntriesLocalDisk="10000000"
-            diskExpiryThreadIntervalSeconds="120"
-            memoryStoreEvictionPolicy="LRU"/>
+</ehcache:config>
 
-    <!-- Testing Cache -->
-    <cache name="test"
-           maxEntriesLocalHeap="0"
-           timeToIdleSeconds="120"
-           timeToLiveSeconds="120"
-           maxEntriesLocalDisk="10000000"
-           diskExpiryThreadIntervalSeconds="120"
-           memoryStoreEvictionPolicy="LRU"/>
 
-    <!-- XES LOG Cache
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+         <!--xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd">-->
 
-    maxEntriesLocalHeap:
-    Sets the maximum number of objects that will be created in memory.  0 = no limit.
-    In practice no limit means Integer.MAX_SIZE (2147483647) unless the cache is distributed
-    with a Terracotta server in which case it is limited by resources.
+    <!--&lt;!&ndash; Disk cache path &ndash;&gt;-->
+    <!--<diskStore path="java.io.tmpdir/ehcache"/>-->
 
-    maxEntriesLocalDisk:
-    Sets the maximum number of objects that will be maintained in the DiskStore
-    The default value is zero, meaning unlimited.
+    <!--&lt;!&ndash;Since XES Log file could be huge, the default limit of 1,000 object references could be reached while-->
+    <!--attempting to calculate the size of the object graph and severe performance degradation could occur. So manually-->
+     <!--control how deep the SizeOf engine can go when sizing on-heap elements. &ndash;&gt;-->
+    <!--&lt;!&ndash;<sizeOfPolicy maxDepth="100" maxDepthExceededBehavior="abort"/>&ndash;&gt;-->
 
-    eternal:
-    Sets whether elements are eternal. If eternal,  timeouts are ignored and the
-    element is never expired.
+    <!--&lt;!&ndash;Predefined caches.  Add your cache configuration settings here.-->
+        <!--If you do not have a configuration for your cache a WARNING will be issued when the-->
+        <!--CacheManager starts-->
 
-    timeToIdleSeconds:
-    Sets the time to idle for an element before it expires.
-    i.e. The maximum amount of time between accesses before an element expires
-    Is only used if the element is not eternal.
-    Optional attribute. A value of 0 means that an Element can idle for infinity.
-    The default value is 0.
+        <!--The following attributes are required for defaultCache:-->
 
-    timeToLiveSeconds:
-    Sets the time to live for an element before it expires.
-    i.e. The maximum time between creation time and when an element expires.
-    Is only used if the element is not eternal.
-    Optional attribute. A value of 0 means that and Element can live for infinity.
-    The default value is 0.
+        <!--name              - Sets the name of the cache. This is used to identify the cache. It must be unique.-->
+        <!--maxInMemory       - Sets the maximum number of objects that will be created in memory-->
+        <!--eternal           - Sets whether elements are eternal. If eternal,  timeouts are ignored and the element-->
+                            <!--is never expired.-->
+        <!--timeToIdleSeconds - Sets the time to idle for an element before it expires. Is only used-->
+                            <!--if the element is not eternal. Idle time is now - last accessed time-->
+        <!--timeToLiveSeconds - Sets the time to live for an element before it expires. Is only used-->
+                            <!--if the element is not eternal. TTL is now - creation time-->
+        <!--overflowToDisk    - Sets whether elements can overflow to disk when the in-memory cache-->
+                            <!--has reached the maxInMemory limit.-->
 
-    memoryStoreEvictionPolicy:
-    Policy would be enforced upon reaching the maxEntriesLocalHeap limit. Default
-    policy is Least Recently Used (specified as LRU). Other policies available -
-    First In First Out (specified as FIFO) and Less Frequently Used
-    (specified as LFU)
+        <!--&ndash;&gt;-->
+    <!--<defaultCache-->
+            <!--maxEntriesLocalHeap="10000"-->
+            <!--timeToIdleSeconds="120"-->
+            <!--timeToLiveSeconds="120"-->
+            <!--maxEntriesLocalDisk="10000000"-->
+            <!--diskExpiryThreadIntervalSeconds="120"-->
+            <!--memoryStoreEvictionPolicy="LRU"/>-->
 
-    -->
-    <cache name="xlog"
-           maxEntriesLocalHeap="0"
-           timeToIdleSeconds="0"
-           timeToLiveSeconds="17280000"
-           diskSpoolBufferSizeMB="30"
-           diskPersistent="false"
-           diskExpiryThreadIntervalSeconds="720"
-           memoryStoreEvictionPolicy="LRU"/>
-</ehcache>
+    <!--&lt;!&ndash; Testing Cache &ndash;&gt;-->
+    <!--<cache name="test"-->
+           <!--maxEntriesLocalHeap="0"-->
+           <!--timeToIdleSeconds="120"-->
+           <!--timeToLiveSeconds="120"-->
+           <!--maxEntriesLocalDisk="10000000"-->
+           <!--diskExpiryThreadIntervalSeconds="120"-->
+           <!--memoryStoreEvictionPolicy="LRU"/>-->
+
+    <!--&lt;!&ndash; XES LOG Cache-->
+
+    <!--maxEntriesLocalHeap:-->
+    <!--Sets the maximum number of objects that will be created in memory.  0 = no limit.-->
+    <!--In practice no limit means Integer.MAX_SIZE (2147483647) unless the cache is distributed-->
+    <!--with a Terracotta server in which case it is limited by resources.-->
+
+    <!--maxEntriesLocalDisk:-->
+    <!--Sets the maximum number of objects that will be maintained in the DiskStore-->
+    <!--The default value is zero, meaning unlimited.-->
+
+    <!--eternal:-->
+    <!--Sets whether elements are eternal. If eternal,  timeouts are ignored and the-->
+    <!--element is never expired.-->
+
+    <!--timeToIdleSeconds:-->
+    <!--Sets the time to idle for an element before it expires.-->
+    <!--i.e. The maximum amount of time between accesses before an element expires-->
+    <!--Is only used if the element is not eternal.-->
+    <!--Optional attribute. A value of 0 means that an Element can idle for infinity.-->
+    <!--The default value is 0.-->
+
+    <!--timeToLiveSeconds:-->
+    <!--Sets the time to live for an element before it expires.-->
+    <!--i.e. The maximum time between creation time and when an element expires.-->
+    <!--Is only used if the element is not eternal.-->
+    <!--Optional attribute. A value of 0 means that and Element can live for infinity.-->
+    <!--The default value is 0.-->
+
+    <!--memoryStoreEvictionPolicy:-->
+    <!--Policy would be enforced upon reaching the maxEntriesLocalHeap limit. Default-->
+    <!--policy is Least Recently Used (specified as LRU). Other policies available - -->
+    <!--First In First Out (specified as FIFO) and Less Frequently Used-->
+    <!--(specified as LFU)-->
+
+    <!--&ndash;&gt;-->
+    <!--<cache name="xlog"-->
+           <!--maxEntriesLocalHeap="0"-->
+           <!--timeToIdleSeconds="0"-->
+           <!--timeToLiveSeconds="17280000"-->
+           <!--diskSpoolBufferSizeMB="30"-->
+           <!--diskPersistent="false"-->
+           <!--diskExpiryThreadIntervalSeconds="720"-->
+           <!--memoryStoreEvictionPolicy="LRU"/>-->
+<!--</ehcache>-->

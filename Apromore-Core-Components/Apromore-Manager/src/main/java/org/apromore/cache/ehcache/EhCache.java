@@ -1,230 +1,132 @@
 package org.apromore.cache.ehcache;
 
-import net.sf.ehcache.Element;
 import org.apromore.cache.Cache;
 
 import java.util.*;
 
 import org.apromore.exception.CacheException;
+import org.ehcache.core.Ehcache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Apromore {@link org.apromore.cache.Cache} implementation that wraps an {@link net.sf.ehcache.Ehcache} instance.
+ * Apromore {@link org.apromore.cache.Cache} implementation that wraps an {@link org.ehcache.core.Ehcache} instance.
  *
  */
 public class EhCache<K, V> implements Cache<K, V> {
 
-    /**
-     * Private internal log instance.
-     */
+
     private static final Logger log = LoggerFactory.getLogger(EhCache.class);
 
-    /**
-     * The wrapped Ehcache instance.
-     */
-    private net.sf.ehcache.Ehcache cache;
+    private final org.ehcache.Cache<K, V> cache;
 
-    /**
-     * Constructs a new EhCache instance with the given cache.
-     *
-     * @param cache - delegate EhCache instance this Apromore cache instance will wrap.
-     */
-    public EhCache(net.sf.ehcache.Ehcache cache) {
+    public EhCache(org.ehcache.Cache cache) {
         if (cache == null) {
             throw new IllegalArgumentException("Cache argument cannot be null.");
         }
+
         this.cache = cache;
     }
 
-    /**
-     * Gets a value of an element which matches the given key.
-     *
-     * @param key the key of the element to return.
-     * @return The value placed into the cache with an earlier put, or null if not found or expired
-     */
-    public V get(K key) throws CacheException {
-        try {
-            if (log.isTraceEnabled()) {
-                log.trace("Getting object from cache [" + cache.getName() + "] for key [" + key + "]");
-            }
-            if (key == null) {
-                return null;
+    public V get(K k) throws CacheException {
+        trace("Getting object", k);
+
+        if (k == null) {
+            return null;
+        }
+
+        V value = cache.get(k);
+        if (value == null) {
+            log.trace("Element for [{}] is null.", k);
+        }
+
+        return value;
+    }
+
+    public V put(K k, V v) throws CacheException {
+        trace("Putting object", k);
+
+        V previousValue = null;
+
+        while (true) {
+            previousValue = cache.get(k);
+            if (previousValue == null) {
+                if (cache.putIfAbsent(k, v) == null) {
+                    break;
+                }
             } else {
-                Element element = cache.get(key);
-                if (element == null) {
-                    if (log.isTraceEnabled()) {
-                        log.trace("Element for [" + key + "] is null.");
-                    }
-                    return null;
-                } else {
-                    //noinspection unchecked
-                    return (V) element.getObjectValue();
+                if (cache.replace(k, v) != null) {
+                    break;
                 }
             }
-        } catch (Throwable t) {
-            throw new CacheException(t);
         }
+
+        return previousValue;
     }
 
-    /**
-     * Puts an object into the cache.
-     *
-     * @param key   the key.
-     * @param value the value.
-     */
-    public V put(K key, V value) throws CacheException {
-        if (log.isTraceEnabled()) {
-            log.trace("Putting object in cache [" + cache.getName() + "] for key [" + key + "]");
+    public V remove(K k) throws CacheException {
+        trace("Removing object", k);
+
+        V previousValue = null;
+
+        while (true) {
+            previousValue = cache.get(k);
+            if (previousValue == null) {
+                break;
+            } else {
+                if (cache.remove(k, previousValue)) {
+                    break;
+                }
+            }
         }
-        try {
-            V previous = get(key);
-            Element element = new Element(key, value);
-            cache.put(element);
-            return previous;
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
+
+        return previousValue;
     }
 
-    /**
-     * Removes the element which matches the key.
-     *
-     * <p>If no element matches, nothing is removed and no Exception is thrown.</p>
-     *
-     * @param key the key of the element to remove
-     */
-    public V remove(K key) throws CacheException {
-        if (log.isTraceEnabled()) {
-            log.trace("Removing object from cache [" + cache.getName() + "] for key [" + key + "]");
-        }
-        try {
-            V previous = get(key);
-            cache.remove(key);
-            return previous;
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
-    }
-
-    /**
-     * Removes all elements in the cache, but leaves the cache in a useable state.
-     */
     public void clear() throws CacheException {
-        if (log.isTraceEnabled()) {
-            log.trace("Clearing all objects from cache [" + cache.getName() + "]");
-        }
-        try {
-            cache.removeAll();
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
+        log.trace("Clearing all objects from cache [" + cache + "]");
+        cache.clear();
     }
 
     public int size() {
-        try {
-            return cache.getSize();
-        } catch (Throwable t) {
-            throw new CacheException(t);
+        Iterator<org.ehcache.Cache.Entry<K, V>> iterator = cache.iterator();
+        int size = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            size++;
         }
+
+        return size;
     }
 
     public Set<K> keys() {
-        try {
-            @SuppressWarnings({"unchecked"})
-            List<K> keys = cache.getKeys();
-            if (!isEmpty(keys)) {
-                return Collections.unmodifiableSet(new LinkedHashSet<K>(keys));
-            } else {
-                return Collections.emptySet();
+        return new EhcacheSetWrapper<K>(this, cache) {
+            @Override
+            public Iterator<K> iterator() {
+                return new EhcacheIterator<K, V, K>(cache.iterator()) {
+
+                    protected K getNext(Iterator<org.ehcache.Cache.Entry<K, V>> cacheIterator) {
+                        return cacheIterator.next().getKey();
+                    }
+                };
             }
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
+        };
     }
 
     public Collection<V> values() {
-        try {
-            @SuppressWarnings({"unchecked"})
-            List<K> keys = cache.getKeys();
-            if (!isEmpty(keys)) {
-                List<V> values = new ArrayList<V>(keys.size());
-                for (K key : keys) {
-                    V value = get(key);
-                    if (value != null) {
-                        values.add(value);
+        return new EhcacheCollectionWrapper<V>(this, cache) {
+            @Override
+            public Iterator<V> iterator() {
+                return new EhcacheIterator<K, V, V>(cache.iterator()) {
+                    protected V getNext(Iterator<org.ehcache.Cache.Entry<K, V>> cacheIterator) {
+                        return cacheIterator.next().getValue();
                     }
-                }
-                return Collections.unmodifiableList(values);
-            } else {
-                return Collections.emptyList();
+                };
             }
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
+        };
     }
 
-    /**
-     * Returns the size (in bytes) that this EhCache is using in memory (RAM), or <code>-1</code> if that
-     * number is unknown or cannot be calculated.
-     *
-     * @return the size (in bytes) that this EhCache is using in memory (RAM), or <code>-1</code> if that
-     *         number is unknown or cannot be calculated.
-     */
-    public long getMemoryUsage() {
-        try {
-            return cache.calculateInMemorySize();
-        }
-        catch (Throwable t) {
-            return -1;
-        }
-    }
-
-    /**
-     * Returns the size (in bytes) that this EhCache's memory store is using (RAM), or <code>-1</code> if
-     * that number is unknown or cannot be calculated.
-     *
-     * @return the size (in bytes) that this EhCache's memory store is using (RAM), or <code>-1</code> if
-     *         that number is unknown or cannot be calculated.
-     */
-    public long getMemoryStoreSize() {
-        try {
-            return cache.getMemoryStoreSize();
-        }
-        catch (Throwable t) {
-            throw new CacheException(t);
-        }
-    }
-
-    /**
-     * Returns the size (in bytes) that this EhCache's disk store is consuming or <code>-1</code> if
-     * that number is unknown or cannot be calculated.
-     *
-     * @return the size (in bytes) that this EhCache's disk store is consuming or <code>-1</code> if
-     *         that number is unknown or cannot be calculated.
-     */
-    public long getDiskStoreSize() {
-        try {
-            return cache.getDiskStoreSize();
-        } catch (Throwable t) {
-            throw new CacheException(t);
-        }
-    }
-
-    /**
-     * Returns &quot;EhCache [&quot; + cache.getName() + &quot;]&quot;
-     *
-     * @return &quot;EhCache [&quot; + cache.getName() + &quot;]&quot;
-     */
-    public String toString() {
-        return "EhCache [" + cache.getName() + "]";
-    }
-
-    //////////////////////////
-    // From CollectionUtils //
-    //////////////////////////
-
-    private static boolean isEmpty(Collection c) {
-        return c == null || c.isEmpty();
+    private void trace(String operation, K k) {
+        log.trace("{} using cache [{}] for key [{}]", operation, cache, k);
     }
 }

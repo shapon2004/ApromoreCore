@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -45,7 +45,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import java.util.HashMap;
 
 import org.deckfour.xes.extension.std.XArtifactLifecycleExtension;
 import org.deckfour.xes.extension.std.XConceptExtension;
@@ -107,7 +107,7 @@ public class XExtensionManager {
 	 * Map storing all extensions currently registered, indexed by their unique
 	 * URI.
 	 */
-	private UnifiedMap<URI, XExtension> extensionMap;
+	private HashMap<URI, XExtension> extensionMap;
 	/**
 	 * List mapping each extension currently registered to a unique index.
 	 */
@@ -117,7 +117,7 @@ public class XExtensionManager {
 	 * Creates a new extension manager instance (hidden constructor)
 	 */
 	private XExtensionManager() {
-		extensionMap = new UnifiedMap<URI, XExtension>();
+		extensionMap = new HashMap<URI, XExtension>();
 		extensionList = new ArrayList<XExtension>();
 		registerStandardExtensions();
 		// loadExtensionCache();

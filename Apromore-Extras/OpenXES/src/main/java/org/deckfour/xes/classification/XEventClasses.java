@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -41,7 +41,7 @@ package org.deckfour.xes.classification;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import java.util.HashMap;
 
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
@@ -87,7 +87,7 @@ public class XEventClasses {
 	/**
 	 * Map holding the event classes, indexed by their unique identifier string.
 	 */
-	protected UnifiedMap<String, XEventClass> classMap;
+	protected HashMap<String, XEventClass> classMap;
 
 	/**
 	 * Creates a new instance, i.e. an empty set of event classes.
@@ -97,7 +97,7 @@ public class XEventClasses {
 	 */
 	public XEventClasses(XEventClassifier classifier) {
 		this.classifier = classifier;
-		this.classMap = new UnifiedMap<String, XEventClass>();
+		this.classMap = new HashMap<String, XEventClass>();
 	}
 
 	/**

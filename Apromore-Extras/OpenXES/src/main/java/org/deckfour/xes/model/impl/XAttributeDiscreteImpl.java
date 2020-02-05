@@ -73,9 +73,6 @@ public class XAttributeDiscreteImpl extends XAttributeImpl implements
 	public XAttributeDiscreteImpl(String key, long value) {
 		this(key, value, null);
 	}
-	public XAttributeDiscreteImpl() {
-		this("", 0, null);
-	}
 
 	/**
 	 * Creates a new instance.
@@ -95,7 +92,7 @@ public class XAttributeDiscreteImpl extends XAttributeImpl implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributeDiscrete#getValue()
+	 * @see org.deckfour.xes.model.XAttributeDiscrete#getValue()
 	 */
 	public long getValue() {
 		return this.value;
@@ -104,7 +101,7 @@ public class XAttributeDiscreteImpl extends XAttributeImpl implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributeDiscrete#setValue(long)
+	 * @see org.deckfour.xes.model.XAttributeDiscrete#setValue(long)
 	 */
 	public void setValue(long value) {
 		this.value = value;

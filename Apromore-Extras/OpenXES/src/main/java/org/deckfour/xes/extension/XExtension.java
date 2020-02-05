@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -41,7 +41,7 @@ package org.deckfour.xes.extension;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Collection;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
@@ -94,27 +94,27 @@ public class XExtension implements Serializable {
 	 * Set containing all attributes defined by this extension, on all possible
 	 * levels of abstraction.
 	 */
-	protected UnifiedSet<XAttribute> allAttributes;
+	protected HashSet<XAttribute> allAttributes;
 	/**
 	 * Set containing all attributes defined by this extension on the level of
 	 * logs.
 	 */
-	protected UnifiedSet<XAttribute> logAttributes;
+	protected HashSet<XAttribute> logAttributes;
 	/**
 	 * Set containing all attributes defined by this extension on the level of
 	 * traces.
 	 */
-	protected UnifiedSet<XAttribute> traceAttributes;
+	protected HashSet<XAttribute> traceAttributes;
 	/**
 	 * Set containing all attributes defined by this extension on the level of
 	 * events.
 	 */
-	protected UnifiedSet<XAttribute> eventAttributes;
+	protected HashSet<XAttribute> eventAttributes;
 	/**
 	 * Set containing all meta-attributes defined by this extension, i.e. on the
 	 * level of attributes.
 	 */
-	protected UnifiedSet<XAttribute> metaAttributes;
+	protected HashSet<XAttribute> metaAttributes;
 
 	/**
 	 * Creates a new extension instance.
@@ -134,10 +134,10 @@ public class XExtension implements Serializable {
 		this.prefix = prefix;
 		this.uri = uri;
 		this.allAttributes = null; // created on demand
-		this.logAttributes = new UnifiedSet<XAttribute>();
-		this.traceAttributes = new UnifiedSet<XAttribute>();
-		this.eventAttributes = new UnifiedSet<XAttribute>();
-		this.metaAttributes = new UnifiedSet<XAttribute>();
+		this.logAttributes = new HashSet<XAttribute>();
+		this.traceAttributes = new HashSet<XAttribute>();
+		this.eventAttributes = new HashSet<XAttribute>();
+		this.metaAttributes = new HashSet<XAttribute>();
 	}
 
 	/**
@@ -173,7 +173,7 @@ public class XExtension implements Serializable {
 	public Collection<XAttribute> getDefinedAttributes() {
 		if (allAttributes == null) {
 			// create collection on demand
-			allAttributes = new UnifiedSet<XAttribute>();
+			allAttributes = new HashSet<XAttribute>();
 			allAttributes.addAll(getLogAttributes());
 			allAttributes.addAll(getTraceAttributes());
 			allAttributes.addAll(getEventAttributes());

@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2009 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -39,7 +39,7 @@
 package org.deckfour.xes.util;
 
 import java.util.Collections;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -62,7 +62,7 @@ public abstract class XRegistry<T> {
 	 * Instantiates a new registry.
 	 */
 	public XRegistry() {
-		registry = new UnifiedSet<T>();
+		registry = new HashSet<T>();
 		current = null;
 	}
 	

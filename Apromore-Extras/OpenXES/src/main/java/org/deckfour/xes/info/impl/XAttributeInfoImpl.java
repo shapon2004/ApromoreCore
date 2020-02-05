@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -40,8 +40,8 @@ package org.deckfour.xes.info.impl;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -90,11 +90,11 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 	 * Creates a new attribute information registry.
 	 */
 	public XAttributeInfoImpl() {
-		keyMap = new UnifiedMap<String, XAttribute>();
-		frequencies = new UnifiedMap<String, Integer>();
-		typeMap = new UnifiedMap<Class<? extends XAttribute>, Set<XAttribute>>();
-		extensionMap = new UnifiedMap<XExtension, Set<XAttribute>>();
-		noExtensionSet = new UnifiedSet<XAttribute>();
+		keyMap = new HashMap<String, XAttribute>();
+		frequencies = new HashMap<String, Integer>();
+		typeMap = new HashMap<Class<? extends XAttribute>, Set<XAttribute>>();
+		extensionMap = new HashMap<XExtension, Set<XAttribute>>();
+		noExtensionSet = new HashSet<XAttribute>();
 		totalFrequency = 0;
 	}
 	
@@ -146,7 +146,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 	public Collection<XAttribute> getAttributesForType(Class<? extends XAttribute> type) {
 		Set<XAttribute> typeSet = typeMap.get(type);
 		if(typeSet == null) {
-			typeSet = new UnifiedSet<XAttribute>(0);
+			typeSet = new HashSet<XAttribute>(0);
 		}
 		return Collections.unmodifiableCollection(typeSet);
 	}
@@ -156,7 +156,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 	 */
 	public Collection<String> getKeysForType(Class<? extends XAttribute> type) {
 		Collection<XAttribute> typeCollection = getAttributesForType(type);
-		Set<String> keySet = new UnifiedSet<String>();
+		Set<String> keySet = new HashSet<String>();
 		for(XAttribute attribute : typeCollection) {
 			keySet.add(attribute.getKey());
 		}
@@ -172,7 +172,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 		} else {
 			Set<XAttribute> extensionSet = extensionMap.get(extension);
 			if(extensionSet == null) {
-				extensionSet = new UnifiedSet<XAttribute>(0);
+				extensionSet = new HashSet<XAttribute>(0);
 			}
 			return Collections.unmodifiableCollection(extensionSet);
 		}
@@ -183,7 +183,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 	 */
 	public Collection<String> getKeysForExtension(XExtension extension) {
 		Collection<XAttribute> extensionCollection = getAttributesForExtension(extension);
-		Set<String> keySet = new UnifiedSet<String>();
+		Set<String> keySet = new HashSet<String>();
 		for(XAttribute attribute : extensionCollection) {
 			keySet.add(attribute.getKey());
 		}
@@ -220,7 +220,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 			// register with type map
 			Set<XAttribute> typeSet = typeMap.get(XAttributeUtils.getType(prototype));
 			if(typeSet == null) {
-				typeSet = new UnifiedSet<XAttribute>();
+				typeSet = new HashSet<XAttribute>();
 				typeMap.put(XAttributeUtils.getType(prototype), typeSet);
 			}
 			typeSet.add(prototype);
@@ -232,7 +232,7 @@ public class XAttributeInfoImpl implements XAttributeInfo {
 				// register with extension map
 				Set<XAttribute> extensionSet = extensionMap.get(attribute.getExtension());
 				if(extensionSet == null) {
-					extensionSet = new UnifiedSet<XAttribute>();
+					extensionSet = new HashSet<XAttribute>();
 					extensionMap.put(attribute.getExtension(), extensionSet);
 				}
 				extensionSet.add(prototype);

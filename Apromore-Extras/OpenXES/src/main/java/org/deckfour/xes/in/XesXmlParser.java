@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -44,7 +44,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
@@ -210,7 +210,7 @@ public class XesXmlParser extends XParser {
 		/**
 		 * Buffer for extensions.
 		 */
-		protected UnifiedSet<XExtension> extensions;
+		protected HashSet<XExtension> extensions;
 		/**
 		 * Buffer for globals.
 		 */
@@ -225,7 +225,7 @@ public class XesXmlParser extends XParser {
 			event = null;
 			attributeStack = new Stack<XAttribute>();
 			attributableStack = new Stack<XAttributable>();
-			extensions = new UnifiedSet<XExtension>();
+			extensions = new HashSet<XExtension>();
 			globals = null;
 		}
 

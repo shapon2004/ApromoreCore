@@ -40,15 +40,15 @@ package org.deckfour.xes.model.impl;
 
 import java.util.Set;
 
+import org.deckfour.xes.extension.XExtension;
 import org.deckfour.xes.id.XID;
 import org.deckfour.xes.id.XIDFactory;
+import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.XVisitor;
 import org.deckfour.xes.util.XAttributeUtils;
-import org.deckfour.xes.extension.XExtension;
-import org.deckfour.xes.model.XAttribute;
-import org.deckfour.xes.model.XEvent;
 
 /**
  * Implementation for the XEvent interface.
@@ -111,7 +111,7 @@ public class XEventImpl implements XEvent {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#getAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#getAttributes()
 	 */
 	public XAttributeMap getAttributes() {
 		return attributes;
@@ -120,14 +120,14 @@ public class XEventImpl implements XEvent {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#setAttributes(java.util.Map)
+	 * @see org.deckfour.xes.model.XAttributable#setAttributes(java.util.Map)
 	 */
 	public void setAttributes(XAttributeMap attributes) {
 		this.attributes = attributes;
 	}
 
 	/* (non-Javadoc)
-	 * @see XAttributable#hasAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#hasAttributes()
 	 */
 	@Override
 	public boolean hasAttributes() {
@@ -137,7 +137,7 @@ public class XEventImpl implements XEvent {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#getExtensions()
+	 * @see org.deckfour.xes.model.XAttributable#getExtensions()
 	 */
 	public Set<XExtension> getExtensions() {
 		return XAttributeUtils.extractExtensions(attributes);
@@ -180,7 +180,7 @@ public class XEventImpl implements XEvent {
 
 	/*
 	 * (non-Javadoc)
-	 * @see XEvent#getID()
+	 * @see org.deckfour.xes.model.XEvent#getID()
 	 */
 	public XID getID() {
 		return id;
@@ -200,7 +200,7 @@ public class XEventImpl implements XEvent {
 	 * Runs the given visitor for the given trace on this event.
 	 * 
 	 * (non-Javadoc)
-	 * @see XEvent#accept(XVisitor, XTrace)
+	 * @see org.deckfour.xes.model.XEvent#accept(org.deckfour.xes.model.XVisitor, org.deckfour.xes.model.XTrace)
 	 */
 	public void accept(XVisitor visitor, XTrace trace) {
 		/*

@@ -73,9 +73,6 @@ public class XAttributeBooleanImpl extends XAttributeImpl implements
 	public XAttributeBooleanImpl(String key, boolean value) {
 		this(key, value, null);
 	}
-	public XAttributeBooleanImpl() {
-		this("", false, null);
-	}
 
 	/**
 	 * Creates a new instance.
@@ -95,7 +92,7 @@ public class XAttributeBooleanImpl extends XAttributeImpl implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributeBoolean#getValue()
+	 * @see org.deckfour.xes.model.XAttributeBoolean#getValue()
 	 */
 	public boolean getValue() {
 		return value;
@@ -104,7 +101,7 @@ public class XAttributeBooleanImpl extends XAttributeImpl implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributeBoolean#setValue(boolean)
+	 * @see org.deckfour.xes.model.XAttributeBoolean#setValue(boolean)
 	 */
 	public void setValue(boolean value) {
 		this.value = value;

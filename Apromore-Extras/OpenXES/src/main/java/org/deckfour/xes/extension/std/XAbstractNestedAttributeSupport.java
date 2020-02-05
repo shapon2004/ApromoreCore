@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2012 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -39,7 +39,7 @@
 package org.deckfour.xes.extension.std;
 
 import java.util.ArrayList;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +114,7 @@ public abstract class XAbstractNestedAttributeSupport<Type> {
 	 * @return Map from all child keys to values.
 	 */
 	public Map<String, Type> extractValues(XAttributable element) {
-		Map<String, Type> values = new UnifiedMap<String, Type>();
+		Map<String, Type> values = new HashMap<String, Type>();
 		Map<List<String>, Type> nestedValues = extractNestedValues(element);
 		/*
 		 * Now copy top-level values.
@@ -170,7 +170,7 @@ public abstract class XAbstractNestedAttributeSupport<Type> {
 	 * @return Map from all descending keys to values.
 	 */
 	public Map<List<String>, Type> extractNestedValues(XAttributable element) {
-		Map<List<String>, Type> nestedValues = new UnifiedMap<List<String>, Type>();
+		Map<List<String>, Type> nestedValues = new HashMap<List<String>, Type>();
 		for (XAttribute attr : element.getAttributes().values()) {
 			List<String> keys = new ArrayList<String>();
 			keys.add(attr.getKey());
@@ -235,7 +235,7 @@ public abstract class XAbstractNestedAttributeSupport<Type> {
 	 *            Mapping from keys to values which are to be assigned.
 	 */
 	public void assignValues(XAttributable element, Map<String, Type> values) {
-		Map<List<String>, Type> nestedValues = new UnifiedMap<List<String>, Type>();
+		Map<List<String>, Type> nestedValues = new HashMap<List<String>, Type>();
 		for (String key : values.keySet()) {
 			List<String> keys = new ArrayList<String>();
 			keys.add(key);

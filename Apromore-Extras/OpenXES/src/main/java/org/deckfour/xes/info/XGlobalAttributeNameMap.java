@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -40,11 +40,11 @@ package org.deckfour.xes.info;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.deckfour.xes.info.impl.XAttributeNameMapImpl;
 import org.deckfour.xes.model.XAttribute;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 /**
  * This singleton class implements a global attribute name
@@ -111,7 +111,7 @@ public class XGlobalAttributeNameMap implements XAttributeNameMap {
 	/**
 	 * Stores attribute name mappings by their name.
 	 */
-	private UnifiedMap<String, XAttributeNameMapImpl> mappings;
+	private HashMap<String, XAttributeNameMapImpl> mappings;
 	/**
 	 * Standard mapping (EN).
 	 */
@@ -121,7 +121,7 @@ public class XGlobalAttributeNameMap implements XAttributeNameMap {
 	 * Creates a new instance (private constructor)
 	 */
 	private XGlobalAttributeNameMap() {
-		mappings = new UnifiedMap<String, XAttributeNameMapImpl>();
+		mappings = new HashMap<String, XAttributeNameMapImpl>();
 		standardMapping = new XAttributeNameMapImpl(MAPPING_STANDARD);
 		mappings.put(MAPPING_STANDARD, standardMapping);
 	}
@@ -143,7 +143,7 @@ public class XGlobalAttributeNameMap implements XAttributeNameMap {
 	 * @return A collection of all available mappings.
 	 */
 	public Collection<XAttributeNameMap> getAvailableMappings() {
-		UnifiedSet<XAttributeNameMap> result = new UnifiedSet<XAttributeNameMap>();
+		HashSet<XAttributeNameMap> result = new HashSet<XAttributeNameMap>();
 		result.addAll(mappings.values());
 		return Collections.unmodifiableCollection(result);
 	}

@@ -71,8 +71,6 @@ public class XTraceImpl extends ArrayList<XEvent> implements XTrace {
 	 */
 	private XAttributeMap attributes;
 
-	public XTraceImpl() {}
-
 	/**
 	 * Creates a new trace.
 	 * 
@@ -97,7 +95,7 @@ public class XTraceImpl extends ArrayList<XEvent> implements XTrace {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#getAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#getAttributes()
 	 */
 	public XAttributeMap getAttributes() {
 		return attributes;
@@ -106,7 +104,7 @@ public class XTraceImpl extends ArrayList<XEvent> implements XTrace {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#getExtensions()
+	 * @see org.deckfour.xes.model.XAttributable#getExtensions()
 	 */
 	public Set<XExtension> getExtensions() {
 		return XAttributeUtils.extractExtensions(attributes);
@@ -115,14 +113,14 @@ public class XTraceImpl extends ArrayList<XEvent> implements XTrace {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see XAttributable#setAttributes(java.util.Map)
+	 * @see org.deckfour.xes.model.XAttributable#setAttributes(java.util.Map)
 	 */
 	public void setAttributes(XAttributeMap attributes) {
 		this.attributes = attributes;
 	}
 	
 	/* (non-Javadoc)
-	 * @see XAttributable#hasAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#hasAttributes()
 	 */
 	@Override
 	public boolean hasAttributes() {
@@ -178,7 +176,7 @@ public class XTraceImpl extends ArrayList<XEvent> implements XTrace {
 	 * Runs the given visitor for the given log on this trace.
 	 * 
 	 * (non-Javadoc)
-	 * @see XTrace#accept(XVisitor, XLog)
+	 * @see org.deckfour.xes.model.XTrace#accept(org.deckfour.xes.model.XVisitor, org.deckfour.xes.model.XLog)
 	 */
 	public void accept(XVisitor visitor, XLog log) {
 		/*

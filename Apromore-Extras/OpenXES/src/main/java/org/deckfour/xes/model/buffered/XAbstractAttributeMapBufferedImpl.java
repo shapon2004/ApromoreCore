@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -41,7 +41,7 @@ package org.deckfour.xes.model.buffered;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -242,7 +242,7 @@ public abstract class XAbstractAttributeMapBufferedImpl implements XAttributeMap
 	 */
 	public synchronized Set<String> keySet() {
 		if(size == 0) {
-			return new UnifiedSet<String>(0);
+			return new HashSet<String>(0);
 		} else {
 			try {
 				XAttributeMap map = deserialize();

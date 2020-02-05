@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -126,31 +126,22 @@ public class XLogImpl extends ArrayList<XTrace> implements XLog {
 		this.cachedInfo = null;
 	}
 
-	public XLogImpl() {
-		this.extensions = new UnifiedSet<XExtension>();
-		this.classifiers = new ArrayList<XEventClassifier>();
-		this.globalTraceAttributes = new ArrayList<XAttribute>();
-		this.globalEventAttributes = new ArrayList<XAttribute>();
-		this.cachedClassifier = null;
-		this.cachedInfo = null;
-	}
-
 	/* (non-Javadoc)
-	 * @see XAttributable#getAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#getAttributes()
 	 */
 	public XAttributeMap getAttributes() {
 		return attributes;
 	}
 
 	/* (non-Javadoc)
-	 * @see XAttributable#setAttributes(java.util.Map)
+	 * @see org.deckfour.xes.model.XAttributable#setAttributes(java.util.Map)
 	 */
 	public void setAttributes(XAttributeMap attributes) {
 		this.attributes = attributes;
 	}
 	
 	/* (non-Javadoc)
-	 * @see XAttributable#hasAttributes()
+	 * @see org.deckfour.xes.model.XAttributable#hasAttributes()
 	 */
 	@Override
 	public boolean hasAttributes() {
@@ -158,7 +149,7 @@ public class XLogImpl extends ArrayList<XTrace> implements XLog {
 	}
 
 	/* (non-Javadoc)
-	 * @see XAttributable#getExtensions()
+	 * @see org.deckfour.xes.model.XAttributable#getExtensions()
 	 */
 	public Set<XExtension> getExtensions() {
 		return extensions;
@@ -182,21 +173,21 @@ public class XLogImpl extends ArrayList<XTrace> implements XLog {
 	}
 
 	/* (non-Javadoc)
-	 * @see XLog#getClassifiers()
+	 * @see org.deckfour.xes.model.XLog#getClassifiers()
 	 */
 	public List<XEventClassifier> getClassifiers() {
 		return classifiers;
 	}
 
 	/* (non-Javadoc)
-	 * @see XLog#getGlobalEventAttributes()
+	 * @see org.deckfour.xes.model.XLog#getGlobalEventAttributes()
 	 */
 	public List<XAttribute> getGlobalEventAttributes() {
 		return globalEventAttributes;
 	}
 
 	/* (non-Javadoc)
-	 * @see XLog#getGlobalTraceAttributes()
+	 * @see org.deckfour.xes.model.XLog#getGlobalTraceAttributes()
 	 */
 	public List<XAttribute> getGlobalTraceAttributes() {
 		return globalTraceAttributes;
@@ -206,7 +197,7 @@ public class XLogImpl extends ArrayList<XTrace> implements XLog {
 	 * Runs the given visitor on this log.
 	 * 
 	 * (non-Javadoc)
-	 * @see XLog#accept(XVisitor)
+	 * @see org.deckfour.xes.model.XLog#accept(org.deckfour.xes.model.XVisitor)
 	 */
 	public boolean accept(XVisitor visitor) {
 		/*

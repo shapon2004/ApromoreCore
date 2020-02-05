@@ -5,7 +5,7 @@
  * log data management.
  * 
  * Copyright (c) 2008 Christian W. Guenther (christian@deckfour.org)
- * Copyright (c) 2019 The University of Melbourne (info@apromore.org)
+ * 
  * 
  * LICENSE:
  * 
@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import java.util.HashSet;
 
 import org.deckfour.spex.SXDocument;
 import org.deckfour.spex.SXTag;
@@ -74,12 +74,12 @@ public class XMxmlSerializer implements XSerializer {
 	/**
 	 * Stores known event types internally for MXML.
 	 */
-	protected UnifiedSet<String> knownTypes;
+	protected HashSet<String> knownTypes;
 
 	protected XsDateTimeConversion xsDateTimeConversion = new XsDateTimeConversion();
 
 	public XMxmlSerializer() {
-		knownTypes = new UnifiedSet<String>();
+		knownTypes = new HashSet<String>();
 		knownTypes.add("schedule");
 		knownTypes.add("assign");
 		knownTypes.add("withdraw");
