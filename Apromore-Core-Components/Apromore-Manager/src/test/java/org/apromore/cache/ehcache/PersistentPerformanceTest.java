@@ -38,7 +38,7 @@ import static org.junit.Assert.assertThat;
 
 public class PersistentPerformanceTest {
 
-    private int excutionTime = 100;
+    private int excutionTime = 3;
     private ArrayList importTime = new ArrayList<Long>();
     private ArrayList cacheTime = new ArrayList<Long>();
     private ArrayList recoverTime = new ArrayList<Long>();
@@ -75,7 +75,7 @@ public class PersistentPerformanceTest {
 
     Cache<Long, XLog> xLogCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
 
-    public void importXLog() {
+    public void importXLog(int i) {
 
 //        Cache<Long, APMLog> apmLogCache = cacheManager.getCache("apmLogCache", Long.class, APMLog.class);
 
@@ -101,9 +101,9 @@ public class PersistentPerformanceTest {
         System.out.println("Duration: " + timer.getDurationString());
     }
 
-    public void cacheXLog() {
+    public void cacheXLog(int i) {
         timer.start();
-        xLogCache.put(1L, xLog);
+        xLogCache.put(Long.valueOf(i), xLog);
 //        apmLogCache.put(1L, apmLog);
 
         timer.stop();
@@ -121,7 +121,7 @@ public class PersistentPerformanceTest {
     }
 
 
-    public void GetFromCache() {
+    public void GetFromCache(int i) {
 
         cacheManager.init();
         xLogCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
@@ -131,7 +131,7 @@ public class PersistentPerformanceTest {
 
 
         timer.start();
-        XLog recoveredXLog = xLogCache.get(1L);
+        XLog recoveredXLog = xLogCache.get(Long.valueOf(i));
 //        APMLog recoveredAPMLog = apmLogCache.get(1L);
         timer.stop();
         recoverTime.add(timer.getDuration());
@@ -153,10 +153,10 @@ public class PersistentPerformanceTest {
     @Test
     public void runTest() {
 
-        for (int i = 0; i < excutionTime; i++) {
-            importXLog();
-            cacheXLog();
-            GetFromCache();
+        for (int i = 1; i < excutionTime + 1; i++) {
+            importXLog(i);
+            cacheXLog(i);
+            GetFromCache(i);
         }
 
         System.out.println("-----------------------------------------------------------------");
