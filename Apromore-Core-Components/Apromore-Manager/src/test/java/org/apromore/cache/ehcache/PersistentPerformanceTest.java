@@ -38,11 +38,12 @@ import static org.junit.Assert.assertThat;
 
 public class PersistentPerformanceTest {
 
-    private int excutionTime = 10;
+    private int excutionTime = 100;
     private ArrayList importTime = new ArrayList<Long>();
     private ArrayList cacheTime = new ArrayList<Long>();
     private ArrayList recoverTime = new ArrayList<Long>();
     private static final String PERSISTENCE_PATH = "/Users/frank/terracotta1";
+    private static final String logName = "BPI_Challenge_2017.xes.gz";
     private static List<XLog> parsedLog = null;
     private static XLog xLog;
     //        APMLog apmLog;
@@ -83,7 +84,7 @@ public class PersistentPerformanceTest {
 
         try {
             String mainPath = Paths.get(ClassLoader.getSystemResource("XES_logs").toURI()).toString();
-            Path lgPath =  Paths.get(mainPath ,"BPI_Challenge_2017.xes.gz");
+            Path lgPath =  Paths.get(mainPath ,logName);
             parsedLog = parser.parse(new GZIPInputStream(new FileInputStream(lgPath.toFile())));
 //            Path lgPath =  Paths.get(mainPath ,"SepsisCases.xes");
 //            parsedLog = parser.parse(new FileInputStream(lgPath.toFile()));
@@ -145,10 +146,10 @@ public class PersistentPerformanceTest {
         assertThat(recoveredXLog, is(xLog));
     }
 
-//    @Rule
-//    public TestRule benchmarkRun = new BenchmarkRule();
-//
-//    @BenchmarkOptions(benchmarkRounds = 3, warmupRounds = 0)
+    @Rule
+    public TestRule benchmarkRun = new BenchmarkRule();
+
+    @BenchmarkOptions(benchmarkRounds = 1, warmupRounds = 0)
     @Test
     public void runTest() {
 
@@ -159,18 +160,21 @@ public class PersistentPerformanceTest {
         }
 
         System.out.println("-----------------------------------------------------------------");
+        System.out.println("Test Log: " + logName);
+        System.out.println("Test measured " + excutionTime + " rounds");
+        System.out.println("-----------------------------------------------------------------");
         System.out.printf("%30s %20s", "TASK", "AVERAGE DURATION");
         System.out.println();
         System.out.println("-----------------------------------------------------------------");
         System.out.println();
         System.out.format("%30s %20s",
-                "Read XLog from XML:", average(importTime));
+                "Read XLog from XML:", String.format("%.2f", average(importTime)));
         System.out.println();
         System.out.format("%30s %20s",
-                "Put XLog to cache:", average(cacheTime));
+                "Put XLog to cache:", String.format("%.2f", average(cacheTime)));
         System.out.println();
         System.out.format("%30s %20s",
-                "Recover XLog from cache:", average(recoverTime));
+                "Recover XLog from cache:", String.format("%.2f", average(recoverTime)));
         System.out.println();
         System.out.println("-----------------------------------------------------------------");
 
