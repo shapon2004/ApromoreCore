@@ -45,37 +45,8 @@
 
         <include name="Apromore-Custom-Plugins/BPMNDiagramImporter-Logic/target/bpmndiagramimporter-logic-1.1.jar"/>
 
-        <!-- BPMNMiner renamed ~BPMNMiner elsewhere as a workaround for its dependency on IBPStruct
-        <include name="Apromore-Custom-Plugins/BPMNMiner-Logic/target/bpmnminer-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/BPMNMiner-Portal-Plugin/target/bpmnminer-portal-plugin-1.1.jar"/>
-        -->
-
         <include name="Apromore-Custom-Plugins/CSVImporter-Logic/target/csvimporter-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/CSVImporter-Portal/target/csvimporter-portal-1.0.jar"/>
-
-        <include name="Apromore-Custom-Plugins/LTL-Conf-Logic/target/ltl-conf-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/LTL-Conf-Portal-Plugin/target/ltl-conf-portal-plugin-1.1.war"/>
-        
-        <include name="Apromore-Custom-Plugins/APM-Logic/target/apm-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/APM-Portal-Plugin/target/apm-portal-plugin-1.1.war"/>
-
-        <include name="Apromore-Custom-Plugins/APM-Compliance-Logic/target/apm-compliance-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/APM-Compliance-Portal-Plugin/target/apm-compliance-portal-plugin-1.1.war"/>
-
-        <include name="Apromore-Custom-Plugins/APM-Comp-Guards-Logic/target/apm-comp-guards-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/APM-Comp-Guards-Portal-Plugin/target/apm-comp-guards-portal-plugin-1.1.war"/>
-
-        <include name="Apromore-Custom-Plugins/IBPStruct-Logic/target/ibpstruct-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/IBPStruct-Portal-Plugin/target/ibpstruct-portal-plugin-1.1.jar"/>
-        <!-- ibpstruct-editor-plugin renamed ~ibpstruct-editor-plugin elsewhere as a workaround for its dependency upon ibpstruct-logic
-        <include name="Apromore-Plugins/plugin-editor/ibpstruct/target/ibpstruct-editor-plugin-1.1.war"/>
-        -->
-
-        <include name="Apromore-Custom-Plugins/Activity-Filter-Logic/target/activity-filter-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/Activity-Filter-Portal-Plugin/target/activity-filter-portal-plugin-1.1.jar"/>
-
-        <include name="Apromore-Custom-Plugins/Infrequent-Behaviour-Filter-Logic/target/infrequent-behaviour-filter-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/Infrequent-Behaviour-Filter-Portal-Plugin/target/infrequent-behaviour-filter-portal-plugin-1.1.jar"/>
 
         <include name="Apromore-Custom-Plugins/Predictive-Monitor-Logic/target/predictive-monitor-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/Predictive-Monitor-Portal-Plugin/target/predictive-monitor-portal-plugin-1.0.war"/>
@@ -83,9 +54,6 @@
 
         <include name="Apromore-Custom-Plugins/Log-Animation-Logic/target/log-animation-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/Log-Animation-Portal-Plugin/target/log-animation-portal-plugin-1.0.war"/>
-
-        <include name="Apromore-Custom-Plugins/Process-Discoverer-Logic/target/process-discoverer-logic-2.0.0.jar"/>
-        <include name="Apromore-Custom-Plugins/Process-Discoverer-Portal-Plugin/target/process-discoverer-portal-plugin-2.0.0.war"/>
 
         <!-- XES implementation selector -->
         <include name="Apromore-Custom-Plugins/XES-Selection-Portal-Plugin/target/xes-selection-portal-plugin-1.0.jar"/>
@@ -139,6 +107,11 @@
                 <include name="**/target/json-osgi-20090211.jar"/>
                 -->
             </fileset>
+
+            <!-- This bundle is a dependency for the eventstr-confchecking-code-osgi bundle, which is in turn used by Compare-Logic -->
+            <fileset dir="${dir-sups}">
+                <include name="org.apache.servicemix.bundles.gwt-dev-2.6.0_1.jar"/>
+            </fileset>
         </copy>
         <copy todir="${dir-virgo}/repository/usr" flatten="true" overwrite="true">
             <fileset refid="usrRepo"/>
@@ -154,10 +127,6 @@
         <copy todir="${dir-virgo}/pickup" flatten="true" overwrite="true">
             <fileset refid="pickupRepo"/>
         </copy>
-
-        <!-- Force the BPMN Miner plugin to be alphabetically after the iBPStruct plugin it depends upon -->
-        <copy file="${dir}/Apromore-Custom-Plugins/BPMNMiner-Logic/target/bpmnminer-logic-1.1.jar" tofile="${dir-virgo}/pickup/~bpmnminer-logic-1.1.jar"/>
-        <copy file="${dir}/Apromore-Custom-Plugins/BPMNMiner-Portal-Plugin/target/bpmnminer-portal-plugin-1.1.jar" tofile="${dir-virgo}/pickup/~bpmnminer-portal-plugin-1.1.jar"/>
 
         <copy todir="${dir-virgo}/pickup" flatten="true" overwrite="true">
             <fileset dir="${dir-annotation}">
