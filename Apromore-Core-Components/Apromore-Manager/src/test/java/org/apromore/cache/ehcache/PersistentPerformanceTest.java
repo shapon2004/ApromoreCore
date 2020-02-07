@@ -38,7 +38,7 @@ import static org.junit.Assert.assertThat;
 
 public class PersistentPerformanceTest {
 
-    private int excutionTime = 3;
+    private int excutionTime = 20;
     private ArrayList importTime = new ArrayList<Long>();
     private ArrayList cacheTime = new ArrayList<Long>();
     private ArrayList recoverTime = new ArrayList<Long>();
@@ -117,14 +117,14 @@ public class PersistentPerformanceTest {
 //        APMLog newAPM = apmLogCache.get(1L);
 //        assertThat(newAPM.getTraceList().size(), is(apmLog.getTraceList().size()));
 
-        cacheManager.close();
+//        cacheManager.close();
     }
 
 
     public void GetFromCache(int i) {
 
-        cacheManager.init();
-        xLogCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
+//        cacheManager.init();
+//        xLogCache = cacheManager.getCache("xLogCache", Long.class, XLog.class);
 //        apmLogCache = cacheManager.getCache("apmLogCache", Long.class, APMLog.class);
 
         CacheStatistics ehCacheStat = statisticsService.getCacheStatistics("xLogCache");
