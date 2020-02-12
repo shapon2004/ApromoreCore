@@ -1,2 +1,9 @@
 cd "$(dirname "$0")"
+
+chmod -R 777 Apromore-Assembly
+mkdir -p Apromore-Assembly/Editor-Repository
+mkdir -p Apromore-Assembly/Event-Logs-Repository
+mkdir -p Apromore-Assembly/Filestore-Repository
+mkdir -p Apromore-Assembly/Lucene-Repository
+
 docker-compose up
