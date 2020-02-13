@@ -6,219 +6,149 @@ import org.apromore.cache.CacheManager;
 import org.apromore.util.Destroyable;
 import org.apromore.util.Initializable;
 import org.apromore.util.ResourceUtils;
+import org.ehcache.config.CacheConfiguration;
+import org.ehcache.config.Configuration;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.apromore.cache.ehcache.EhCache;
+import org.ehcache.core.Ehcache;
+import org.ehcache.xml.XmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManager;
 
 /**
  * Apromore {@code CacheManager} implementation utilizing the Ehcache framework for all cache functionality.
  * <p/>
- * This class can {@link #setCacheManager(net.sf.ehcache.CacheManager) accept} a manually configured
- * {@link net.sf.ehcache.CacheManager net.sf.ehcache.CacheManager} instance,
- * or an {@code ehcache.xml} path location can be specified instead and one will be constructed. If neither are
- * specified, Apromore's failsafe <code><a href="./ehcache.xml">ehcache.xml</a></code> file will be used by default.
+ * This class can {@link #setCacheManager(org.ehcache.CacheManager) accept} a manually configured
+ * {@link org.ehcache.CacheManager org.ehcache.CacheManager} instance,
+ * or an {@code ehcache.xml} path location can be specified instead and one will be constructed.
  */
 public class EhCacheManager implements CacheManager, Initializable, Destroyable {
 
-    /**
-     * This class's private log instance.
-     */
     private static final Logger log = LoggerFactory.getLogger(EhCacheManager.class);
 
-    /**
-     * The EhCache cache manager used by this implementation to create caches.
-     */
-    protected net.sf.ehcache.CacheManager manager;
+    private volatile org.ehcache.CacheManager manager;
+
+    private volatile String cacheManagerConfigFile = "/ehcache.xml";
+
+    public static final String CACHE_ALIAS_XLOG = "xlog";
+    public static final String CACHE_ALIAS_APMLOG = "apmlog";
+
+    private volatile boolean cacheManagerImplicitlyCreated = false;
+
+    private volatile XmlConfiguration cacheConfiguration = null;
 
     /**
-     * Indicates if the CacheManager instance was implicitly/automatically created by this instance, indicating that
-     * it should be automatically cleaned up as well on shutdown.
-     */
-    private boolean cacheManagerImplicitlyCreated = false;
-
-    /**
-     * Classpath file location of the ehcache CacheManager config file.
-     */
-    private String cacheManagerConfigFile = "classpath:ehcache.xml";
-
-    /**
-     * Default no argument constructor
-     */
-    public EhCacheManager() {
-    }
-
-    /**
-     * Returns the wrapped Ehcache {@link net.sf.ehcache.CacheManager CacheManager} instance.
+     * Returns the wrapped {@link org.ehcache.CacheManager} instance
      *
-     * @return the wrapped Ehcache {@link net.sf.ehcache.CacheManager CacheManager} instance.
+     * @return the wrapped {@link org.ehcache.CacheManager} instance
      */
-    public net.sf.ehcache.CacheManager getCacheManager() {
+    public org.ehcache.CacheManager getCacheManager() {
         return manager;
     }
 
     /**
-     * Sets the wrapped Ehcache {@link net.sf.ehcache.CacheManager CacheManager} instance.
+     * Sets the wrapped {@link org.ehcache.CacheManager} instance
      *
-     * @param manager the wrapped Ehcache {@link net.sf.ehcache.CacheManager CacheManager} instance.
+     * @param cacheManager the {@link org.ehcache.CacheManager} to be used
      */
-    public void setCacheManager(net.sf.ehcache.CacheManager manager) {
-        this.manager = manager;
-    }
-
-    /**
-     * Returns the resource location of the config file used to initialize a new
-     * EhCache CacheManager instance.  The string can be any resource path supported by the
-     * {@link org.apromore.util.ResourceUtils#getInputStreamForPath(String)} call.
-     * <p/>
-     * This property is ignored if the CacheManager instance is injected directly - that is, it is only used to
-     * lazily create a CacheManager if one is not already provided.
-     *
-     * @return the resource location of the config file used to initialize the wrapped
-     *         EhCache CacheManager instance.
-     */
-    public String getCacheManagerConfigFile() {
-        return this.cacheManagerConfigFile;
-    }
-
-    /**
-     * Sets the resource location of the config file used to initialize the wrapped
-     * EhCache CacheManager instance.  The string can be any resource path supported by the
-     * {@link org.apromore.util.ResourceUtils#getInputStreamForPath(String)} call.
-     * <p/>
-     * This property is ignored if the CacheManager instance is injected directly - that is, it is only used to
-     * lazily create a CacheManager if one is not already provided.
-     *
-     * @param classpathLocation resource location of the config file used to create the wrapped
-     *                          EhCache CacheManager instance.
-     */
-    public void setCacheManagerConfigFile(String classpathLocation) {
-        this.cacheManagerConfigFile = classpathLocation;
-    }
-
-    /**
-     * Acquires the InputStream for the ehcache configuration file using
-     * {@link ResourceUtils#getInputStreamForPath(String) ResourceUtils.getInputStreamForPath} with the
-     * path returned from {@link #getCacheManagerConfigFile() getCacheManagerConfigFile()}.
-     *
-     * @return the InputStream for the ehcache configuration file.
-     */
-    protected InputStream getCacheManagerConfigFileInputStream() {
-        String configFile = getCacheManagerConfigFile();
+    public void setCacheManager(org.ehcache.CacheManager cacheManager) {
         try {
-            return ResourceUtils.getInputStreamForPath(configFile);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to obtain input stream for cacheManagerConfigFile [" +
-                    configFile + "]", e);
+            destroy();
+        } catch (Exception e) {
+            log.warn("The managed CacheManager threw an Exception while closing", e);
         }
+        manager = cacheManager;
+        cacheManagerImplicitlyCreated = false;
     }
 
     /**
-     * Loads an existing EhCache from the cache manager, or starts a new cache if one is not found.
-     *
-     * @param name the name of the cache to load/create.
+     * {@inheritDoc}
      */
-    public final <K, V> Cache<K, V> getCache(String name) throws CacheException {
-
-        if (log.isTraceEnabled()) {
-            log.trace("Acquiring EhCache instance named [" + name + "]");
-        }
+    public <K, V> Cache<K, V> getCache(String name) throws CacheException {
+        log.trace("Acquiring Ehcache instance named [{}]", name);
 
         try {
-            net.sf.ehcache.Ehcache cache = ensureCacheManager().getEhcache(name);
+            org.ehcache.Cache<Object, Object> cache = ensureCacheManager().getCache(name, Object.class, Object.class);
+
             if (cache == null) {
-                if (log.isInfoEnabled()) {
-                    log.info("Cache with name '{}' does not yet exist.  Creating now.", name);
-                }
-                this.manager.addCache(name);
-
-                cache = manager.getCache(name);
-
-                if (log.isInfoEnabled()) {
-                    log.info("Added EhCache named [" + name + "]");
-                }
+                log.info("Cache with name {} does not yet exist.  Creating now.", name);
+                cache = createCache(name);
+                log.info("Added Ehcache named [{}]", name);
             } else {
-                if (log.isInfoEnabled()) {
-                    log.info("Using existing EHCache named [" + cache.getName() + "]");
-                }
+                log.info("Using existing Ehcache named [{}]", name);
             }
-            return new EhCache<K, V>(cache);
-        } catch (net.sf.ehcache.CacheException e) {
+
+            return new org.apromore.cache.ehcache.EhCache<>(cache);
+        } catch (MalformedURLException e) {
             throw new CacheException(e);
+        }
+    }
+
+    private org.ehcache.Cache<Object, Object> createCache(String name) {
+        try {
+            XmlConfiguration xmlConfiguration = getConfiguration();
+            CacheConfigurationBuilder<Object, Object> configurationBuilder = xmlConfiguration.newCacheConfigurationBuilderFromTemplate(
+                    "defaultCacheConfiguration", Object.class, Object.class);
+            CacheConfiguration<Object, Object> cacheConfiguration = configurationBuilder.build();
+            return ensureCacheManager().createCache(name, cacheConfiguration);
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | MalformedURLException e) {
+            throw new CacheException(e);
+        }
+    }
+
+    private org.ehcache.CacheManager ensureCacheManager() throws MalformedURLException {
+        if (manager == null) {
+            manager = CacheManagerBuilder.newCacheManager(getConfiguration());
+            manager.init();
+
+            cacheManagerImplicitlyCreated = true;
+        }
+
+        return manager;
+    }
+
+    private XmlConfiguration getConfiguration() {
+        if (cacheConfiguration == null) {
+            cacheConfiguration = new XmlConfiguration(EhCacheManager.class.getResource(cacheManagerConfigFile));
+        }
+
+        return cacheConfiguration;
+    }
+
+    public void destroy() throws Exception {
+        if (cacheManagerImplicitlyCreated && manager != null) {
+            manager.close();
+            manager = null;
         }
     }
 
     /**
      * Initializes this instance.
-     * <p/>
+     * <P>
      * If a {@link #setCacheManager CacheManager} has been
-     * explicitly set (e.g. via Dependency Injection or programmatically) prior to calling this
+     * explicitly set (e.g. via Dependency Injection or programatically) prior to calling this
      * method, this method does nothing.
-     * <p/>
-     * However, if no {@code CacheManager} has been set, the default Ehcache singleton will be initialized, where
-     * Ehcache will look for an {@code ehcache.xml} file at the root of the classpath.  If one is not found,
-     * Ehcache will use its own failsafe configuration file.
-     * <p/>
-     * Because Apromore cannot use the failsafe defaults (fail-safe expunges cached objects after 2 minutes,
-     * something not desirable for Apromore sessions), this class manages an internal default configuration for
-     * this case.
+     * </P>
+     * <P>
+     * However, if no {@code CacheManager} has been set a new {@link org.ehcache.Cache} will be initialized.
+     * It will use {@code ehcache.xml} configuration file at the root of the classpath.
+     * </P>
      *
-     * @throws CacheException
-     *          if there are any CacheExceptions thrown by EhCache.
-     * @see net.sf.ehcache.CacheManager#create
+     * @throws org.apromore.exception.CacheException if there are any CacheExceptions thrown by EhCache.
      */
-    public final void init() throws CacheException {
-        ensureCacheManager();
-    }
-
-    private net.sf.ehcache.CacheManager ensureCacheManager() {
+    public void init() throws CacheException {
         try {
-            if (this.manager == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("cacheManager property not set.  Constructing CacheManager instance... ");
-                }
-                //using the CacheManager constructor, the resulting instance is _not_ a VM singleton
-                //(as would be the case by calling CacheManager.getInstance().  We do not use the getInstance here
-                //because we need to know if we need to destroy the CacheManager instance - using the static call,
-                //we don't know which component is responsible for shutting it down.  By using a single EhCacheManager,
-                //it will always know to shut down the instance if it was responsible for creating it.
-                this.manager = new net.sf.ehcache.CacheManager(getCacheManagerConfigFileInputStream());
-                if (log.isTraceEnabled()) {
-                    log.trace("instantiated Ehcache CacheManager instance.");
-                }
-                cacheManagerImplicitlyCreated = true;
-                if (log.isDebugEnabled()) {
-                    log.debug("implicit cacheManager created successfully.");
-                }
-            }
-            return this.manager;
-        } catch (Exception e) {
+            ensureCacheManager();
+        } catch (MalformedURLException e) {
             throw new CacheException(e);
-        }
-    }
-
-    /**
-     * Shuts-down the wrapped Ehcache CacheManager <b>only if implicitly created</b>.
-     * <p/>
-     * If another component injected
-     * a non-null CacheManager into this instance before calling {@link #init() init}, this instance expects that same
-     * component to also destroy the CacheManager instance, and it will not attempt to do so.
-     */
-    public void destroy() {
-        if (cacheManagerImplicitlyCreated) {
-            try {
-                net.sf.ehcache.CacheManager cacheMgr = getCacheManager();
-                cacheMgr.shutdown();
-            } catch (Throwable t) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Apromore is unable to cleanly shutdown implicitly created CacheManager instance.  " +
-                            "Ignoring (shutting down)...", t);
-                }
-            } finally {
-                this.manager = null;
-                this.cacheManagerImplicitlyCreated = false;
-            }
         }
     }
 }

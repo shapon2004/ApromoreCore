@@ -94,6 +94,7 @@
         <module>Apromore-OSGI-Bundles/raffaeleconforti-osgi</module>
         <module>Apromore-OSGI-Bundles/similaritysearch-osgi</module>
         <module>Apromore-OSGI-Bundles/zk-osgi</module>
+        <module>Apromore-OSGI-Bundles/ehcache-virgo</module>
 
         <!-- Plugins -->
         <module>Apromore-Plugins</module>
