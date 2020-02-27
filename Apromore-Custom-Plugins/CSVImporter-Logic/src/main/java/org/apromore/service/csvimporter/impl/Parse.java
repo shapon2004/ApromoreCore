@@ -26,9 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
-import org.apromore.service.csvimporter.InvalidCSVException;
-import org.zkoss.zul.Messagebox;
-
 
 public class Parse {
 
@@ -103,6 +100,7 @@ public class Parse {
 
 
             put("^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{1,2}:\\d{1,2}:\\d{2}$", "yyyy-MM-dd HH:mm:ss");    // 2011-11-21 11:11:11
+            put("^\\d{4}-\\d{1,2}-\\d{1,2}:\\d{1,2}:\\d{1,2}:\\d{2}$", "yyyy-MM-dd:HH:mm:ss");    // 2019-01-01:02:46:59
             put("^\\d{4}/\\d{1,2}/\\d{1,2}\\s\\d{1,2}:\\d{2}:\\d{2}$", "yyyy/MM/dd HH:mm:ss"); // 2011/11/21 11:11:11
             put("^\\d{4}/\\d{1,2}/\\d{1,2}\\s\\d{1,2}:\\d{2}:\\d{2}.\\d{3}$", "yyyy/MM/dd HH:mm:ss.SSS");  //2011/11/11 03:05:12.522
             put("^\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{1,2}:\\d{2}:\\d{2}.\\d{3}$", "yyyy-MM-dd HH:mm:ss.SSS");//2011-11-11 03:05:12.522
