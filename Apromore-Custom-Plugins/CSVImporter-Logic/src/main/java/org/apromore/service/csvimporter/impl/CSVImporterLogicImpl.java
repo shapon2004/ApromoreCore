@@ -246,11 +246,22 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
     private StringBuilder checkFields(Map<String, Integer> posMap) {
         String[] fieldsToCheck = {caseid, activity, timestamp};
         StringBuilder importMessage = new StringBuilder();
-
+        String messingField;
+        String mess;
         for (int f = 0; f <= fieldsToCheck.length - 1; f++) {
             if (posMap.get(fieldsToCheck[f]) == -1) {
-                String mess = "No " + fieldsToCheck[f] + " defined!";
-                importMessage = (importMessage.length() == 0 ? importMessage.append(mess) : importMessage.append(", ").append(mess));
+                switch(fieldsToCheck[f]) {
+                    case caseid:
+                        messingField = "Case ID!";
+                        break;
+                    case activity:
+                        messingField = "Activity!";
+                        break;
+                    default:
+                        messingField = "End Timestamp!";
+                }
+                mess = "No column has been selected as " + messingField;
+                importMessage = (importMessage.length() == 0 ? importMessage.append(mess) : importMessage.append(System.lineSeparator()).append(mess));
             }
         }
 
