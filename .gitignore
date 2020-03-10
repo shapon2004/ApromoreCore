@@ -20,7 +20,6 @@ Supplements/Virgo/dmk.bat
 
 # Unpacked application server
 Apromore-Assembly/Editor-Repository
-Apromore-Assembly/Event-Logs-Repository
 Apromore-Assembly/Filestore-Repository
 Apromore-Assembly/Lucene-Repository
 Apromore-Assembly/Manager-Repository*
