@@ -1,0 +1,265 @@
+/*!
+ * This file is part of "Apromore".
+ *
+ * Copyright (C) 2019 - 2020 The University of Melbourne.
+ *
+ * "Apromore" is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * "Apromore" is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program.
+ * If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ */
+
+.ap-csv-importer .z-window-content {
+    padding: 0;
+}
+
+.ap-csv-importer-main .z-center-body {
+    padding: 0;
+}
+
+.ap-csv-importer .greenLabel {
+    font-family: var(--ap-font-base);
+}
+
+.ap-csv-importer .p-1 {
+    top: 80px !important;
+    left: 20px;
+    display: block;
+    box-sizing: border-box;
+    box-shadow: var(--ap-box-shadow-darker);
+}
+
+.ap-csv-importer .p-1 .z-textbox {
+    margin-top: 5px;
+    width: 100% !important;
+}
+
+.ap-csv-importer .z-grid-body {
+    overflow: hidden !important;
+}
+
+.ap-csv-importer .z-auxheader {
+    vertical-align: top !important;
+    height: 34px !important;
+    border-bottom: none;
+}
+
+.ap-csv-importer-format-icon {
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    border: 0;
+    position: absolute;
+    width: 28px;
+    height: 24px;
+    border-radius: 8px;
+    padding: 0;
+    top: 3px;
+    right: 2px;
+}
+
+.ap-csv-importer-format-icon:hover {
+    color: white;
+    background-color: transparent;
+}
+
+.ap-csv-importer-format-icon:hover {
+    color: white;
+}
+
+.ap-csv-importer .p-1 .z-a button {
+    font-size: 12px !important;
+    margin: 0;
+    float: right;
+    line-height: 5px;
+    min-height: 5px;
+    padding: 0;
+    background-color: transparent;
+    color: var(--ap-c-grey-minor);
+    border: 0;
+}
+
+.ap-csv-importer .p-1 .z-a button:focus {
+    box-shadow: none !important;
+}
+
+.ap-csv-importer .p-1 .z-a button i {
+    font-size: 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ap-csv-importer-main {
+    border: 0;
+    border-bottom: 1px solid var(--ap-c-line-sep);
+}
+
+.ap-csv-importer-main .z-grid-header-border {
+    display: none;
+}
+
+.ap-csv-importer .myGroupBox {
+    background-image: linear-gradient(
+            270deg,
+            var(--ap-c-soft-blue-light-5) 0%,
+            var(--ap-c-sunset-light-5) 100%
+    );
+    background-size: cover;
+}
+
+
+.ap-csv-importer-grid-wrapper .z-grid-header,
+.ap-csv-importer-grid-wrapper .z-auxheader,
+.ap-csv-importer-grid-wrapper .z-grid-header-border,
+.ap-csv-importer-grid-wrapper .z-column {
+    /*border: 0;*/
+    border-color: var(--ap-c-column-sep);
+}
+
+.ap-csv-importer-grid-wrapper {
+    background-image: linear-gradient(
+            0deg,
+            var(--ap-c-soft-blue-dark-4),
+            var(--ap-c-soft-blue-dark-4)
+    );
+    background-size: 100% 67px;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-color: white;
+}
+
+.ap-csv-importer-grid-wrapper .z-column-content {
+    line-height: 24px !important;
+}
+
+.ap-csv-importer-footer button {
+    font-family: 'Source Sans Pro', FontAwesome, sans-serif !important;
+}
+
+.ap-csv-importer-grid .z-grid-body table {
+    border-collapse: collapse;
+}
+
+.ap-csv-importer-grid tr.z-row td.z-row-inner {
+    border-right: 1px solid var(--ap-c-line-grid);
+    border-bottom: 1px solid var(--ap-c-line-grid);
+}
+
+.ap-csv-importer-grid tr.z-row td.z-row-inner:last-child {
+    border-right: none;
+}
+
+.ap-csv-importer-grid .z-row-content {
+    padding: 2px 0;
+}
+
+/* Fixes for CSV importer list */
+.myGroupBox .z-window-content {
+    padding: 0 !important;
+}
+
+.myGroupBox .z-label {
+    font-size: 14px !important;
+    line-height: 16px !important;
+}
+
+/* Old CSS */
+
+.greenLabel {
+    padding-left: 1px;
+    color: green;
+    font-size: 12px;
+    margin-left: 0px;
+}
+
+.redLabel {
+    padding-left: 1px;
+    color: red;
+    font-size: 12px;
+    margin-left: 0px;
+}
+
+.z-row-content, .z-group-content, .z-groupfoot-content, .z-footer-content {
+
+    overflow: hidden;
+    width: max-content;
+}
+
+.myGroupBox {
+    display: block;
+    height: inherit;
+    border: 0px solid #cfcfcf;
+    border-top: 0;
+    padding: 0px;
+    overflow: auto;
+    zoom: 1;
+}
+.relativePos{
+    position:relative;
+    width: 100%;
+    padding-top:60px;
+}
+
+.banner{
+    position: absolute;
+    width: 100%;
+    height: 52px;
+    background-image: url("/img/apromore_banner.png");
+    background-repeat: round;
+    padding-top: 75px;
+    z-index: -100;
+}
+
+tr.z-row td.z-row-inner, tr.z-row .z-cell {
+    padding-left: 10px;
+}
+
+.z-window-content {
+    border: 1px solid #cfcfcf;
+    margin: 0;
+    padding: 0px 0px 0px 4px;
+    overflow: hidden;
+    zoom: 1;
+}
+
+.z-paging {
+    position: absolute;
+    bottom: 2px;
+    width: 98%;
+}
+
+.z-paging-info {
+    position: absolute;
+    right: 10px;
+    top: 0px;
+}
+
+.z-window-content {
+    border: unset;
+}
+
+
+.z-grid-body {
+    overflow-x: hidden !important;
+}
+
+
+.z-grid-header table th {
+    text-align: -webkit-center;
+}
+
+.z-select {
+    font-size: 14px;
+    background: transparent;
+    filter: invert(1);
+    border: 1px solid;
+}
+

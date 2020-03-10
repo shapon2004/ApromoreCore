@@ -39,8 +39,6 @@
 
 
     <script type="text/javascript" src="js/jquery.js"></script>
-    <!--<script type="text/javascript" src="js/highstock.js"></script>-->
-    <script type="text/javascript" src="js/exporting.js" defer="true"></script>
 
     <script src="js/pdf.v1.10.100.js"></script>
     <script src="js/jspdf.v1.4.1.debug.js"></script>

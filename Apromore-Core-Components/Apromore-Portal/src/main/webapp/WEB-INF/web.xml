@@ -30,6 +30,42 @@
     <listener>
         <listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
     </listener>
+  <servlet>
+    <description>ZK loader for ZUML pages</description>
+    <servlet-name>zkLoader</servlet-name>
+    <servlet-class>org.zkoss.zk.ui.http.DHtmlLayoutServlet</servlet-class>
+    <init-param>
+      <param-name>update-uri</param-name>
+      <param-value>/zkau</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <description>The asynchronous update engine for ZK</description>
+    <servlet-name>auEngine</servlet-name>
+    <servlet-class>org.zkoss.zk.au.http.DHtmlUpdateServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>ws</servlet-name>
+    <servlet-class>org.springframework.ws.transport.http.MessageDispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>transformWsdlLocations</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>newUserRegistration</servlet-name>
+    <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>resetPassword</servlet-name>
+    <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
+  </servlet>
+  <servlet>
+      <servlet-name>portalPluginResource</servlet-name>
+    <servlet-class>org.apromore.portal.servlet.PortalPluginResourceServlet</servlet-class>
+  </servlet>
 
     <filter>
         <filter-name>springSecurityFilterChain</filter-name>
