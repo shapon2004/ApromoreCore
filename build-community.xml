@@ -152,14 +152,12 @@
         <include name="Apromore-Custom-Plugins/BPMNDiagramImporter-Logic/target/bpmndiagramimporter-logic-1.1.jar"/>
 
         <include name="Apromore-Custom-Plugins/Compare-Logic/target/compare-logic-1.1.jar"/>
-        <include name="Apromore-Custom-Plugins/Compare-Portal-Plugin/target/compareBP-portal-plugin-1.1.war"/>
 
         <include name="Apromore-Custom-Plugins/CSVImporter-Logic/target/csvimporter-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/CSVImporter-Portal/target/csvimporter-portal-1.0.jar"/>
 
         <include name="Apromore-Custom-Plugins/Log-Animation-Logic/target/log-animation-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/Log-Animation-Portal-Plugin/target/log-animation-portal-plugin-1.0.war"/>
-		<include name="Apromore-Custom-Plugins/Log-Animation-Portal-Plugin2/target/log-animation-portal-plugin2-1.0.war"/>
 
         <include name="Apromore-Custom-Plugins/PerformanceMiner-Logic/target/perfmining-logic-1.0.jar"/>
         <include name="Apromore-Custom-Plugins/PerformanceMiner-Portal-Plugin/target/perfmining-portal-plugin-1.0.jar"/>
