@@ -1,7 +1,7 @@
 /*
- * Copyright © 2009-2019 The Apromore Initiative.
- *
  * This file is part of "Apromore".
+ *
+ * Copyright (C) 2019 - 2020 The University of Melbourne.
  *
  * "Apromore" is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -52,7 +52,9 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
         // Obtain the sample of lines
         List<List<String>> lines = new ArrayList<>();
         for (String[] s = reader.readNext(); s != null && lines.size() < sampleSize; s = reader.readNext()) {
-            lines.add(Arrays.asList(s));
+            if(s!=null && s.length > 2){
+                lines.add(Arrays.asList(s));
+            }
         }
 
         // Construct the sample (no mutation expected after this point, although this isn't enforced by the code))
@@ -84,33 +86,40 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
             List<LogEventModel> logData = new ArrayList<>();
             HashMap<String, Timestamp> otherTimestamps;
             HashMap<String, String> others;
+            HashMap<String, String> caseAttributes;
             Timestamp startTimestamp = null;
             String resourceCol = null;
             String errorMessage = null;
 
-            for (Iterator<String[]> it = reader.iterator(); finishCount < 50; ) {
+            for (Iterator<String[]> it = reader.iterator(); finishCount < 50 && isValidLineCount(lineCount);) {
                 String[] line = it.next();
                 boolean rowGTG = true;
                 if(line == null) {
-                    // if line is empty, more to next iteration, until 50 lines are empty
+                    // if line is empty, move to next iteration, until 50 lines are empty
                     finishCount++;
                     continue;
+                } else {
+                    lineCount++;
                 }
-                lineCount++;
+
                 if (line != null && line.length > 2) {
                     try {
                         otherTimestamps = new HashMap<>();
                         others = new HashMap<>();
+                        caseAttributes = new HashMap<>();
 
                         for (int p = 0; p <= line.length - 1; p++) {
                             if (sample.getOtherTimeStampsPos().get(p) != null) {
                                 otherTimestamps.put(header[p], Parse.parseTimestamp(line[p], sample.getOtherTimeStampsPos().get(p)));
-                            } else if (p != sample.getHeads().get(caseid) && p != sample.getHeads().get(activity) &&
+                            } else if(!sample.getCaseAttributesPos().isEmpty() && sample.getCaseAttributesPos().contains(p)){
+                                caseAttributes.put(header[p], line[p]);
+                            }
+                            else if (p != sample.getHeads().get(caseid) && p != sample.getHeads().get(activity) &&
                                     p != sample.getHeads().get(timestamp) && p != sample.getHeads().get(tsStart) &&
-                                    p != sample.getHeads().get(resource) && (sample.getIgnoredPos().isEmpty() ||
-                                    !sample.getIgnoredPos().contains(p))) {
-                                others.put(header[p], line[p]);
+                                    p != sample.getHeads().get(resource) && (sample.getIgnoredPos().isEmpty() || !sample.getIgnoredPos().contains(p)) &&
+                                    (sample.getCaseAttributesPos().isEmpty() || !sample.getCaseAttributesPos().contains(p))) {
 
+                                others.put(header[p], line[p]);
                                 if (header.length != line.length) {
                                     invalidRows.add("Row: " + (lineCount) + ", Error: number of columns does not match" +
                                             " number of headers. " + "Number of headers: " + header.length + "," +
@@ -118,7 +127,6 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
                                     errorCount++;
                                     rowGTG = false;
                                     break;
-
                                 }
 
                             }
@@ -132,7 +140,7 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
                                     startTimestamp = tStamp;
                                     invalidRows.add("Row: " + (lineCount) + ", Warning: Start time stamp field is invalid. Copying end timestamp field into start timestamp");
                                 } else {
-                                    invalidRows.add("Row: " + (lineCount) + ", Error: Start time stamp field is invalid. ");
+                                    invalidRows.add("Row: " + (lineCount) + ", Error: Start time stamp field is invalid.");
                                     errorCount++;
                                 }
                             }
@@ -170,7 +178,7 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
                             }
                         }
                         if (rowGTG) {
-                            logData.add(new LogEventModelImpl(line[sample.getHeads().get(caseid)], line[sample.getHeads().get(activity)], tStamp, startTimestamp, otherTimestamps, resourceCol, others));
+                            logData.add(new LogEventModelImpl(line[sample.getHeads().get(caseid)], line[sample.getHeads().get(activity)], tStamp, startTimestamp, otherTimestamps, resourceCol, others, caseAttributes));
                         }
                     } catch (Exception e) {
                         errorMessage = ExceptionUtils.getStackTrace(e);
@@ -209,6 +217,24 @@ public class CSVImporterLogicImpl implements CSVImporterLogic, Constants {
         }
     }
 
+    public boolean isValidLineCount(int lineCount) {
+        return true;
+    }
+
+    /**
+     * Gets the pos.
+     *
+     * @param col  the col: array which has possible names for each of the mandatory fields.
+     * @param elem the elem: one item of the CSV line array
+     * @return the pos: boolean value confirming if the elem is the required element.
+     */
+    private static boolean getPos(String[] col, String elem) {
+        if (col == timestampValues || col == StartTsValues) {
+            return Arrays.stream(col).anyMatch(elem.toLowerCase()::equals);
+        } else {
+            return Arrays.stream(col).anyMatch(elem.toLowerCase()::contains);
+        }
+    }
 
     /**
      * Check fields.

@@ -1,10 +1,34 @@
+/*
+ * This file is part of "Apromore".
+ *
+ * Copyright (C) 2019 - 2020 The University of Melbourne.
+ * Copyright (C) 2019 - 2020 The University of Tartu.
+ *
+ * "Apromore" is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * "Apromore" is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program.
+ * If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
+ */
+
 package org.apromore.service.csvimporter;
+
+import org.zkoss.zul.Button;
+import org.zkoss.zul.Div;
+import org.zkoss.zul.Button;
+import org.zkoss.zul.Listbox;
+import org.zkoss.zul.Window;
 
 import java.util.List;
 import java.util.Map;
-import org.zkoss.zul.Div;
-import org.zkoss.zul.Listbox;
-import org.zkoss.zul.Window;
 
 /**
  * A sample of a CSV log.
@@ -44,7 +68,11 @@ public interface LogSample {
 
     void setPopUPBox(Div popUPBox);
 
+    Button[] getFormatBtns();
 
+    void setFormatBtns(Button[] formatBtns);
+
+    List<Integer> getCaseAttributesPos();
     // Public methods
 
     /**
@@ -54,7 +82,7 @@ public interface LogSample {
      */
     List<String> automaticFormat();
 
-    void openPopUp();
+    void openPopUp(boolean show);
     void setIgnoreAll(Window window);
     void setOtherAll(Window window);
     void setOtherTimestamps();

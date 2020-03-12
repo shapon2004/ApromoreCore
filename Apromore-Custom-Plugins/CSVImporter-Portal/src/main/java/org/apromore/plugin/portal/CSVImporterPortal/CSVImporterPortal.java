@@ -1,7 +1,8 @@
 /*
- * Copyright © 2009-2019 The Apromore Initiative.
- *
  * This file is part of "Apromore".
+ *
+ * Copyright (C) 2019 - 2020 The University of Melbourne.
+ * Copyright (C) 2019 - 2020 The University of Tartu.
  *
  * "Apromore" is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -47,6 +48,7 @@ import org.zkoss.zul.Button;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 import org.zkoss.zul.*;
+import org.zkoss.zk.ui.util.Clients;
 
 import org.deckfour.xes.model.XLog;
 
@@ -69,7 +71,7 @@ public class CSVImporterPortal implements FileImporterPlugin {
         this.eventLogService = newEventLogService;
     }
 
-    private static Integer AttribWidth = 150;
+    private static Integer AttribWidth = 180;
     private static Integer IndexColumnWidth = 50;
 
 
@@ -212,20 +214,44 @@ public class CSVImporterPortal implements FileImporterPlugin {
             indexCol.setAlign("center");
             myGrid.getColumns().appendChild(indexCol);
 
+            Button[] formatBtns = new Button[sample.getHeader().size()];
+
             for (int i = 0; i < sample.getHeader().size(); i++) {
                 Column newColumn = new Column();
-                newColumn.setWidth(AttribWidth + "px");
                 newColumn.setValue(sample.getHeader().get(i));
                 newColumn.setLabel(sample.getHeader().get(i));
+                String label = (String) sample.getHeader().get(i);
+                int labelLen = (label.length() * 14) + 20;
+                if (labelLen < AttribWidth ) {
+                    labelLen = AttribWidth;
+                }
+                newColumn.setWidth(labelLen + "px");
                 newColumn.setAlign("center");
+                Button formatBtn = new Button();
+                formatBtn.setSclass("ap-csv-importer-format-icon ap-hidden");
+                formatBtn.setIconSclass("z-icon-wrench");
+                final int fi = i;
+                formatBtn.addEventListener("onClick", event -> {
+                    // Clients.evalJavaScript("openPop(" + fi + ")");
+                    Window w = (Window) sample.getPopUPBox().getFellow("pop_" + fi);
+                    w.setStyle(w.getStyle().replace("hidden", "visible"));
+                    MouseEvent me = (MouseEvent)event;
+                    int x = me.getPageX();
+                    int y = me.getPageY();
+                    w.setLeft((x - 180) + "px");
+                    w.setTop((y + 120) + "px");
+                    Clients.evalJavaScript("adjustPos(" + fi + ")");
+                });
+                formatBtns[i] = formatBtn;
+                newColumn.appendChild(formatBtn);
                 myGrid.getColumns().appendChild(newColumn);
-//                myGrid.getColumns().setSizable(true);  // TODO: this looks fishy
+                myGrid.getColumns().setSizable(true);  // TODO: this looks fishy
             }
 
             Popup helpP = (Popup) window.getFellow("popUpHelp");
 
             if(sample.getHeader() != null) {
-                System.out.println("Automatic formatting here! " + sample.getLines().get(0));
+//                System.out.println("Automatic formatting here! " + sample.getLines().get(0));
                 List<String> errorMessages = sample.automaticFormat();
                 for (String errorMessage: errorMessages) {
                     Messagebox.show(errorMessage);
@@ -233,8 +259,21 @@ public class CSVImporterPortal implements FileImporterPlugin {
                 sample.setOtherTimestamps();
             }
 
-            createPopUpTextBox(sample.getHeader().size(), popUPBox, helpP, sample.getLines().get(0), sample);
-            sample.openPopUp();
+            createPopUpTextBox(sample.getHeader().size(), popUPBox, helpP, sample.getLines().get(0), sample, formatBtns);
+            sample.openPopUp(false);
+
+            Integer timeStampPos = sample.getHeads().get("timestamp");
+            if (timeStampPos != -1) {
+                formatBtns[timeStampPos].setSclass("ap-csv-importer-format-icon");
+            }
+            Integer startTimeStampPos = sample.getHeads().get("startTimestamp");
+            if (startTimeStampPos != -1) {
+                formatBtns[startTimeStampPos].setSclass("ap-csv-importer-format-icon");
+            }
+
+            for (Map.Entry<Integer, String> entry : sample.getOtherTimeStampsPos().entrySet()) {
+                formatBtns[entry.getKey()].setSclass("ap-csv-importer-format-icon");
+            }
 
             Button setOtherAll = (Button) window.getFellow("setOtherAll");
             setOtherAll.setTooltiptext("Change all Ignore columns to Other.");
@@ -280,7 +319,7 @@ public class CSVImporterPortal implements FileImporterPlugin {
         }
     }
 
-    private static void createPopUpTextBox(int colNum, Div popUPBox, Popup helpP, List<String> sampleLine, LogSample sample){
+    private static void createPopUpTextBox(int colNum, Div popUPBox, Popup helpP, List<String> sampleLine, LogSample sample, Button[] formatBtns){
         for(int i = 0; i < colNum; i++){
             Window item = new Window();
             item.setId(LogSample.popupID + i);
@@ -288,8 +327,9 @@ public class CSVImporterPortal implements FileImporterPlugin {
             item.setMinheight(100);
             item.setClass("p-1");
             item.setBorder("normal");
-            item.setStyle("margin-left:" + (i==0? IndexColumnWidth: (i*AttribWidth) + IndexColumnWidth )  +
-                    "px; position: absolute; z-index: 10; visibility: hidden; top:3px;");
+//            item.setStyle("margin-left:" + (i==0? IndexColumnWidth: (i*AttribWidth) + IndexColumnWidth )  +
+//                    "px; position: absolute; z-index: 10; visibility: hidden; top:3px;");
+            item.setStyle("position: fixed; z-index: 10; visibility: hidden;");
 
             Button sp = new Button();
 //            sp.setLabel("-");
@@ -308,6 +348,7 @@ public class CSVImporterPortal implements FileImporterPlugin {
             textbox.setWidth("98%");
             textbox.setPlaceholder("dd-MM-yyyy HH:mm:ss");
             textbox.setPopup(helpP);
+            textbox.setClientAttribute("spellcheck", "false");
             textbox.setPopupAttributes(helpP, "after_start","","","toggle");
 
             textbox.addEventListener("onChanging", (InputEvent event) -> {
@@ -329,6 +370,7 @@ public class CSVImporterPortal implements FileImporterPlugin {
         popUPBox.clone();
 
         sample.setPopUPBox(popUPBox);
+        sample.setFormatBtns(formatBtns);
     }
 
 
@@ -530,7 +572,7 @@ public class CSVImporterPortal implements FileImporterPlugin {
 
         } catch (IOException e) {
             LOGGER.warn("Unable to execute sample method", e);
-            Messagebox.show("Unable to import file : " + e, "Attention", Messagebox.OK, Messagebox.ERROR);
+            Messagebox.show("Unable to import file : " + e, "Error", Messagebox.OK, Messagebox.ERROR);
         }
     }
 }

@@ -1,7 +1,8 @@
 /*
- * Copyright © 2009-2019 The Apromore Initiative.
- *
  * This file is part of "Apromore".
+ *
+ * Copyright (C) 2019 - 2020 The University of Melbourne.
+ * Copyright (C) 2019 The University of Tartu.
  *
  * "Apromore" is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -20,9 +21,10 @@
 
 package org.apromore.service.csvimporter.impl;
 
+import org.apromore.service.csvimporter.LogEventModel;
+
 import java.sql.Timestamp;
 import java.util.Map;
-import org.apromore.service.csvimporter.LogEventModel;
 
 class LogEventModelImpl implements LogEventModel {
 
@@ -35,11 +37,12 @@ class LogEventModelImpl implements LogEventModel {
     private String resource;
     private Map<String, Timestamp> otherTimestamps;
     private Map<String, String> others;
+    private Map<String, String> caseAttributes;
 
 
     // Constructor
 
-    LogEventModelImpl(String caseID, String concept, Timestamp timestamp, Timestamp startTimestamp, Map<String, Timestamp> otherTimestamps, String resource, Map<String, String> others) {
+    LogEventModelImpl(String caseID, String concept, Timestamp timestamp, Timestamp startTimestamp, Map<String, Timestamp> otherTimestamps, String resource, Map<String, String> others, Map<String, String> caseAttributes) {
         this.caseID = caseID;
         this.concept = concept;
         this.timestamp = timestamp;
@@ -47,6 +50,7 @@ class LogEventModelImpl implements LogEventModel {
         this.otherTimestamps = otherTimestamps;
         this.resource = resource;
         this.others = others;
+        this.caseAttributes = caseAttributes;
     }
 
 
@@ -90,5 +94,10 @@ class LogEventModelImpl implements LogEventModel {
     @Override
     public Map<String, String> getOthers() {
         return others;
+    }
+
+    @Override
+    public Map<String, String> getCaseAttributes() {
+        return caseAttributes;
     }
 }
