@@ -3,11 +3,11 @@ services:
     apromore:
         build: .
         container_name: apromore
-        image: apromore/apromore:7.11
+        image: apromore/apromore:7.12
         depends_on:
             - apromoresql   
         ports:
-            - "9000:9000"
+            - "80:9000"
             
     apromoresql:
         container_name: apromoresql
