@@ -37,7 +37,7 @@ class LogSampleImpl implements LogSample, Constants {
     private String timestampFormat;
     private String startTsFormat;
     private List<Integer> ignoredPos;
-    private HashMap<Integer, String> otherTimeStampsPos;
+    private HashMap<Integer, String> otherTimestamps;
     private List<Integer> caseAttributesPos;
     private List<Integer> eventAttributesPos;
 
@@ -49,6 +49,7 @@ class LogSampleImpl implements LogSample, Constants {
         this.eventAttributesPos = new ArrayList<>();
         this.timestampFormat = null;
         this.startTsFormat = null;
+        otherTimestamps = new HashMap<>();
 
         setMainAttributes();
         setOtherTimestampsPos();
@@ -115,7 +116,7 @@ class LogSampleImpl implements LogSample, Constants {
 
         for (int pos = 0; pos < header.size(); pos++) {
             if ((pos != timeStampPos) && (pos != StartTimeStampPos) && isParsable(pos)) {
-                otherTimeStampsPos.put(pos, null);
+                otherTimestamps.put(pos, null);
             }
         }
     }
@@ -126,7 +127,7 @@ class LogSampleImpl implements LogSample, Constants {
 
         // set all attributes that are not main attributes or timestamps as case attributes
         for (int pos = 0; pos < header.size(); pos++) {
-            if (!mainAttributes.containsValue(pos) && !otherTimeStampsPos.containsKey(pos)) {
+            if (!mainAttributes.containsValue(pos) && !otherTimestamps.containsKey(pos)) {
                 caseAttributesPos.add(pos);
             }
         }
@@ -214,8 +215,8 @@ class LogSampleImpl implements LogSample, Constants {
     }
 
     @Override
-    public HashMap<Integer, String> getOtherTimeStampsPos() {
-        return otherTimeStampsPos;
+    public HashMap<Integer, String> getOtherTimestamps() {
+        return otherTimestamps;
     }
 
     @Override
