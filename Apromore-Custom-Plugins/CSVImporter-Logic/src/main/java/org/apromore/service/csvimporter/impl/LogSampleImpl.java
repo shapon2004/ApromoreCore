@@ -21,16 +21,12 @@
 
 package org.apromore.service.csvimporter.impl;
 
-import org.apromore.service.csvimporter.InvalidCSVException;
 import org.apromore.service.csvimporter.LogSample;
-import org.zkoss.zul.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * A sample of a CSV log.
- */
+
 class LogSampleImpl implements LogSample, Constants {
 
     private final Parse parse = new Parse();
@@ -43,15 +39,24 @@ class LogSampleImpl implements LogSample, Constants {
     private List<Integer> ignoredPos;
     private HashMap<Integer, String> otherTimeStampsPos;
     private List<Integer> caseAttributesPos;
+    private List<Integer> eventAttributesPos;
 
-
-    // Constructor
-
-    LogSampleImpl(List<String> header, List<List<String>> lines) throws InvalidCSVException {
+    LogSampleImpl(List<String> header, List<List<String>> lines) {
         this.header = header;
         this.lines = lines;
+        this.ignoredPos = new ArrayList<>();
+        this.caseAttributesPos = new ArrayList<>();
+        this.eventAttributesPos = new ArrayList<>();
+        this.timestampFormat = null;
+        this.startTsFormat = null;
 
-        // Empty mainAttributes permutation map (heads)
+        setMainAttributes();
+        setOtherTimestampsPos();
+        setCaseAndEventAttributesPos();
+    }
+
+
+    private void setMainAttributes(){
         mainAttributes = new HashMap<>();
         mainAttributes.put(caseIdLabel, -1);
         mainAttributes.put(activityLabel, -1);
@@ -59,7 +64,7 @@ class LogSampleImpl implements LogSample, Constants {
         mainAttributes.put(startTimestampLabel, -1);
         mainAttributes.put(resourceLabel, -1);
 
-        // Populate heads, timestampFormat, startTsFormat
+        // Populate mainAttributes, timestampFormat, startTsFormat
         for (int pos = 0; pos < header.size(); pos++) {
             if ((mainAttributes.get(caseIdLabel) == -1) && getMainAttributePosition(caseIdValues, header.get(pos))) {
                 mainAttributes.put(caseIdLabel, pos);
@@ -73,17 +78,7 @@ class LogSampleImpl implements LogSample, Constants {
                 mainAttributes.put(resourceLabel, pos);
             }
         }
-
-        this.ignoredPos = new ArrayList<>();
-        this.otherTimeStampsPos = new HashMap<>();
-        this.caseAttributesPos = new ArrayList<>();
-        this.timestampFormat = null;
-        this.startTsFormat = null;
-
-        setOtherTimestamps();
-        setCaseAttributesPos();
     }
-
 
     private boolean getMainAttributePosition(String[] col, String elem) {
         if (col == timestampValues || col == StartTsValues) {
@@ -114,10 +109,9 @@ class LogSampleImpl implements LogSample, Constants {
     }
 
 
-    private void setOtherTimestamps() {
-        otherTimeStampsPos.clear();
-        Integer timeStampPos = mainAttributes.get(timestampLabel);
-        Integer StartTimeStampPos = mainAttributes.get(startTimestampLabel);
+    private void setOtherTimestampsPos() {
+        int timeStampPos = mainAttributes.get(timestampLabel);
+        int StartTimeStampPos = mainAttributes.get(startTimestampLabel);
 
         for (int pos = 0; pos < header.size(); pos++) {
             if ((pos != timeStampPos) && (pos != StartTimeStampPos) && isParsable(pos)) {
@@ -127,22 +121,22 @@ class LogSampleImpl implements LogSample, Constants {
     }
 
 
-    private void setCaseAttributesPos() {
+    private void setCaseAndEventAttributesPos() {
         if (mainAttributes.get(caseIdLabel) == -1) return;
 
         // set all attributes that are not main attributes or timestamps as case attributes
         for (int pos = 0; pos < header.size(); pos++) {
-            if (pos != mainAttributes.get(caseIdLabel) && pos != mainAttributes.get(activityLabel) && pos != mainAttributes.get(timestampLabel) && pos != mainAttributes.get(startTimestampLabel) && pos != mainAttributes.get(resourceLabel) && !otherTimeStampsPos.containsKey(pos)) {
+            if (!mainAttributes.containsValue(pos) && !otherTimeStampsPos.containsKey(pos)) {
                 caseAttributesPos.add(pos);
             }
         }
 
-        // remove ones who fail to satisfy case attribute condition - Being consistent within a case.
+        // set ones who are not consistent within a case as event attributes instead of case attributes
         List<CaseAttributesDiscovery> myCaseAttributes = new ArrayList<>();
         for (List<String> myLine : lines) {
             if (myCaseAttributes.size() == 0 || myCaseAttributes.stream().noneMatch(p -> p.getCaseId().equals(myLine.get(mainAttributes.get(caseIdLabel))))) { // new case id
                 myCaseAttributes = new ArrayList<>();
-                for (Integer pos : caseAttributesPos) {
+                for (int pos : caseAttributesPos) {
                     myCaseAttributes.add(new CaseAttributesDiscovery(myLine.get(mainAttributes.get(caseIdLabel)), pos, myLine.get(pos)));
                 }
             } else {
@@ -150,6 +144,7 @@ class LogSampleImpl implements LogSample, Constants {
                     int finalPos = caseAttributesPos.get(pos);
                     if (!myCaseAttributes.stream().filter(p -> p.getPosition() == finalPos).collect(Collectors.toList()).get(0).getValue().equals(myLine.get(finalPos)) && caseAttributesPos.contains(finalPos)) {
                         caseAttributesPos.remove(new Integer(finalPos));
+                        eventAttributesPos.add(finalPos);
                     }
                 }
             }
@@ -157,6 +152,7 @@ class LogSampleImpl implements LogSample, Constants {
     }
 
 
+    // Accessors
     @Override
     public String getCaseIdLabel() {
         return caseIdLabel;
@@ -205,6 +201,11 @@ class LogSampleImpl implements LogSample, Constants {
     @Override
     public List<Integer> getCaseAttributesPos() {
         return caseAttributesPos;
+    }
+
+    @Override
+    public List<Integer> getEventAttributesPos() {
+        return eventAttributesPos;
     }
 
     @Override
