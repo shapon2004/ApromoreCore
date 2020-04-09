@@ -30,7 +30,7 @@ public interface LogEventModel {
 
     String getConcept();
 
-    Timestamp getTimestamp();
+    Timestamp getEndTimestamp();
 
     Timestamp getStartTimestamp();
 
@@ -41,4 +41,5 @@ public interface LogEventModel {
 
     Map<String, String> getEventAttributes();
     Map<String, String> getCaseAttributes();
+    void setEndTimestamp(Timestamp endTimestamp);
 }
