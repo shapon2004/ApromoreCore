@@ -29,7 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 
-public class Parse {
+class Parse {
 
     public Timestamp tryParsingWithFormat(String theDate, String theFormat) {
         try {
@@ -51,6 +51,11 @@ public class Parse {
         } catch (Exception e) {
             return null;
         }
+    }
+
+
+    public boolean getPreferMonthFirst(){
+        return DateParserUtils.getPreferMonthFirst();
     }
 
 }
