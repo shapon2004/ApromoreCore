@@ -75,7 +75,6 @@ class LogModelImpl implements LogModel {
         XEvent xEvent = null;
         List<XEvent> allEvents = new ArrayList<XEvent>();
 
-        // declare standard extensions of thEe log
         XConceptExtension concept = XConceptExtension.instance();
         XLifecycleExtension lifecycle = XLifecycleExtension.instance();
         XTimeExtension timestamp = XTimeExtension.instance();
@@ -90,7 +89,6 @@ class LogModelImpl implements LogModel {
 
         String newTraceID = null;    // to keep track of traces, when a new trace is created we assign its value and add the respective events for the trace.
 
-//        Comparator<XEvent> compareTimestamp = (XEvent o1, XEvent o2) -> ((XAttributeTimestampImpl) o1.getAttributes().get("time:timestamp")).getValue().compareTo(((XAttributeTimestampImpl) o2.getAttributes().get("time:timestamp")).getValue());
         Comparator<XEvent> compareTimestamp = (XEvent o1, XEvent o2) -> {
             Date o1Date;
             Date o2Date;
@@ -117,17 +115,13 @@ class LogModelImpl implements LogModel {
             }
 
             if (o1Date == null || o1Date.toString().isEmpty()) {
-                //Messagebox.show("o1Date is null!");
                 return 1;
             } else if (o2Date == null || o2Date.toString().isEmpty()) {
-                //Messagebox.show("o2Date is null!");
                 return -1;
             } else {
                 return o1Date.compareTo(o2Date);
             }
-
         };
-//        Comparator<XEvent> compareTimestamp = Comparator.comparing((XEvent o) -> ((XAttributeTimestampImpl) o.getAttributes().get("time:timestamp")).getValue());
 
         for (LogEventModel trace : traces) {
             String caseID = trace.getCaseID();
@@ -137,7 +131,7 @@ class LogModelImpl implements LogModel {
                 if (!allEvents.isEmpty()) {
                     Collections.sort(allEvents, compareTimestamp);
                     xTrace.addAll(allEvents);
-                    allEvents = new ArrayList<XEvent>();
+                    allEvents = new ArrayList<>();
                 }
 
                 xTrace = xFactory.createTrace();
