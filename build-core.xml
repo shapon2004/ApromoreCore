@@ -101,7 +101,7 @@
     
     <fileset id="fileset-core-extras" dir="${core-dir-extras}">
         <include name="APMLogModule/target/apmlog-1.0.0.jar"/>
-        <include name="OpenXES//target/openxes-2.27.jar"/>
+        <include name="OpenXES/target/openxes-2.27.jar"/>
     </fileset>    
     
     <fileset id="fileset-core-old-plugin-annotation" dir="${core-dir-annotation}" >
@@ -135,9 +135,6 @@
     </fileset>
     
     <!-- Fileset containing all libraries under for XXXAssembly under Apromore-Assembly folder, including Apromore and non-Apromore modules -->
-    <!-- The files under XXXAssembly are put there by Maven compile -->
-    <!-- It must be the FIRST fileset in copy-virgo target to avoid overwriting the Apromore modules taken from their own folder -->
-    <!-- Otherwise, Maven must be run again to recopy the files to XXXAssembly -->
     <fileset id="fileset-core-assembly" dir="${core-dir}">
         <include name="Apromore-Assembly/*-Assembly/target/repository/usr/*"/>
     </fileset>
@@ -148,14 +145,14 @@
         </copy>
         
         <copy todir="${core-dir-virgo}/repository/usr" flatten="true" overwrite="true">
-            <fileset refid="fileset-core-assembly" />
             <fileset refid="fileset-core-osgi-lib" />
-            <fileset refid="fileset-core-extras" />
             <fileset refid="fileset-core-old-plugin-annotation" />
             <fileset refid="fileset-core-old-plugin-canoniser" />
             <fileset refid="fileset-core-old-plugin-logic" />
             <fileset refid="fileset-core-old-plugin-portal" />
             <fileset refid="fileset-core-custom-plugins" />
+            <fileset refid="fileset-core-extras" />
+            <fileset refid="fileset-core-assembly" />
             
             <!-- This bundle is a dependency for the eventstr-confchecking-code-osgi bundle, which is in turn used by Compare-Logic -->
             <fileset dir="${core-dir-sups}">
