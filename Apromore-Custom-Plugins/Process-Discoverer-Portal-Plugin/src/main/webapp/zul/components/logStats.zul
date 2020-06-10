@@ -117,6 +117,7 @@
           </button>
           <label sclass="title"
                  id="perspectiveSelected"
+                 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                  value="Activities" w:onClick="Ap.pd.zkSendEvent('$perspectiveDetails', 'onClick', null)">
           </label>
         </n:div>
