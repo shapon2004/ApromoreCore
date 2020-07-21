@@ -21,12 +21,16 @@
  */
 package org.apromore.plugin.portal.useradmin;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apromore.dao.model.Group;
 import org.apromore.dao.model.Role;
 import org.apromore.dao.model.User;
@@ -44,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.EventQueue;
 import org.zkoss.zk.ui.event.EventQueues;
@@ -55,11 +60,14 @@ import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Combobox;
 import org.zkoss.zul.Datebox;
+import org.zkoss.zul.Label;
 import org.zkoss.zul.Listbox;
 import org.zkoss.zul.ListModel;
 import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Messagebox;
+import org.zkoss.zul.Tab;
 import org.zkoss.zul.Textbox;
+import org.zkoss.zul.Vbox;
 import org.zkoss.zul.Window;
 
 import org.apromore.plugin.portal.useradmin.listbox.*;
@@ -71,8 +79,10 @@ public class UserAdminController extends SelectorComposer<Window> {
     User currentUser;
     User selectedUser;
     ListModelList<Group> groupsModel;
-    ListModelList<Role> rolesModel;
+    ListModelList<Role> assignedRolesModel;
     ListModelList<User> usersModel;
+    ListModelList<User> assignedUsersModel;
+    ListModelList<Group> assignedGroupsModel;
 
     UsersListbox searchableUsersListbox;
     GroupsListbox searchableGroupsListbox;
@@ -85,15 +95,25 @@ public class UserAdminController extends SelectorComposer<Window> {
     private PortalContext portalContext = (PortalContext) Executions.getCurrent().getArg().get("portalContext");
     private SecurityService securityService = (SecurityService) /*SpringUtil.getBean("securityService");*/ Executions.getCurrent().getArg().get("securityService");
 
-    @Wire("#usersCombobox")       Combobox usersCombobox;
+    @Wire("#groupsTab") Tab groupsTab;
+    @Wire("#userListView") Vbox userListView;
     @Wire("#firstNameTextbox")    Textbox  firstNameTextbox;
     @Wire("#lastNameTextbox")     Textbox  lastNameTextbox;
     @Wire("#usersListbox")        Listbox  usersListbox;
     @Wire("#groupsListbox")       Listbox  groupsListbox;
-    @Wire("#rolesListbox")        Listbox  rolesListbox;
-    @Wire("#newGroupButton")      Button   newGroupButton;
-    @Wire("#newUserButton")       Button   newUserButton;
-    @Wire("#deleteUserButton")    Button   deleteUserButton;
+    @Wire("#assignedRolesListbox")        Listbox  assignedRolesListbox;
+    @Wire("#assignedGroupsListbox")        Listbox  assignedGroupsListbox;
+    @Wire("#assignedUsersListbox")        Listbox  assignedUsersListbox;
+    @Wire("#userDetail")  Label userDetail;
+    @Wire("#groupDetail")  Label groupDetail;
+
+    @Wire("#userAddBtn")       Button   userAddBtn;
+    @Wire("#userEditBtn")       Button   userEditBtn;
+    @Wire("#userRemoveBtn")    Button   userRemoveBtn;
+    @Wire("#groupAddBtn")      Button   groupAddBtn;
+    @Wire("#groupEditBtn")       Button   groupEditBtn;
+    @Wire("#groupRemoveBtn")    Button   groupRemoveBtn;
+
     @Wire("#dateCreatedDatebox")  Datebox  dateCreatedDatebox;
     @Wire("#lastActivityDatebox") Datebox  lastActivityDatebox;
 
@@ -110,40 +130,80 @@ public class UserAdminController extends SelectorComposer<Window> {
     @Override
     public void doAfterCompose(Window win) throws Exception {
         super.doAfterCompose(win);
-
-        currentUser = securityService.getUserByName(portalContext.getCurrentUser().getUsername());
+        String userName = portalContext.getCurrentUser().getUsername();
+        currentUser = securityService.getUserByName(userName);
+        selectedUser = currentUser;
+        userDetail.setValue("Details for " + userName);
 
         canViewUsers = hasPermission(Permissions.VIEW_USERS);
         canEditUsers = hasPermission(Permissions.EDIT_USERS);
         canEditGroups = hasPermission(Permissions.EDIT_GROUPS);
         canEditRoles = hasPermission(Permissions.EDIT_ROLES);
 
-        rolesModel = new ListModelList<>(securityService.getAllRoles(), false);
         usersModel = new ListModelList<>(securityService.getAllUsers(), false);
-        groupsModel = new ListModelList<>(securityService.findElectiveGroups(), false);
+        assignedRolesModel = new ListModelList<>(securityService.getAllRoles(), false);
+        assignedGroupsModel = new ListModelList<>(securityService.findElectiveGroups(), false);
 
-        rolesModel.setMultiple(true);
+        groupsModel = new ListModelList<>(securityService.findElectiveGroups(), false);
+        assignedUsersModel = new ListModelList<>(securityService.getAllUsers(), false);
+
         usersModel.setMultiple(true);
+        assignedRolesModel.setMultiple(true);
+        assignedGroupsModel.setMultiple(true);
         groupsModel.setMultiple(true);
+        assignedUsersModel.setMultiple(true);
+
+        assignedGroupsListbox.setModel(assignedGroupsModel);
+        assignedGroupsListbox.setNonselectableTags("*");
+        assignedUsersListbox.setModel(assignedUsersModel);
+        assignedGroupsListbox.setNonselectableTags("*");
 
         searchableUsersListbox = new UsersListbox(usersListbox, usersModel);
         searchableGroupsListbox = new GroupsListbox(groupsListbox, groupsModel);
 
-        usersCombobox.setButtonVisible(canViewUsers);
-        usersCombobox.setDisabled(!canViewUsers);
-        usersCombobox.setModel(usersModel);
-        usersCombobox.setReadonly(!canViewUsers);
-
         firstNameTextbox.setReadonly(!canEditUsers);
         lastNameTextbox.setReadonly(!canEditUsers);
 
-        newGroupButton.setVisible(canEditGroups);
+        groupAddBtn.setVisible(canEditGroups);
+
+        usersListbox.setNonselectableTags("*");
+        if (canViewUsers) {
+            usersListbox.setVisible(true);
+            userEditBtn.addEventListener("onExecute", new EventListener() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    String userName = event.getData().toString();
+                    selectedUser = securityService.getUserByName(userName);
+                    if (selectedUser != null) {
+                        setUser(selectedUser);
+                        userDetail.setValue("Details for " + userName);
+                    }
+                }
+            });
+        } else {
+            usersListbox.setVisible(false);
+        }
+
+        if (!canEditUsers) {
+            userListView.setVisible(false);
+        }
+
+        groupsListbox.setNonselectableTags("*");
+        groupEditBtn.addEventListener("onExecute", new EventListener() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                String groupName = event.getData().toString();
+                groupDetail.setValue("Group " + groupName);
+//                Group selectedGroup = securityService.getGroupByName(groupName);
+//                Pull the members
+            }
+        });
 
         // groupsListbox.setModel(groupsModel);
         groupsListbox.setNonselectableTags(canEditGroups ? null : "*");
 
-        rolesListbox.setModel(rolesModel);
-        rolesListbox.setNonselectableTags(canEditRoles ? null : "*");
+        assignedRolesListbox.setModel(assignedRolesModel);
+        assignedRolesListbox.setNonselectableTags(canEditRoles ? null : "*");
 
         setUser(currentUser);
 
@@ -160,8 +220,8 @@ public class UserAdminController extends SelectorComposer<Window> {
                     // Update the user combobox
                     if (((String) properties.get("type")).endsWith("_USER")) {
                         ListModelList<User> usersModel = new ListModelList<>(securityService.getAllUsers(), false);
-                        usersCombobox.setModel(usersModel);
-                        usersCombobox.setValue(selectedUser.getUsername());
+//                        usersCombobox.setModel(usersModel);
+//                        usersCombobox.setValue(selectedUser.getUsername());
                     }
 
                     // Skip this update if it doesn't apply to the currently displayed user
@@ -208,14 +268,13 @@ public class UserAdminController extends SelectorComposer<Window> {
     }
 
     private void setUser(final User user) {
-        usersCombobox.setValue(user.getUsername());
         firstNameTextbox.setValue(user.getFirstName());
         lastNameTextbox.setValue(user.getLastName());
         dateCreatedDatebox.setValue(user.getDateCreated());
         lastActivityDatebox.setValue(user.getLastActivityDate());
 
-        groupsModel.setSelection(securityService.findGroupsByUser(user));
-        rolesModel.setSelection(securityService.findRolesByUser(user));
+        assignedGroupsModel.setSelection(securityService.findGroupsByUser(user));
+        assignedRolesModel.setSelection(securityService.findRolesByUser(user));
     }
 
     @Listen("onSelect = #usersListbox")
@@ -227,16 +286,6 @@ public class UserAdminController extends SelectorComposer<Window> {
         Set<User> unselectedUsers = event.getUnselectedItems();
         // selectedUser = securityService.getUserByName();
         // setUser(selectedUser);
-    }
-
-    @Listen("onChange = #usersCombobox")
-    public void onChangeUsersCombobox() throws Exception {
-        if (!hasPermission(Permissions.VIEW_USERS)) {
-            throw new Exception("Cannot view users without permission");
-        }
-
-        selectedUser = securityService.getUserByName(usersCombobox.getValue());
-        setUser(selectedUser);
     }
 
     @Listen("onOK = #firstNameTextbox")
@@ -277,7 +326,7 @@ public class UserAdminController extends SelectorComposer<Window> {
         }
     }
 
-    @Listen("onSelect = #groupsListbox")
+    @Listen("onSelect = #assignedGroupsListbox")
     public void onSelectGroupsListbox(SelectEvent event) throws Exception {
         if (!hasPermission(Permissions.EDIT_GROUPS)) {
             groupsListbox.setSelectedItems(event.getPreviousSelectedItems());
@@ -288,19 +337,18 @@ public class UserAdminController extends SelectorComposer<Window> {
         securityService.updateUser(selectedUser);
     }
 
-    @Listen("onSelect = #rolesListbox")
+    @Listen("onSelect = #assignedRolesListbox")
     public void onSelectRolesListbox(SelectEvent event) throws Exception {
         if (!hasPermission(Permissions.EDIT_ROLES)) {
-            rolesListbox.setSelectedItems(event.getPreviousSelectedItems());
+            assignedRolesListbox.setSelectedItems(event.getPreviousSelectedItems());
             throw new Exception("Cannot edit roles without permission");
         }
-
         selectedUser.setRoles(event.getSelectedObjects());
         securityService.updateUser(selectedUser);
     }
 
-    @Listen("onClick = #newGroupButton")
-    public void onClickNewGroupButton() throws Exception {
+    @Listen("onClick = #groupAddBtn")
+    public void onClickgroupAddBtn() throws Exception {
         if (!hasPermission(Permissions.EDIT_GROUPS)) {
             throw new Exception("Cannot edit groups without permission");
         }
@@ -309,7 +357,7 @@ public class UserAdminController extends SelectorComposer<Window> {
             Map arg = new HashMap<>();
             arg.put("portalContext", portalContext);
             arg.put("securityService", securityService);
-            Window window = (Window) Executions.getCurrent().createComponents("create-group.zul", getSelf(), arg);
+            Window window = (Window) Executions.getCurrent().createComponents("user-admin/zul/create-group.zul", getSelf(), arg);
             window.doModal();
 
         } catch(Exception e) {
@@ -318,8 +366,8 @@ public class UserAdminController extends SelectorComposer<Window> {
         }
     }
 
-    @Listen("onClick = #newUserButton")
-    public void onClickNewUserButton() throws Exception {
+    @Listen("onClick = #userAddBtn")
+    public void onClickuserAddBtn() throws Exception {
         if (!hasPermission(Permissions.EDIT_USERS)) {
             throw new Exception("Cannot edit users without permission");
         }
@@ -328,7 +376,7 @@ public class UserAdminController extends SelectorComposer<Window> {
             Map arg = new HashMap<>();
             arg.put("portalContext", portalContext);
             arg.put("securityService", securityService);
-            Window window = (Window) Executions.getCurrent().createComponents("create-user.zul", getSelf(), arg);
+            Window window = (Window) Executions.getCurrent().createComponents("user-admin/zul/create-user.zul", getSelf(), arg);
             window.doModal();
 
         } catch(Exception e) {
@@ -337,25 +385,78 @@ public class UserAdminController extends SelectorComposer<Window> {
         }
     }
 
-    @Listen("onClick = #deleteUserButton")
-    public void onClickDeleteUserButton() throws Exception {
+    @Listen("onClick = #userRemoveBtn")
+    public void onClickUserRemoveBtn() throws Exception {
         if (!hasPermission(Permissions.EDIT_USERS)) {
             throw new Exception("Cannot edit users without permission");
         }
-
-        if (selectedUser.getUsername().equals(portalContext.getCurrentUser().getUsername())) {
+        Set<User> selectedUsers = usersModel.getSelection();
+        if (selectedUsers.contains(currentUser)) {
             throw new Exception("Cannot delete yourself");
         }
-
-        LOGGER.info("Deleting user " + selectedUser.getUsername());
-        securityService.deleteUser(selectedUser);
-
-        // Since we just deleted the selected user, select the current user instead
-        selectedUser = securityService.getUserByName(portalContext.getCurrentUser().getUsername());
-        setUser(selectedUser);
+        List<String> users = new ArrayList<>();
+        for (User u: selectedUsers) {
+            users.add(u.getUsername());
+        }
+        String userNames = String.join(",", users);
+        Messagebox.show("Do you really want to delete " + userNames + "?",
+            "Question",
+            Messagebox.OK | Messagebox.CANCEL,
+            Messagebox.QUESTION,
+            new org.zkoss.zk.ui.event.EventListener(){
+                public void onEvent(Event e){
+                    if (Messagebox.ON_OK.equals(e.getName())){
+                        for (User user: selectedUsers) {
+                            LOGGER.info("Deleting user " + user.getUsername());
+                            securityService.deleteUser(user);
+                            usersModel.remove(user);
+                        }
+                        // Since we just deleted the selected user, select the current user instead
+                        selectedUser = securityService.getUserByName(portalContext.getCurrentUser().getUsername());
+                        setUser(selectedUser);
+                    }
+                    // else if(Messagebox.ON_CANCEL.equals(e.getName())){ }
+                }
+            }
+        );
     }
 
-    @Listen("onClick = #okButton")
+    @Listen("onClick = #groupRemoveBtn")
+    public void onClickGroupRemoveBtn() throws Exception {
+        if (!hasPermission(Permissions.EDIT_GROUPS)) {
+            throw new Exception("Cannot edit groups without permission");
+        }
+
+        Set<Group> selectedGroups = groupsModel.getSelection();
+        List<String> groups = new ArrayList<>();
+        for (Group g: selectedGroups) {
+            groups.add(g.getName());
+        }
+        String groupNames = String.join(",", groups);
+        Messagebox.show("Do you really want to delete " + groupNames + "?",
+            "Question",
+            Messagebox.OK | Messagebox.CANCEL,
+            Messagebox.QUESTION,
+            new org.zkoss.zk.ui.event.EventListener(){
+                public void onEvent(Event e){
+                    if (Messagebox.ON_OK.equals(e.getName())){
+                        for (Group group: selectedGroups) {
+                            LOGGER.info("Deleting user " + group.getName());
+                            securityService.deleteGroup(group);
+                            groupsModel.remove(group);
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    @Listen("onClick = #userSaveBtn")
+    public void onClickUserSaveButton() {
+        // getSelf().detach();
+    }
+
+    @Listen("onClick = #okBtn")
     public void onClickOkButton() {
         getSelf().detach();
     }
