@@ -24,18 +24,19 @@
 
 package org.apromore.service;
 
-import org.apromore.apmlog.APMLog;
-import org.apromore.dao.model.*;
-import org.apromore.exception.*;
-import org.apromore.portal.model.ExportLogResultType;
-import org.apromore.portal.model.SummariesType;
-import org.apromore.util.StatType;
-import org.deckfour.xes.model.XLog;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+
+import org.apromore.apmlog.APMLog;
+import org.apromore.dao.model.Log;
+import org.apromore.dao.model.Statistic;
+import org.apromore.dao.model.User;
+import org.apromore.exception.ImportException;
+import org.apromore.portal.model.ExportLogResultType;
+import org.apromore.util.StatType;
+import org.deckfour.xes.model.XLog;
 
 /**
  * Interface for the Process Service. Defines all the methods that will do the majority of the work for
@@ -44,15 +45,6 @@ import java.util.Map;
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
 public interface EventLogService {
-
-    /**
-     * Loads all the process Summaries. It will either get all or use the keywords parameter
-     * to load a subset of the processes.
-     * @param folderId the folder we are currently in.
-     * @param searchExpression the search expression to limit the search.
-     * @return The ProcessSummariesType used for Webservices.
-     */
-    SummariesType readLogSummaries(final Integer folderId, final String searchExpression);
 
     /**
      * Import a Process.

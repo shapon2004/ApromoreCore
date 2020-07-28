@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.apromore.dao.model.SearchHistory;
 import org.apromore.portal.model.SearchHistoriesType;
+import org.apromore.portal.model.mapper.SearchHistoryMapper;
 import org.junit.Before;
 import org.junit.Test;
 

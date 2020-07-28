@@ -22,13 +22,11 @@
  * #L%
  */
 
-package org.apromore.mapper;
-
-import org.apromore.dao.model.NativeType;
-import org.apromore.portal.model.FormatType;
-import org.apromore.portal.model.NativeTypesType;
+package org.apromore.portal.model.mapper;
 
 import java.util.List;
+
+import org.apromore.portal.model.DomainsType;
 
 /**
  * Mapper helper class to convert from the DAO Model to the Webservice Model.
@@ -36,25 +34,19 @@ import java.util.List;
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  * @since 1.0
  */
-public class NativeTypeMapper {
+public class DomainMapper {
 
     /**
-     * Convert from the DB (NativeType) to the WS model (NativeTypesType).
+     * Convert from the a list (String) to the WS model (DomainsType).
      *
-     * @param natTypes the list of SearchHistoriesType from the WebService
-     * @return the set of SearchHistory dao model populated.
+     * @param domains the list of SearchHistoriesType from the WebService
+     * @return the DomainsType ready for transport to the calling system.
      */
-    public static NativeTypesType convertFromNativeType(List<NativeType> natTypes) {
-        NativeTypesType types = new NativeTypesType();
-        FormatType formatType;
-
-        for (NativeType natType : natTypes) {
-            formatType = new FormatType();
-            formatType.setExtension(natType.getExtension());
-            formatType.setFormat(natType.getNatType());
-            types.getNativeType().add(formatType);
+    public static DomainsType convertFromDomains(List<String> domains) {
+        DomainsType types = new DomainsType();
+        for (String domain : domains) {
+            types.getDomain().add(domain);
         }
-
         return types;
     }
 

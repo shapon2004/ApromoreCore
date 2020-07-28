@@ -22,13 +22,13 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
-import java.util.ArrayList;
+import org.apromore.dao.model.NativeType;
+import org.apromore.portal.model.FormatType;
+import org.apromore.portal.model.NativeTypesType;
+
 import java.util.List;
-
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.portal.model.SearchHistoriesType;
 
 /**
  * Mapper helper class to convert from the DAO Model to the Webservice Model.
@@ -36,23 +36,26 @@ import org.apromore.portal.model.SearchHistoriesType;
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  * @since 1.0
  */
-public class SearchHistoryMapper {
+public class NativeTypeMapper {
 
     /**
-     * Convert from the WS (SearchHistoriesType) to the DB model (SearchHistory).
+     * Convert from the DB (NativeType) to the WS model (NativeTypesType).
      *
-     * @param srhTypes the list of SearchHistoriesType from the WebService
+     * @param natTypes the list of SearchHistoriesType from the WebService
      * @return the set of SearchHistory dao model populated.
      */
-    public static List<SearchHistory> convertFromSearchHistoriesType(List<SearchHistoriesType> srhTypes) {
-        List<SearchHistory> searches = new ArrayList<>();
-        for (SearchHistoriesType srhType : srhTypes) {
-            SearchHistory sh = new SearchHistory();
-            sh.setIndex(srhType.getNum());
-            sh.setSearch(srhType.getSearch());
-            searches.add(sh);
+    public static NativeTypesType convertFromNativeType(List<NativeType> natTypes) {
+        NativeTypesType types = new NativeTypesType();
+        FormatType formatType;
+
+        for (NativeType natType : natTypes) {
+            formatType = new FormatType();
+            formatType.setExtension(natType.getExtension());
+            formatType.setFormat(natType.getNatType());
+            types.getNativeType().add(formatType);
         }
-        return searches;
+
+        return types;
     }
 
 }

@@ -25,6 +25,12 @@
     <dependencies>
         <dependency>
             <groupId>org.apromore</groupId>
+            <artifactId>apromore-manager</artifactId>
+            <version>1.1</version>
+        </dependency>
+            
+        <dependency>
+            <groupId>org.apromore</groupId>
             <artifactId>portal-model</artifactId>
         </dependency>
 

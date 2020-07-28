@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.manager.client;
+package org.apromore.manager.client.impl;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -45,12 +45,9 @@ import org.apromore.dao.model.NativeType;
 import org.apromore.dao.model.ProcessModelVersion;
 import org.apromore.dao.model.User;
 import org.apromore.exception.NotAuthorizedException;
-import org.apromore.mapper.DomainMapper;
-import org.apromore.mapper.GroupMapper;
-import org.apromore.mapper.NativeTypeMapper;
-import org.apromore.mapper.SearchHistoryMapper;
-import org.apromore.mapper.UserMapper;
-import org.apromore.mapper.WorkspaceMapper;
+import org.apromore.manager.client.ManagerService;
+import org.apromore.manager.client.PluginHelper;
+import org.apromore.manager.client.UserInterfaceHelper;
 import org.apromore.plugin.ParameterAwarePlugin;
 import org.apromore.plugin.Plugin;
 import org.apromore.plugin.property.RequestParameterType;
@@ -75,6 +72,12 @@ import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.UserType;
 import org.apromore.portal.model.UsernamesType;
 import org.apromore.portal.model.VersionSummaryType;
+import org.apromore.portal.model.mapper.DomainMapper;
+import org.apromore.portal.model.mapper.GroupMapper;
+import org.apromore.portal.model.mapper.NativeTypeMapper;
+import org.apromore.portal.model.mapper.SearchHistoryMapper;
+import org.apromore.portal.model.mapper.UserMapper;
+import org.apromore.portal.model.mapper.WorkspaceMapper;
 import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.FormatService;
@@ -83,7 +86,6 @@ import org.apromore.service.ProcessService;
 import org.apromore.service.SecurityService;
 import org.apromore.service.UserService;
 import org.apromore.service.WorkspaceService;
-import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.service.model.ProcessData;
 import org.apromore.service.search.SearchExpressionBuilder;
 import org.slf4j.Logger;
@@ -104,7 +106,8 @@ public class ManagerServiceImpl implements ManagerService {
     @Inject private UserService userSrv;
     @Inject private SecurityService secSrv;
     @Inject private WorkspaceService workspaceSrv;
-    @Inject private UserInterfaceHelper uiHelper;
+    
+    private UserInterfaceHelper uiHelper;
 
     private boolean isGEDMatrixReady = true;
     

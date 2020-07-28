@@ -22,9 +22,10 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
 import org.apromore.portal.model.DomainsType;
+import org.apromore.portal.model.mapper.DomainMapper;
 import org.junit.Before;
 import org.junit.Test;
 

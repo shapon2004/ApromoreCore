@@ -23,24 +23,56 @@
  */
 package org.apromore.service.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.activation.DataHandler;
+import javax.inject.Inject;
+import javax.mail.util.ByteArrayDataSource;
+
 import org.apromore.apmlog.APMLog;
 import org.apromore.common.ConfigBean;
 import org.apromore.common.Constants;
-import org.apromore.dao.*;
-import org.apromore.dao.model.*;
+import org.apromore.dao.DashboardLayoutRepository;
+import org.apromore.dao.FolderRepository;
+import org.apromore.dao.GroupLogRepository;
+import org.apromore.dao.GroupRepository;
+import org.apromore.dao.LogRepository;
+import org.apromore.dao.StatisticRepository;
+import org.apromore.dao.model.Group;
+import org.apromore.dao.model.GroupLog;
+import org.apromore.dao.model.Log;
+import org.apromore.dao.model.Statistic;
+import org.apromore.dao.model.User;
 import org.apromore.exception.NotAuthorizedException;
 import org.apromore.portal.model.ExportLogResultType;
 import org.apromore.portal.model.PluginMessages;
-import org.apromore.portal.model.SummariesType;
 import org.apromore.service.EventLogService;
 import org.apromore.service.UserService;
-import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.util.StatType;
 import org.apromore.util.UuidAdapter;
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
-import org.deckfour.xes.in.*;
+import org.deckfour.xes.in.XMxmlGZIPParser;
+import org.deckfour.xes.in.XMxmlParser;
+import org.deckfour.xes.in.XParser;
+import org.deckfour.xes.in.XParserRegistry;
+import org.deckfour.xes.in.XesXmlGZIPParser;
+import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XLog;
@@ -52,12 +84,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.activation.DataHandler;
-import javax.inject.Inject;
-import javax.mail.util.ByteArrayDataSource;
-import java.io.*;
-import java.util.*;
 
 //import javax.annotation.Resource;
 
@@ -80,7 +106,6 @@ public class EventLogServiceImpl implements EventLogService {
     private GroupLogRepository groupLogRepo;
     private FolderRepository folderRepo;
     private UserService userSrv;
-    private UserInterfaceHelper ui;
     private StatisticRepository statisticRepository;
     private File logsDir;
     private DashboardLayoutRepository dashboardLayoutRepository;
@@ -97,14 +122,13 @@ public class EventLogServiceImpl implements EventLogService {
     @Inject
     public EventLogServiceImpl(final LogRepository logRepository, final GroupRepository groupRepository,
                                final GroupLogRepository groupLogRepository, final FolderRepository folderRepo,
-                               final UserService userSrv, final UserInterfaceHelper ui,
+                               final UserService userSrv,
                                final StatisticRepository statisticRepository, final ConfigBean configBean, final DashboardLayoutRepository dashboardLayoutRepository) {
         this.logRepo = logRepository;
         this.groupRepo = groupRepository;
         this.groupLogRepo = groupLogRepository;
         this.folderRepo = folderRepo;
         this.userSrv = userSrv;
-        this.ui = ui;
         this.statisticRepository = statisticRepository;
         this.logsDir = new File(configBean.getLogsDir());
         this.dashboardLayoutRepository = dashboardLayoutRepository;
@@ -165,11 +189,6 @@ public class EventLogServiceImpl implements EventLogService {
 
         return log;
 
-    }
-
-    @Override
-    public SummariesType readLogSummaries(Integer folderId, String searchExpression) {
-        return null;
     }
 
     /**
@@ -414,6 +433,7 @@ public class EventLogServiceImpl implements EventLogService {
      * @param logId logID
      * @return list of statistic entities
      */
+    @Override
     public List<Statistic> getStats(Integer logId) {
         LOGGER.info("Get statistics by LogID  " + logId);
         return statisticRepository.findByLogid(logId);
@@ -483,6 +503,7 @@ public class EventLogServiceImpl implements EventLogService {
         LOGGER.info("statistics already exist in Log: " + logId);
     }
 
+    @Override
     public void storeStatsByType(Map<String, Map<String, String>> map, Integer logId, StatType statType) {
 
         if (!isStatsExists(logId, statType)) {
@@ -614,12 +635,14 @@ public class EventLogServiceImpl implements EventLogService {
         return logRepo.getAggregatedLog(log);
     }
 
+    @Override
     public String getLayoutByLogId(Integer userId, Integer logId) {
         //TODO
         String layout = dashboardLayoutRepository.findByUserIdAndLogId(userId, logId);
         return layout;
     }
 
+    @Override
     public void saveLayoutByLogId(Integer logId, Integer userId, String layout){
         dashboardLayoutRepository.saveLayoutByLogId(userId, logId, layout);
     }

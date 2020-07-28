@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -31,13 +31,16 @@ import java.util.Date;
 import java.util.List;
 
 import org.apromore.dao.model.Membership;
-import org.apromore.dao.model.Permission;
-import org.apromore.dao.model.Role;
 import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
-import org.apromore.portal.model.*;
+import org.apromore.portal.model.MembershipType;
+import org.apromore.portal.model.PermissionType;
+import org.apromore.portal.model.RoleType;
+import org.apromore.portal.model.SearchHistoriesType;
+import org.apromore.portal.model.UserType;
+import org.apromore.portal.model.UsernamesType;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
+import org.osgi.service.useradmin.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

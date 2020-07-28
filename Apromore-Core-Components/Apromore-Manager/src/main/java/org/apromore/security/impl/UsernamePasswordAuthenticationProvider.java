@@ -23,10 +23,17 @@
  */
 package org.apromore.security.impl;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.inject.Inject;
+
 import org.apromore.dao.UserRepository;
 import org.apromore.dao.model.Role;
 import org.apromore.dao.model.User;
-import org.apromore.mapper.UserMapper;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -41,11 +48,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Adapts {@link org.apromore.dao.UserRepository#login(String, String)} to the SpringSecurity AuthenticationProvider SPI.
@@ -65,6 +67,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
     private SecurityService securityService;
 
 
+    @Override
     @Transactional
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
@@ -81,6 +84,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         }
     }
 
+    @Override
     public boolean supports(Class<? extends Object> authentication) {
         return UsernamePasswordAuthenticationToken.class.equals(authentication);
     }
@@ -89,12 +93,36 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         List<GrantedAuthority> authorities = getAuthorities(user.getRoles());
         UsernamePasswordAuthenticationToken authenticated = new UsernamePasswordAuthenticationToken(original.getPrincipal(),
                 original.getCredentials(), authorities);
-        authenticated.setDetails(UserMapper.convertUserTypes(user, securityService));
+        authenticated.setDetails(convertUserInfo(user));
 
         SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
         SecurityContextHolder.getContext().setAuthentication(authenticated);
 
         return authenticated;
+    }
+    
+    private UserDetails convertUserInfo(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        
+        UserDetails userDetails = new UserDetails();
+        userDetails.setId(user.getRowGuid());
+        userDetails.setLastName(user.getLastName());
+        userDetails.setFirstName(user.getFirstName());
+        userDetails.setOrganization(user.getOrganization());
+        userDetails.setRole(user.getRole());
+        userDetails.setCountry(user.getCountry());
+        userDetails.setPhone(user.getPhone());
+        userDetails.setSubscription(user.getSubscription());
+        userDetails.setUsername(user.getUsername());
+        if (user.getLastActivityDate() != null) {
+            userDetails.setLastActivityDate(formatter.format(user.getLastActivityDate()));
+        }
+
+        return userDetails;
     }
 
     /**

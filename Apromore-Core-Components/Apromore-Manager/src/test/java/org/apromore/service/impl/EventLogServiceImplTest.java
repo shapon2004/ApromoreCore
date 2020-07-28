@@ -56,7 +56,6 @@ import org.apromore.dao.StatisticRepository;
 import org.apromore.dao.model.Log;
 import org.apromore.dao.model.Statistic;
 import org.apromore.service.UserService;
-import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.util.StatType;
 import org.apromore.util.UuidAdapter;
 import org.deckfour.xes.factory.XFactory;
@@ -94,7 +93,6 @@ public class EventLogServiceImplTest {
     private GroupLogRepository groupLogRepository;
     private FolderRepository folderRepo;
     private UserService userSrv;
-    private UserInterfaceHelper ui;
     private StatisticRepository statisticRepository;
     private EventLogServiceImpl eventLogService;
     private DashboardLayoutRepository dashboardLayoutRepository;
@@ -138,13 +136,12 @@ public class EventLogServiceImplTest {
         groupLogRepository = createMock(GroupLogRepository.class);
         folderRepo = createMock(FolderRepository.class);
         userSrv = createMock(UserService.class);
-        ui = createMock(UserInterfaceHelper.class);
         statisticRepository = createMock(StatisticRepository.class);
         dashboardLayoutRepository = createMock(DashboardLayoutRepository.class);
         ConfigBean config = new ConfigBean();
 
         eventLogService = new EventLogServiceImpl(logRepository, groupRepository, groupLogRepository, folderRepo,
-                userSrv, ui, statisticRepository, config, dashboardLayoutRepository);
+                userSrv, statisticRepository, config, dashboardLayoutRepository);
     }
 
     @Test

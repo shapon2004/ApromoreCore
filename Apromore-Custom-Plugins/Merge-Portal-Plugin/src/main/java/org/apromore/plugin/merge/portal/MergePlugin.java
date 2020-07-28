@@ -44,7 +44,6 @@ import org.apromore.portal.model.ProcessVersionIdType;
 import org.apromore.portal.model.ProcessVersionIdsType;
 import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.VersionSummaryType;
-import org.apromore.service.DomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -67,8 +66,6 @@ public class MergePlugin extends DefaultPortalPlugin {
 
     @Inject
     private MergeService mergeService;
-    @Inject
-    private DomainService domainService;
 
     private final String GREEDY_ALGORITHM = "Greedy";
 

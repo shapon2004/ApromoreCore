@@ -65,7 +65,6 @@ import org.apromore.service.FormatService;
 import org.apromore.service.LockService;
 import org.apromore.service.UserService;
 import org.apromore.service.WorkspaceService;
-import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.service.model.ProcessData;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
@@ -87,7 +86,6 @@ public class ProcessServiceImplUnitTest extends EasyMockSupport {
     private ProcessServiceImpl processService;
     private UserService usrSrv;
     private FormatService fmtSrv;
-    private UserInterfaceHelper ui;
     private WorkspaceService workspaceSrv;
     private LockService lockSrv;
     private ConfigBean config;
@@ -110,13 +108,12 @@ public class ProcessServiceImplUnitTest extends EasyMockSupport {
         nativeRepo = createMock(NativeRepository.class);
         usrSrv = createMock(UserService.class);
         fmtSrv = createMock(FormatService.class);
-        ui = createMock(UserInterfaceHelper.class);
         workspaceSrv = createMock(WorkspaceService.class);
         lockSrv = createMock(LockService.class);
         config = new ConfigBean();
 
         processService = new ProcessServiceImpl(nativeRepo, groupRepo, processBranchRepo, processRepo, processModelVersionRepo, groupProcessRepo, lockSrv, 
-                                        usrSrv, fmtSrv, ui, workspaceSrv, config);
+                                        usrSrv, fmtSrv, workspaceSrv, config);
     }
     
     @Test

@@ -22,6 +22,12 @@
     </scm>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apromore</groupId>
+            <artifactId>apromore-manager</artifactId>
+            <version>1.1</version>
+        </dependency>
+            
         <!-- Plugin API -->
         <dependency>
             <groupId>org.apromore.plugin</groupId>
@@ -46,9 +52,17 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
+		<!-- Test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+       	<dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -66,8 +80,9 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                        	org.apromore.portal.helper,
-                        	org.apromore.portal.model
+                        	org.apromore.portal.model,
+                        	org.apromore.portal.model.mapper,
+                        	org.apromore.portal.helper
                         </Export-Package>                        
                     </instructions>
                 </configuration>                

@@ -22,11 +22,13 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apromore.portal.model.DomainsType;
+import org.apromore.dao.model.SearchHistory;
+import org.apromore.portal.model.SearchHistoriesType;
 
 /**
  * Mapper helper class to convert from the DAO Model to the Webservice Model.
@@ -34,20 +36,23 @@ import org.apromore.portal.model.DomainsType;
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  * @since 1.0
  */
-public class DomainMapper {
+public class SearchHistoryMapper {
 
     /**
-     * Convert from the a list (String) to the WS model (DomainsType).
+     * Convert from the WS (SearchHistoriesType) to the DB model (SearchHistory).
      *
-     * @param domains the list of SearchHistoriesType from the WebService
-     * @return the DomainsType ready for transport to the calling system.
+     * @param srhTypes the list of SearchHistoriesType from the WebService
+     * @return the set of SearchHistory dao model populated.
      */
-    public static DomainsType convertFromDomains(List<String> domains) {
-        DomainsType types = new DomainsType();
-        for (String domain : domains) {
-            types.getDomain().add(domain);
+    public static List<SearchHistory> convertFromSearchHistoriesType(List<SearchHistoriesType> srhTypes) {
+        List<SearchHistory> searches = new ArrayList<>();
+        for (SearchHistoriesType srhType : srhTypes) {
+            SearchHistory sh = new SearchHistory();
+            sh.setIndex(srhType.getNum());
+            sh.setSearch(srhType.getSearch());
+            searches.add(sh);
         }
-        return types;
+        return searches;
     }
 
 }

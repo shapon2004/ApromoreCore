@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
 import org.apromore.dao.dataObject.FolderTreeNode;
 import org.apromore.dao.model.Folder;

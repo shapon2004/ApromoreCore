@@ -22,13 +22,14 @@
  * #L%
  */
 
-package org.apromore.mapper;
+package org.apromore.portal.model.mapper;
 
 import org.apromore.dao.model.SearchHistory;
 import org.apromore.dao.model.User;
 import org.apromore.portal.model.SearchHistoriesType;
 import org.apromore.portal.model.UserType;
 import org.apromore.portal.model.UsernamesType;
+import org.apromore.portal.model.mapper.UserMapper;
 import org.apromore.service.SecurityService;
 import org.junit.Before;
 import org.junit.Test;

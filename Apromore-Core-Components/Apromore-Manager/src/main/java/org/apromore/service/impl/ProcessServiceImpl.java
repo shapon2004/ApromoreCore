@@ -69,7 +69,6 @@ import org.apromore.service.LockService;
 import org.apromore.service.ProcessService;
 import org.apromore.service.UserService;
 import org.apromore.service.WorkspaceService;
-import org.apromore.service.helper.UserInterfaceHelper;
 import org.apromore.service.model.ProcessData;
 import org.apromore.util.StreamUtil;
 import org.slf4j.Logger;
@@ -97,7 +96,6 @@ public class ProcessServiceImpl implements ProcessService {
     private GroupProcessRepository groupProcessRepo;
     private UserService userSrv;
     private FormatService formatSrv;
-    private UserInterfaceHelper ui;
     private WorkspaceService workspaceSrv;
 
     /**
@@ -119,7 +117,7 @@ public class ProcessServiceImpl implements ProcessService {
             final ProcessBranchRepository processBranchRepo, ProcessRepository processRepo,
             final ProcessModelVersionRepository processModelVersionRepo, final GroupProcessRepository groupProcessRepo,
             final LockService lService, final UserService userSrv, 
-            final FormatService formatSrv, final UserInterfaceHelper ui, final WorkspaceService workspaceService, final ConfigBean config) {
+            final FormatService formatSrv, final WorkspaceService workspaceService, final ConfigBean config) {
         this.groupRepo = groupRepo;
         this.nativeRepo = nativeRepo;
         this.processBranchRepo = processBranchRepo;
@@ -128,7 +126,6 @@ public class ProcessServiceImpl implements ProcessService {
         this.groupProcessRepo = groupProcessRepo;
         this.userSrv = userSrv;
         this.formatSrv = formatSrv;
-        this.ui = ui;
         this.workspaceSrv = workspaceService;
     }
 
