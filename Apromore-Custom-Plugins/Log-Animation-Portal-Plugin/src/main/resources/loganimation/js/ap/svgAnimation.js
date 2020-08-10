@@ -74,7 +74,7 @@ class SVGAnimator {
         if (!frames) return;
         this._frames = frames;
         for (const caseFrames in this._frames.getCaseFrames()) {
-            for (elementId in caseFrames.getElementIds()) {
+            for (const elementId in caseFrames.getElementIds()) {
                 let oneElementFrames = caseFrames.getElementFramesByElementId(elementId);
                 let elementId = oneElementFrames.getElementId();
                 let timePoints = oneElementFrames.getTimepoints();
