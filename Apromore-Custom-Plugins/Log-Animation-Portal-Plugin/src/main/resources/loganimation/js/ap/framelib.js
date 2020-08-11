@@ -238,6 +238,29 @@ class Frames {
     }
 }
 
+/**
+ * Keep a store of Frames object
+ */
+class Buffer{
+    constructor() {
+        this._frames = new Array();
+        this._minLimit = 10;
+    }
+
+    isEmpty() {
+        return (this._frames.length == 0);
+    }
+
+    size() {
+        return this._frames.length;
+    }
+
+    readNext() {
+        if (!this.isEmpty()) {
+            return this._frames[this.size-1];
+        }
+    }
+}
 
 
 

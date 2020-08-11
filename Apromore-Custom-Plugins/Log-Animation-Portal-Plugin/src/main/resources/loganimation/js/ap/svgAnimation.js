@@ -57,13 +57,16 @@ class SVGAnimator {
      * @param {AnimationModel} animationModel
      * @param {TimeController} timeController
      * @param {FormatController} formatController
+     * @param {SVGDocument} svgDoc
      */
-    constructor(frames, animationModel, timeController, formatController) {
+    constructor(frames, animationModel, timeController, formatController,
+                svgDoc) {
         this._frames = undefined;
         this._elements = new Array(); // array of SVG elements
         this._animationModel = animationModel;
         this._timeController = timeController;
         this._formatController = formatController;
+        this._svgDoc = svgDoc;
     }
 
     /**
@@ -73,6 +76,7 @@ class SVGAnimator {
     createAnimation(frames) {
         if (!frames) return;
         this._frames = frames;
+        this._elements.forEach(element => this._svgDoc.remove(element));
         for (const caseFrames in this._frames.getCaseFrames()) {
             for (const elementId in caseFrames.getElementIds()) {
                 let oneElementFrames = caseFrames.getElementFramesByElementId(elementId);
@@ -115,4 +119,20 @@ class SVGAnimator {
 
         return marker
     }
+
+
+    animate() {
+        this._svgDoc.appendChild(this._elements);
+    }
+
+    animateLoop() {
+        if (window.Worker) {
+            let dataRequestWorker = new Worker("dataRequester.js");
+            dataRequestWorker.onmessage = function(e) {
+                // store data to a Buffer
+            }
+            dataRequestWorker.postMessage();
+        }
+    }
+
 }
