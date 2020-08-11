@@ -1,6 +1,8 @@
 class DataRequester {
     /**
-     *
+     * @param {Buffer} _buffer
+     * @param {String} _receiveData
+     * @param {Boolean} _hasDataRequestError
      */
     constructor() {
         this._buffer = undefined;
@@ -22,11 +24,11 @@ class DataRequester {
 
     /**
      *
-     * @param timePoint
+     * @param {Number} frameIndex
      * @param {Buffer} buffer
      */
-    requestData(timePoint, buffer) {
-        this._worker.postMessage({startFrame:timePoint});
+    requestData(frameIndex, buffer) {
+        this._worker.postMessage({startFrame:frameIndex});
         this._buffer = buffer;
     }
 

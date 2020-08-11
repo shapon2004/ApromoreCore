@@ -4,17 +4,17 @@
  * Each ElementFrame represents a token on an element at a point in time
  */
 class ElementFrame {
-    constructor(elementId, timePoint) {
+    constructor(elementId, index) {
         this._elementId = elementId;
-        this._timePoint = timePoint;
+        this._index = index;
     }
 
     getElementId() {
         return this._elementId;
     }
 
-    getTimePoint() {
-        return this._timePoint;
+    getIndex() {
+        return this._index;
     }
 }
 
@@ -25,7 +25,7 @@ class ElementFrames {
     constructor() {
         this._elementId = undefined;
         this._elementFrames = new Array();
-        this._timePoints = new Array();
+        this._frameIndexes = new Array();
     }
 
     getElementFrames() {
@@ -40,7 +40,7 @@ class ElementFrames {
             }
             if (this._elementId === elementFrame.getElementId()) {
                 this._elementFrames.push(elementFrame);
-                this._timePoints.push(elementFrame.getTimePoint());
+                this._frameIndexes.push(elementFrame.getIndex());
             }
         }
     }
@@ -49,8 +49,8 @@ class ElementFrames {
         return this._elementId;
     }
 
-    getTimepoints() {
-        return this._timePoints;
+    getFrameIndexes() {
+        return this._frameIndexes;
     }
 }
 
@@ -61,9 +61,9 @@ class ElementFrames {
  * sequence flows after an AND split gateway
  */
 class CaseFrame {
-    constructor(caseId, timePoint) {
+    constructor(caseId, index) {
         this._caseId = caseId;
-        this._timePoint = timePoint;
+        this._index = index;
         this._elementFrames = new Array();
     }
 
@@ -71,8 +71,8 @@ class CaseFrame {
         return this._caseId;
     }
 
-    getTimePoint() {
-        return this._timePoint;
+    getIndex() {
+        return this._index;
     }
 
     getElementFrames() {
@@ -148,13 +148,13 @@ class Frame {
     /**
      * _caseFrames: map caseId => {CaseFrames}
      */
-    constructor (timePoint) {
-        this._timePoint = timePoint;
+    constructor (index) {
+        this._index = index;
         this._caseFrames = new Map();
     }
 
-    getTimePoint() {
-        return this._timePoint;
+    getIndex() {
+        return this._index;
     }
 
     /**
@@ -190,19 +190,19 @@ class Frames {
      * _frames: array of {Frame}
      * _caseFrames: map caseId => {CaseFrames}
      */
-    constructor(startTimePoint, endTimePoint) {
-        this._startTimePoint = startTimePoint;
-        this._endTimePoint = endTimePoint;
+    constructor(startIndex, endIndex) {
+        this._startIndex = startIndex;
+        this._endIndex = endIndex;
         this._frames = new Array();
         this._caseFrames = new Map();
     }
 
-    getStartTimePoint() {
-        return this._startTimePoint;
+    getStartIndex() {
+        return this._startIndex;
     }
 
-    getEndTimePoint() {
-        return this._endTimePoint;
+    getEndIndex() {
+        return this._endIndex;
     }
 
     /**
@@ -250,7 +250,7 @@ class Buffer{
         this._dataRequester = dataRequester;
         this._chunks = new Queue(); // queue of Frames
         this._repleshThreshold = 1000;
-        this._lastTimePoint = 0;
+        this._lastIndex = 0;
     }
 
     isEmpty() {
@@ -269,7 +269,7 @@ class Buffer{
         if (!this.isEmpty()) {
             let nextChunk = this._chunks.dequeue();
             if (this.size() - 1 < this._repleshThreshold) {
-                this._dataRequester.requestData(this._lastTimePoint+1, this);
+                this._dataRequester.requestData(this._lastIndex+1, this);
             }
         }
     }
@@ -280,7 +280,7 @@ class Buffer{
      */
     writeNextChunk(chunks) {
         this._chunks.enqueue(chunks);
-        this._lastTimePoint = chunks.getEndTimePoint();
+        this._lastIndex = chunks.getEndIndex();
     }
 
     getRepleshmentLimit() {

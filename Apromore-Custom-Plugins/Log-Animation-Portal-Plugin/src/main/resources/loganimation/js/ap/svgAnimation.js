@@ -1,31 +1,30 @@
 
 /**
- * Manage the conceptual time and real animation time.
- * Conceptual time consists of sequential time points in integers, e.g. 0, 1, 2...
- * Real time consists of real time points in seconds, e.g. 0, 0.1, 0.2, 0.5, 1, 2,...
- * Conceptual and real time should be separated for adjustment, e.g. the animation speed
+ * Manage the frame index and frame time.
+ * Frame indexes are sequential integers, e.g. 0, 1, 2...
+ * Frame time is a point in time (from an origin) in seconds, e.g. 0, 0.1, 0.2, 0.5, 1, 2,...
  */
 class TimeController {
     constructor() {
-        this._startConceptTimePoint = 0;
-        this._startRealTimePoint = 0;
+        this._startFrameIndex = 0;
+        this._startFrameTime = 0;
         this._convertionFactor = 1; //conversion ratio between conceptual and real time points
     }
 
-    getStartConceptTimePoint() {
-        return this._startConceptTimePoint;
+    getStartFrameIndex() {
+        return this._startFrameIndex;
     }
 
-    getStartReadTimePoint() {
-        return this._startRealTimePoint;
+    getStartFrameTime() {
+        return this._startFrameTime;
     }
 
-    getRealTimePoint(conceptTimePoint) {
-        return conceptTimePoint*this._convertionFactor;
+    getFrameTime(frameIndex) {
+        return frameIndex*this._convertionFactor;
     }
 
-    getRealTimePointText(conceptTimePoint) {
-        return conceptTimePoint*this._convertionFactor + "s";
+    getFrameTimeString(frameIndex) {
+        return frameIndex*this._convertionFactor + "s";
     }
 }
 
@@ -82,13 +81,13 @@ class SVGAnimator {
             for (const elementId in caseFrames.getElementIds()) {
                 let oneElementFrames = caseFrames.getElementFramesByElementId(elementId);
                 let elementId = oneElementFrames.getElementId();
-                let timePoints = oneElementFrames.getTimepoints();
+                let frameIndexes = oneElementFrames.getFrameIndexes();
 
                 let element = this._animationModel.getAnimationElement(elementId);
-                let realStartTimePoint = this._timeController.getRealTimePoint(timePoints[0]);
-                let realEndTimePoint = this._timeController.getRealTimePoint(timePoints[timePoints.length() - 1]);
+                let elementStartTime = this._timeController.getFrameTime(frameIndexes[0]);
+                let elementEndTime = this._timeController.getFrameTime(frameIndexes[frameIndexes.length() - 1]);
 
-                this._elements.push(this._createMarker(element.getPath(), realStartTimePoint, realEndTimePoint,
+                this._elements.push(this._createMarker(element.getPath(), elementStartTime, elementEndTime,
                                                         this._formatController.getTokenRaisedLevel(),
                                                         this._formatController.getTokenColor()));
             }
