@@ -242,22 +242,67 @@ class Frames {
  * Keep a store of Frames object
  */
 class Buffer{
-    constructor() {
-        this._frames = new Array();
-        this._minLimit = 10;
+    /**
+     *
+     * @param {DataRequester} dataRequester
+     */
+    constructor(dataRequester) {
+        this._dataRequester = dataRequester;
+        this._chunks = new Queue(); // queue of Frames
+        this._repleshThreshold = 1000;
+        this._lastTimePoint = 0;
     }
 
     isEmpty() {
-        return (this._frames.length == 0);
+        return this._chunks.isEmpty();
     }
 
     size() {
-        return this._frames.length;
+        return this._chunks.getLength();
     }
 
-    readNext() {
+    /**
+     *
+     * @returns {Frames}
+     */
+    readNextChunk() {
         if (!this.isEmpty()) {
-            return this._frames[this.size-1];
+            let nextChunk = this._chunks.dequeue();
+            if (this.size() - 1 < this._repleshThreshold) {
+                this._dataRequester.requestData(this._lastTimePoint+1, this);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param {Frames} frames
+     */
+    writeNextChunk(chunks) {
+        this._chunks.enqueue(chunks);
+        this._lastTimePoint = chunks.getEndTimePoint();
+    }
+
+    getRepleshmentLimit() {
+        return this._repleshThreshold;
+    }
+}
+
+class BufferReader {
+    /**
+     * @param {Buffer} playBuffer
+     * @param {Buffer} sourceBuffer
+     */
+    constructor(playBuffer, sourceBuffer) {
+        this._playBuffer = playBuffer;
+        this._sourceBuffer = sourceBuffer;
+        setTimeout(this._readSourceBuffer, 1000);
+    }
+
+    _readSourceBuffer() {
+        let chunk = this._sourceBuffer.readNextChunk();
+        if (chunk) {
+            this._playBuffer.writeNextChunk(chunk);
         }
     }
 }

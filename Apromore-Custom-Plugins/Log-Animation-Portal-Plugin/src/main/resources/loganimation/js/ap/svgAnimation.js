@@ -53,31 +53,32 @@ class FormatController {
 class SVGAnimator {
     /**
      *
-     * @param {Frames} frames
+     * @param {Buffer} playBuffer
      * @param {AnimationModel} animationModel
      * @param {TimeController} timeController
      * @param {FormatController} formatController
      * @param {SVGDocument} svgDoc
      */
-    constructor(frames, animationModel, timeController, formatController,
+    constructor(playBuffer, animationModel, timeController, formatController,
                 svgDoc) {
-        this._frames = undefined;
+        this._playBuffer = playBuffer;
         this._elements = new Array(); // array of SVG elements
         this._animationModel = animationModel;
         this._timeController = timeController;
         this._formatController = formatController;
         this._svgDoc = svgDoc;
+        setTimeout(this._animate, 1000);
     }
 
     /**
      * Create animation elements in SVG
      * @param {Frames} frames: set of frames to be animated
      */
-    createAnimation(frames) {
-        if (!frames) return;
-        this._frames = frames;
+    _animate() {
+        if (!this._playBuffer.isEmpty()) return;
+        let frames = this._playBuffer.readNextChunk();
         this._elements.forEach(element => this._svgDoc.remove(element));
-        for (const caseFrames in this._frames.getCaseFrames()) {
+        for (const caseFrames in frames.getCaseFrames()) {
             for (const elementId in caseFrames.getElementIds()) {
                 let oneElementFrames = caseFrames.getElementFramesByElementId(elementId);
                 let elementId = oneElementFrames.getElementId();
@@ -92,6 +93,8 @@ class SVGAnimator {
                                                         this._formatController.getTokenColor()));
             }
         }
+
+        this._elements.forEach(element => this._svgDoc.appendChild(element));
     }
 
     _createMarker (path, begin, dur, raisedLevel, color) {
@@ -120,19 +123,5 @@ class SVGAnimator {
         return marker
     }
 
-
-    animate() {
-        this._svgDoc.appendChild(this._elements);
-    }
-
-    animateLoop() {
-        if (window.Worker) {
-            let dataRequestWorker = new Worker("dataRequester.js");
-            dataRequestWorker.onmessage = function(e) {
-                // store data to a Buffer
-            }
-            dataRequestWorker.postMessage();
-        }
-    }
 
 }
