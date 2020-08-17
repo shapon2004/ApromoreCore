@@ -22,6 +22,7 @@
 package org.apromore.plugin.portal.loganimation;
 
 import java.io.InputStream;
+
 import org.apromore.plugin.portal.WebContentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,5 +45,9 @@ class LogAnimationWebContentService implements WebContentService {
         LOGGER.debug("Getting resource " + path);
         assert hasResource(path);
         return classLoader.getResourceAsStream(path);
+    }
+    
+    private String readAnimationData(int frameIndex) {
+        
     }
 }

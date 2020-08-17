@@ -10,7 +10,7 @@ onmessage = function(e) {
             framePos: framePos
         },
 
-        onSuccess: (function(request){
+        onSuccess: (function(request) {
             this.postMessage({success: true, data: request.responseText});
         }).bind(context),
 
