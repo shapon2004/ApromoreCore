@@ -30,6 +30,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 
 import javax.xml.datatype.DatatypeFactory;
 
@@ -60,6 +61,7 @@ import org.zkoss.zk.ui.event.KeyEvent;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.ListModelList;
 import org.zkoss.zul.Listbox;
+import org.zkoss.zul.Listhead;
 import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Paging;
@@ -82,6 +84,8 @@ public abstract class BaseListboxController extends BaseController {
     private final Button refreshB;
     private final Button btnUpload;
     private final Button btnDownload;
+    private final Button btnSelectAll;
+    private final Button btnSelectNone;
     private final Button btnCut;
     private final Button btnCopy;
     private final Button btnPaste;
@@ -90,6 +94,8 @@ public abstract class BaseListboxController extends BaseController {
     //private final Button btnGEDFolder;
     private final Button btnRenameFolder;
     private final Button btnRemoveFolder;
+    private final Button btnListView;
+    private final Button btnTileView;
     private final Button btnSecurity;
 
     private PortalContext portalContext;
@@ -115,6 +121,8 @@ public abstract class BaseListboxController extends BaseController {
         refreshB = (Button) mainController.getFellow("refreshB");
         btnUpload = (Button) mainController.getFellow("btnUpload");
         btnDownload = (Button) mainController.getFellow("btnDownload");
+        btnSelectAll = (Button) mainController.getFellow("btnSelectAll");
+        btnSelectNone = (Button) mainController.getFellow("btnSelectNone");
         btnCut = (Button) mainController.getFellow("btnCut");
         btnCopy = (Button) mainController.getFellow("btnCopy");
         btnPaste = (Button) mainController.getFellow("btnPaste");
@@ -123,11 +131,14 @@ public abstract class BaseListboxController extends BaseController {
         //btnGEDFolder = (Button) mainController.getFellow("btnGEDFolder");
         btnRenameFolder = (Button) mainController.getFellow("btnRenameFolder");
         btnRemoveFolder = (Button) mainController.getFellow("btnRemoveFolder");
+        btnListView = (Button) mainController.getFellow("btnListView");
+        btnTileView = (Button) mainController.getFellow("btnTileView");
         btnSecurity = (Button) mainController.getFellow("btnSecurity");
 
         attachEvents();
 
         appendChild(listBox);
+        setTileView(true);
 
         portalPluginMap = PortalPluginResolver.getPortalPluginMap();
     }
@@ -165,6 +176,20 @@ public abstract class BaseListboxController extends BaseController {
             @Override
             public void onEvent(Event event) throws Exception {
                 exportFile();
+            }
+        });
+
+        this.btnSelectAll.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                selectAll();
+            }
+        });
+
+        this.btnSelectNone.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                unselectAll();
             }
         });
 
@@ -225,12 +250,47 @@ public abstract class BaseListboxController extends BaseController {
             }
         });
 
+        this.btnListView.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                setTileView(false);
+            }
+        });
+
+        this.btnTileView.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                setTileView(true);
+            }
+        });
+
+
         this.btnSecurity.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
                 security();
             }
         });
+    }
+
+    public void setTileView(boolean tileOn) {
+        Listhead listHead = (Listhead)this.listBox.query(".ap-listbox-process-head");
+        String sclass = Objects.requireNonNull(this.listBox.getSclass(), "");
+        if (tileOn) {
+            if (!sclass.contains("ap-tiles-view")) {
+                this.listBox.setSclass(sclass.trim() + " ap-tiles-view");
+            }
+            if (listHead != null) {
+                listHead.setVisible(false);
+            }
+        } else {
+            if (sclass.contains("ap-tiles-view")) {
+                this.listBox.setSclass(sclass.replace("ap-tiles-view", ""));
+            }
+            if (listHead != null) {
+                listHead.setVisible(true);
+            }
+        }
     }
 
     /**
