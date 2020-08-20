@@ -125,7 +125,21 @@ class SVGAnimator {
         this._timeController = timeController;
         this._formatController = formatController;
         this._svgDoc = svgDoc;
-        setTimeout(this._animate, 1000);
+        // this._cleanUpClockId = window.setInterval(function() {
+        //     this._cleanUp();
+        // }, 5000);
+        //setTimeout(this._animate, 1000);
+    }
+
+    reset() {
+        if (this._cleanUpClockId) {
+            window.clearInterval(this._cleanUpClockId);
+            // this._cleanUpClockId = window.setInterval(function() {
+            //     this._cleanUp();
+            // }, 5000);
+        }
+
+
     }
 
     /**
@@ -133,6 +147,7 @@ class SVGAnimator {
      * @param {Frames} frames: set of frames to be animated
      */
     _animate() {
+        this._cleanUp();
         if (!this._playBuffer.isEmpty()) return;
         let frames = this._playBuffer.readNextChunk();
         //this._elements.forEach(element => this._svgDoc.remove(element));
@@ -152,14 +167,26 @@ class SVGAnimator {
             }
         }
 
-        this._token.forEach(token => this._svgDoc.appendChild(token.getVisualElement()));
+        this._tokens.forEach(token => this._svgDoc.appendChild(token.getVisualElement()));
+    }
+
+    _cleanUp() {
+        let currentTime = this._svgDoc.getCurentTime();
+        let removedIndexes = [];
+        for(let i = this._tokens.length -1; i >= 0 ; i--){
+            let token = this._tokens[i];
+            if (token.getEndTimePoint() < currentTime) {
+                this._svgDoc.removeChild(token.getVisualElement());
+                this._tokens.splice(i,1);
+            }
+        }
     }
 
     _createToken (path, begin, dur, raisedLevel, color) {
-        let svgElement = document.createElementNS(SVG_NS, 'g')
+        let svgElement = window.document.createElementNS(SVG_NS, 'g')
         svgElement.setAttributeNS(null, 'stroke', 'none')
 
-        let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
+        let animateMotion = window.document.createElementNS(SVG_NS, 'animateMotion')
         animateMotion.setAttributeNS(null, 'begin', begin)
         animateMotion.setAttributeNS(null, 'dur', dur)
         animateMotion.setAttributeNS(null, 'fill', 'freeze')
@@ -167,7 +194,7 @@ class SVGAnimator {
         animateMotion.setAttributeNS(null, 'rotate', 'auto')
         svgElement.appendChild(animateMotion)
 
-        let circle = document.createElementNS(SVG_NS, 'circle')
+        let circle = window.document.createElementNS(SVG_NS, 'circle')
         // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
         // let offset = 2;
         // circle.setAttributeNS(null, "cx", offset * Math.sin(this.offsetAngle));

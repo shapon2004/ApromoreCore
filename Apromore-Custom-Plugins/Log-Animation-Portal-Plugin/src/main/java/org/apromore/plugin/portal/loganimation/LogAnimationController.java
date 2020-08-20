@@ -72,6 +72,7 @@ public class LogAnimationController extends BaseController {
     private ProcessSummaryType process;
     private VersionSummaryType version;
     private Set<RequestParameterType<?>> params;
+    private String pluginExecutionId = "";
     
     /*
      * The initialization must be put inside the constructor as
@@ -181,8 +182,8 @@ public class LogAnimationController extends BaseController {
             //List<EditorPlugin> editorPlugins = EditorPluginResolver.resolve("editorPluginsBPMN");
             param.put("plugins", editorPlugins);
             
-            String executionId = mainC.getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
-            param.put("pluginExecutionId", executionId);
+            pluginExecutionId = mainC.getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
+            param.put("pluginExecutionId", pluginExecutionId);
 
             Executions.getCurrent().pushArg(param);
             
@@ -253,6 +254,13 @@ public class LogAnimationController extends BaseController {
         }
 
         throw new RuntimeException("Unsupported class of event data: " + event.getData());
+    }
+    
+    @Override
+    public String processRequest(Map<String,String[]> parameterMap) {
+        String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
+        String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
+        return "Response from server: pluginExecutionId=" + pluginExecutionId + ", startFrameIndex=" + startFrameIndex;
     }
 
 }

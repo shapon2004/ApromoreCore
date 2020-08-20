@@ -64,6 +64,11 @@ public class DataChannelServlet extends HttpServlet {
         String executionId = req.getParameter("pluginExecutionId");
         PluginExecutionManager pluginEM = MainController.getController().getPluginExecutionManager(); 
         PluginExecution pluginExec = pluginEM.getPluginExecution(executionId);
-        pluginExec.processRequest(req, resp);
+        if (pluginExec == null) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "No PluginExecution found from pluginExecutionId=" + executionId);
+        }
+        else {
+            pluginExec.processRequest(req, resp);
+        }
     }
 }

@@ -46,8 +46,4 @@ class LogAnimationWebContentService implements WebContentService {
         assert hasResource(path);
         return classLoader.getResourceAsStream(path);
     }
-    
-    private String readAnimationData(int frameIndex) {
-        
-    }
 }

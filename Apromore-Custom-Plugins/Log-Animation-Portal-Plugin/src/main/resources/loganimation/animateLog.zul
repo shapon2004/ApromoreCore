@@ -100,6 +100,7 @@
         <n:script src="/loganimation/js/ap/utils.js" type="text/javascript"/>
         <n:script src="/loganimation/js/ap/animation.js" type="text/javascript"/>
         <n:script src="/loganimation/js/ap/trace.js" type="text/javascript"/>
+        <n:script src="/loganimation/js/ap/dataRequester.js" type="text/javascript"/>
 
         <!-- Include all editor plug-ins -->
         <z:zk forEach="${arg.plugins}">
@@ -117,7 +118,15 @@
                   window.setTimeout(function() {
                     Ap.la.session.initController();
                   }, 1000);
-                })
+                });
+
+                //Testing
+                let dataRequester = new DataRequester(undefined);
+                window.setInterval(dataRequester.requestData, 3000, getRandomInt(1000), '${arg.pluginExecutionId}');
+                function getRandomInt(max) {
+                  return Math.floor(Math.random() * Math.floor(max));
+                }
+                
 	            ]]>
             </n:script>
         </n:span>

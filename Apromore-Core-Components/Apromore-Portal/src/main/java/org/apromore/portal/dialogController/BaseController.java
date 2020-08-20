@@ -29,6 +29,7 @@ import java.io.IOException;
 // Java 2 Standard Edition packages
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 // Local classes
 import org.apromore.manager.client.ManagerService;
@@ -179,7 +180,7 @@ public class BaseController extends Window {
      * @param jsonRequest: JSON request
      * @return JSON response
      */
-    public String processRequest(String jsonRequest) {
+    public String processRequest(Map<String,String[]> parameterMap) {
         return "";
     }
 
