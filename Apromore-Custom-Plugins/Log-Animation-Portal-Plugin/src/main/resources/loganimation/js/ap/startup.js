@@ -70,9 +70,10 @@ Ap.la.session = (function() {
     0.001953125, 0.00390625, 0.0078125, 0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5,
     1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
   ]; // _.range(-9, 11).map((x) => Math.pow(2, x))
-  let editor, controller, animationData;
+  let editor, controller, animationData, pluginExecutionId;
 
-  function init(xml, url, namespace, data) {
+  function init(xml, url, namespace, data, executionId) {
+    pluginExecutionId = executionId;
     animationData = data;
     editor = initEditor(xml, url, namespace);
     controller = new Ap.la.AnimationController(editor.getCanvas());
@@ -147,6 +148,9 @@ Ap.la.session = (function() {
   return {
     init: init,
     initController: initController,
+    getPluginExecutionId: function () {
+      return pluginExecutionId;
+    },
     playPause: function(e) {
       controller.playPause(e);
     },

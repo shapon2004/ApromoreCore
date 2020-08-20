@@ -8,7 +8,7 @@ class TimeController {
     constructor() {
         this._startFrameIndex = 0;
         this._startFrameTime = 0;
-        this._convertionFactor = 1; //conversion ratio between conceptual and real time points
+        this._convertionFactor = 1; //conversion ratio between frame index and time
     }
 
     getStartFrameIndex() {
@@ -46,6 +46,65 @@ class FormatController {
     }
 }
 
+class SVGToken {
+    /**
+     *
+     * @param {String} path
+     * @param {Number} begin
+     * @param {Number} dur
+     * @param {Number} raisedLevel
+     * @param {String} color
+     */
+    constructor(path, begin, dur, raisedLevel, color) {
+        this._path = path;
+        this._beginTimePoint = begin;
+        this._duration = duration;
+        this._svgElement = _createVisualElement(path, begin, dur, raisedLevel, color);
+    }
+
+    getBeginTimePoint() {
+        return this._beginTimePoint;
+    }
+
+    getEndTimePoint() {
+        return this._beginTimePoint + this._duration;
+    }
+
+    getDuration() {
+        return this._duration;
+    }
+
+    getVisualElement() {
+        return this._svgElement;
+    }
+
+    _createVisualElement (path, begin, dur, raisedLevel, color) {
+        let svgElement = document.createElementNS(SVG_NS, 'g')
+        svgElement.setAttributeNS(null, 'stroke', 'none')
+
+        let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
+        animateMotion.setAttributeNS(null, 'begin', begin)
+        animateMotion.setAttributeNS(null, 'dur', dur)
+        animateMotion.setAttributeNS(null, 'fill', 'freeze')
+        animateMotion.setAttributeNS(null, 'path', path)
+        animateMotion.setAttributeNS(null, 'rotate', 'auto')
+        svgElement.appendChild(animateMotion)
+
+        let circle = document.createElementNS(SVG_NS, 'circle')
+        // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
+        // let offset = 2;
+        // circle.setAttributeNS(null, "cx", offset * Math.sin(this.offsetAngle));
+        // circle.setAttributeNS(null, "cy", offset * Math.cos(this.offsetAngle));
+        circle.setAttributeNS(null, 'cx', 0)
+        circle.setAttributeNS(null, 'cy', raisedLevel)
+        circle.setAttributeNS(null, 'r', 5)
+        circle.setAttributeNS(null, 'fill', color)
+        svgElement.appendChild(circle)
+
+        return svgElement;
+    }
+}
+
 /**
  * This class is to convert from a sequence of frames to SVG animation elements
  */
@@ -61,7 +120,7 @@ class SVGAnimator {
     constructor(playBuffer, animationModel, timeController, formatController,
                 svgDoc) {
         this._playBuffer = playBuffer;
-        this._elements = new Array(); // array of SVG elements
+        this._tokens = new Array(); // array of SVGToken
         this._animationModel = animationModel;
         this._timeController = timeController;
         this._formatController = formatController;
@@ -76,7 +135,7 @@ class SVGAnimator {
     _animate() {
         if (!this._playBuffer.isEmpty()) return;
         let frames = this._playBuffer.readNextChunk();
-        this._elements.forEach(element => this._svgDoc.remove(element));
+        //this._elements.forEach(element => this._svgDoc.remove(element));
         for (const caseFrames in frames.getCaseFrames()) {
             for (const elementId in caseFrames.getElementIds()) {
                 let oneElementFrames = caseFrames.getElementFramesByElementId(elementId);
@@ -87,18 +146,18 @@ class SVGAnimator {
                 let elementStartTime = this._timeController.getFrameTime(frameIndexes[0]);
                 let elementEndTime = this._timeController.getFrameTime(frameIndexes[frameIndexes.length() - 1]);
 
-                this._elements.push(this._createMarker(element.getPath(), elementStartTime, elementEndTime,
+                this._tokens.push(new SVGToken(element.getPath(), elementStartTime, elementEndTime,
                                                         this._formatController.getTokenRaisedLevel(),
                                                         this._formatController.getTokenColor()));
             }
         }
 
-        this._elements.forEach(element => this._svgDoc.appendChild(element));
+        this._token.forEach(token => this._svgDoc.appendChild(token.getVisualElement()));
     }
 
-    _createMarker (path, begin, dur, raisedLevel, color) {
-        let marker = document.createElementNS(SVG_NS, 'g')
-        marker.setAttributeNS(null, 'stroke', 'none')
+    _createToken (path, begin, dur, raisedLevel, color) {
+        let svgElement = document.createElementNS(SVG_NS, 'g')
+        svgElement.setAttributeNS(null, 'stroke', 'none')
 
         let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
         animateMotion.setAttributeNS(null, 'begin', begin)
@@ -106,7 +165,7 @@ class SVGAnimator {
         animateMotion.setAttributeNS(null, 'fill', 'freeze')
         animateMotion.setAttributeNS(null, 'path', path)
         animateMotion.setAttributeNS(null, 'rotate', 'auto')
-        marker.appendChild(animateMotion)
+        svgElement.appendChild(animateMotion)
 
         let circle = document.createElementNS(SVG_NS, 'circle')
         // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
@@ -117,9 +176,9 @@ class SVGAnimator {
         circle.setAttributeNS(null, 'cy', raisedLevel)
         circle.setAttributeNS(null, 'r', 5)
         circle.setAttributeNS(null, 'fill', color)
-        marker.appendChild(circle)
+        svgElement.appendChild(circle)
 
-        return marker
+        return svgElement;
     }
 
 

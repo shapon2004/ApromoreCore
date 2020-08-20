@@ -3,11 +3,13 @@ class DataRequester {
      * @param {Buffer} _buffer
      * @param {String} _receiveData
      * @param {Boolean} _hasDataRequestError
+     * @param {String} _pluginExecutionId
      */
     constructor() {
         this._buffer = undefined;
         this._receivedData = undefined;
         this._hasDataRequestError = false;
+        this._pluginExecutionId = "";
 
         this._worker = new Worker("dataRequestWorker.js");
         let self = this;
@@ -25,10 +27,11 @@ class DataRequester {
     /**
      *
      * @param {Number} frameIndex
+     * @param {String} pluginExecutionId
      * @param {Buffer} buffer
      */
-    requestData(frameIndex, buffer) {
-        this._worker.postMessage({startFrame:frameIndex});
+    requestData(frameIndex, pluginExecutionId, buffer) {
+        this._worker.postMessage({startFrame: frameIndex, pluginExecutionId: pluginExecutionId});
         this._buffer = buffer;
     }
 
