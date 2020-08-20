@@ -124,7 +124,7 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
         ApromoreSession session = new ApromoreSession(editSession1, null, mainC, process, vst, null, null, requestParameterTypes);
         session.put("logAnimationService", logAnimationService);
         session.put("logs", logs);
-
+        
         String id = UUID.randomUUID().toString();
         UserSessionManager.setEditSession(id, session);
         Clients.evalJavaScript("window.open('../loganimation/animateLog.zul?id=" + id + "')");

@@ -71,6 +71,7 @@ import org.apromore.portal.model.SummariesType;
 import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.UsernamesType;
 import org.apromore.portal.model.VersionSummaryType;
+import org.apromore.portal.plugin.PluginExecutionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Component;
@@ -96,6 +97,8 @@ import org.zkoss.zul.ext.Paginal;
 /**
  * Main Controller for the whole application, most of the UI state is managed here.
  * It is automatically instantiated as index.zul is loaded!
+ * @todo Bruce: this MainController as a singleton is problematic when two client machines open the portal
+ * The Portal opened by the last machine will take effect: data specific to this machine are likely seen on the other machines.  
  */
 public class MainController extends BaseController implements MainControllerInterface {
 
@@ -107,6 +110,7 @@ public class MainController extends BaseController implements MainControllerInte
 
     private static final String WELCOME_TEXT = "Welcome %s. Release notes (%s)"; //Welcome %s.
 
+    private PluginExecutionManager pluginManager = new PluginExecutionManager();
     private PortalContext portalContext;
     private MenuController menu;
     private SimpleSearchController simplesearch;
@@ -127,7 +131,7 @@ public class MainController extends BaseController implements MainControllerInte
 	public static MainController getController() {
         return controller;
     }
-
+	
     public MainController() {
         qe = EventQueues.lookup(Constants.EVENT_QUEUE_REFRESH_SCREEN, EventQueues.SESSION, true);
     }
@@ -207,6 +211,8 @@ public class MainController extends BaseController implements MainControllerInte
                             }
                         }
                     });
+            
+            
         } catch (Exception e) {
             String message;
             if (e.getMessage() == null) {
@@ -217,11 +223,11 @@ public class MainController extends BaseController implements MainControllerInte
             e.printStackTrace();
             Messagebox.show("Repository not available (" + message + ")", "Attention", Messagebox.OK, Messagebox.ERROR);
         }
+        
+        
 
     }
-
-    // Bruce: Do not use Executions.sendRedirect as it does not work 
-    // for webapp bundles with different ZK execution env.
+    
     public void refresh() {
         try {
             //Executions.sendRedirect(null);
@@ -235,6 +241,10 @@ public class MainController extends BaseController implements MainControllerInte
     
     public PortalContext getPortalContext() {
     	return this.portalContext;
+    }
+    
+    public PluginExecutionManager getPluginExecutionManager() {
+        return this.pluginManager;
     }
 
     public void loadWorkspace() {

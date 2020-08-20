@@ -46,6 +46,7 @@ import org.apromore.portal.model.ExportFormatResultType;
 import org.apromore.portal.model.PluginMessages;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.VersionSummaryType;
+import org.apromore.portal.plugin.PluginExecution;
 import org.apromore.portal.util.StreamUtil;
 import org.apromore.service.loganimation.LogAnimationService;
 import org.osgi.framework.BundleContext;
@@ -179,9 +180,12 @@ public class LogAnimationController extends BaseController {
                 : Arrays.stream(references).map(ref -> (EditorPlugin) bundleContext.getService(ref)).collect(Collectors.toList());
             //List<EditorPlugin> editorPlugins = EditorPluginResolver.resolve("editorPluginsBPMN");
             param.put("plugins", editorPlugins);
+            
+            String executionId = mainC.getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
+            param.put("pluginExecutionId", executionId);
 
             Executions.getCurrent().pushArg(param);
-
+            
         } catch (Exception e) {
             LOGGER.error("",e);
             e.printStackTrace();
