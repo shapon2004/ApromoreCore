@@ -150,7 +150,7 @@ public interface EventLogService {
      * @param userId
      * @return
      */
-    String getLayoutByLogId(Integer logId, Integer userId);
+    List<String> getLayoutByLogId(Integer logId, String userId);
 
     void saveLayoutByLogId(Integer logId, Integer userId, String layout);
 
@@ -214,4 +214,7 @@ public interface EventLogService {
      * @throws UserNotFoundException
      */
     boolean canUserEditMetadata(String username, Integer UsermetadataId) throws UserNotFoundException;
+    List<String> getLayoutByUserId(String userId);
+
+    void saveLayoutByLogId(Integer logId, String userId, String layout);
 }

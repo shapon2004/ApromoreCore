@@ -648,13 +648,21 @@ public class EventLogServiceImpl implements EventLogService {
         return logRepo.getAggregatedLog(log);
     }
 
-    public String getLayoutByLogId(Integer userId, Integer logId) {
-        //TODO
-        String layout = dashboardLayoutRepository.findByUserIdAndLogId(userId, logId);
+    @Override
+    public List<String> getLayoutByLogId(Integer logId, String userId) {
+        List<String> layout = dashboardLayoutRepository.findByUserIdAndLogId(userId, logId);
         return layout;
     }
 
-    public void saveLayoutByLogId(Integer logId, Integer userId, String layout){
+    @Override
+    public List<String> getLayoutByUserId(String userId) {
+        List<String> layout = dashboardLayoutRepository.findByUserId(userId);
+        return layout;
+    }
+
+
+    @Override
+    public void saveLayoutByLogId(Integer logId, String userId, String layout){
         dashboardLayoutRepository.saveLayoutByLogId(userId, logId, layout);
     }
 
