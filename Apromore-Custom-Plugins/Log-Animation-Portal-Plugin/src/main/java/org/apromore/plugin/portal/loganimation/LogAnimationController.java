@@ -182,7 +182,7 @@ public class LogAnimationController extends BaseController {
             //List<EditorPlugin> editorPlugins = EditorPluginResolver.resolve("editorPluginsBPMN");
             param.put("plugins", editorPlugins);
             
-            pluginExecutionId = mainC.getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
+            pluginExecutionId = MainController.getController().getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
             param.put("pluginExecutionId", pluginExecutionId);
 
             Executions.getCurrent().pushArg(param);
