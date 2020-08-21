@@ -100,7 +100,6 @@
         <n:script src="/loganimation/js/ap/utils.js" type="text/javascript"/>
         <n:script src="/loganimation/js/ap/animation.js" type="text/javascript"/>
         <n:script src="/loganimation/js/ap/trace.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/ap/dataRequester.js" type="text/javascript"/>
 
         <!-- Include all editor plug-ins -->
         <z:zk forEach="${arg.plugins}">
@@ -112,6 +111,8 @@
             <n:script defer="true">
                 <![CDATA[
                 window.animationData = '${arg.animationData}';
+                window.pluginExecutionId = '${arg.pluginExecutionId}';
+                console.log('pluginExecutionId = ' + window.pluginExecutionId);
                 Ap.la.session.init('${arg.bpmnXML}', '${arg.url}', '${arg.url}', '${arg.animationData}');
                 zk.afterMount(function() {
                   // Wait for SVG element ready, so jQuery can refer to it
@@ -121,16 +122,14 @@
                 });
 
                 //Testing
-                let dataRequester = new DataRequester(undefined);
-                window.setInterval(dataRequester.requestData, 3000, getRandomInt(1000), '${arg.pluginExecutionId}');
-                function getRandomInt(max) {
-                  return Math.floor(Math.random() * Math.floor(max));
-                }
+
                 
 	            ]]>
             </n:script>
         </n:span>
     </n:div>
+
+    <n:script src="/loganimation/js/ap/dataRequester.js" type="text/javascript"/>
 
     <!-- THIS PAGE USE DIV FLOAT FOR LAYOUTING -->
 

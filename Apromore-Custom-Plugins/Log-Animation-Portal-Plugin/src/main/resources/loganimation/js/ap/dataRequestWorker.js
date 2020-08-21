@@ -1,26 +1,25 @@
 
-
 onmessage = function(e) {
     let context = this;
     let startFrameIndex = e.data.startFrame;
     let pluginExecutionId = e.data.pluginExecutionId;
-    new Ajax.Request("/dataRequest/logAnimationData?pluginExecutionId=" + pluginExecutionId + "&startFrameIndex=" + startFrameIndex, {
-        method: 'POST',
 
-        parameters: {
-            framePos: framePos
-        },
+    let httpRequest = new XMLHttpRequest();
 
-        onSuccess: (function(request) {
-            //Testing
-            doPointlessComputationsWithBlocking();
-            this.postMessage({success: true, data: request.responseText});
-        }).bind(context),
+    httpRequest.onreadystatechange = function(){
+        if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            if (httpRequest.status === 200) {
+                doPointlessComputationsWithBlocking();
+                context.postMessage({success: true, code: httpRequest.status, data: httpRequest.responseText});
+            } else {
+                context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});
+            }
+        }
+    };
 
-        onFailure: (function(){
-            this.postMessage({success: false});
-        }).bind(context)
-    });
+    console.log("Before sending request: pluginExecutionId=" + pluginExecutionId + ", startFrame=" + startFrameIndex);
+    httpRequest.open('GET',"/dataRequest/logAnimationData?pluginExecutionId=" + pluginExecutionId + "&startFrameIndex=" + startFrameIndex, true);
+    httpRequest.send();
 
     function calculatePrimes(iterations, multiplier) {
         var primes = [];
@@ -42,7 +41,7 @@ onmessage = function(e) {
     }
 
     function doPointlessComputationsWithBlocking() {
-        var primes = calculatePrimes(iterations, multiplier);
+        var primes = calculatePrimes(100, 1000000000);
         console.log(primes);
     }
 }

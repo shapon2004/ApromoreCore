@@ -1,3 +1,4 @@
+
 class DataRequester {
     /**
      * @param {Buffer} buffer
@@ -15,14 +16,16 @@ class DataRequester {
         this._worker.onmessage = function(e) {
             let result = e.data;
             if (result.success) {
-                self._receivedData = result.data;
+                self._receivedData = result;
                 if (self._buffer) {
-                    self._buffer.writeNextChunk(result.data);
+                    self._buffer.writeNextChunk(result);
                 }
             }
 
             //Testing
-            console.log("Result: " + result);
+            console.log("Result: ");
+            console.log("Response code: " + result.code);
+            console.log("Response text: " + result.data);
             //this.doPointlessComputationsWithBlocking();
         }
     }
@@ -68,4 +71,11 @@ class DataRequester {
         var primes = calculatePrimes(iterations, multiplier);
         console.log(primes);
     }
+}
+
+//console.log("pluginExecutionId before sending request: " + window.pluginExecutionId);
+dataRequester = new DataRequester();
+window.setInterval(dataRequester.requestData.bind(dataRequester), 10000, getRandomInt(1000), window.pluginExecutionId);
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
 }
