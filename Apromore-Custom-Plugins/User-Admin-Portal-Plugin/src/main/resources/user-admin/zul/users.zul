@@ -19,10 +19,18 @@
   <http://www.gnu.org/licenses/lgpl-3.0.html>.
   #L%
   -->
-<window position="center" title="Create Group" apply="org.apromore.plugin.portal.useradmin.CreateGroupController">
-    <textbox id="groupNameTextbox" placeholder="Enter group name"/>
-    <div align="center">
-        <button id="createButton" label="Create" image="img/ok.png"/>
-        <button id="cancelButton" label="Cancel" image="img/cancel2.png"/>
-    </div>
-</window>
+<div xmlns:h="http://www.w3.org/1999/xhtml"
+     xmlns:ca="client/attribute">
+<listbox id="userListbox" vflex="1" hflex="1">
+  <listhead>
+    <listheader label="Username" />
+    <listheader label="Created on" />
+  </listhead>
+  <template name="model">
+    <listitem>
+      <listcell label="${each.username}"/>
+      <listcell label="${c:formatDate(each.dateCreated, 'yyyy-MMM-dd')}" />
+    </listitem>
+  </template>
+</listbox>
+</div>

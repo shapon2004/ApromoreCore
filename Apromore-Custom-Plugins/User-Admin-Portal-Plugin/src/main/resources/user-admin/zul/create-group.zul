@@ -1,9 +1,6 @@
 <!--
   #%L
   This file is part of "Apromore Core".
-  Copyright (C) 2012 - 2017 Queensland University of Technology.
-  Copyright (C) 2012 Felix Mannhardt.
-  Copyright (C) 2015, 2016 Adriano Augusto.
   %%
   Copyright (C) 2018 - 2020 Apromore Pty Ltd.
   %%
@@ -22,7 +19,21 @@
   <http://www.gnu.org/licenses/lgpl-3.0.html>.
   #L%
   -->
-
-<!-- Controller is  MenuController-->
-<menubar id="operationMenu" width="100%" vflex="1">
-</menubar>
+<window width="500px" position="center" title="Create new group" apply="org.apromore.plugin.portal.useradmin.CreateGroupController">
+    <grid sclass="ap-grid ap-form">
+        <columns>
+            <column hflex="1"/>
+            <column hflex="2"/>
+        </columns>
+        <rows>
+            <row>
+                <label>Group name</label>
+                <textbox id="groupNameTextbox" placeholder="Enter group name"/>
+            </row>
+        </rows>
+    </grid>
+    <div sclass="ap-window-footer-actions">
+        <button id="cancelBtn" label="Cancel" iconSclass="z-icon-times-circle" />
+        <button id="createBtn" label="Create" iconSclass="z-icon-check-circle" />
+    </div>
+</window>
