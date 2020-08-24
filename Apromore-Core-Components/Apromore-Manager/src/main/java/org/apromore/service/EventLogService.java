@@ -72,6 +72,12 @@ public interface EventLogService {
     Log importLog(String username, Integer folderId, String logName, InputStream log, String extension,
                   String domain, String created, boolean publicModel)
             throws Exception;
+    /**
+     * @param username  a username
+     * @param logId identifier for a log
+     * @return whether the <var>user</var> should be allowed to update the log identified by <var>logId</var>
+     */
+    boolean canUserWriteLog(String username, Integer logId) throws UserNotFoundException;
 
     ExportLogResultType exportLog(Integer logId)
             throws Exception;
@@ -143,16 +149,6 @@ public interface EventLogService {
      * @return The aggregated log placed into the cache, or generated on the fly if not found or expired
      */
     APMLog getAggregatedLog(Integer logId);
-
-    /**
-     * Get dashboard layout data
-     * @param logId
-     * @param userId
-     * @return
-     */
-    String getLayoutByLogId(Integer logId, Integer userId);
-
-    void saveLayoutByLogId(Integer logId, Integer userId, String layout);
 
     /**
      *

@@ -136,7 +136,7 @@ public class UserMetadataServiceImpl implements UserMetadataService {
 
         // Persist Usermetadata, GroupUsermetadata and UsermetadataLog
         userMetadataRepo.saveAndFlush(userMetadata);
-        LOGGER.info("Create user metadata ID: {0} TYPE: {1}." + userMetadata.getId() + userMetadataTypeEnum.toString());
+        LOGGER.info("Create user metadata ID: {} TYPE: {}.", userMetadata.getId(), userMetadataTypeEnum.toString());
 
     }
 
@@ -153,7 +153,7 @@ public class UserMetadataServiceImpl implements UserMetadataService {
 
         // Persist Usermetadata
         userMetadataRepo.saveAndFlush(userMetadata);
-        LOGGER.info("Update user metadata ID: {0}." + userMetadata.getId());
+        LOGGER.info("Update user metadata ID: {}.", userMetadata.getId());
 
     }
 
@@ -180,31 +180,43 @@ public class UserMetadataServiceImpl implements UserMetadataService {
 
         // Invalidate Usermetadata
         userMetadataRepo.saveAndFlush(userMetadata);
-        LOGGER.info("Delete user metadata ID: {0}." + userMetadata.getId());
+        LOGGER.info("Delete user metadata ID: {}.", userMetadata.getId());
     }
 
     @Override
     public Set<Usermetadata> getUserMetadata(String username, List<Integer> logIds,
                                              UserMetadataTypeEnum userMetadataTypeEnum) throws UserNotFoundException {
 
+        if (null == logIds || logIds.size() == 0) {
+            return null;
+        }
+
         User user = userSrv.findUserByLogin(username);
         assert user != null;
 
-        // Get all the user metadata that can be accessed by groups contain specified user
+        // Get all the user metadata that can be accessed by groups that contain specified user
         Set<GroupUsermetadata> groupUsermetadataSet = new HashSet<>();
         for (Group group : user.getGroups()) {
             groupUsermetadataSet.addAll(groupUsermetadataRepo.findByGroup(group));
         }
-
-        // Lambda is not supported by spring version before 4
-//        List<Usermetadata> usermetadataList1 = groupUsermetadataSet.stream()
-//                .map(GroupUsermetadata::getUsermetadata)
-//                .collect(Collectors.toList());
-
         Set<Usermetadata> usermetadataList1 = new HashSet<>();
         for (GroupUsermetadata groupUsermetadata : groupUsermetadataSet) {
-            usermetadataList1.add(groupUsermetadata.getUsermetadata());
+            Usermetadata u = groupUsermetadata.getUsermetadata();
+            if (u.getUsermetadataType().getId().equals(userMetadataTypeEnum.getUserMetadataTypeId()) && u.getIsValid()) {
+                usermetadataList1.add(u);
+            }
         }
+
+        // ??? Dash Template ???
+//        if (logIds == null) {
+//            Set<Usermetadata> output = new HashSet<>();
+//            for (Usermetadata um : userMetadataRepo.findAll()) {
+//                if (um.getUsermetadataType().getId().equals(userMetadataTypeEnum.getUserMetadataTypeId())) {
+//                    output.add(um);
+//                }
+//            }
+//            return output.size() > 0 ? output : null;
+//        }
 
         // Get all the user metadata that linked to specified logs
         List<Set<Usermetadata>> lists = new ArrayList<>();
@@ -217,62 +229,32 @@ public class UserMetadataServiceImpl implements UserMetadataService {
             }
             lists.add(usermetadataList2);
         }
-
-        // Find
-        if (lists.size() > 1) {
-            List<Usermetadata> commons = new ArrayList<>(lists.get(1));
-            for (ListIterator<Set<Usermetadata>> iterator = lists.listIterator(1); iterator.hasNext(); ) {
-                commons.retainAll(iterator.next());
-            }
-            usermetadataList1.retainAll(commons);
-
-        } else if (lists.size() == 1) {
-            usermetadataList1.retainAll(lists.get(0));
-        } else {
-            return null;
-        }
-
-        // Match user metadata type
+        // Find intersection of user metadata lists that get from specified logIds
         Set<Usermetadata> result = new HashSet<>();
-        for (Usermetadata u : usermetadataList1
-        ) {
-            if (u.getUsermetadataType().getId().equals(userMetadataTypeEnum.getUserMetadataTypeId())) {
-                result.add(u);
+        for (Set<Usermetadata> umSet : lists) {
+            for (Usermetadata u : umSet) {
+                if (u.getUsermetadataType().getId().equals(userMetadataTypeEnum.getUserMetadataTypeId()) && u.getIsValid()) {
+                    int count = 0;
+                    Set<UsermetadataLog> umlSet = u.getUsermetadataLog();
+                    if (umlSet.size() == logIds.size()) {
+                        for (UsermetadataLog uml : umlSet) {
+                            if (logIds.contains(uml.getLog().getId())) {
+                                count += 1;
+                            }
+                        }
+                        if (count == logIds.size()) {
+                            result.add(u);
+                        }
+                    }
+                }
             }
         }
-        return result;
 
+        // Find intersection of user metadata lists that get from 2 linked tables (log, group)
+        result.retainAll(usermetadataList1);
+
+        return result.size() > 0 ? result : null;
     }
-//        for (Integer logId : logIds) {
-//            Set<UsermetadataLog> usermetadataLogSet =
-//                    new HashSet<>(usermetadataLogRepo.findByLog(logRepo.findUniqueByID(logId)));
-//
-//            for (UsermetadataLog usermetadataLog : usermetadataLogSet) {
-//                usermetadataList2.add(usermetadataLog.getUsermetadata());
-//            }
-//        }
-
-
-        // Lambda is not supported by spring version before 4
-//        List<Usermetadata> usermetadataList2 = usermetadataLogSet.stream()
-//                .map(UsermetadataLog::getUsermetadata)
-//                .collect(Collectors.toList());
-//
-//        Set<Usermetadata> result = usermetadataList1.stream()
-//                .distinct()
-//                .filter(usermetadataList2::contains)
-//                .collect(Collectors.toSet());
-
-
-
-
-//    public <T> Set<T> intersection(List<T>... list) {
-//        Set<T> result = Sets.newHashSet(list[0]);
-//        for (List<T> numbers : list) {
-//            result = Sets.intersection(result, Sets.newHashSet(numbers));
-//        }
-//        return result;
-//    }
 
 
     @Override
@@ -280,10 +262,67 @@ public class UserMetadataServiceImpl implements UserMetadataService {
 
         for (GroupUsermetadata gl : groupUsermetadataRepo.findByLogAndUser(UsermetadataId,
                 userSrv.findUserByLogin(username).getRowGuid())) {
-            if (gl.getHasWrite() || gl.getHasOwnership()) {
+            if (gl.getHasOwnership()) {
                 return true;
             }
         }
         return false;
     }
+
+    @Override
+    @Transactional
+    public void saveDashTemplate(String content, String username) throws UserNotFoundException {
+
+        User user = userSrv.findUserByLogin(username);
+
+        Usermetadata userMetadata = new Usermetadata();
+
+        Set<GroupUsermetadata> groupUserMetadataSet = userMetadata.getGroupUserMetadata();
+        Set<UsermetadataLog> usermetadataLogSet = userMetadata.getUsermetadataLog();
+
+        // Assign OWNER permission to the user's personal group
+        groupUserMetadataSet.add(new GroupUsermetadata(user.getGroup(), userMetadata, true, true, true));
+
+        // Assign READ permission to all the groups that contain specified user
+        for (Group group : user.getGroups()) {
+            groupUserMetadataSet.add(new GroupUsermetadata(group, userMetadata, true, false, false));
+        }
+
+//        usermetadataLogSet.add(new UsermetadataLog(userMetadata, null));
+
+        // Assemble Usermetadata
+        userMetadata.setGroupUserMetadata(groupUserMetadataSet);
+        userMetadata.setUsermetadataLog(usermetadataLogSet);
+        userMetadata.setUsermetadataType(usermetadataTypeRepo.findOne(UserMetadataTypeEnum.DASH_TEMPLATE.getUserMetadataTypeId()));
+        userMetadata.setIsValid(true);
+        userMetadata.setCreatedBy(user.getRowGuid());
+        userMetadata.setCreatedTime(now);
+        userMetadata.setContent(content);
+
+        userMetadataRepo.saveAndFlush(userMetadata);
+        LOGGER.info("Create user metadata ID: {} TYPE: {}.",
+                userMetadata.getId(), UserMetadataTypeEnum.DASH_TEMPLATE.toString());
+    }
+
+    @Override
+    public Set<Usermetadata> getDashTemplate(String username) throws UserNotFoundException {
+
+        User user = userSrv.findUserByLogin(username);
+        assert user != null;
+
+        // Get all the user metadata that can be accessed by groups that contain specified user
+        Set<GroupUsermetadata> groupUsermetadataSet = new HashSet<>();
+        for (Group group : user.getGroups()) {
+            groupUsermetadataSet.addAll(groupUsermetadataRepo.findByGroup(group));
+        }
+        Set<Usermetadata> usermetadataList = new HashSet<>();
+        for (GroupUsermetadata groupUsermetadata : groupUsermetadataSet) {
+            Usermetadata u = groupUsermetadata.getUsermetadata();
+            if (u.getUsermetadataType().getId().equals(UserMetadataTypeEnum.DASH_TEMPLATE.getUserMetadataTypeId()) && u.getIsValid()) {
+                usermetadataList.add(u);
+            }
+        }
+        return usermetadataList.size() > 0 ? usermetadataList : null;
+    }
+
 }

@@ -8,12 +8,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -28,12 +28,17 @@ import org.apache.commons.lang.StringUtils;
 import org.apromore.dao.model.Usermetadata;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.service.EventLogService;
+import org.apromore.service.csvimporter.*;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.apromore.service.UserMetadataService;
 import org.apromore.service.csvimporter.*;
 import org.apromore.util.UserMetadataTypeEnum;
 import org.deckfour.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zkoss.json.JSONArray;
+import org.zkoss.json.JSONObject;
+import org.zkoss.json.JSONValue;
 import org.zkoss.util.Locales;
 import org.zkoss.util.media.Media;
 import org.zkoss.zk.ui.Sessions;
@@ -70,6 +75,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
     // Fields injected from the ZK execution
     private CSVImporterLogic csvImporterLogic = (CSVImporterLogic) Executions.getCurrent().getArg().get("csvImporterLogic");
     private Media media = (Media) Executions.getCurrent().getArg().get("media");
+    private JSONObject mappingJSON = (JSONObject) Executions.getCurrent().getArg().get("mappingJSON");
     */
 
     // Fields injected from the ZK session
@@ -81,6 +87,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
     private @Wire("#mainWindow")        Window window;
     private @Wire("#toXESButton")       Button toXESButton;
     private @Wire("#toPublicXESButton") Button toPublicXESButton;
+    private @Wire("#matchedMapping") Button matchedMapping;
 
     private LogSample sample;
 
@@ -101,6 +108,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
             setEncoding.addEventListener("onSelect", event -> {
                         CSVReader csvReader = CSVReader.newCSVReader(media, getFileEncoding());
                         if (csvReader != null) {
+                            // If user loaded stored mapping, and then changed encoding, importer will load guessed mapping.
                             this.sample = csvImporterLogic.sampleCSV(csvReader, logSampleSize);
                             if (sample != null) setUpUI();
                         }
@@ -111,15 +119,32 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
             if (csvReader != null) {
                 this.sample = csvImporterLogic.sampleCSV(csvReader, logSampleSize);
                 if (sample != null) {
+
+                    //TODO:
+
+                    //Attempt 2
+//                    handleMatchedMapping();
+
                     setUpUI();
                     toXESButton.setDisabled(false);
                     toPublicXESButton.setDisabled(false);
+                    matchedMapping.setDisabled(false);
+
                 }
             }
 
         } catch (Exception e) {
             Messagebox.show(getLabels().getString("failed_to_read_log") + e.getMessage(), "Error", Messagebox.OK, Messagebox.ERROR, event -> close());
         }
+    }
+
+//    @Listen("onClick = button#matchedMapping")
+    //Create a dialog to ask for user option regarding matched schema mapping
+    private void handleMatchedMapping() throws IOException {
+
+        Window matchedMappingPopUp = (Window) portalContext.getUI().createComponent(getClass().getClassLoader(), "zul" +
+                "/matchedMapping.zul", null, null);
+        matchedMappingPopUp.doModal();
     }
 
     @Listen("onClick = #cancelButton")
@@ -167,6 +192,9 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
             Messagebox.show(headNOTDefined.toString(), getLabels().getString("missing_fields"), Messagebox.OK, Messagebox.ERROR);
         } else {
             try {
+                //TODO: persist mapping
+                storeMappingAsJSON(media, sample);
+
                 CSVReader reader = new CSVFileReader().newCSVReader(media, getFileEncoding());
                 if (reader != null) {
                     LogModel xesModel = csvImporterLogic.prepareXesModel(reader, sample);
@@ -183,6 +211,43 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
                 e.printStackTrace();
             }
         }
+    }
+
+    private String storeMappingAsJSON(Media media, LogSample logSample) {
+
+        String userId = portalContext.getCurrentUser().getId();
+
+        String jsonStr = null;
+
+//        JSONObject jsonMapping = new JSONObject();
+//
+//        jsonMapping.put("header", logSample.getHeader());
+//        jsonMapping.put("caseIdPos", logSample.getCaseIdPos());
+//        jsonMapping.put("activityPos", logSample.getActivityPos());
+//        jsonMapping.put("endTimestampPos", logSample.getEndTimestampPos());
+//        jsonMapping.put("startTimestampPos", logSample.getStartTimestampPos());
+//        jsonMapping.put("resourcePos", logSample.getResourcePos());
+//        jsonMapping.put("caseAttributesPos", logSample.getCaseAttributesPos());
+//        jsonMapping.put("eventAttributesPos", logSample.getEventAttributesPos());
+//        jsonMapping.put("otherTimestamps", logSample.getOtherTimestamps());
+//        jsonMapping.put("ignoredPos", logSample.getIgnoredPos());
+//        jsonMapping.put("endTimestampFormat", logSample.getEndTimestampFormat());
+//        jsonMapping.put("startTimestampFormat", logSample.getStartTimestampFormat());
+
+
+        // Creating Object of ObjectMapper define in Jakson Api
+        ObjectMapper Obj = new ObjectMapper();
+        try {
+            jsonStr = Obj.writeValueAsString(logSample);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //TODO: fix logId
+//        eventLogService.saveLayoutByLogId(90, userId, jsonStr);
+
+
+        return null;
     }
 
     public ResourceBundle getLabels() {
@@ -825,17 +890,17 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
 
 
 
-            List<Integer> logIdlist = new ArrayList<>();
-            logIdlist.add(138);
-            logIdlist.add(139);
-
-            userMetadataService.saveUserMetadata("test metadata content", UserMetadataTypeEnum.CSV_IMPORTER, "admin",
-                    logIdlist);
-            Set<Usermetadata> usermetadatatest = userMetadataService.getUserMetadata("admin", logIdlist,
-                    UserMetadataTypeEnum.CSV_IMPORTER);
-            for(Usermetadata usermetadata : usermetadatatest) {
-                LOGGER.info("RESULT:::::::::" + usermetadata.getId());
-            }
+//            List<Integer> logIdlist = new ArrayList<>();
+//            logIdlist.add(138);
+//            logIdlist.add(139);
+//
+//            userMetadataService.saveUserMetadata("test metadata content", UserMetadataTypeEnum.CSV_IMPORTER, "admin",
+//                    logIdlist);
+//            Set<Usermetadata> usermetadatatest = userMetadataService.getUserMetadata("admin", logIdlist,
+//                    UserMetadataTypeEnum.CSV_IMPORTER);
+//            for(Usermetadata usermetadata : usermetadatatest) {
+//                LOGGER.info("RESULT:::::::::" + usermetadata.getId());
+//            }
 
 
 
@@ -849,6 +914,19 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
 //            }
 //            LOGGER.info("Result: " + userMetadataService.canUserEditMetadata(username, 18));
 //            LOGGER.info("Result: " + userMetadataService.canUserEditMetadata(username, 10));
+
+//            userMetadataService.saveDashTemplate("dash template", "admin");
+
+//            List logIdList = new LinkedList();
+//            logIdList.add(221);
+//            logIdList.add(222);
+//            logIdList.add(223);
+//            Set<Usermetadata> usermetadataList = new HashSet<>();
+//            usermetadataList = userMetadataService.getUserMetadata("admin", logIdList,
+//                    UserMetadataTypeEnum.CSV_IMPORTER);
+//            for (Usermetadata usermetadata : usermetadataList) {
+//                LOGGER.info("RESULT :" + usermetadata.getId() + usermetadata.getContent());
+//            }
 
         } catch (InvalidCSVException e) {
             Messagebox.show(e.getMessage(), "Error", Messagebox.OK, Messagebox.ERROR);

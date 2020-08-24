@@ -432,19 +432,6 @@ public class EventLogServiceImplTest {
     }
 
     @Test
-    public void getLayoutByLogId() {
-        Integer userId = 1;
-        Integer logId = 1;
-        String reallyLongString = "a really long String";
-        expect(dashboardLayoutRepository.findByUserIdAndLogId(userId, logId)).andReturn(reallyLongString);
-        replay(dashboardLayoutRepository);
-
-        String result = eventLogService.getLayoutByLogId(userId, logId);
-        verify(dashboardLayoutRepository);
-        assertThat(result, equalTo(reallyLongString));
-    }
-
-    @Test
     public void intersectionTest() {
         Set set1 = new HashSet(Arrays.asList(1, 3, 5));
         Set set2 = new HashSet(Arrays.asList(1, 6, 7, 9, 3));
