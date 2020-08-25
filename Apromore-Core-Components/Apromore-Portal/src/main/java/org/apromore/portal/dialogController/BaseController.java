@@ -25,11 +25,16 @@
 
 package org.apromore.portal.dialogController;
 
+import java.io.IOException;
 // Java 2 Standard Edition packages
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
+import java.util.Map;
 
+// Local classes
+import org.apromore.manager.client.ManagerService;
+import org.apromore.portal.ConfigBean;
+import org.apromore.service.EventLogService;
 // Third party packages
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -38,11 +43,6 @@ import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.Window;
-
-// Local classes
-import org.apromore.manager.client.ManagerService;
-import org.apromore.service.EventLogService;
-import org.apromore.portal.ConfigBean;
 
 /**
  * Base Controller that all controllers inherit.
@@ -182,4 +182,7 @@ public class BaseController extends Window {
         this.eventLogService = eventLogService;
     }
 
+    public String processRequest(Map<String,String[]> parameterMap) {
+        return "";
+    }
 }
