@@ -32,6 +32,7 @@ package de.hpi.bpmn2_0.replay;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
+import de.hpi.bpmn2_0.animation.AnimationLog;
 import de.hpi.bpmn2_0.backtracking2.Backtracking;
 import de.hpi.bpmn2_0.backtracking2.Node;
 import de.hpi.bpmn2_0.backtracking2.StateElementStatus;

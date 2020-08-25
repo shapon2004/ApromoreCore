@@ -22,9 +22,13 @@
  * #L%
  */
 
-package de.hpi.bpmn2_0.replay;
+package de.hpi.bpmn2_0.animation;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
+import de.hpi.bpmn2_0.replay.LogUtility;
+import de.hpi.bpmn2_0.replay.ReplayTrace;
+import de.hpi.bpmn2_0.replay.TimeUtilities;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;

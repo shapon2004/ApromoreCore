@@ -44,7 +44,6 @@ import org.json.JSONObject;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.replay.AnimatedSequenceFlow;
-import de.hpi.bpmn2_0.replay.AnimationLog;
 import de.hpi.bpmn2_0.replay.ReplayParams;
 import de.hpi.bpmn2_0.replay.ReplayTrace;
 import de.hpi.bpmn2_0.replay.TimeUtilities;

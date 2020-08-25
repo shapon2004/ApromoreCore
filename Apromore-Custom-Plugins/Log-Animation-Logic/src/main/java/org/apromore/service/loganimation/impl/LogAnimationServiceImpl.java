@@ -53,6 +53,7 @@ import org.springframework.stereotype.Service;
 
 // Local classes
 import de.hpi.bpmn2_0.animation.AnimationJSONBuilder;
+import de.hpi.bpmn2_0.animation.AnimationLog;
 import de.hpi.bpmn2_0.exceptions.BpmnConverterException;
 import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
@@ -62,7 +63,6 @@ import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.activity.Task;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.model.event.Event;
-import de.hpi.bpmn2_0.replay.AnimationLog;
 import de.hpi.bpmn2_0.replay.BPMNDiagramHelper;
 import de.hpi.bpmn2_0.replay.Optimizer;
 import de.hpi.bpmn2_0.replay.ReplayParams;

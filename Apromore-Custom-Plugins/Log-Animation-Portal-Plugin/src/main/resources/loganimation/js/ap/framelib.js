@@ -58,7 +58,7 @@ class ElementFrames {
 /**
  * A frame for a case which contains multiple ElementFrame object
  * For example, a CaseFrame has multiple tokens on a number of
- * sequence flows after an AND split gateway
+ * sequence flows after an AND split gateway.
  */
 class CaseFrame {
     constructor(caseId, index) {
@@ -143,6 +143,7 @@ class CaseFrames {
 /**
  * An animation frame contains many CaseFrame objects at a point in time
  * These CaseFrame objects can be of different cases
+ * Each frame is identified by an index starting from 0.
  */
 class Frame {
     /**
