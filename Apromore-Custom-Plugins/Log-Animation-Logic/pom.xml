@@ -36,7 +36,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            org.apromore.service.loganimation
+                            org.apromore.service.loganimation,
+                            de.hpi.bpmn2_0.replay
                         </Export-Package>
                     </instructions>
                 </configuration>

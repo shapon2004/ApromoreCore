@@ -51,8 +51,11 @@ import org.apromore.portal.model.VersionSummaryType;
 import org.apromore.service.EventLogService;
 import org.apromore.service.loganimation.LogAnimationService;
 import org.deckfour.xes.model.XLog;
+import org.json.JSONObject;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Messagebox;
+
+import de.hpi.bpmn2_0.replay.AnimationLog;
 
 public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimationPluginInterface {
     private String label = ""; //initialized in Spring beans
@@ -209,14 +212,25 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnWithGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(animationData));
-                System.out.println("ANIMATIONDATA");
+                //String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
+                Object[] result = logAnimationService.createAnimation(bpmnWithGateways, logs);
+                if (result != null) {
+                    JSONObject setupData = (JSONObject)result[0];
+                    AnimationLog animationLog = (AnimationLog)result[1];
+                    session.put("animationData", setupData);
+                    session.put("animationLog", animationLog);
+                    session.put("logs", logs);
+                    String id = UUID.randomUUID().toString();
+                    UserSessionManager.setEditSession(id, session);
+                    Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+                }
+                else {
+                    Messagebox.show("No result was returned from Log Animation Service due to some internal error");
+                }
             }
-            session.put("logs", logs);
-            String id = UUID.randomUUID().toString();
-            UserSessionManager.setEditSession(id, session);
-            Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+            else {
+                Messagebox.show("Log Animation Service is not available for this request");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }        
@@ -251,14 +265,24 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnNoGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                String animationData = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(animationData));
-                System.out.println("ANIMATIONDATA");
+                Object[] result = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
+                if (result != null) {
+                    JSONObject setupData = (JSONObject)result[0];
+                    AnimationLog animationLog = (AnimationLog)result[1];
+                    session.put("animationData", setupData);
+                    session.put("animationLog", animationLog);
+                    session.put("logs", logs);
+                    String id = UUID.randomUUID().toString();
+                    UserSessionManager.setEditSession(id, session);
+                    Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+                }
+                else {
+                    Messagebox.show("No result was returned from Log Animation Service due to some internal error");
+                }
             }
-            session.put("logs", logs);
-            String id = UUID.randomUUID().toString();
-            UserSessionManager.setEditSession(id, session);
-            Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+            else {
+                Messagebox.show("Log Animation Service is not available for this request");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }        

@@ -44,6 +44,7 @@ import org.json.JSONObject;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.replay.AnimatedSequenceFlow;
+import de.hpi.bpmn2_0.replay.AnimationLog;
 import de.hpi.bpmn2_0.replay.ReplayParams;
 import de.hpi.bpmn2_0.replay.ReplayTrace;
 import de.hpi.bpmn2_0.replay.TimeUtilities;
@@ -140,7 +141,7 @@ public class AnimationJSONBuilder {
         }
         json.put("algoTime", df.format(1.0*animationLog.getAlgoRuntime()/1000));
         json.put("progress", this.parseLogProgress(animationLog));
-        json.put("tokenAnimations", this.parseTraces(animationLog));
+        //json.put("tokenAnimations", this.parseTraces(animationLog));
 
         return json;
     }

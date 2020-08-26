@@ -51,9 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-// Local classes
 import de.hpi.bpmn2_0.animation.AnimationJSONBuilder;
-import de.hpi.bpmn2_0.animation.AnimationLog;
 import de.hpi.bpmn2_0.exceptions.BpmnConverterException;
 import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
@@ -63,6 +61,7 @@ import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.activity.Task;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.model.event.Event;
+import de.hpi.bpmn2_0.replay.AnimationLog;
 import de.hpi.bpmn2_0.replay.BPMNDiagramHelper;
 import de.hpi.bpmn2_0.replay.Optimizer;
 import de.hpi.bpmn2_0.replay.ReplayParams;
@@ -77,7 +76,8 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl.class);
 
     @Override
-    public String createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
+    //public String createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
+    public Object[] createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
 
         Set<XLog> xlogs = new HashSet<>();
         for (Log log: logs) {
@@ -154,7 +154,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         } else {
 //            LOGGER.info(replayer.getProcessCheckingMsg());
         }
-
+        
         /*
         * ------------------------------------------
         * Return Json animation
@@ -171,11 +171,14 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
             //LOGGER.info(string);
             jsonBuilder.clear();
 
-            return string;
+            //return string;
+            return new Object[] {json, replayedLogs.get(0)};
         }
         else {
-            return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            //return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            return null;
         }
+        
     }
     
     // Build id mapping from diagram with gateways to the corresponding diagram with no gateways
@@ -293,7 +296,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
      * @param logs: logs to be replayed
      */ 
     @Override
-    public String createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
+    public Object[] createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
 
         Set<XLog> xlogs = new HashSet<>();
         for (Log log: logs) {
@@ -384,7 +387,6 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
             transformToNonGateways(animationLog, diagramMapping);
         }
         
-
         /*
         * ------------------------------------------
         * Return Json animation
@@ -401,10 +403,12 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
             //LOGGER.info(string);
             jsonBuilder.clear();
 
-            return string;
+            //return string;
+            return new Object[] {json, replayedLogs.get(0)};
         }
         else {
-            return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            //return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            return null;
         }
     }
 
@@ -415,4 +419,5 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
 
         return definitions;
     }
+
 }

@@ -24,7 +24,7 @@ package org.apromore.plugin.portal.loganimation.frame;
 import java.util.Collection;
 import java.util.Collections;
 
-import de.hpi.bpmn2_0.animation.AnimationLog;
+import de.hpi.bpmn2_0.replay.AnimationLog;
 import de.hpi.bpmn2_0.replay.ReplayTrace;
 
 public class AnimationFrameGenerator {
@@ -38,6 +38,10 @@ public class AnimationFrameGenerator {
         animationSetting.setFPS(24);
         animationSetting.setFrameGap(41);
         animationSetting.setChunkSize(4920);
+    }
+    
+    public AnimationSetting getAnimationSetting() {
+        return this.animationSetting;
     }
     
     public FrameChunk generateFrameChunk(long startFrameIndex) {
