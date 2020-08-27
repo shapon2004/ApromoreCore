@@ -124,6 +124,7 @@ public class PDController extends BaseController {
     private Button casesDetails;
     //private Button fitness;
     private Button animate;
+    private Button animate2;
     private Button fitScreen;
 
     private Button exportFilteredLog;
@@ -365,6 +366,7 @@ public class PDController extends BaseController {
             filter = (Button) mainWindow.getFellow("filter");
             filterClear = (Button) mainWindow.getFellow("filterClear");
             animate = (Button) mainWindow.getFellow("animate");
+            animate2 = (Button) mainWindow.getFellow("animate2");
             fitScreen = (Button) mainWindow.getFellow("fitScreen");
     
             exportFilteredLog = (Button) mainWindow.getFellow("exportUnfitted");
@@ -444,6 +446,7 @@ public class PDController extends BaseController {
                         Messagebox.OK | Messagebox.CANCEL,
                         Messagebox.QUESTION,
                         new org.zkoss.zk.ui.event.EventListener() {
+                            @Override
                             public void onEvent(Event evt) {
                                 if (evt.getName().equals("onOK")) {
                                     try {
@@ -480,6 +483,7 @@ public class PDController extends BaseController {
                 }
             });
             filter.addEventListener("onClick", this.getFilterController());
+            animate.addEventListener("onClick", pdFactory.createAnimationController(this));
             animate.addEventListener("onClick", pdFactory.createAnimationController(this));
     
             exportFilteredLog.addEventListener("onExport", pdFactory.createLogExportController(this));
