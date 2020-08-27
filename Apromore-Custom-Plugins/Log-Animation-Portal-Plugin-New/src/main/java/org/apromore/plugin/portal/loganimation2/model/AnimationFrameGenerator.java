@@ -24,8 +24,8 @@ package org.apromore.plugin.portal.loganimation2.model;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apromore.service.loganimation.replay.AnimationLog;
-import org.apromore.service.loganimation.replay.ReplayTrace;
+import org.apromore.service.loganimation2.replay.AnimationLog;
+import org.apromore.service.loganimation2.replay.ReplayTrace;
 
 public class AnimationFrameGenerator {
     private AnimationContext animationContext;

@@ -21,7 +21,7 @@
  */
 package org.apromore.plugin.portal.loganimation2.model;
 
-import org.apromore.service.loganimation.replay.AnimationLog;
+import org.apromore.service.loganimation2.replay.AnimationLog;
 
 public class AnimationContext {
     private int frameRate = 24; //frames per second

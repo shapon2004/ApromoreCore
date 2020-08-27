@@ -24,8 +24,8 @@ package org.apromore.plugin.portal.loganimation2.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apromore.service.loganimation.replay.ReplayTrace;
-import org.apromore.service.loganimation.replay.TraceNode;
+import org.apromore.service.loganimation2.replay.ReplayTrace;
+import org.apromore.service.loganimation2.replay.TraceNode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

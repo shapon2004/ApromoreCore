@@ -124,7 +124,7 @@ public class PDController extends BaseController {
     private Button casesDetails;
     //private Button fitness;
     private Button animate;
-    private Button animate2;
+    private Button animate_new;
     private Button fitScreen;
 
     private Button exportFilteredLog;
@@ -366,7 +366,7 @@ public class PDController extends BaseController {
             filter = (Button) mainWindow.getFellow("filter");
             filterClear = (Button) mainWindow.getFellow("filterClear");
             animate = (Button) mainWindow.getFellow("animate");
-            animate2 = (Button) mainWindow.getFellow("animate2");
+            animate_new = (Button) mainWindow.getFellow("animate_new");
             fitScreen = (Button) mainWindow.getFellow("fitScreen");
     
             exportFilteredLog = (Button) mainWindow.getFellow("exportUnfitted");
