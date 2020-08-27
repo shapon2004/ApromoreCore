@@ -22,26 +22,26 @@
  * #L%
  */
 
-package org.apromore.service.loganimation;
+package org.apromore.plugin.portal.loganimation;
 
-import java.util.List;
+// Java 2 Standard Edition
+import java.io.IOException;
 
-import org.deckfour.xes.model.XLog;
+// Java 2 Enterprise Edition
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public interface LogAnimationService {
+/**
+ * Kludge to redirect ZK into loading its static content from the existing versions in the portal.
+ *
+ * @author <a href=mailto:simon.raboczi@uqconnect.edu.au">Simon Raboczi</a>
+ */
+public class RedirectionServlet extends HttpServlet {
 
-   class Log {
-       public String fileName;
-       public XLog   xlog;
-       public String color;
-   }
-
-   /**
-    * @param bpmn  a BPMN 2.0 model, never <code>null</code>
-    * @param logs  the logs of the model executions to be animated, never <code>null</code>
-    * @return a JSON representation of the animation
-    * @throws Exception  if the representation couldn't be generated
-    */
-   public String createAnimation(String bpmn, List<Log> logs) throws Exception;
-   public String createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader("Location", "/zkau/web" + request.getPathInfo());
+    }
 }

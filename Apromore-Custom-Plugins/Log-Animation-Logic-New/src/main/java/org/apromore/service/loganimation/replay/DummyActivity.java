@@ -1,6 +1,8 @@
 /*-
  * #%L
  * This file is part of "Apromore Core".
+ * 
+ * Copyright (C) 2015 - 2017 Queensland University of Technology.
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
  * %%
@@ -19,10 +21,11 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.loganimation.frame;
 
-public class FrameConverter {
-    public static long getTimestampFromFrameIndex(long frameIndex, long startTimestamp, int frameGap) {
-        return startTimestamp + frameIndex*frameGap;
-    }
+package org.apromore.service.loganimation.replay;
+
+import de.hpi.bpmn2_0.model.activity.Activity;
+
+public class DummyActivity extends Activity {
+    
 }

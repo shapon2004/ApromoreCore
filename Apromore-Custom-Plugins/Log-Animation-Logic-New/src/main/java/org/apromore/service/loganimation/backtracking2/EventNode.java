@@ -1,6 +1,8 @@
 /*-
  * #%L
  * This file is part of "Apromore Core".
+ * 
+ * Copyright (C) 2015 - 2017 Queensland University of Technology.
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
  * %%
@@ -19,19 +21,13 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.loganimation.frame;
 
-import java.util.ArrayList;
+package org.apromore.service.loganimation.backtracking2;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import de.hpi.bpmn2_0.model.FlowNode;
 
-public class FrameChunk extends ArrayList<Frame> {
-    public String getJSON() throws JSONException {
-        JSONArray result = new JSONArray();
-        for (Frame frame : this) {
-            result.put(frame.getJSON());
-        }
-        return result.toString();
+public class EventNode extends FlowNode {
+    public EventNode(String name) {
+        this.setName(name);
     }
 }

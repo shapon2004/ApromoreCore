@@ -1,6 +1,8 @@
 /*-
  * #%L
  * This file is part of "Apromore Core".
+ * 
+ * Copyright (C) 2015 - 2017 Queensland University of Technology.
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
  * %%
@@ -19,43 +21,34 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.loganimation.frame;
 
-public class AnimationSetting {
-    private int fps = 24; //frames per second
-    private int frameGap = 41; //milliseconds
-    private long startTimestamp;
-    private int chunkSize;
+package org.apromore.service.loganimation.replay;
+
+/*
+* Implement counter for one ORJoinLabel
+*/
+public class ORJoinCounter {
+    private int value = 0;
+    private boolean isIgnored = false;
     
-    public int getFPS() {
-        return this.fps;
+    public int getValue() {
+        return value;
     }
     
-    public void setFPS(int fps) {
-        this.fps = fps;
+    public void setValue(int newValue) {
+        this.value = newValue;
     }
     
-    public int getFrameGap() {
-        return this.frameGap;
+    public boolean isIgnored() {
+        return isIgnored;
     }
     
-    public void setFrameGap(int frameGap) {
-        this.frameGap = frameGap;
+    public void setIgnored(boolean isIgnored) {
+        this.isIgnored = isIgnored;
     }
     
-    public long getStartTimestamp() {
-        return this.startTimestamp;
-    }
-    
-    public void setStartTimestamp(long startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
-    
-    public int getChunkSize() {
-        return this.chunkSize;
-    }
-    
-    public void setChunkSize(int chunkSize) {
-        this.chunkSize = chunkSize;
+    public void reset() {
+        value = 0;
+        isIgnored = false;
     }
 }

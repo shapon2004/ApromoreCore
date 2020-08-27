@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 // Third party packages
 import org.apromore.plugin.editor.EditorPlugin;
-import org.apromore.plugin.portal.loganimation.frame.AnimationFrameGenerator;
-import org.apromore.plugin.portal.loganimation.frame.FrameChunk;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.common.UserSessionManager;
 //import org.apromore.portal.context.EditorPluginResolver;
@@ -48,11 +46,8 @@ import org.apromore.portal.model.ExportFormatResultType;
 import org.apromore.portal.model.PluginMessages;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.VersionSummaryType;
-import org.apromore.portal.plugin.PluginExecution;
 import org.apromore.portal.util.StreamUtil;
 import org.apromore.service.loganimation.LogAnimationService;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
@@ -62,8 +57,6 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.WebApps;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
-
-import de.hpi.bpmn2_0.replay.AnimationLog;
 
 /**
  * Java bound to the <code>animateLogInSignavio.zul</code> ZUML document.
@@ -78,9 +71,6 @@ public class LogAnimationController extends BaseController {
     private ProcessSummaryType process;
     private VersionSummaryType version;
     private Set<RequestParameterType<?>> params;
-    private String pluginExecutionId = "";
-    private AnimationLog animationLog;
-    private AnimationFrameGenerator animationFrameGenerator;
     
     /*
      * The initialization must be put inside the constructor as
@@ -158,20 +148,15 @@ public class LogAnimationController extends BaseController {
                 param.put("doAutoLayout", "true");
             }
 
-            this.animationLog = (AnimationLog)session.get("animationLog");
-            this.animationFrameGenerator = new AnimationFrameGenerator(animationLog);
-            JSONObject setupData = (JSONObject)session.get("animationData");
-            setupData.put("fps", animationFrameGenerator.getAnimationSetting().getFPS());
-            setupData.put("frameGap", animationFrameGenerator.getAnimationSetting().getFrameGap());
-            setupData.put("frameChunkSize", animationFrameGenerator.getAnimationSetting().getChunkSize());
-            if(setupData == null) {
+            String animationData = (String) session.get("animationData");
+            if(animationData == null) {
                 if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                    //List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
-                    //animationData = logAnimationService.createAnimation(bpmnXML, logs);
-                    param.put("animationData", "No animationData was created.");
+                    List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
+                    animationData = logAnimationService.createAnimation(bpmnXML, logs);
+                    param.put("animationData", escapeQuotedJavascript(animationData));
                 }
             }else {
-                param.put("animationData", escapeQuotedJavascript(setupData.toString()));
+                param.put("animationData", escapeQuotedJavascript(animationData));
             }
 
             this.setTitle(title);
@@ -194,12 +179,9 @@ public class LogAnimationController extends BaseController {
                 : Arrays.stream(references).map(ref -> (EditorPlugin) bundleContext.getService(ref)).collect(Collectors.toList());
             //List<EditorPlugin> editorPlugins = EditorPluginResolver.resolve("editorPluginsBPMN");
             param.put("plugins", editorPlugins);
-            
-            pluginExecutionId = MainController.getController().getPluginExecutionManager().registerPluginExecution(new PluginExecution(this));
-            param.put("pluginExecutionId", pluginExecutionId);
 
             Executions.getCurrent().pushArg(param);
-            
+
         } catch (Exception e) {
             LOGGER.error("",e);
             e.printStackTrace();
@@ -267,20 +249,6 @@ public class LogAnimationController extends BaseController {
         }
 
         throw new RuntimeException("Unsupported class of event data: " + event.getData());
-    }
-    
-    @Override
-    public String processRequest(Map<String,String[]> parameterMap) {
-        String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
-        String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
-        //return "Response from server: pluginExecutionId=" + pluginExecutionId + ", startFrameIndex=" + startFrameIndex;
-        try {
-            FrameChunk frameChunk = animationFrameGenerator.generateFrameChunk(Long.parseLong(startFrameIndex));
-            return frameChunk.getJSON();
-        }
-        catch (NumberFormatException | JSONException e) {
-            return "Error: " + e.getMessage();
-        }
     }
 
 }

@@ -115,25 +115,17 @@
             <n:script defer="true">
                 <![CDATA[
                 window.animationData = '${arg.animationData}';
-                window.pluginExecutionId = '${arg.pluginExecutionId}';
-                console.log('pluginExecutionId = ' + window.pluginExecutionId);
                 Ap.la.session.init('${arg.bpmnXML}', '${arg.url}', '${arg.url}', '${arg.animationData}');
                 zk.afterMount(function() {
                   // Wait for SVG element ready, so jQuery can refer to it
                   window.setTimeout(function() {
                     Ap.la.session.initController();
                   }, 1000);
-                });
-
-                //Testing
-
-                
+                })
 	            ]]>
             </n:script>
         </n:span>
     </n:div>
-
-    <n:script src="/loganimation/js/ap/dataRequester.js" type="text/javascript"/>
 
     <!-- THIS PAGE USE DIV FLOAT FOR LAYOUTING -->
 

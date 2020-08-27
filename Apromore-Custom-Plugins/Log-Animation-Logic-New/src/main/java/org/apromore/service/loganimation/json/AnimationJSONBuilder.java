@@ -22,7 +22,7 @@
  * #L%
  */
 
-package de.hpi.bpmn2_0.animation;
+package org.apromore.service.loganimation.json;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -35,6 +35,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
+import org.apromore.service.loganimation.replay.AnimatedSequenceFlow;
+import org.apromore.service.loganimation.replay.AnimationLog;
+import org.apromore.service.loganimation.replay.ReplayParams;
+import org.apromore.service.loganimation.replay.ReplayTrace;
+import org.apromore.service.loganimation.replay.TimeUtilities;
+import org.apromore.service.loganimation.replay.TraceNode;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Seconds;
@@ -43,12 +49,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-import de.hpi.bpmn2_0.replay.AnimatedSequenceFlow;
-import de.hpi.bpmn2_0.replay.AnimationLog;
-import de.hpi.bpmn2_0.replay.ReplayParams;
-import de.hpi.bpmn2_0.replay.ReplayTrace;
-import de.hpi.bpmn2_0.replay.TimeUtilities;
-import de.hpi.bpmn2_0.replay.TraceNode;
 
 /*
 * Animation timing is shown via the timeline bar which embeds two timing aspects:
@@ -141,7 +141,7 @@ public class AnimationJSONBuilder {
         }
         json.put("algoTime", df.format(1.0*animationLog.getAlgoRuntime()/1000));
         json.put("progress", this.parseLogProgress(animationLog));
-        json.put("tokenAnimations", this.parseTraces(animationLog));
+        //json.put("tokenAnimations", this.parseTraces(animationLog));
 
         return json;
     }

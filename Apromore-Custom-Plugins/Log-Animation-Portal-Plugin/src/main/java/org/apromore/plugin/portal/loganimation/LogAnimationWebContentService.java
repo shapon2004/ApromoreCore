@@ -22,7 +22,6 @@
 package org.apromore.plugin.portal.loganimation;
 
 import java.io.InputStream;
-
 import org.apromore.plugin.portal.WebContentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -11,7 +11,7 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>log-animation-logic</artifactId>
+    <artifactId>log-animation-logic-new</artifactId>
     <version>1.0</version>
     <packaging>bundle</packaging>
     <name>Log Animation service</name>
@@ -36,7 +36,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            org.apromore.service.loganimation
+                            org.apromore.service.loganimation,
+                            org.apromore.service.loganimation.replay
                         </Export-Package>
                     </instructions>
                 </configuration>

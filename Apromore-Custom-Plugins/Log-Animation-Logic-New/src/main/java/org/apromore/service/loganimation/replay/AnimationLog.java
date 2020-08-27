@@ -22,9 +22,10 @@
  * #L%
  */
 
-package de.hpi.bpmn2_0.replay;
+package org.apromore.service.loganimation.replay;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
