@@ -22,7 +22,6 @@
 
 package org.apromore.plugin.portal.processdiscoverer.controllers;
 
-import org.apromore.plugin.portal.loganimation2.LogAnimationPlugin;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.processdiscoverer.Abstraction;
@@ -42,22 +41,20 @@ public class AnimationController2 extends AbstractController {
             return;
         }
         
-        LogAnimationPlugin animationPlugin = new LogAnimationPlugin();
-        
         Abstraction abs = parent.getOutputData().getAbstraction();
         if (abs.getLayout() == null) {
             throw new MissingLayoutException("Missing layout of the process map for animating");
         }
         
         if (parent.getBPMNMode()) {
-            animationPlugin.execute(
+            parent.getLogAnimationPlugin2().execute(
                     parent.getContextData().getPortalContext(), 
                     getBPMN(abs.getValidBPMNDiagram(), abs.getLayout().getGraphLayout()), 
                     parent.getLogData().getLog().getActualXLog(), 
                     parent.getContextData().getLogName());
         }
         else {
-            animationPlugin.execute(
+            parent.getLogAnimationPlugin2().execute(
                     parent.getContextData().getPortalContext(), 
                     getBPMN(abs.getValidBPMNDiagram(), null), 
                     getBPMN(abs.getDiagram(), abs.getLayout().getGraphLayout()), 

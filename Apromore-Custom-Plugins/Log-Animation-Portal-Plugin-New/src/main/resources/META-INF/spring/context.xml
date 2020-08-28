@@ -39,17 +39,17 @@
     <list id="editorPluginsSignavio" interface="org.apromore.plugin.editor.EditorPlugin" filter="(org.apromore.plugin.editor=signavio)" availability="optional"/>
     <list id="editorPluginsBPMN" interface="org.apromore.plugin.editor.EditorPlugin" filter="(org.apromore.plugin.editor=bpmn.io)" availability="optional"/>
     <reference id="eventLogService" interface="org.apromore.service.EventLogService"/>
-    <reference id="logAnimationService" interface="org.apromore.service.loganimation.LogAnimationService"/>
+    <reference id="logAnimationService" interface="org.apromore.service.loganimation2.LogAnimationService"/>
     <reference id="managerClient" interface="org.apromore.manager.client.ManagerService"/>
     <reference id="portalConfig" interface="org.apromore.portal.ConfigBean"/>
     <reference id="processService" interface="org.apromore.service.ProcessService"/>
 
-    <beans:bean id="plugin" class="org.apromore.plugin.portal.loganimation.LogAnimationPlugin">
+    <beans:bean id="plugin" class="org.apromore.plugin.portal.loganimation2.LogAnimationPlugin">
         <beans:property name="groupLabel" value="Analyze" />
         <beans:property name="label" value="Animate logs" />
     </beans:bean>
 
-    <beans:bean id="plugin2" class="org.apromore.plugin.portal.loganimation.LogAnimationPlugin">
+    <beans:bean id="plugin2" class="org.apromore.plugin.portal.loganimation2.LogAnimationPlugin">
         <beans:property name="groupLabel" value="" />
         <beans:property name="label" value="" />
     </beans:bean>
@@ -59,16 +59,16 @@
 
     <!-- <context:component-scan base-package="org.apromore.plugin.portal.loganimation" /> -->
     <service ref="plugin" interface="org.apromore.plugin.portal.PortalPlugin" />
-    <service ref="plugin2" interface="org.apromore.plugin.portal.loganimation.LogAnimationPluginInterface" />
+    <service ref="plugin2" interface="org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface" />
 
     <!-- Exposes the component's resources as web content -->
     <service interface="org.apromore.plugin.portal.WebContentService">
-        <beans:bean class="org.apromore.plugin.portal.loganimation.LogAnimationWebContentService"/>
+        <beans:bean class="org.apromore.plugin.portal.loganimation2.LogAnimationWebContentService"/>
     </service>
 
     <!-- Garbage collect the ZK desktop -->
     <service interface="org.zkoss.zk.ui.util.DesktopCleanup">
-        <beans:bean class="org.apromore.plugin.portal.loganimation.LogAnimationCleaner"/>
+        <beans:bean class="org.apromore.plugin.portal.loganimation2.LogAnimationCleaner"/>
     </service>
 
 </beans:beans>

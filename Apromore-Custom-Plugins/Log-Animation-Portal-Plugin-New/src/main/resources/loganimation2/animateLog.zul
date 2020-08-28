@@ -24,13 +24,13 @@
 <!--<?link rel="shortcut icon" href="favicon.ico" ?>-->
 <?link rel="shortcut icon" href="../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?script src="../themes/ap/common/js/index.js"?>
-<?script src="/loganimation/js/ap/dataRequester.js" ?>
+<?script src="/loganimation2/js/ap/dataRequester.js" ?>
 <z:window id="win"
           xmlns="http://www.zkoss.org/2005/zk/native"
           xmlns:n="http://www.zkoss.org/2005/zk/native"
           xmlns:z="http://www.zkoss.org/2005/zul"
           sclass="ap-la"
-          use="org.apromore.plugin.portal.loganimation.LogAnimationController">
+          use="org.apromore.plugin.portal.loganimation2.LogAnimationController">
 
     <style media="screen" type="text/css">
         @import url("/${arg.editor}/libs/ext-2.0.2/resources/css/ext-all.css");
@@ -48,11 +48,11 @@
     <n:script src="/${arg.editor}/editor/bpmnio/bpmn-modeler.development.js" type="text/javascript"/>
 
     <!-- STYLESHEET FOR LOG ANIMATION -->
-    <link rel="stylesheet" href="/loganimation/js/jquery-ui.css" type="text/css" />
-    <!-- <link rel="stylesheet" href="/loganimation/js/jquery-ui.theme.css" type="text/css"/> -->
+    <link rel="stylesheet" href="/loganimation2/js/jquery-ui.css" type="text/css" />
+    <!-- <link rel="stylesheet" href="/loganimation2/js/jquery-ui.theme.css" type="text/css"/> -->
 
-    <link rel="stylesheet" href="/loganimation/js/jquery-ui-slider-pips.css" type="text/css"/>
-    <link rel="stylesheet" href="/loganimation/css/styles.css" type="text/css"/>
+    <link rel="stylesheet" href="/loganimation2/js/jquery-ui-slider-pips.css" type="text/css"/>
+    <link rel="stylesheet" href="/loganimation2/css/styles.css" type="text/css"/>
 
         <n:link rel="stylesheet" type="text/css" href='/themes/${labels.theme}/common/css/index.css' />
         <!-- local -->
@@ -95,16 +95,16 @@
         <n:script src="/${arg.editor}/editor/i18n/translation_signavio_en_us.js" type="text/javascript"/>
         <n:script src="/${arg.editor}/editor/apromore-editor.js" type="text/javascript"/>
 
-        <n:script src="/loganimation/js/jquery-1.10.2.min.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/jquery-ui.min.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/jquery-ui-slider-pips.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/svgjs/svg.min.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/jquery-1.10.2.min.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/jquery-ui.min.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/jquery-ui-slider-pips.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/svgjs/svg.min.js" type="text/javascript"/>
         <n:script src="/themes/ap/common/js/lodash/lodash.min.js" type="text/javascript"/>
         <n:script src="/themes/ap/common/js/moment/moment.min.js" type="text/javascript"/>
 
-        <n:script src="/loganimation/js/ap/utils.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/ap/animation.js" type="text/javascript"/>
-        <n:script src="/loganimation/js/ap/trace.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/ap/utils.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/ap/animation.js" type="text/javascript"/>
+        <n:script src="/loganimation2/js/ap/trace.js" type="text/javascript"/>
 
         <!-- Include all editor plug-ins -->
         <z:zk forEach="${arg.plugins}">
@@ -112,7 +112,7 @@
         </z:zk>
 
         <n:span id="oryxstartupcode">
-            <n:script src="/loganimation/js/ap/startup.js" type="text/javascript"/>
+            <n:script src="/loganimation2/js/ap/startup.js" type="text/javascript"/>
             <n:script defer="true">
                 <![CDATA[
                 window.animationData = '${arg.setupData}';

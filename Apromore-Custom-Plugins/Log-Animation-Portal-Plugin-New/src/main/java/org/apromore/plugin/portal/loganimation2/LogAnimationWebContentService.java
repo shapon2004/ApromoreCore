@@ -35,8 +35,8 @@ class LogAnimationWebContentService implements WebContentService {
 
     @Override
     public boolean hasResource(String path) {
-        return path.startsWith("/loganimation/")
-            && !path.startsWith("/loganimation/WEB-INF")
+        return path.startsWith("/loganimation2/")
+            && !path.startsWith("/loganimation2/WEB-INF")
             && classLoader.getResource(path) != null;
     }
 

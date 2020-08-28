@@ -36,6 +36,7 @@ import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.loganimation.LogAnimationPluginInterface;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
+import org.apromore.plugin.portal.processdiscoverer.controllers.AnimationController2;
 import org.apromore.plugin.portal.processdiscoverer.controllers.CaseDetailsController;
 import org.apromore.plugin.portal.processdiscoverer.controllers.GraphSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.controllers.GraphVisController;
@@ -146,6 +147,7 @@ public class PDController extends BaseController {
     private EventLogService eventLogService;
     private ProcessDiscoverer processDiscoverer;
     private LogAnimationPluginInterface logAnimationPluginInterface;
+    private org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface logAnimationPluginInterface2;
     private LogFilterPlugin logFilterPlugin;
     private PDFactory pdFactory;
 
@@ -221,6 +223,7 @@ public class PDController extends BaseController {
         processService = (ProcessService) Sessions.getCurrent().getAttribute("processService"); //beanFactory.getBean("processService");
         eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService"); //beanFactory.getBean("eventLogService");
         logAnimationPluginInterface = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPlugin"); //beanFactory.getBean("logAnimationPlugin");
+        logAnimationPluginInterface2 = (org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPlugin2");
         logFilterPlugin = (LogFilterPlugin) Sessions.getCurrent().getAttribute("logFilterPlugin"); //beanFactory.getBean("logFilterPlugin");
 
         if (domainService == null || processService == null ||
@@ -484,7 +487,7 @@ public class PDController extends BaseController {
             });
             filter.addEventListener("onClick", this.getFilterController());
             animate.addEventListener("onClick", pdFactory.createAnimationController(this));
-            animate.addEventListener("onClick", pdFactory.createAnimationController(this));
+            animate_new.addEventListener("onClick", new AnimationController2(this));
     
             exportFilteredLog.addEventListener("onExport", pdFactory.createLogExportController(this));
             exportBPMN.addEventListener("onClick", pdFactory.createBPMNExportController(this));
@@ -785,6 +788,11 @@ public class PDController extends BaseController {
     public LogAnimationPluginInterface getLogAnimationPlugin() {
         return this.logAnimationPluginInterface;
     }
+    
+    public org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface getLogAnimationPlugin2() {
+        return this.logAnimationPluginInterface2;
+    }
+
 
     public LogFilterPlugin getLogFilterPlugin() {
         return logFilterPlugin;

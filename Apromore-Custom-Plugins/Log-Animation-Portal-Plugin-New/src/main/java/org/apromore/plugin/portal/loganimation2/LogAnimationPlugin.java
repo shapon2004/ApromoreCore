@@ -129,7 +129,7 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
         
         String id = UUID.randomUUID().toString();
         UserSessionManager.setEditSession(id, session);
-        Clients.evalJavaScript("window.open('../loganimation/animateLog.zul?id=" + id + "')");
+        Clients.evalJavaScript("window.open('../loganimation2/animateLog.zul?id=" + id + "')");
     }
 
     private static EditSessionType createEditSession(final String username, final ProcessSummaryType process, final VersionSummaryType version, final String nativeType, final String annotation) {
@@ -221,7 +221,7 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
                     session.put("logs", logs);
                     String id = UUID.randomUUID().toString();
                     UserSessionManager.setEditSession(id, session);
-                    Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+                    Clients.evalJavaScript("window.open('/loganimation2/animateLog.zul?id=" + id + "')");
                 }
                 else {
                     Messagebox.show("No result was returned from Log Animation Service due to some internal error");
@@ -273,7 +273,7 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
                     session.put("logs", logs);
                     String id = UUID.randomUUID().toString();
                     UserSessionManager.setEditSession(id, session);
-                    Clients.evalJavaScript("window.open('/loganimation/animateLog.zul?id=" + id + "')");
+                    Clients.evalJavaScript("window.open('/loganimation2/animateLog.zul?id=" + id + "')");
                 }
                 else {
                     Messagebox.show("No result was returned from Log Animation Service due to some internal error");

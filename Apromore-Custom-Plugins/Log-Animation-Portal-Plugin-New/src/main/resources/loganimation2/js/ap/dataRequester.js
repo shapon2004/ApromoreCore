@@ -11,7 +11,7 @@ class DataRequester {
         this._receivedData = undefined;
         this._hasDataRequestError = false;
 
-        this._worker = new Worker("/loganimation/js/ap/dataRequestWorker.js");
+        this._worker = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
         let self = this;
         this._worker.onmessage = function(e) {
             let result = e.data;

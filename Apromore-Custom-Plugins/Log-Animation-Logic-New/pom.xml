@@ -36,8 +36,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            org.apromore.service.loganimation,
-                            org.apromore.service.loganimation.replay
+                            org.apromore.service.loganimation2,
+                            org.apromore.service.loganimation2.replay
                         </Export-Package>
                     </instructions>
                 </configuration>
