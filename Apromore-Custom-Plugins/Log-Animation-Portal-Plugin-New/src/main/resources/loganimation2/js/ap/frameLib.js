@@ -385,7 +385,7 @@ class Buffer {
     _requestData() {
         let remainingSize = this._lastIndex - this._currentIndex + 1;
         if (remainingSize < this._repleshThreshold) {
-            this._dataRequester.fetchData(this._lastIndex + 1);
+            this._dataRequester.requestData(this._lastIndex + 1);
         }
     }
 

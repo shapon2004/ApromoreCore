@@ -135,7 +135,7 @@ class SVGAnimator {
      *
      * @param {Buffer} playBuffer
      * @param {AnimationModel} animationModel
-     * @param {TimeController} timeController
+     * @param {TimelineController} timeController
      * @param {FormatController} formatController
      * @param {AnimationController} modelController
      * @param {SVGDocument} svgDoc
@@ -153,21 +153,20 @@ class SVGAnimator {
     }
 
     /**
-     * Create animation elements in SVG
-     * @param {Frames} frames: set of frames to be animated
+     * Animation loop to inject SVG elements into the document
      */
-    _animate() {
-        this._cleanUp();
+    animateLoop() {
+        //this._cleanUp();
         if (!this._playBuffer.isEmpty()) return;
         let frames = this._playBuffer.readNextChunk();
         let tokenMap = new Map(); //tokenKey => array of FrameToken
         for (let frame of frames) {
-            for (let token in frame.getTokens()) {
-                if (!tokenMap.has(token.getKey())) {
-                    tokenMap.set(token.getKey(), {first:token, last:token});
+            for (let frameToken of frame.getTokens()) {
+                if (!tokenMap.has(frameToken.getKey())) {
+                    tokenMap.set(frameToken.getKey(), {first:frameToken, last:frameToken});
                 }
                 else {
-                    tokenMap.get(token.getKey()).last = token;
+                    tokenMap.get(frameToken.getKey()).last = frameToken;
                 }
             }
         }
@@ -182,8 +181,11 @@ class SVGAnimator {
                                                                 this._modelController);
             this._svgDoc.appendChild(svgElement);
         }
+
+        setTimeout(this.animateLoop.bind(this),0);
     }
 
+    //Not used
     _cleanUp() {
         let currentTime = this._svgDoc.getCurentTime();
         let removedIndexes = [];

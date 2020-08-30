@@ -1,4 +1,6 @@
 
+importScripts("/loganimation2/js/ap/frameLib.js");
+
 onmessage = function(e) {
     let context = this;
     let startFrameIndex = e.data.startFrame;
@@ -10,7 +12,8 @@ onmessage = function(e) {
         if (httpRequest.readyState === XMLHttpRequest.DONE) {
             if (httpRequest.status === 200) {
                 //doPointlessComputationsWithBlocking();
-                context.postMessage({success: true, code: httpRequest.status, data: httpRequest.responseText});
+                let jsonResponse = JSON.parse(httpRequest.responseText);
+                context.postMessage({success: true, code: httpRequest.status, data: jsonResponse});
             } else {
                 context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});
             }
@@ -44,6 +47,15 @@ onmessage = function(e) {
         var primes = calculatePrimes(100, 1000000000);
         console.log(primes);
     }
+}
+
+/**
+ *
+ * @param {JSON} json
+ * @return {Frame[]}
+ */
+function readResponse(json) {
+
 }
 
 
