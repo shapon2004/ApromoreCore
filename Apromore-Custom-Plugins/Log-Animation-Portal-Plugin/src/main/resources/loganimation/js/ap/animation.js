@@ -110,6 +110,9 @@ let AnimationController = {
     this.timelineOffset = {
       x: 20, y: 20,
     };
+
+    this.pathElementCache = {};
+    this.newMarkers = [];
   },
 
   pauseAnimations: function() {
@@ -232,6 +235,84 @@ let AnimationController = {
       }
     };
     this.start();
+
+    //Testing
+    //console.log(this.svgViewport);
+    console.log('pathId=' + this.logs[0].tokenAnimations[0].paths[0].id);
+    window.setInterval(this.loadTest.bind(this), 5000);
+  },
+
+  loadTest: function() {
+    console.log("==============================");
+    let svgDoc = this.svgViewport;
+    if (this.newMarkers.length > 0) {
+      for (let marker of this.newMarkers) {
+          //svgDoc.removeChild(marker);
+      }
+      this.newMarkers = [];
+    }
+
+    let log = this.logs[0];
+    let caseToken = log.tokenAnimations[0];
+    let pathObject = caseToken.paths[0];
+    for (let i=0; i<1000; i++) {
+      let newMarker = this.createMarker(1, 1, this.getPathElement(pathObject), Math.floor(Math.random() * Math.floor(100)), 10, 0);
+      svgDoc.appendChild(newMarker);
+      console.log("Marker: " + i);
+      //console.log(newMarker);
+      this.newMarkers.push(newMarker);
+    }
+  },
+
+  getPathElement: function (path) {
+    let pathElement = this.pathElementCache[path.id]
+    if (!pathElement) {
+      // pathElement = this.pathElementCache[path.id] = $j("#svg-"+path.id).find("g").find("g").find("g").find("path").get(0);
+      pathElement
+          = this.pathElementCache[path.id]
+          = $j('[data-element-id=' + path.id + ']').find('g').find('path').get(0)
+    }
+    return pathElement
+  },
+
+  createMarker: function (t, dt, pathElement, begin, dur, offset) {
+    let  path = pathElement.getAttribute('d')
+    let marker = document.createElementNS(SVG_NS, 'g')
+    marker.setAttributeNS(null, 'stroke', 'none')
+
+    let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
+    animateMotion.setAttributeNS(null, 'begin', begin / dt)
+    animateMotion.setAttributeNS(null, 'dur', dur / dt)
+    animateMotion.setAttributeNS(null, 'fill', 'freeze')
+    animateMotion.setAttributeNS(null, 'path', path)
+    animateMotion.setAttributeNS(null, 'rotate', 'auto')
+    marker.appendChild(animateMotion)
+
+    let circle = document.createElementNS(SVG_NS, 'circle')
+    // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
+    // let offset = 2;
+    // circle.setAttributeNS(null, "cx", offset * Math.sin(this.offsetAngle));
+    // circle.setAttributeNS(null, "cy", offset * Math.cos(this.offsetAngle));
+    circle.setAttributeNS(null, 'cx', 0)
+    circle.setAttributeNS(null, 'cy', offset)
+    circle.setAttributeNS(null, 'r', 5)
+    circle.setAttributeNS(null, 'fill', '#DC143C')
+    marker.appendChild(circle)
+
+    let text = document.createElementNS(SVG_NS, 'text')
+    // text.setAttributeNS(null,"x",offset * Math.sin(this.offsetAngle));
+    // text.setAttributeNS(null,"y",offset * Math.cos(this.offsetAngle) - 10);
+    text.setAttributeNS(null, 'x', 0)
+    text.setAttributeNS(null, 'y', offset - 10)
+    text.setAttributeNS(
+        null,
+        'style',
+        'fill: black; text-anchor: middle' + '; visibility: hidden'
+    )
+    text.appendChild(document.createTextNode(''))
+    marker.appendChild(text)
+
+    return marker
   },
 
   // Add log intervals to timeline
@@ -446,6 +527,7 @@ let AnimationController = {
   start: function() {
     this.pause();
     this.setCurrentTime(this.startPos, this.startMs); // The startPos timing could be a little less than the first event timing in the log to accomodate the start event of BPMN
+
   },
 
   /*

@@ -9,7 +9,7 @@ onmessage = function(e) {
     httpRequest.onreadystatechange = function(){
         if (httpRequest.readyState === XMLHttpRequest.DONE) {
             if (httpRequest.status === 200) {
-                doPointlessComputationsWithBlocking();
+                //doPointlessComputationsWithBlocking();
                 context.postMessage({success: true, code: httpRequest.status, data: httpRequest.responseText});
             } else {
                 context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});

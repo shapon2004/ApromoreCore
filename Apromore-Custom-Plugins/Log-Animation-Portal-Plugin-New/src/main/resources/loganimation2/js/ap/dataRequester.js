@@ -11,9 +11,9 @@ class DataRequester {
         this._receivedData = undefined;
         this._hasDataRequestError = false;
 
-        this._worker = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
+        this._workerProxy = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
         let self = this;
-        this._worker.onmessage = function(e) {
+        this._workerProxy.onmessage = function(e) {
             let result = e.data;
             if (result.success) {
                 self._receivedData = result;
@@ -26,6 +26,7 @@ class DataRequester {
             console.log("Result: ");
             console.log("Response code: " + result.code);
             console.log("Response text: " + result.data);
+
             //this.doPointlessComputationsWithBlocking();
         }
     }
@@ -37,7 +38,7 @@ class DataRequester {
      * @param {Buffer} buffer
      */
     requestData(frameIndex, pluginExecutionId) {
-        this._worker.postMessage({startFrame: frameIndex, pluginExecutionId: pluginExecutionId});
+        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: pluginExecutionId});
     }
 
     getReceivedData() {

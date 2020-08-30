@@ -115,6 +115,7 @@
             <n:script defer="true">
                 <![CDATA[
                 window.animationData = '${arg.animationData}';
+                //console.log(window.animationData);
                 Ap.la.session.init('${arg.bpmnXML}', '${arg.url}', '${arg.url}', '${arg.animationData}');
                 zk.afterMount(function() {
                   // Wait for SVG element ready, so jQuery can refer to it
