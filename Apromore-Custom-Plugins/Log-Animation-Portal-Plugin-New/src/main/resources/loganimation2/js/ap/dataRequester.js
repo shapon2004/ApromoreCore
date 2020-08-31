@@ -2,14 +2,13 @@
 class DataRequester {
     /**
      * @param {Buffer} buffer
-     * @param {String} _receiveData
-     * @param {Boolean} _hasDataRequestError
-     * @param {String} _pluginExecutionId
+     * @param {String} pluginExecutionId
      */
-    constructor(buffer) {
-        this._buffer = buffer;
+    constructor(pluginExecutionId) {
+        this._buffer = undefined;
         this._receivedData = undefined;
         this._hasDataRequestError = false;
+        this._pluginExecutionId = pluginExecutionId;
 
         this._workerProxy = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
         let self = this;
@@ -18,7 +17,7 @@ class DataRequester {
             if (result.success) {
                 self._receivedData = result;
                 if (self._buffer) {
-                    self._buffer.writeNextChunk(result);
+                    self._buffer.writeNextChunk(result.data);
                 }
             }
 
@@ -31,14 +30,18 @@ class DataRequester {
         }
     }
 
+    getPluginExecutionId() {
+        return this._pluginExecutionId;
+    }
+
     /**
      *
      * @param {Number} frameIndex
-     * @param {String} pluginExecutionId
      * @param {Buffer} buffer
      */
-    requestData(frameIndex, pluginExecutionId) {
-        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: pluginExecutionId});
+    requestData(frameIndex, buffer) {
+        this._buffer = buffer;
+        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: this._pluginExecutionId});
     }
 
     getReceivedData() {

@@ -11,18 +11,17 @@ class TimelineController {
      * @param {Number} endLogTime: the end timestamp in the log
      * @param {Number} logicalTimelineMax: the maximum logical time in seconds
      * @param {Number} frameRate: the frame rate, fps
-     * @param {Number} animationSpeed: the animation speed (integers) 0.1x, 0.2x, 1x, 2x, 3x
+     * @param {Number} actualToLogicalFactor: the animation speed (integers) 0.1x, 0.2x, 1x, 2x, 3x
      */
-    constructor(startLogTime, endLogTime, logicalTimelineMax, frameRate, animationSpeed) {
+    constructor(startLogTime, endLogTime, logicalTimelineMax, frameRate, actualToLogicalFactor) {
         this._startLogTime = startLogTime;
         this._endLogTime = endLogTime;
         this._logicalTimelineMax = logicalTimelineMax;
         this._frameRate = frameRate;
-        this._actualToLogical = animationSpeed; // convert from actual timeline to logical timeline
+        this._actualToLogical = actualToLogicalFactor; // convert from actual timeline to logical timeline
         if (endLogTime > startLogTime) {
             this._logicalToLog = this._logicalTimelineMax*1000/(endLogTime - startLogTime); //convert from logical timeline to log timeline
         }
-
     }
 
     getStartLogTime() {
@@ -57,6 +56,22 @@ class TimelineController {
             return this.getFrameLogicalTime(frameIndex)*(1/this._actualToLogical);
         }
     }
+
+    getFrameIndexFromLogicalTime(logicalTime) {
+        return (0 + logicalTime*this._frameRate);
+    }
+
+    getActualToLogicalFactor() {
+        return this._actualToLogical;
+    }
+
+    /**
+     * Set the conversion factor between actual and logical timeline
+     * @param {Number} actualToLogicalFactor
+     */
+    setActualToLogicalFactor(actualToLogicalFactor) {
+        this._actualToLogical = actualToLogicalFactor;
+    }
 }
 
 /**
@@ -77,22 +92,208 @@ class FormatController {
     }
 }
 
-class SVGElementGenerator {
+/**
+ * SVGToken represents a token animated on a model element
+ * It is created from reading frames, so it keeps track of the first and last frame indexes
+ * and attributes
+ */
+class SVGToken {
+    /**
+     *
+     * @param {String} elementId
+     * @param {Number} firstFrameIndex
+     * @param {Array} firstAtts
+     * @param {Number} lastFrameIndex
+     * @param {Array} lastAtts
+     */
+    constructor(elementId, firstFrameIndex, firstAtts, lastFrameIndex, lastAtts) {
+        this._elementId = elementId;
+        this._firstFrameIndex = firstFrameIndex;
+        this._lastFrameIndex = undefined;
+        this._firstAtts = firstAtts;
+        this._lastAtts = lastAtts;
+    }
+
+    getElementId() {
+        return this._elementId;
+    }
+
+    getFirstFrameIndex() {
+        return this._firstFrameIndex;
+    }
+
+    getLastFrameIndex() {
+        return this._lastFrameIndex;
+    }
+
+    setLastFrameIndex(lastFrameIndex) {
+        this._lastFrameIndex = lastFrameIndex;
+    }
+
+    setLastAtts(lastAtts) {
+        this._lastAtts = lastAtts;
+    }
+
+    getFirstDistance() {
+        return this._firstAtts[0];
+    }
+
+    getLastDistance() {
+        return this._lastAtts[0];
+    }
+}
+
+/**
+ * This class is to convert from a sequence of frames to SVG animation elements
+ */
+class SVGAnimator {
+    /**
+     * @param {String} pluginExecutionId
+     * @param {Buffer} frameBuffer
+     * @param {TimelineController} timeController
+     * @param {FormatController} formatController
+     * @param {AnimationController} modelController
+     * @param {SVGDocument} svgTokenAnimation
+     * @param {SVGDocument} svgTimeline
+     * @param {SVGDocument} svgProgressBar
+     */
+    constructor(pluginExecutionId, timeController,
+                formatController, modelController,
+                svgTokenAnimation,
+                svgTimeline,
+                svgProgressBar) {
+        this._chunkSize = 100;
+        this._replenishmentThres = 100;
+        this._obsoleteThres = 10;
+
+        this._frameBuffer = new Buffer(new DataRequester(pluginExecutionId), this._chunkSize, this._replenishmentThres, this._obsoleteThres);
+
+        this._timeController = timeController;
+        this._formatController = formatController;
+        this._modelController = modelController;
+        this._svgTokenAnimation = svgTokenAnimation;
+        this._svgTimeline = svgTimeline;
+        this._svgProgressBar = svgProgressBar;
+        this._animationTimeOutId = undefined;
+    }
 
     /**
-     * @param {Number} elementId: the id of the model element
-     * @param {FrameToken} startFrameToken
-     * @param {FrameToken} endFrameToken
+     * Animation loop to inject SVG elements into the document
+     */
+    animateLoop() {
+        let frames = this._frameBuffer.readNextChunk();
+        if (frames) {
+            this._animate(frames);
+        }
+        this._animationTimeOutId = setTimeout(this.animateLoop.bind(this), 0);
+    }
+
+    /**
+     *
+     * @param {Number} animationSpeed
+     */
+    setAnimationSpeed(animationSpeed) {
+        this._clearAnimation();
+        let currentLogicalTime = this._svgTokenAnimation.getCurrentTime();
+        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
+        this._frameBuffer.setCurrentIndex(currentFrameIndex);
+
+        this._timeController.setActualToLogicalFactor(animationSpeed);
+        this.animateLoop();
+    }
+
+    pause() {
+        this._svgTokenAnimation.pauseAnimations();
+        this._svgTimeline.pauseAnimations();
+        this._svgProgressBar.pauseAnimations();
+    }
+
+    continue() {
+        this._svgTokenAnimation.unpauseAnimations();
+        this._svgTimeline.unpauseAnimations();
+        this._svgProgressBar.unpauseAnimations();
+    }
+
+    goto(currentLogicalTime) {
+        this._clearAnimation();
+        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
+        this._frameBuffer.setCurrentIndex(currentFrameIndex);
+        this.animateLoop();
+    }
+
+    _clearAnimation() {
+        while (this._svgTokenAnimation.lastElementChild) {
+            this._svgTokenAnimation.removeChild(this._svgTokenAnimation.lastElementChild);
+        }
+        if (this._animationTimeOutId) window.clearTimeout(this._animationTimeOutId);
+    }
+
+    /**
+     * Animate an array of frames
+     * @param {Frame[]} frames
+     * @private
+     */
+    _animate(frames) {
+        let svgTokens = this._readSVGTokens(frames);
+        for (let token of svgTokens) {
+            let svgElement = this._createElement(token, this._timeController, this._formatController, this._modelController);
+            this._svgTokenAnimation.appendChild(svgElement);
+        }
+    }
+
+    /**
+     * Read a collection of SVGToken from an array of frames
+     * @param {Frame[]} frames
+     * @returns {() => IterableIterator<any>}
+     * @private
+     */
+    _readSVGTokens(frames) {
+        let tokenMap = new Map();
+        for (let frame of frames) {
+            let frameIndex = frame.index;
+            for (let element of frame.elements) {
+                let elementId = element[0];
+                for (let token of element[elementId]) {
+                    let tokenKey = elementId + "," + token[0];
+                    if (!tokenMap.has(tokenKey)) {
+                        tokenMap.set(tokenKey, new SVGToken(elementId, frameIndex, token[token[0]], frameIndex, token[token[0]]));
+                    }
+                    else {
+                        tokenMap.get(tokenKey).setLastFrameIndex(frameIndex);
+                        tokenMap.get(tokenKey).setLastAtts(token[token[0]]);
+                    }
+                }
+            }
+        }
+
+        return tokenMap.values;
+    }
+
+    //Not used
+    // _cleanUp() {
+    //     let currentTime = this._svgDoc.getCurentTime();
+    //     let removedIndexes = [];
+    //     for (let i = this._tokens.length -1; i >= 0 ; i--){
+    //         let token = this._tokens[i];
+    //         if (token.getEndTimePoint() < currentTime) {
+    //             this._svgTokenAnimation.removeChild(token.getVisualElement());
+    //             this._tokens.splice(i,1);
+    //         }
+    //     }
+    // }
+
+    /**
+     * @param {SVGToken} svgToken
      * @param {TimelineController} timeController
      * @param {FormatController} formatController
      * @returns {SVGGElement}
      */
-    createElement (elementId, startFrameToken, endFrameToken, timeController, formatController, modelController) {
-        let beginActualTime = timeController.getFrameActualTime(startFrameToken.getFrameIndex());
-        let endActualTime = timeController.getFrameActualTime(endFrameToken.getFrameIndex());
+    _createElement (svgToken, timeController, formatController, modelController) {
+        let beginActualTime = timeController.getFrameActualTime(svgToken.getFirstFrameIndex());
+        let endActualTime = timeController.getFrameActualTime(svgToken.getLastFrameIndex());
         let begin = beginActualTime;
         let dur = (endActualTime - beginActualTime);
-        let path = modelController.getPathElement(elementId);
+        let path = modelController.getPathElement(svgToken.getElementId());
         let raisedLevel = formatController.getTokenRaisedLevel();
         let color = formatController.getTokenColor();
 
@@ -106,8 +307,8 @@ class SVGElementGenerator {
         animateMotion.setAttributeNS(null, 'path', path)
         animateMotion.setAttributeNS(null, 'rotate', 'auto')
         animateMotion.setAttributeNS(null, 'calcMode', 'linear')
-        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + startFrameToken.getDistance() + ";" +
-                                        endFrameToken.getDistance())
+        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
+            svgToken.getLastDistance())
         animateMotion.setAttributeNS(null, 'keyTimes', '0;0;1');
         animateMotion.setAttributeNS(null, 'onend', 'parentElement.removeChild(this);');
         svgElement.appendChild(animateMotion)
@@ -125,78 +326,4 @@ class SVGElementGenerator {
 
         return svgElement;
     }
-}
-
-/**
- * This class is to convert from a sequence of frames to SVG animation elements
- */
-class SVGAnimator {
-    /**
-     *
-     * @param {Buffer} playBuffer
-     * @param {AnimationModel} animationModel
-     * @param {TimelineController} timeController
-     * @param {FormatController} formatController
-     * @param {AnimationController} modelController
-     * @param {SVGDocument} svgDoc
-     */
-    constructor(playBuffer, animationModel, timeController,
-                formatController, modelController,
-                svgDoc) {
-        this._playBuffer = playBuffer;
-        this._tokens = []; // array of SVGToken
-        this._animationModel = animationModel;
-        this._timeController = timeController;
-        this._formatController = formatController;
-        this._modelController = modelController;
-        this._svgDoc = svgDoc;
-    }
-
-    /**
-     * Animation loop to inject SVG elements into the document
-     */
-    animateLoop() {
-        //this._cleanUp();
-        if (!this._playBuffer.isEmpty()) return;
-        let frames = this._playBuffer.readNextChunk();
-        let tokenMap = new Map(); //tokenKey => array of FrameToken
-        for (let frame of frames) {
-            for (let frameToken of frame.getTokens()) {
-                if (!tokenMap.has(frameToken.getKey())) {
-                    tokenMap.set(frameToken.getKey(), {first:frameToken, last:frameToken});
-                }
-                else {
-                    tokenMap.get(frameToken.getKey()).last = frameToken;
-                }
-            }
-        }
-
-        let svgElementGenerator = new SVGElementGenerator();
-        for (let token of tokenMap.values) {
-            let svgElement = svgElementGenerator.createElement(token.first.getElementId(),
-                                                                token.first.getFrameIndex(),
-                                                                token.last.getFrameIndex(),
-                                                                this._timeController,
-                                                                this._formatController,
-                                                                this._modelController);
-            this._svgDoc.appendChild(svgElement);
-        }
-
-        setTimeout(this.animateLoop.bind(this),0);
-    }
-
-    //Not used
-    _cleanUp() {
-        let currentTime = this._svgDoc.getCurentTime();
-        let removedIndexes = [];
-        for (let i = this._tokens.length -1; i >= 0 ; i--){
-            let token = this._tokens[i];
-            if (token.getEndTimePoint() < currentTime) {
-                this._svgDoc.removeChild(token.getVisualElement());
-                this._tokens.splice(i,1);
-            }
-        }
-    }
-
-
 }

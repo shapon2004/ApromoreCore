@@ -188,6 +188,7 @@ let AnimationController = {
     this.logIntervalMargin = 8;
 
     // Reconstruct this.logCases
+    /*
     this.logCases = [];
     let offsets = [3, -3, 9, -9, 12, -12, 15, -15];
 
@@ -195,6 +196,7 @@ let AnimationController = {
       let log = logs[i];
       log.index = (i + 1); // set index
       this.logCases[i] = [];
+
       for (let j = 0; j < log.tokenAnimations.length; j++) {
         let tokenAnimation = log.tokenAnimations[j];
         let color = this.apPalette[i] || log.color;
@@ -207,6 +209,7 @@ let AnimationController = {
         );
       }
     }
+     */
 
     // Recreate progress indicators (deprecated)
     // let tokenE = this.svgMain.getElementById('progressAnimation');
@@ -400,6 +403,7 @@ let AnimationController = {
     t *= dt; // Number of engine slots: t = t/this.SlotEngineUnit
 
     // Display all the log trace markers
+    /*
     for (let logIdx = 0; logIdx < this.logs.length; logIdx++) {
       for (
           let tokenAnimIdx = 0;
@@ -409,6 +413,8 @@ let AnimationController = {
         this.logCases[logIdx][tokenAnimIdx].updateMarker(t, dt);
       }
     }
+
+     */
   },
 
   /*

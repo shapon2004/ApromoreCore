@@ -109,7 +109,7 @@ public class AnimationJSONBuilder {
         
         collectionObj.put("logs", logs);
         collectionObj.put("timeline", this.parseTimeline(animations));
-        collectionObj.put("tracedates", this.parseTraceStartDates());
+        //collectionObj.put("tracedates", this.parseTraceStartDates());
         //collectionObj.put("sequenceAnalysis", this.parseSequenceAnalysis());
         return collectionObj;
     }
