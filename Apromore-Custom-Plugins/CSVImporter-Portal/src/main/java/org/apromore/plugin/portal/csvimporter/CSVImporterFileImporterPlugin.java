@@ -24,6 +24,7 @@ package org.apromore.plugin.portal.csvimporter;
 
 import com.opencsv.CSVReader;
 import org.apromore.dao.model.Usermetadata;
+import org.apromore.dao.model.UsermetadataLog;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.plugin.portal.FileImporterPlugin;
 import org.apromore.plugin.portal.PortalContext;
@@ -38,9 +39,12 @@ import org.zkoss.util.media.Media;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.Button;
+import org.zkoss.zul.Label;
 import org.zkoss.zul.Window;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
@@ -141,10 +145,13 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
         if (mappingJSONList.size() != 0) {
 
             // Matching from the latest record
+            // TODO: sort by created time or Id
             for (int i = mappingJSONList.size() - 1; i >= 0; i--) {
                 System.out.println(mappingJSONList.get(i));
 
-                JSONObject jsonObject = (JSONObject) JSONValue.parse(mappingJSONList.get(i).getContent());
+                Usermetadata usermetadata = mappingJSONList.get(i);
+
+                JSONObject jsonObject = (JSONObject) JSONValue.parse(usermetadata.getContent());
 
                 JSONValue.parse(jsonObject.get("header").toString());
 
@@ -156,6 +163,21 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
                             (Window) portalContext.getUI().createComponent(getClass().getClassLoader(), "zul" +
                                     "/matchedMapping.zul", null, null);
                     matchedMappingPopUp.doModal();
+
+//                    String pattern = "yyyy-MM-dd";
+//                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+//                    String date = simpleDateFormat.format(new Date(usermetadata.getCreatedTime()));
+
+                    Date date = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(usermetadata.getCreatedTime());
+                    String formattedDate = new SimpleDateFormat("dd/MM/yyyy").format(date);
+                    String formattedTime = new SimpleDateFormat("HH:mm:ss").format(date);
+
+
+                    Label fileNameLabel = (Label) matchedMappingPopUp.getFellow("fileNameLabel");
+                    Set<UsermetadataLog> usermetadataLogSet = usermetadata.getUsermetadataLog();
+                    UsermetadataLog usermetadataLog = usermetadataLogSet.iterator().next();
+                    fileNameLabel.setValue("This mapping was extracted from file \"" + usermetadataLog.getLog().getName() + "\", uploaded at " +
+                            formattedTime + " on " + formattedDate);
 
                     Button uploadWithMatchedMappingBtn = (Button) matchedMappingPopUp.getFellow(
                             "uploadWithMatchedMapping");
@@ -211,7 +233,7 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
                     // only match the last mapping if there are multiple
                     return;
 
-                } catch (IOException e) {
+                } catch (IOException | ParseException e) {
                     e.printStackTrace();
                 }
 

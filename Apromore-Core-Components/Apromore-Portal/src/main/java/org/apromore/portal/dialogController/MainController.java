@@ -72,7 +72,6 @@ import org.apromore.portal.model.SummariesType;
 import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.UsernamesType;
 import org.apromore.portal.model.VersionSummaryType;
-import org.apromore.portal.plugin.PluginExecutionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Component;
@@ -82,6 +81,7 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.EventQueue;
 import org.zkoss.zk.ui.event.EventQueues;
+import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Hbox;
@@ -95,11 +95,10 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 import org.zkoss.zul.ext.Paginal;
 
+
 /**
  * Main Controller for the whole application, most of the UI state is managed here.
  * It is automatically instantiated as index.zul is loaded!
- * @todo Bruce: this MainController as a singleton is problematic when two client machines open the portal
- * The Portal opened by the last machine will take effect: data specific to this machine are likely seen on the other machines.  
  */
 public class MainController extends BaseController implements MainControllerInterface {
 
@@ -111,7 +110,6 @@ public class MainController extends BaseController implements MainControllerInte
 
     private static final String WELCOME_TEXT = "Welcome %s. Release notes (%s)"; //Welcome %s.
 
-    private PluginExecutionManager pluginManager = new PluginExecutionManager();
     private PortalContext portalContext;
     private MenuController menu;
     private SimpleSearchController simplesearch;
@@ -133,7 +131,7 @@ public class MainController extends BaseController implements MainControllerInte
 	public static MainController getController() {
         return controller;
     }
-	
+
     public MainController() {
         qe = EventQueues.lookup(Constants.EVENT_QUEUE_REFRESH_SCREEN, EventQueues.SESSION, true);
         portalSession = new PortalSession(this);
@@ -158,7 +156,6 @@ public class MainController extends BaseController implements MainControllerInte
     public void onCreate() throws InterruptedException {
         try {
             loadProperties();
-            UserSessionManager.initializeUser(getService());
 
             Window mainW = (Window) this.getFellow("mainW");
             Hbox pagingandbuttons = (Hbox) mainW.getFellow("pagingandbuttons");
@@ -172,10 +169,6 @@ public class MainController extends BaseController implements MainControllerInte
             this.simplesearch = new SimpleSearchController(this);
             this.portalContext = new PluginPortalContext(this);
             this.navigation = new NavigationController(this);
-
-            switchToProcessSummaryView();
-            UserSessionManager.setMainController(this);
-            pagingandbuttons.setVisible(true);
 
             controller = this;
             MainController self = this;
@@ -198,28 +191,27 @@ public class MainController extends BaseController implements MainControllerInte
                 }
             });
 
-            qe.subscribe(
-                    new EventListener<Event>() {
-                        @Override
-                        public void onEvent(Event event) throws Exception {
-                            if (Constants.EVENT_MESSAGE_SAVE.equals(event.getName())) {
-                                clearProcessVersions();
-                                reloadSummaries();
-                            }
-                        }
-                    });
+            qe.subscribe(new EventListener<Event>() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    switch (event.getName()) {
+                    case Constants.EVENT_MESSAGE_SAVE:
+                        clearProcessVersions();
+                        reloadSummaries();
+                        break;
 
-            qe.subscribe(
-                    new EventListener<Event>() {
-                        @Override
-                        public void onEvent(Event event) throws Exception {
-                            if (Constants.EVENT_QUEUE_REFRESH_SCREEN.equals(event.getName())) {
-                                reloadSummaries();
-                            }
-                        }
-                    });
-            
-            
+                    case Constants.EVENT_QUEUE_REFRESH_SCREEN:
+                        reloadSummaries();
+                        break;
+                    }
+                }
+            });
+
+            UserSessionManager.initializeUser(getService());
+            switchToProcessSummaryView();
+            UserSessionManager.setMainController(this);
+            pagingandbuttons.setVisible(true);
+
         } catch (Exception e) {
             String message;
             if (e.getMessage() == null) {
@@ -230,11 +222,11 @@ public class MainController extends BaseController implements MainControllerInte
             e.printStackTrace();
             Messagebox.show("Repository not available (" + message + ")", "Attention", Messagebox.OK, Messagebox.ERROR);
         }
-        
-        
 
     }
-    
+
+    // Bruce: Do not use Executions.sendRedirect as it does not work 
+    // for webapp bundles with different ZK execution env.
     public void refresh() {
         try {
             //Executions.sendRedirect(null);
@@ -248,10 +240,6 @@ public class MainController extends BaseController implements MainControllerInte
     
     public PortalContext getPortalContext() {
     	return this.portalContext;
-    }
-    
-    public PluginExecutionManager getPluginExecutionManager() {
-        return this.pluginManager;
     }
 
     public void loadWorkspace() {
@@ -926,6 +914,13 @@ public class MainController extends BaseController implements MainControllerInte
     			}
     		}
     	});
+
+        win.addEventListener("onOK", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                Events.sendEvent("onClick", (Button)dialog.getFellow("btnOK"), null);
+            }
+        });
 
     }
 

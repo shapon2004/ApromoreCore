@@ -1,6 +1,8 @@
 /*-
  * #%L
  * This file is part of "Apromore Core".
+ *
+ * Copyright (C) 2020 University of Tartu
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
  * %%
@@ -25,6 +27,7 @@ package org.apromore.plugin.portal.csvimporter;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import org.apache.commons.lang.StringUtils;
+import org.apromore.dao.model.Log;
 import org.apromore.dao.model.User;
 import org.apromore.dao.model.Usermetadata;
 import org.apromore.exception.UserNotFoundException;
@@ -272,7 +275,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
         } else {
             try {
                 //TODO: persist mapping
-                storeMappingAsJSON(media, sample);
+//                storeMappingAsJSON(media, sample);
 
                 CSVReader reader = new CSVFileReader().newCSVReader(media, getFileEncoding());
                 if (reader != null) {
@@ -292,7 +295,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
         }
     }
 
-    private String storeMappingAsJSON(Media media, LogSample logSample) throws UserNotFoundException {
+    private String storeMappingAsJSON(Media media, LogSample logSample, Log log) throws UserNotFoundException {
 
         String username = portalContext.getCurrentUser().getUsername();
 
@@ -324,7 +327,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
 
         //TODO: fix logId
 //        eventLogService.saveLayoutByLogId(90, userId, jsonStr);
-        userMetadataService.saveUserMetadataWithoutLog(jsonStr, UserMetadataTypeEnum.CSV_IMPORTER, username);
+        userMetadataService.saveUserMetadataLinkedToOneLog(jsonStr, UserMetadataTypeEnum.CSV_IMPORTER, username, log.getId());
 
 
         return null;
@@ -944,7 +947,7 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
 
             int folderId = portalContext.getCurrentFolder() == null ? 0 : portalContext.getCurrentFolder().getId();
 
-            eventLogService.importLog(
+            Log savedLog = eventLogService.importLog(
                     portalContext.getCurrentUser().getUsername(),
                     folderId,
                     name,
@@ -954,6 +957,8 @@ public class CSVImporterController extends SelectorComposer<Window> implements C
                     DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()).toString(),
                     isPublic  // public?
             );
+
+            storeMappingAsJSON(media, sample, savedLog);
 
             String successMessage;
             if (xesModel.isRowLimitExceeded()) {
