@@ -574,7 +574,7 @@ let AnimationController = {
 
   // Move forward 1 slot
   fastforward: function() {
-
+    this.svgAnimator.fastForward();
     // if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
     //   return;
     // } else {
@@ -585,6 +585,7 @@ let AnimationController = {
 
   // Move backward 1 slot
   fastBackward: function() {
+    this.svgAnimator.fastBackward();
     // if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
     //   return;
     // } else {
@@ -840,6 +841,7 @@ let AnimationController = {
       if (isPlayingBeforeDrag) {
         me.play();
       }
+      this.svgAnimator.goto(time);
     }
 
     function getTimeFromMouseX(evt) {
