@@ -72,10 +72,10 @@ Ap.la.session = (function() {
   ]; // _.range(-9, 11).map((x) => Math.pow(2, x))
   let editor, controller, animationData;
 
-  function init(xml, url, namespace, data) {
+  function init(xml, url, namespace, data, pluginExecutionId) {
     animationData = data;
     editor = initEditor(xml, url, namespace);
-    controller = new Ap.la.AnimationController(editor.getCanvas());
+    controller = new Ap.la.AnimationController(editor.getCanvas(), pluginExecutionId);
     initSpeedControl();
   }
 
@@ -139,7 +139,7 @@ Ap.la.session = (function() {
     let lastSliderValue = speedControl.slider("value");
     speedControl.on("slidechange", function(event, ui) {
       let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
-      controller.changeSpeed(speedRatio, ui.value - 10);
+      controller.changeSpeed(speedRatio, STEP_VALUES[ui.value - 1]);
       lastSliderValue = ui.value;
     });
   }

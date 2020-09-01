@@ -79,7 +79,7 @@
 
 let AnimationController = {
 
-  construct: function(canvas) {
+  construct: function(canvas, pluginExecutionId) {
 
     this.jsonModel = null; // Parsed objects of the process model
     this.jsonServer = null; // Parsed objects returned from the server
@@ -110,6 +110,9 @@ let AnimationController = {
     this.timelineOffset = {
       x: 20, y: 20,
     };
+
+    this.pluginExecutionId = pluginExecutionId;
+
   },
 
   pauseAnimations: function() {
@@ -187,6 +190,7 @@ let AnimationController = {
     this.logIntervalHeight = 7;
     this.logIntervalMargin = 8;
 
+
     // Reconstruct this.logCases
     /*
     this.logCases = [];
@@ -234,7 +238,11 @@ let AnimationController = {
         me.playPause();
       }
     };
-    this.start();
+
+    //this.start();
+    this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
+    this.svgAnimator = new SVGAnimator(this.animationContext, this, this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
+    this.svgAnimator.animateLoop();
   },
 
   // Add log intervals to timeline
@@ -360,8 +368,11 @@ let AnimationController = {
 
     this.currentMs = timeMs
 
+    // this.svgDocs.forEach(function(svgDoc) {
+    //   svgDoc.setCurrentTime(time);
+    // });
     this.svgDocs.forEach(function(svgDoc) {
-      svgDoc.setCurrentTime(time);
+      if (svgDoc != this.svgMain) svgDoc.setCurrentTime(time);
     });
 
     if (!changeSpeed && !forController) {
@@ -490,7 +501,7 @@ let AnimationController = {
    * attributes of tokens unchangeed, the engine will automatically adjust the tokens to go faster or slower
    * @param speedRatio
    */
-  changeSpeed: function(speedRatio) {
+  changeSpeed: function(speedRatio, speedLevel) {
     if (!this.slotEngineMs) {
       return;
     }
@@ -550,6 +561,8 @@ let AnimationController = {
     // Note: update engine time without updating markers and the clock
     this.setCurrentTime(newTime, timeMs, true);
 
+    this.svgAnimator.setSpeed(speedLevel);
+
     if (isCurrentlyPlaying) {
       this.play();
     }
@@ -561,25 +574,27 @@ let AnimationController = {
 
   // Move forward 1 slot
   fastforward: function() {
-    if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let s = this.getCurrentTime() + (1 * this.slotEngineMs) / 1000
-      this.setCurrentTime(s, this.slotSecondstoRealMs(s));
-    }
+
+    // if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
+    //   return;
+    // } else {
+    //   let s = this.getCurrentTime() + (1 * this.slotEngineMs) / 1000
+    //   this.setCurrentTime(s, this.slotSecondstoRealMs(s));
+    // }
   },
 
   // Move backward 1 slot
   fastBackward: function() {
-    if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let s = this.getCurrentTime() - (1 * this.slotEngineMs) / 1000
-      this.setCurrentTime(s, this.slotSecondstoRealMs(s));
-    }
+    // if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
+    //   return;
+    // } else {
+    //   let s = this.getCurrentTime() - (1 * this.slotEngineMs) / 1000
+    //   this.setCurrentTime(s, this.slotSecondstoRealMs(s));
+    // }
   },
 
   nextTrace: function() {
+    /*
     if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
       return;
     } else {
@@ -595,9 +610,12 @@ let AnimationController = {
         }
       }
     }
+
+     */
   },
 
   previousTrace: function() {
+    /*
     if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
       return;
     } else {
@@ -613,6 +631,8 @@ let AnimationController = {
         }
       }
     }
+
+     */
   },
 
   canPause: function() {
@@ -638,12 +658,14 @@ let AnimationController = {
   },
 
   pause: function() {
-    this.pauseAnimations();
+    //this.pauseAnimations();
+    this.svgAnimator.pause();
     this.setPlayPauseBtn(true);
   },
 
   play: function() {
-    this.unpauseAnimations();
+    //this.unpauseAnimations();
+    this.svgAnimator.unpause();
     this.setPlayPauseBtn(false);
   },
 
@@ -864,10 +886,13 @@ let AnimationController = {
   },
 
   setCaseLabelsVisible: function(visible) {
+    /*
     if (this.caseLabelsVisible != visible) {
       this.caseLabelsVisible = visible;
       this.updateMarkersOnce();
     }
+
+     */
   },
 
   // Deprecated section

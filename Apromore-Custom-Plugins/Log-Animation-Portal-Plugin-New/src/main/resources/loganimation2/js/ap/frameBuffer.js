@@ -22,23 +22,78 @@
  * Cleaning operation:
  * The used stock is kept in the buffer as long as it is under a history threshold, in case it will be read again (for read efficiency)
  * If the used stock is over a history threshold, old frames must be removed out (to avoid out of memory).
+ *
+ * Each frame in the buffer has this format:
+ * {
+ *      index:10,
+ *      elements: [
+ *          {elementId1: [{caseId1:[0.1, 1, “#abcd”]}, {caseId2:[0.1, 1, “#abcd”]},…]},
+ *          {elementId2: [{caseId1:[0.1, 1, “#abcd”]}, {caseId2:[0.1, 1, “#abcd”]},…]},
+ *          ...
+ *          {elementIdN: [{caseId1:[0.1, 1, “#abcd”]}, {caseId2:[0.1, 1, “#abcd”]},…]},
+ *      ]
+ * }
  */
 class Buffer {
     /**
      *
-     * @param {DataRequester} dataRequester
+     * @param {AnimationContext} animationContext
      * @param {Number} chunkSize: the number of frames read from the stock in every request
      * @param {Number} safetyThreshold: the number of remaining frames in the buffer that replenishment must achieve
      * @param {Number} minimumThreshold: minimum stock level before replenishment
      * @param {Number} historyThreshold: the number of old frames kept in the buffer
      */
-    constructor(dataRequester, chunkSize, safetyThreshold, minimumThreshold, historyThreshold) {
-        this._dataRequester = dataRequester;
-        this._chunkSize = chunkSize; //number of frames in every read
-        this._safetyThreshold = safetyThreshold;
-        this._minimumThreshold = minimumThreshold;
-        this._historyThreshold = historyThreshold;
+    constructor(animationContext) {
+        this._dataRequester = new DataRequester(animationContext.getPluginExecutionId());
+        this._chunkSize = Buffer.DEFAULT_CHUNK_SIZE; //number of frames in every read
+        this._safetyThreshold = Buffer.DEFAULT_SAFETY_THRES;
+        this._minimumThreshold = Buffer.DEFAULT_MIN_THRES;
+        this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
         this.clear();
+    }
+
+    static get DEFAULT_CHUNK_SIZE() {
+        return 300;
+    }
+
+    static get DEFAULT_SAFETY_THRES() {
+        return 50;
+    }
+
+    static get DEFAULT_MIN_THRES() {
+        return 20;
+    }
+
+    static get DEFAULT_HISTORY_THRES() {
+        return 50;
+    }
+
+    getSafefyThreshold() {
+        return this._safetyThreshold;
+    }
+
+    setSafetyThreshold(safetyThreshold) {
+        this._safetyThreshold = safetyThreshold;
+    }
+
+    getMinimumThreshold() {
+        return this._minimumThreshold;
+    }
+
+    setMinimumThreshold(minimumThreshold) {
+        this._minimumThreshold = minimumThreshold;
+    }
+
+    getHistoryThreshold() {
+        return this._historyThreshold;
+    }
+
+    setHistoryThreshold(historyThreshold) {
+        this._historyThreshold = historyThreshold;
+    }
+
+    setChunkSize(chunkSize) {
+        this._chunkSize = chunkSize;
     }
 
     clear() {
@@ -132,14 +187,14 @@ class Buffer {
     }
 
     /**
-     * Random reading the buffer at an arbitrary frame index, e.g when the tick is dragged randomly on the timeline.
+     * Move the buffer currentIndex to a frame, e.g when the tick is dragged randomly on the timeline.
      * The frame index corresponds to a buffer index which can be less or greater than the currentIndex, or can
      * be outside the current frames in the buffer. In the latter case, it is too far reaching, the buffer will be
      * cleared and new frames must be read into the buffer starting from the input frame.
      *
      * @param {Number} frameIndex: the frame index
      */
-    readAtFrameIndex(frameIndex) {
+    moveTo(frameIndex) {
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
         if (bufferIndex >= 0) {
             this._currentIndex = bufferIndex;
@@ -147,23 +202,6 @@ class Buffer {
         else { // the new requested frames are too far outside this buffer
             this.clear();
         }
-        return this.readNext();
-    }
-
-    /**
-     * Convert from frame index to the buffer index
-     * This depends on the frame index attribute of the last frame in the buffer
-     * @param {Number} frameIndex
-     * @private
-     */
-    _getBufferIndexFromFrameIndex(frameIndex) {
-        if (!this.isEmpty()) {
-            let firstFrameIndex = this._frames[0].index;
-            if (frameIndex >= firstFrameIndex) {
-                return (frameIndex - firstFrameIndex);
-            }
-        }
-        return -1;
     }
 
     /**
@@ -183,8 +221,24 @@ class Buffer {
     }
 
     /**
-     * Buffer replenishment always reads data until reaching a safety stock level
-     * which is more than a minimum stock level.
+     * Convert from frame index to the buffer index
+     * This depends on the frame index attribute of the last frame in the buffer
+     * @param {Number} frameIndex
+     * @private
+     */
+    _getBufferIndexFromFrameIndex(frameIndex) {
+        if (!this.isEmpty()) {
+            let firstFrameIndex = this._frames[0].index;
+            if (frameIndex >= firstFrameIndex) {
+                return (frameIndex - firstFrameIndex);
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Buffer replenishment reads data until reaching a safety stock level
+     * Replenish - data request - write forms a loop.
      * @private
      */
     _replenish() {

@@ -7,25 +7,24 @@
 class TimelineController {
     /**
      *
-     * @param {Number} startLogTime: the start timestamp in the log
-     * @param {Number} endLogTime: the end timestamp in the log
-     * @param {Number} logicalTimelineMax: the maximum logical time in seconds
-     * @param {Number} frameRate: the frame rate, fps
-     * @param {Number} actualToLogicalFactor: the animation speed (integers) 0.1x, 0.2x, 1x, 2x, 3x
+     * @param {AnimationContext} animationContext
      */
-    constructor(startLogTime, endLogTime, logicalTimelineMax, frameRate, actualToLogicalFactor) {
-        this._startLogTime = startLogTime;
-        this._endLogTime = endLogTime;
-        this._logicalTimelineMax = logicalTimelineMax;
-        this._frameRate = frameRate;
-        this._actualToLogical = actualToLogicalFactor; // convert from actual timeline to logical timeline
-        if (endLogTime > startLogTime) {
-            this._logicalToLog = this._logicalTimelineMax*1000/(endLogTime - startLogTime); //convert from logical timeline to log timeline
+    constructor(animationContext) {
+        this._animationContext = animationContext;
+    }
+
+    getLogTimeFromLogicalTime(logicalTime) {
+        return logicalTime*this._animationContext.getLogicalToLogFactor();
+    }
+
+    getActualTimeFromLogicalTime(logicalTime) {
+        if (this._animationContext.getActualToLogicalFactor() > 0) {
+            return logicalTime * (1 / this._animationContext.getActualToLogicalFactor());
         }
     }
 
-    getStartLogTime() {
-        return this._startLogTime;
+    getLogicalTimeFromActualTime(actualTime) {
+        return actualTime * this._animationContext.getActualToLogicalFactor();
     }
 
     /**
@@ -34,7 +33,7 @@ class TimelineController {
      * @returns {number}: the log timestamp of this frame
      */
     getFrameLogTime(frameIndex) {
-        return this._startLogTime + this._logicalToLog*this.getFrameLogicalTime(frameIndex);
+        return this._animationContext.getLogStartTime() + this._animationContext.getLogicalToLogFactor()*this.getFrameLogicalTime(frameIndex);
     }
 
     /**
@@ -43,7 +42,7 @@ class TimelineController {
      * @returns {Number} the number of seconds from the start
      */
     getFrameLogicalTime(frameIndex) {
-        return frameIndex*(1/this._frameRate*1000);
+        return frameIndex*(1/this._animationContext.getFrameRate()*1000);
     }
 
     /**
@@ -52,25 +51,13 @@ class TimelineController {
      * @returns {number} the number of seconds from the start
      */
     getFrameActualTime(frameIndex) {
-        if (this._actualToLogical > 0) {
-            return this.getFrameLogicalTime(frameIndex)*(1/this._actualToLogical);
+        if (this._animationContext.getActualToLogicalFactor() > 0) {
+            return this.getFrameLogicalTime(frameIndex)*(1/this._animationContext.getActualToLogicalFactor());
         }
     }
 
     getFrameIndexFromLogicalTime(logicalTime) {
-        return (0 + logicalTime*this._frameRate);
-    }
-
-    getActualToLogicalFactor() {
-        return this._actualToLogical;
-    }
-
-    /**
-     * Set the conversion factor between actual and logical timeline
-     * @param {Number} actualToLogicalFactor
-     */
-    setActualToLogicalFactor(actualToLogicalFactor) {
-        this._actualToLogical = actualToLogicalFactor;
+        return (logicalTime*this._animationContext.getFrameRate());
     }
 }
 
@@ -93,9 +80,8 @@ class FormatController {
 }
 
 /**
- * SVGToken represents a token animated on a model element
- * It is created from reading frames, so it keeps track of the first and last frame indexes
- * and attributes
+ * SVGToken represents a token animated on a model element over a sequence of frames
+ * It is created from reading frames, it keeps track of the first and last frame indexes and attributes
  */
 class SVGToken {
     /**
@@ -143,39 +129,91 @@ class SVGToken {
     }
 }
 
+class AnimationContext {
+    /**
+     *
+     * @param {String} pluginExecutionId
+     * @param {Number} logStartTime: the start timestamp in the log
+     * @param {Number} logEndTime: the end timestamp in the log
+     * @param {Number} logicalTimelineMax: the maximum logical time in seconds
+     */
+    constructor(pluginExecutionId, logStartTime, logEndTime, logicalTimelineMax) {
+        this._pluginExecutionId = pluginExecutionId;
+        this._logStartTime = logStartTime;
+        this._logEndTime = logEndTime;
+        this._logicalTimelineMax = logicalTimelineMax;
+        this._frameRate = 24;
+        this._actualToLogicalFactor = 1;
+        if (logEndTime > logStartTime) {
+            this._logicalToLogFactor = this._logicalTimelineMax*1000/(logEndTime - logStartTime); //convert from logical timeline to log timeline
+        }
+    }
+
+    getPluginExecutionId() {
+        return this._pluginExecutionId;
+    }
+
+    getLogStartTime() {
+        return this._logStartTime;
+    }
+
+    getLogEndTime() {
+        return this._logEndTime;
+    }
+
+    getLogicalTimelineMax() {
+        return this._logicalTimelineMax;
+    }
+
+    getFrameRate() {
+        return this._frameRate;
+    }
+
+    setFrameRate(frameRate) {
+        this._frameRate = frameRate;
+    }
+
+    getActualToLogicalFactor() {
+        return this._actualToLogicalFactor;
+    }
+
+    setActualToLogicalFactor(actualToLogicalFactor) {
+        this._actualToLogicalFactor = actualToLogicalFactor;
+    }
+
+    getLogicalToLogFactor() {
+        return this._logicalToLogFactor;
+    }
+}
+
 /**
- * This class is to convert from a sequence of frames to SVG animation elements
+ * This class controls the animation
  */
 class SVGAnimator {
     /**
-     * @param {String} pluginExecutionId
-     * @param {Buffer} frameBuffer
-     * @param {TimelineController} timeController
-     * @param {FormatController} formatController
+     * @param {AnimationContext} animationContext
      * @param {AnimationController} modelController
      * @param {SVGDocument} svgTokenAnimation
      * @param {SVGDocument} svgTimeline
      * @param {SVGDocument} svgProgressBar
+     * @param {SVGDocument} svgViewport
      */
-    constructor(pluginExecutionId, timeController,
-                formatController, modelController,
+    constructor(animationContext,
+                modelController,
                 svgTokenAnimation,
                 svgTimeline,
-                svgProgressBar) {
-        this._chunkSize = 300; //slightly more than 10 seconds
-        this._safetyThreshold = 50;
-        this._minimumThreshold = 20;
-        this._historyThreshold = 20;
-
-        this._frameBuffer = new Buffer(new DataRequester(pluginExecutionId), this._chunkSize, this._safetyThreshold, this._minimumThreshold, this._historyThreshold);
-
-        this._timeController = timeController;
-        this._formatController = formatController;
+                svgProgressBar,
+                svgViewport) {
+        this._animationContext = animationContext;
+        this._frameBuffer = new Buffer(animationContext);
+        this._timeController = new TimelineController(animationContext);
+        this._formatController = new FormatController();
         this._modelController = modelController;
         this._svgTokenAnimation = svgTokenAnimation;
         this._svgTimeline = svgTimeline;
         this._svgProgressBar = svgProgressBar;
-        this._animationTimeOutId = undefined;
+        this._svgViewport = svgViewport;
+        this._animationClockId = undefined;
     }
 
     /**
@@ -183,24 +221,50 @@ class SVGAnimator {
      */
     animateLoop() {
         let frames = this._frameBuffer.readNext();
-        if (frames) {
+        if (frames && frames.length > 0) {
             this._animate(frames);
+            this.unpause();
         }
-        this._animationTimeOutId = setTimeout(this.animateLoop.bind(this), 0);
+        else {
+            this.pause();
+        }
+        this._animationClockId = setTimeout(this.animateLoop.bind(this), 1000/this._animationContext.getActualToLogicalFactor());
     }
 
     /**
-     *
-     * @param {Number} animationSpeed
+     * Set a new speed for the animation
+     * The effect of changing speed is that the position of everything on the UI is unchanged but then they will move
+     * slower or faster. To create that effect, SVG elements for tokens are all cleared and recreated based on the new
+     * speed setting
+     * @param {Number} speed
      */
-    setAnimationSpeed(animationSpeed) {
-        this._clearAnimation();
-        let currentLogicalTime = this._svgTokenAnimation.getCurrentTime();
-        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
-        this._frameBuffer.setCurrentIndex(currentFrameIndex);
+    setSpeed(speed) {
+        if (speed && speed !== this._animationContext.getActualToLogicalFactor()) {
+            //Wipe out all the current tokens
+            this.pause();
+            this._clearTokenAnimation();
 
-        this._timeController.setActualToLogicalFactor(animationSpeed);
+            //Move the buffer to the current frame index being played at this moment
+            let currentActualTime = this._svgTokenAnimation.getCurrentTime();
+            let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
+            //The request rate for frames is in sync with the animation speed, thus the current frame index can be found from
+            //the current actual time used as the current logical time.
+            let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
+            this._frameBuffer.moveTo(currentFrameIndex);
+
+            //Set the context to the new speed and adjust the buffer to adapt to the new speed
+            this._animationContext.setActualToLogicalFactor(speed);
+            if (speed > 1) {
+                this._frameBuffer.setChunkSize(Buffer.DEFAULT_CHUNK_SIZE + (speed-1)*Buffer.DEFAULT_CHUNK_SIZE);
+            }
+            //Animate again from the current frame index with the new setting
+            this.play();
+        }
+    }
+
+    play() {
         this.animateLoop();
+        this.unpause();
     }
 
     pause() {
@@ -209,24 +273,44 @@ class SVGAnimator {
         this._svgProgressBar.pauseAnimations();
     }
 
-    continue() {
+    unpause() {
         this._svgTokenAnimation.unpauseAnimations();
         this._svgTimeline.unpauseAnimations();
         this._svgProgressBar.unpauseAnimations();
     }
 
-    goto(currentLogicalTime) {
-        this._clearAnimation();
-        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
-        this._frameBuffer.setCurrentIndex(currentFrameIndex);
-        this.animateLoop();
+    goto(logicalTime) {
+        let logTime = this._timeController.getLogTimeFromLogicalTime(logicalTime);
+        if (logTime > this._animationContext.getLogEndTime() || logTime < this._animationContext.getLogStartTime()) {
+            return;
+        }
+
+        this.pause();
+        this._clearTokenAnimation();
+
+        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(logicalTime);
+        this._frameBuffer.moveTo(currentFrameIndex);
+
+        this.play();
     }
 
-    _clearAnimation() {
+    fastForward() {
+        let currentActualTime = this._svgTokenAnimation.getCurrentTime();
+        let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
+        this.goto(currentLogicalTime + 5);
+    }
+
+    fastBackward() {
+        let currentActualTime = this._svgTokenAnimation.getCurrentTime();
+        let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
+        this.goto(currentLogicalTime - 5);
+    }
+
+    _clearTokenAnimation() {
         while (this._svgTokenAnimation.lastElementChild) {
             this._svgTokenAnimation.removeChild(this._svgTokenAnimation.lastElementChild);
         }
-        if (this._animationTimeOutId) window.clearTimeout(this._animationTimeOutId);
+        if (this._animationClockId) window.clearTimeout(this._animationClockId);
     }
 
     /**
@@ -237,15 +321,17 @@ class SVGAnimator {
     _animate(frames) {
         let svgTokens = this._readSVGTokens(frames);
         for (let token of svgTokens) {
-            let svgElement = this._createElement(token, this._timeController, this._formatController, this._modelController);
-            this._svgTokenAnimation.appendChild(svgElement);
+            let svgElement = this._createElement(token);
+            this._svgViewport.appendChild(svgElement);
         }
     }
 
     /**
      * Read a collection of SVGToken from an array of frames
-     * @param {Frame[]} frames
-     * @returns {() => IterableIterator<any>}
+     * Frames are ordered in the increasing value of frame indexes and this is also the timing order of frames
+     * Thus, tokens with the same token key (elementId+caseId) are also ordered in consecutive frames
+     * @param {[]} frames
+     * @returns {IterableIterator<any>}
      * @private
      */
     _readSVGTokens(frames) {
@@ -253,21 +339,26 @@ class SVGAnimator {
         for (let frame of frames) {
             let frameIndex = frame.index;
             for (let element of frame.elements) {
-                let elementId = element[0];
+                let elementId = Object.keys(element)[0];
                 for (let token of element[elementId]) {
-                    let tokenKey = elementId + "," + token[0];
+                    let caseId = Object.keys(token)[0];
+                    let tokenKey = elementId + "," + caseId;
                     if (!tokenMap.has(tokenKey)) {
-                        tokenMap.set(tokenKey, new SVGToken(elementId, frameIndex, token[token[0]], frameIndex, token[token[0]]));
+                        tokenMap.set(tokenKey, new SVGToken(elementId, frameIndex, token[caseId], frameIndex, token[caseId]));
                     }
                     else {
                         tokenMap.get(tokenKey).setLastFrameIndex(frameIndex);
-                        tokenMap.get(tokenKey).setLastAtts(token[token[0]]);
+                        tokenMap.get(tokenKey).setLastAtts(token[caseId]);
                     }
                 }
             }
         }
 
         return tokenMap.values;
+    }
+
+    _getPathElement(elementId) {
+        return this._modelController.getPathElement(elementId);
     }
 
     //Not used
@@ -285,18 +376,16 @@ class SVGAnimator {
 
     /**
      * @param {SVGToken} svgToken
-     * @param {TimelineController} timeController
-     * @param {FormatController} formatController
-     * @returns {SVGGElement}
+     * @returns {SVGElement}
      */
-    _createElement (svgToken, timeController, formatController, modelController) {
-        let beginActualTime = timeController.getFrameActualTime(svgToken.getFirstFrameIndex());
-        let endActualTime = timeController.getFrameActualTime(svgToken.getLastFrameIndex());
+    _createElement (svgToken) {
+        let beginActualTime = this._timeController.getFrameActualTime(svgToken.getFirstFrameIndex());
+        let endActualTime = this._timeController.getFrameActualTime(svgToken.getLastFrameIndex());
         let begin = beginActualTime;
         let dur = (endActualTime - beginActualTime);
-        let path = modelController.getPathElement(svgToken.getElementId());
-        let raisedLevel = formatController.getTokenRaisedLevel();
-        let color = formatController.getTokenColor();
+        let path = this._getPathElement(svgToken.getElementId());
+        let raisedLevel = this._formatController.getTokenRaisedLevel();
+        let color = this._formatController.getTokenColor();
 
         let svgElement = document.createElementNS(SVG_NS, 'g')
         svgElement.setAttributeNS(null, 'stroke', 'none')

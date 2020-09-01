@@ -6,7 +6,6 @@ class DataRequester {
      */
     constructor(pluginExecutionId) {
         this._buffer = undefined;
-        this._receivedData = undefined;
         this._hasDataRequestError = false;
         this._pluginExecutionId = pluginExecutionId;
 
@@ -16,7 +15,6 @@ class DataRequester {
             let result = e.data;
             let requestToken = e.requestToken;
             if (result.success) {
-                self._receivedData = result;
                 if (self._buffer) {
                     self._buffer.write(result.data, requestToken);
                 }
@@ -45,14 +43,6 @@ class DataRequester {
         this._buffer = buffer;
         this._requestToken = requestToken;
         this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: this._pluginExecutionId, requestToken: requestToken});
-    }
-
-    getReceivedData() {
-        return this._receivedData;
-    }
-
-    hasDataRequestError() {
-        return this._hasDataRequestError;
     }
 
     calculatePrimes(iterations, multiplier) {
