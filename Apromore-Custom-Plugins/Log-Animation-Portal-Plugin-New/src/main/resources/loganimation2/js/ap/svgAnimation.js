@@ -162,11 +162,12 @@ class SVGAnimator {
                 svgTokenAnimation,
                 svgTimeline,
                 svgProgressBar) {
-        this._chunkSize = 100;
-        this._replenishmentThres = 100;
-        this._obsoleteThres = 10;
+        this._chunkSize = 300; //slightly more than 10 seconds
+        this._safetyThreshold = 50;
+        this._minimumThreshold = 20;
+        this._historyThreshold = 20;
 
-        this._frameBuffer = new Buffer(new DataRequester(pluginExecutionId), this._chunkSize, this._replenishmentThres, this._obsoleteThres);
+        this._frameBuffer = new Buffer(new DataRequester(pluginExecutionId), this._chunkSize, this._safetyThreshold, this._minimumThreshold, this._historyThreshold);
 
         this._timeController = timeController;
         this._formatController = formatController;
@@ -181,7 +182,7 @@ class SVGAnimator {
      * Animation loop to inject SVG elements into the document
      */
     animateLoop() {
-        let frames = this._frameBuffer.readNextChunk();
+        let frames = this._frameBuffer.readNext();
         if (frames) {
             this._animate(frames);
         }

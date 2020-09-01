@@ -3,6 +3,7 @@ onmessage = function(e) {
     let context = this;
     let startFrameIndex = e.data.startFrame;
     let pluginExecutionId = e.data.pluginExecutionId;
+    let requestToken = e.requestToken;
 
     let httpRequest = new XMLHttpRequest();
 
@@ -11,7 +12,7 @@ onmessage = function(e) {
             if (httpRequest.status === 200) {
                 //doPointlessComputationsWithBlocking();
                 let jsonResponse = JSON.parse(httpRequest.responseText);
-                context.postMessage({success: true, code: httpRequest.status, data: jsonResponse});
+                context.postMessage({success: true, code: httpRequest.status, data: jsonResponse, requestToken: requestToken});
             } else {
                 context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});
             }

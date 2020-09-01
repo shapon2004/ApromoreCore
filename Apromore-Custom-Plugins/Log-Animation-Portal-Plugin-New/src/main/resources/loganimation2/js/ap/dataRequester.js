@@ -14,10 +14,11 @@ class DataRequester {
         let self = this;
         this._workerProxy.onmessage = function(e) {
             let result = e.data;
+            let requestToken = e.requestToken;
             if (result.success) {
                 self._receivedData = result;
                 if (self._buffer) {
-                    self._buffer.writeNextChunk(result.data);
+                    self._buffer.write(result.data, requestToken);
                 }
             }
 
@@ -38,10 +39,12 @@ class DataRequester {
      *
      * @param {Number} frameIndex
      * @param {Buffer} buffer
+     * @param {Number} requestToken
      */
-    requestData(frameIndex, buffer) {
+    requestData(frameIndex, buffer, requestToken) {
         this._buffer = buffer;
-        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: this._pluginExecutionId});
+        this._requestToken = requestToken;
+        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: this._pluginExecutionId, requestToken: requestToken});
     }
 
     getReceivedData() {
