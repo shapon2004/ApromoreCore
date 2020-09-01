@@ -307,8 +307,8 @@ class SVGAnimator {
     }
 
     _clearTokenAnimation() {
-        while (this._svgTokenAnimation.lastElementChild) {
-            this._svgTokenAnimation.removeChild(this._svgTokenAnimation.lastElementChild);
+        while (this._svgViewport.lastElementChild) {
+            this._svgViewport.removeChild(this._svgViewport.lastElementChild);
         }
         if (this._animationClockId) window.clearTimeout(this._animationClockId);
     }
