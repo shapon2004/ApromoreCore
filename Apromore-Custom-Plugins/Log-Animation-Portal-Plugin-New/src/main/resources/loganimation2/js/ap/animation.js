@@ -818,11 +818,11 @@ let AnimationController = {
     }
 
     function onDragging(evt) {
-      evt.preventDefault();
-      if (dragging) {
-        let time = getTimeFromMouseX(evt);
-        this.setCurrentTime(time, this.slotSecondstoRealMs(time), null, true); // for controller only
-      }
+      // evt.preventDefault();
+      // if (dragging) {
+      //   let time = getTimeFromMouseX(evt);
+      //   this.setCurrentTime(time, this.slotSecondstoRealMs(time), null, true); // for controller only
+      // }
     }
 
     // Only update SVG current time when the dragging finishes to avoid heavy on-the-fly updates

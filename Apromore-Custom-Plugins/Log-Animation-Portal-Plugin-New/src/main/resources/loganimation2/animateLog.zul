@@ -25,6 +25,8 @@
 <?link rel="shortcut icon" href="../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?script src="../themes/ap/common/js/index.js"?>
 <?script src="/loganimation2/js/ap/dataRequester.js" ?>
+<?script src="/loganimation2/js/ap/frameBuffer.js" ?>
+<?script src="/loganimation2/js/ap/svgAnimation.js" ?>
 <z:window id="win"
           xmlns="http://www.zkoss.org/2005/zk/native"
           xmlns:n="http://www.zkoss.org/2005/zk/native"
@@ -126,14 +128,6 @@
                     Ap.la.session.initController();
                   }, 1000);
                 });
-
-                //Testing
-                //console.log("pluginExecutionId before sending request: " + window.pluginExecutionId);
-                dataRequester = new DataRequester();
-                window.setInterval(dataRequester.requestData.bind(dataRequester), 10000, getRandomInt(1000), window.pluginExecutionId);
-                function getRandomInt(max) {
-                    return Math.floor(Math.random() * Math.floor(max));
-                }
                 
 	            ]]>
             </n:script>
