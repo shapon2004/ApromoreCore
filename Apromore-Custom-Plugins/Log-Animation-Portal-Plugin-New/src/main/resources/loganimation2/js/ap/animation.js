@@ -244,6 +244,10 @@ let AnimationController = {
     this.svgAnimator = new SVGAnimator(this.animationContext, this, this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
   },
 
+  getSVGAnimator: function() {
+    return this.svgAnimator;
+  },
+
   getPathElement: function (pathElementId) {
     let pathElement = this.pathElementCache[pathElementId]
     if (!pathElement) {

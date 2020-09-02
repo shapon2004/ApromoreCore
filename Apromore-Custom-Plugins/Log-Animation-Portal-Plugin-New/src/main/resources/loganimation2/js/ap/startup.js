@@ -147,6 +147,9 @@ Ap.la.session = (function() {
   return {
     init: init,
     initController: initController,
+    getController: function() {
+      return controller;
+    },
     playPause: function(e) {
       controller.playPause(e);
     },

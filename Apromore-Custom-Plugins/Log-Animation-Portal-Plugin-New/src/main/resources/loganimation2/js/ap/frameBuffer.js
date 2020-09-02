@@ -51,7 +51,8 @@ class Buffer {
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
         this._serverOutOfFrames = false;
 
-        this.clear();
+        this._clear();
+        this._replenish();
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -102,7 +103,7 @@ class Buffer {
         this._chunkSize = chunkSize;
     }
 
-    clear() {
+    _clear() {
         this._frames = [];
         this._currentIndex = -1;
         this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);

@@ -34,9 +34,13 @@ import org.json.JSONException;
  */
 public class Chunk extends ArrayList<Frame> {
     public Chunk(long startFrameIndex, int chunkSize, AnimationContext context) {
-        if (startFrameIndex >= 0 && startFrameIndex <= context.getTotalDuration()*context.getFrameRate()) {
-            for (int i=0;i<chunkSize;i++) {
-                this.add(new Frame(startFrameIndex + i));
+        long maxAvailableFrameIndex = context.getTotalDuration()*context.getFrameRate();
+        if (startFrameIndex >= 0 && startFrameIndex <= maxAvailableFrameIndex) {
+            long maxFrameIndex = startFrameIndex + chunkSize - 1;
+            maxFrameIndex = ((maxFrameIndex <= maxAvailableFrameIndex) ? maxFrameIndex : maxAvailableFrameIndex);
+            
+            for (long i=startFrameIndex; i<=maxFrameIndex; i++) {
+                this.add(new Frame(i));
             }
         }
     }
@@ -49,16 +53,10 @@ public class Chunk extends ArrayList<Frame> {
         return !this.isEmpty() ? this.get(this.size()-1).getTimestamp(context) : 0;
     }
     
-    @Override
-    public boolean isEmpty() {
-        if (super.isEmpty()) {
-            return true;
-        }
-        else {
-            for (Frame frame : this) {
-                if (!frame.isEmpty()) {
-                    return false;
-                }
+    public boolean containsEmptyData() {
+        for (Frame frame : this) {
+            if (!frame.isEmpty()) {
+                return false;
             }
         }
         return true;

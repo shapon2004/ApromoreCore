@@ -21,6 +21,10 @@ class SVGToken {
         this._lastAtts = lastAtts;
     }
 
+    getId() {
+        return this._elementId + "," + this._caseId;
+    }
+
     getElementId() {
         return this._elementId;
     }
@@ -137,9 +141,7 @@ class SVGAnimator {
                 svgViewport) {
         console.log('SVGAnimator - being initialized');
         console.log('SVGAnimator - AnimationContext: ' + JSON.stringify(animationContext));
-
         this._animationContext = animationContext;
-        this._frameBuffer = new Buffer(animationContext);
 
         this._modelController = modelController;
         this._svgTokenAnimation = svgTokenAnimation;
@@ -152,8 +154,9 @@ class SVGAnimator {
         this._startingTimeSinceLastRateChange = svgTokenAnimation.getCurrentTime(); //the starting time since applying the current playingFrameRate
 
         this._animationClockId = undefined;
+        this._tokenElements = new Map();
 
-        this._tokenElements = [];
+        this._frameBuffer = new Buffer(animationContext);
     }
 
     /**
@@ -161,18 +164,25 @@ class SVGAnimator {
      */
     _animateLoop() {
         console.log('SVGAnimator - animateLoop');
-        let frames = this._frameBuffer.readNext();
-        if (frames && frames.length > 0) {
-            this._animate(frames);
-            this.unpause();
-        }
-        else {
-            //this.pause();
+        if (this._frameBuffer.isStockAvailable()) {
+            let frames = this._frameBuffer.readNext();
+            if (frames && frames.length > 0) {
+                this._animate(frames);
+                this.unpause();
+                console.log('SVGAnimator - animateLoop: readNext returns result for animation.');
+            } else {
+                this.pause();
+                console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
+            }
         }
 
         if (!this._frameBuffer.isOutOfFrames()) {
-            this._animationClockId = setTimeout(this._animateLoop.bind(this), this._frameBuffer.getChunkSize() / this._playingFrameRate);
-            console.log('SVGAnimator - animateLoop: call to new animateLoop with a timerId=' + this._animationClockId);
+            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize() / this._playingFrameRate)*1000;
+            this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
+            console.log('SVGAnimator - animateLoop: start new animateLoop with a timerId=' + this._animationClockId);
+        }
+        else {
+            console.log('SVGAnimator - animateLoop: Buffer is out of frames. Stop animating.');
         }
     }
 
@@ -192,7 +202,7 @@ class SVGAnimator {
             console.log(svgElement);
             if (svgElement) {
                 this._svgViewport.appendChild(svgElement);
-                this._tokenElements.push(svgElement);
+                this._tokenElements.set(token.getId(), svgElement);
             }
 
         }
@@ -254,6 +264,7 @@ class SVGAnimator {
      * @returns {SVGElement}
      */
     _createElement (svgToken) {
+        let self = this;
         let begin = this._getCurrentTime();
         let dur = (svgToken.getLastFrameIndex() - svgToken.getFirstFrameIndex() + 1)/this._playingFrameRate;
         let pathElement = this._getPathElement(svgToken.getElementId());
@@ -276,7 +287,7 @@ class SVGAnimator {
             svgToken.getLastDistance())
         animateMotion.setAttributeNS(null, 'keyTimes', '0;0;1');
         svgElement.appendChild(animateMotion)
-        //animateMotion.setAttributeNS(null, 'onend', 'Ap.la.session.controller.svgViewport.removeChild(parentElement);');
+        animateMotion.setAttributeNS(null, 'onend', "Ap.la.session.getController().getSVGAnimator().clearToken('" + svgToken.getId() + "')");
 
         let circle = document.createElementNS(SVG_NS, 'circle')
         circle.setAttributeNS(null, 'cx', 0)
@@ -332,10 +343,9 @@ class SVGAnimator {
     }
 
     fastForward() {
-        this._clearTokenAnimation();
-        // console.log('SVGAnimator - fastForward: new logical time=' + logicalTime + 5);
-        // let logicalTime = this._svgTokenAnimation.getCurrentTime();
-        // this.goto(logicalTime + 5);
+        console.log('SVGAnimator - fastForward: new logical time=' + logicalTime + 5);
+        let logicalTime = this._svgTokenAnimation.getCurrentTime();
+        this.goto(logicalTime + 5);
     }
 
     fastBackward() {
@@ -350,10 +360,16 @@ class SVGAnimator {
 
     _clearTokenAnimation() {
         this.pause();
-        for (let tokenElement of this._tokenElements) {
-            this._svgViewport.removeChild(tokenElement);
+        for (let tokenId of this._tokenElements.keys()) {
+            this._svgViewport.removeChild(tokenId);
         }
-        this._tokenElements = [];
+        this._tokenElements.clear();
+    }
+
+    clearToken(tokenId) {
+        if (this._tokenElements.has(tokenId)) {
+            this._svgViewport.removeChild(this._tokenElements.get(tokenId));
+        }
     }
 
 

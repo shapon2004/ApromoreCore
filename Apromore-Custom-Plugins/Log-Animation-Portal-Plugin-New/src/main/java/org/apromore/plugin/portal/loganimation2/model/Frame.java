@@ -60,6 +60,7 @@ public class Frame {
             long seqStart = ((TraceNode)seq.getSourceRef()).getComplete().getMillis();
             long seqEnd = ((TraceNode)seq.getTargetRef()).getStart().getMillis();
             long seqDuration = seqEnd - seqStart; // only animate if duration > 0
+            
             if (frameTimestamp <= seqEnd && frameTimestamp >= seqStart && seqDuration > 0) {
                 double distance = 1.0*(frameTimestamp - seqStart)/seqDuration;
                 String elementId = seq.getId();
@@ -74,6 +75,7 @@ public class Frame {
             long nodeStart = node.getStart().getMillis();
             long nodeEnd = node.getComplete().getMillis();
             long nodeDuration = nodeEnd - nodeStart; // only animate if duration > 0
+            
             if (frameTimestamp <= nodeEnd && frameTimestamp >= nodeStart && nodeDuration > 0) {
                 double distance = 1.0*(frameTimestamp - nodeStart)/nodeDuration;
                 String elementId = node.getId();
