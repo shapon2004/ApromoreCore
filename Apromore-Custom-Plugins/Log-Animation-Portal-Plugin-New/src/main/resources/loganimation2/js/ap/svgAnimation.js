@@ -13,18 +13,42 @@ class TimelineController {
         this._animationContext = animationContext;
     }
 
+    /**
+     *
+     * @param {Number} logicalTime: number of milliseconds from the start
+     * @returns {number}: milliseconds timestamp
+     */
     getLogTimeFromLogicalTime(logicalTime) {
         return logicalTime*this._animationContext.getLogicalToLogFactor();
     }
 
+    /**
+     *
+     * @param {Number} logicalTime: number of milliseconds from the start
+     * @returns {number}: number of milliseconds from the start
+     */
     getActualTimeFromLogicalTime(logicalTime) {
         if (this._animationContext.getActualToLogicalFactor() > 0) {
             return logicalTime * (1 / this._animationContext.getActualToLogicalFactor());
         }
     }
 
+    /**
+     *
+     * @param {Number} actualTime: number of milliseconds from the start
+     * @returns {number}: number of milliseconds from the start
+     */
     getLogicalTimeFromActualTime(actualTime) {
         return actualTime * this._animationContext.getActualToLogicalFactor();
+    }
+
+    /**
+     * Get the logical time of a frame
+     * @param {Number} frameIndex
+     * @returns {Number} the number of milliseconds from the start
+     */
+    getFrameLogicalTime(frameIndex) {
+        return frameIndex*(1/this._animationContext.getRecordingFrameRate()*1000);
     }
 
     /**
@@ -33,49 +57,25 @@ class TimelineController {
      * @returns {number}: the log timestamp of this frame
      */
     getFrameLogTime(frameIndex) {
-        return this._animationContext.getLogStartTime() + this._animationContext.getLogicalToLogFactor()*this.getFrameLogicalTime(frameIndex);
-    }
-
-    /**
-     * Get the logical time of a frame
-     * @param {Number} frameIndex
-     * @returns {Number} the number of seconds from the start
-     */
-    getFrameLogicalTime(frameIndex) {
-        return frameIndex*(1/this._animationContext.getFrameRate()*1000);
+        return this.getLogTimeFromLogicalTime(this.getFrameLogicalTime(frameIndex));
     }
 
     /**
      * Get the actual time of a frame
      * @param {Number} frameIndex
-     * @returns {number} the number of seconds from the start
+     * @returns {number}: number of millseconds from the start
      */
     getFrameActualTime(frameIndex) {
-        if (this._animationContext.getActualToLogicalFactor() > 0) {
-            return this.getFrameLogicalTime(frameIndex)*(1/this._animationContext.getActualToLogicalFactor());
-        }
+        return this.getActualTimeFromLogicalTime(this.getFrameLogicalTime(frameIndex));
     }
 
+    /**
+     *
+     * @param {Number} logicalTime: number of milliseconds from the start
+     * @returns {number}
+     */
     getFrameIndexFromLogicalTime(logicalTime) {
-        return (logicalTime*this._animationContext.getFrameRate());
-    }
-}
-
-/**
- * This object controls the format/styling for animation
- */
-class FormatController {
-    constructor() {
-        this._tokenRaisedLevel = 0; // the gap between the token and the underlying line
-        this._tokenColor = undefined;
-    }
-
-    getTokenRaisedLevel() {
-        return this._tokenRaisedLevel;
-    }
-
-    getTokenColor() {
-        return this._tokenColor;
+        return (logicalTime*this._animationContext.getRecordingFrameRate());
     }
 }
 
@@ -129,6 +129,12 @@ class SVGToken {
     }
 }
 
+/**
+ * logStartTime, logEndTime: the starting and ending timestamps (milliseconds) in the log timeline
+ * logicalTimelineMax: the maximum number of seconds on the logical timeline
+ * actualToLogicalFactor: one second in the actual timeline equals how many seconds in the logical timeline
+ * logicalToLogFactor: one second in the logical timeline equals how many seconds in the log
+ */
 class AnimationContext {
     /**
      *
@@ -142,10 +148,10 @@ class AnimationContext {
         this._logStartTime = logStartTime;
         this._logEndTime = logEndTime;
         this._logicalTimelineMax = logicalTimelineMax;
-        this._frameRate = 24;
+        this._recordingFrameRate = 24;
         this._actualToLogicalFactor = 1;
-        if (logEndTime > logStartTime) {
-            this._logicalToLogFactor = this._logicalTimelineMax*1000/(logEndTime - logStartTime); //convert from logical timeline to log timeline
+        if (this._logicalTimelineMax > 0) {
+            this._logicalToLogFactor = (logEndTime - logStartTime)/(this._logicalTimelineMax*1000); //convert from logical timeline to log timeline
         }
     }
 
@@ -165,12 +171,12 @@ class AnimationContext {
         return this._logicalTimelineMax;
     }
 
-    getFrameRate() {
-        return this._frameRate;
+    getRecordingFrameRate() {
+        return this._recordingFrameRate;
     }
 
-    setFrameRate(frameRate) {
-        this._frameRate = frameRate;
+    setRecordingFrameRate(frameRate) {
+        this._recordingFrameRate = frameRate;
     }
 
     getActualToLogicalFactor() {
@@ -204,15 +210,23 @@ class SVGAnimator {
                 svgTimeline,
                 svgProgressBar,
                 svgViewport) {
+        console.log('SVGAnimator - being initialized');
+        console.log('SVGAnimator - AnimationContext: ' + JSON.stringify(animationContext));
+
         this._animationContext = animationContext;
         this._frameBuffer = new Buffer(animationContext);
-        this._timeController = new TimelineController(animationContext);
-        this._formatController = new FormatController();
+
         this._modelController = modelController;
         this._svgTokenAnimation = svgTokenAnimation;
         this._svgTimeline = svgTimeline;
         this._svgProgressBar = svgProgressBar;
         this._svgViewport = svgViewport;
+
+        this._currentTime = svgTokenAnimation.getCurrentTime(); //keep track of the current time (should call to svg.getCurrenTime only once)
+        this._playingFrameRate = animationContext.getRecordingFrameRate();
+        this._startingFrameIndexSinceLastFrameRate = 0; //the starting frame index since applying the current playingFrameRate.
+        this._startingTimeSinceLastFrameRate = svgTokenAnimation.getCurrentTime(); //the starting time since applying the current playingFrameRate
+
         this._animationClockId = undefined;
     }
 
@@ -220,6 +234,7 @@ class SVGAnimator {
      * Animation loop to inject SVG elements into the document
      */
     animateLoop() {
+        console.log('SVGAnimator - animateLoop');
         let frames = this._frameBuffer.readNext();
         if (frames && frames.length > 0) {
             this._animate(frames);
@@ -229,37 +244,100 @@ class SVGAnimator {
             this.pause();
         }
         this._animationClockId = setTimeout(this.animateLoop.bind(this), 1000/this._animationContext.getActualToLogicalFactor());
+        console.log('SVGAnimator - animateLoop: call to new animateLoop with a timerId=' + this._animationClockId);
+    }
+
+    /**
+     * Animate an array of frames
+     * @param {Frame[]} frames
+     * @private
+     */
+    _animate(frames) {
+        let svgTokens = this._readSVGTokens(frames);
+        for (let token of svgTokens) {
+            let svgElement = this._createElement(token);
+            this._svgViewport.appendChild(svgElement);
+        }
     }
 
     /**
      * Set a new speed for the animation
-     * The effect of changing speed is that the position of everything on the UI is unchanged but then they will move
-     * slower or faster. To create that effect, SVG elements for tokens are all cleared and recreated based on the new
-     * speed setting
-     * @param {Number} speed
+     * The effect of changing speed is that the position of everything being shown on the UI is unchanged but they will move
+     * slower or faster.
+     * @param {Number} speedLevel
      */
-    setSpeed(speed) {
-        if (speed && speed !== this._animationContext.getActualToLogicalFactor()) {
+    setSpeed(speedLevel) {
+        let lastPlayingFrameRate = this._playingFrameRate;
+        let currentTime = this._svgTokenAnimation.getCurrentTime();
+        let newPlayingFrameRate = speedLevel*this._animationContext.getRecordingFrameRate();
+
+        if (newPlayingFrameRate !== lastPlayingFrameRate) {
             //Wipe out all the current tokens
             this.pause();
             this._clearTokenAnimation();
 
-            //Move the buffer to the current frame index being played at this moment
-            let currentActualTime = this._svgTokenAnimation.getCurrentTime();
-            let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
-            //The request rate for frames is in sync with the animation speed, thus the current frame index can be found from
-            //the current actual time used as the current logical time.
-            let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(currentLogicalTime);
-            this._frameBuffer.moveTo(currentFrameIndex);
+            // Identify the current frame index the animation has reached to at this point
+            let passingTime = currentTime - this._startingFrameIndexSinceLastFrameRate;
+            let currentFrameIndex = this._startingFrameIndexSinceLastFrameRate + passingTime*lastPlayingFrameRate;
+            this._startingFrameIndexSinceLastFrameRate = currentFrameIndex;
+            this._startingTimeSinceLastFrameRate = currentTime;
+            this._playingFrameRate = newPlayingFrameRate;
+            this._currentTime = currentTime;
 
-            //Set the context to the new speed and adjust the buffer to adapt to the new speed
-            this._animationContext.setActualToLogicalFactor(speed);
-            if (speed > 1) {
-                this._frameBuffer.setChunkSize(Buffer.DEFAULT_CHUNK_SIZE + (speed-1)*Buffer.DEFAULT_CHUNK_SIZE);
-            }
-            //Animate again from the current frame index with the new setting
+            // Move the buffer to the current frame index and prepare it with subsequent frames
+            this._frameBuffer.moveTo(currentFrameIndex);
+            //if (speedLevel > 1) this._frameBuffer.setChunkSize(Buffer.DEFAULT_CHUNK_SIZE + (speedLevel-1)*Buffer.DEFAULT_CHUNK_SIZE);
+
+            // Set the new speed in the current context to be used by all measurements
+            this._animationContext.setActualToLogicalFactor(speedLevel);
+
+            // Animate frames in the buffer starting from the current frame index and
+            // using the new speed setting
             this.play();
         }
+    }
+
+    /**
+     * Use SVG engine to animate tokens which have been converted from frames.
+     * The SVG engine uses 'begin' (time since the start) and 'dur' (duration) to animate tokens
+     * Setting 'begin' and 'dur" is similar to setting a new frame rate for the token
+     *
+     * @param {SVGToken} svgToken
+     * @returns {SVGElement}
+     */
+    _createElement (svgToken) {
+        let begin = this._currentTime;
+        let dur = (svgToken.setLastFrameIndex() - svgToken.getFirstFrameIndex() + 1)/this._playingFrameRate;
+        let path = this._getPathElement(svgToken.getElementId());
+
+        let svgElement = document.createElementNS(SVG_NS, 'g')
+        svgElement.setAttributeNS(null, 'stroke', 'none')
+
+        let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
+        animateMotion.setAttributeNS(null, 'begin', begin)
+        animateMotion.setAttributeNS(null, 'dur', dur)
+        animateMotion.setAttributeNS(null, 'fill', 'freeze')
+        animateMotion.setAttributeNS(null, 'path', path)
+        animateMotion.setAttributeNS(null, 'rotate', 'auto')
+        animateMotion.setAttributeNS(null, 'calcMode', 'linear')
+        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
+            svgToken.getLastDistance())
+        animateMotion.setAttributeNS(null, 'keyTimes', '0;0;1');
+        animateMotion.setAttributeNS(null, 'onend', 'parentElement.removeChild(this);');
+        svgElement.appendChild(animateMotion)
+
+        let circle = document.createElementNS(SVG_NS, 'circle')
+        // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
+        // let offset = 2;
+        // circle.setAttributeNS(null, "cx", offset * Math.sin(this.offsetAngle));
+        // circle.setAttributeNS(null, "cy", offset * Math.cos(this.offsetAngle));
+        circle.setAttributeNS(null, 'cx', 0)
+        circle.setAttributeNS(null, 'cy', 0)
+        circle.setAttributeNS(null, 'r', 5)
+        circle.setAttributeNS(null, 'fill', 'red')
+        svgElement.appendChild(circle)
+
+        return svgElement;
     }
 
     play() {
@@ -277,33 +355,42 @@ class SVGAnimator {
         this._svgTokenAnimation.unpauseAnimations();
         this._svgTimeline.unpauseAnimations();
         this._svgProgressBar.unpauseAnimations();
+        if (this._animationClockId) window.clearTimeout(this._animationClockId);
     }
 
     goto(logicalTime) {
-        let logTime = this._timeController.getLogTimeFromLogicalTime(logicalTime);
-        if (logTime > this._animationContext.getLogEndTime() || logTime < this._animationContext.getLogStartTime()) {
+        console.log('SVGAnimator - goto: a logical time, logicalTime=' + logicalTime + ', logTime=' + logTime);
+        if (logicalTime < 0 || logicalTime > this._animationContext.getLogicalTimelineMax()) {
+            console.log('SVGAnimator - goto: time is out of timeline, do nothing');
             return;
         }
 
         this.pause();
         this._clearTokenAnimation();
 
-        let currentFrameIndex = this._timeController.getFrameIndexFromLogicalTime(logicalTime);
+        // Identify the frame index at this logical time and
+        // prepare the buffer starting from that frame index to play
+        let currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTime);
         this._frameBuffer.moveTo(currentFrameIndex);
 
         this.play();
+        console.log('SVGAnimator - goto: move to frame index = ' + currentFrameIndex);
     }
 
     fastForward() {
-        let currentActualTime = this._svgTokenAnimation.getCurrentTime();
-        let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
-        this.goto(currentLogicalTime + 5);
+        console.log('SVGAnimator - fastForward: new logical time=' + logicalTime + 5);
+        let logicalTime = this._svgTokenAnimation.getCurrentTime();
+        this.goto(logicalTime + 5);
     }
 
     fastBackward() {
-        let currentActualTime = this._svgTokenAnimation.getCurrentTime();
-        let currentLogicalTime = this._timeController.getLogicalTimeFromActualTime(currentActualTime);
-        this.goto(currentLogicalTime - 5);
+        console.log('SVGAnimator - fastBackward: new logical time=' + logicalTime - 5);
+        let logicalTime = this._svgTokenAnimation.getCurrentTime();
+        this.goto(logicalTime - 5);
+    }
+
+    _getFrameIndexFromLogicalTime(logicalTime) {
+        return (logicalTime*this._animationContext.getRecordingFrameRate());
     }
 
     _clearTokenAnimation() {
@@ -313,18 +400,6 @@ class SVGAnimator {
         if (this._animationClockId) window.clearTimeout(this._animationClockId);
     }
 
-    /**
-     * Animate an array of frames
-     * @param {Frame[]} frames
-     * @private
-     */
-    _animate(frames) {
-        let svgTokens = this._readSVGTokens(frames);
-        for (let token of svgTokens) {
-            let svgElement = this._createElement(token);
-            this._svgViewport.appendChild(svgElement);
-        }
-    }
 
     /**
      * Read a collection of SVGToken from an array of frames
@@ -354,7 +429,7 @@ class SVGAnimator {
             }
         }
 
-        return tokenMap.values;
+        return tokenMap.values();
     }
 
     _getPathElement(elementId) {
@@ -374,46 +449,5 @@ class SVGAnimator {
     //     }
     // }
 
-    /**
-     * @param {SVGToken} svgToken
-     * @returns {SVGElement}
-     */
-    _createElement (svgToken) {
-        let beginActualTime = this._timeController.getFrameActualTime(svgToken.getFirstFrameIndex());
-        let endActualTime = this._timeController.getFrameActualTime(svgToken.getLastFrameIndex());
-        let begin = beginActualTime;
-        let dur = (endActualTime - beginActualTime);
-        let path = this._getPathElement(svgToken.getElementId());
-        let raisedLevel = this._formatController.getTokenRaisedLevel();
-        let color = this._formatController.getTokenColor();
 
-        let svgElement = document.createElementNS(SVG_NS, 'g')
-        svgElement.setAttributeNS(null, 'stroke', 'none')
-
-        let animateMotion = document.createElementNS(SVG_NS, 'animateMotion')
-        animateMotion.setAttributeNS(null, 'begin', begin)
-        animateMotion.setAttributeNS(null, 'dur', dur)
-        animateMotion.setAttributeNS(null, 'fill', 'freeze')
-        animateMotion.setAttributeNS(null, 'path', path)
-        animateMotion.setAttributeNS(null, 'rotate', 'auto')
-        animateMotion.setAttributeNS(null, 'calcMode', 'linear')
-        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
-            svgToken.getLastDistance())
-        animateMotion.setAttributeNS(null, 'keyTimes', '0;0;1');
-        animateMotion.setAttributeNS(null, 'onend', 'parentElement.removeChild(this);');
-        svgElement.appendChild(animateMotion)
-
-        let circle = document.createElementNS(SVG_NS, 'circle')
-        // Bruce 15/6/2015: add offset as a parameter, add 'rotate' attribute, put markers of different logs on separate lines.
-        // let offset = 2;
-        // circle.setAttributeNS(null, "cx", offset * Math.sin(this.offsetAngle));
-        // circle.setAttributeNS(null, "cy", offset * Math.cos(this.offsetAngle));
-        circle.setAttributeNS(null, 'cx', 0)
-        circle.setAttributeNS(null, 'cy', raisedLevel)
-        circle.setAttributeNS(null, 'r', 5)
-        circle.setAttributeNS(null, 'fill', color)
-        svgElement.appendChild(circle)
-
-        return svgElement;
-    }
 }

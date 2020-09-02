@@ -33,9 +33,9 @@ import org.json.JSONException;
  *
  */
 public class Chunk extends ArrayList<Frame> {
-    public Chunk(long startFrameIndex, AnimationContext context) {
+    public Chunk(long startFrameIndex, int chunkSize, AnimationContext context) {
         if (startFrameIndex >= 0) {
-            for (int i=0;i<context.getChunkSize();i++) {
+            for (int i=0;i<chunkSize;i++) {
                 this.add(new Frame(startFrameIndex + i));
             }
         }

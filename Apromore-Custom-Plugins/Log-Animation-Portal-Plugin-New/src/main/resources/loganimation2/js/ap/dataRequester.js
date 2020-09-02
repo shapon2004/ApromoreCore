@@ -12,18 +12,14 @@ class DataRequester {
         this._workerProxy = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
         let self = this;
         this._workerProxy.onmessage = function(e) {
+            console.log('DataRequester - response received: requestToken=' + e.data.requestToken);
             let result = e.data;
-            let requestToken = e.requestToken;
+            let requestToken = result.requestToken;
             if (result.success) {
                 if (self._buffer) {
                     self._buffer.write(result.data, requestToken);
                 }
             }
-
-            //Testing
-            console.log("Result: ");
-            console.log("Response code: " + result.code);
-            console.log("Response text: " + result.data);
 
             //this.doPointlessComputationsWithBlocking();
         }
@@ -39,10 +35,13 @@ class DataRequester {
      * @param {Buffer} buffer
      * @param {Number} requestToken
      */
-    requestData(frameIndex, buffer, requestToken) {
+    requestData(buffer, requestToken, frameIndex, chunkSize) {
+        console.log('DataRequester - requestData: frameIndex=' + frameIndex + ", requestToken=" + requestToken);
         this._buffer = buffer;
-        this._requestToken = requestToken;
-        this._workerProxy.postMessage({startFrame: frameIndex, pluginExecutionId: this._pluginExecutionId, requestToken: requestToken});
+        this._workerProxy.postMessage({ 'pluginExecutionId': this._pluginExecutionId,
+                                        'requestToken': requestToken,
+                                        'startFrame': frameIndex,
+                                        'chunkSize': chunkSize});
     }
 
     calculatePrimes(iterations, multiplier) {

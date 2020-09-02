@@ -98,14 +98,8 @@ class Buffer {
 
     clear() {
         this._frames = [];
-        this._firstIndex = -1;
         this._currentIndex = -1;
-        if (!this._requestToken) {
-            this._requestToken = 0;
-        }
-        else {
-            this._requestToken++;
-        }
+        this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);
         this._cancelPendingTasks();
     }
 
@@ -124,8 +118,20 @@ class Buffer {
         return this._frames.length;
     }
 
+    getFirstIndex() {
+        return (this.isEmpty() ? -1 : 0);
+    }
+
     getLastIndex() {
         return (this._frames.length-1);
+    }
+
+    getCurrentIndex() {
+        return this._currentIndex;
+    }
+
+    getNextFrameIndex() {
+        return (this.isEmpty() ? 0 : this._frames[this.getLastIndex()].index + 1);
     }
 
     /**
@@ -143,7 +149,7 @@ class Buffer {
      */
     getUsedStockLevel() {
         if (this.isEmpty()) return 0;
-        return (this._currentIndex - this._firstIndex);
+        return (this._currentIndex - this.getFirstIndex());
     }
 
     isSafetyStock() {
@@ -167,6 +173,7 @@ class Buffer {
      * @returns {Array}
      */
     readNext() {
+        console.log('Buffer - readNext');
         let frames = [];
         if (this.isStockAvailable()) {
             for (let i = 0; i <= (this._chunkSize-1); i++) {
@@ -183,6 +190,8 @@ class Buffer {
             this._removeObsolete();
         }
 
+        this._logStockLevel();
+
         return frames;
     }
 
@@ -195,13 +204,19 @@ class Buffer {
      * @param {Number} frameIndex: the frame index
      */
     moveTo(frameIndex) {
+        console.log('Buffer - moveTo: frameIndex=' + frameIndex);
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
         if (bufferIndex >= 0) {
+            console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
+            this._replenish();
         }
         else { // the new requested frames are too far outside this buffer
+            console.log('Buffer - moveTo: moveTo point is out of buffer, buffer cleared to read new frames');
             this.clear();
+            this._replenish(frameIndex);
         }
+        this._logStockLevel();
     }
 
     /**
@@ -212,12 +227,21 @@ class Buffer {
      */
     write(frames, requestToken) {
         if (requestToken === this._requestToken) { // don't get old results
-            this._frames.concat(frames);
+            console.log('Buffer - write: valid requestToken, frames accepted, token=' + requestToken);
+            this._frames = this._frames.concat(frames);
             if (this._currentIndex < 0) {
                 this._currentIndex = 0;
             }
+            //console.log('Added Frames: ' + frames);
+            //console.log('Buffer: ' + this._frames);
+            this._logStockLevel();
+
             this._replenish();
         }
+        else {
+            console.log('Buffer - write: obsolete requestToken, frames rejected, token=' + requestToken);
+        }
+
     }
 
     /**
@@ -239,21 +263,40 @@ class Buffer {
     /**
      * Buffer replenishment reads data until reaching a safety stock level
      * Replenish - data request - write forms a loop.
+     * @param {Number} frameIndex: frame index of the first frame in the chunk to be added to the buffer
      * @private
      */
-    _replenish() {
+    _replenish(frameIndex) {
+        let _frameIndex = (!frameIndex ? this.getNextFrameIndex() : frameIndex);
+        console.log('Buffer - replenish: frameIndex=' + _frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
+        this._logStockLevel();
         if (!this.isSafetyStock()) {
-            let frameIndex = (this.isEmpty() ? 0 : (this._frames[this.getLastIndex()].index + 1));
-            this._dataRequester.requestData(frameIndex, this, this._requestToken);
+            console.log('Buffer - safety stock not yet reached, send request to DataRequester');
+            this._dataRequester.requestData(this, this._requestToken, _frameIndex, this._chunkSize);
         }
+        else {
+            console.log('Buffer - safety stock REACHED, stop sending request to DataRequester');
+        }
+        this._logStockLevel();
     }
 
     _removeObsolete() {
+        console.log('Buffer - removeObsolote: historyThreshold=' + this._historyThreshold);
+        this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
         if (obsoleteSize > 0) {
+            console.log('Buffer - remove obsolete frames, amount of removed frames: ' + obsoleteSize);
             this._frames.splice(0, obsoleteSize);
-            this._firstIndex = this._frames[0].index;
+            this._currentIndex -= obsoleteSize;
         }
+        else {
+            console.log('Buffer - no obsolete frames: ' + obsoleteSize);
+        }
+    }
+
+    _logStockLevel() {
+        console.log('Buffer - current stock level: ' + this.getCurrentStockLevel());
+        console.log('Buffer - current used level: ' + this.getUsedStockLevel());
     }
 
 }

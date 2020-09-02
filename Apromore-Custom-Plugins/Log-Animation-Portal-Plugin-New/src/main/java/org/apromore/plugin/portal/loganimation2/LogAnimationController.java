@@ -272,9 +272,11 @@ public class LogAnimationController extends BaseController {
     public String processRequest(Map<String,String[]> parameterMap) {
         String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
         String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
+        String  chunkSize = parameterMap.get("chunkSize")[0];
         //return "Response from server: pluginExecutionId=" + pluginExecutionId + ", startFrameIndex=" + startFrameIndex;
         try {
-            Chunk frameChunk = animationFrameGenerator.generateChunk(Long.parseLong(startFrameIndex));
+            Chunk frameChunk = animationFrameGenerator.generateChunk(Long.parseLong(startFrameIndex), 
+                                                                        Integer.parseInt(chunkSize));
             return escapeQuotedJavascript(frameChunk.getJSON().toString());
         }
         catch (NumberFormatException | JSONException e) {

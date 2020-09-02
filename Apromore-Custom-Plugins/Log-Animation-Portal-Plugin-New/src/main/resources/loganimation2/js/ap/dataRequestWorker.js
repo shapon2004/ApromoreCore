@@ -1,26 +1,34 @@
 
 onmessage = function(e) {
+    console.log('DataRequestWorker - request received: requestToken=' + e.data.requestToken + ', startFrameIndex=' + e.data.startFrame);
     let context = this;
     let startFrameIndex = e.data.startFrame;
+    let chunkSize = e.data.chunkSize;
     let pluginExecutionId = e.data.pluginExecutionId;
-    let requestToken = e.requestToken;
+    this.requestToken = e.data.requestToken;
+    let worker = this;
 
     let httpRequest = new XMLHttpRequest();
 
     httpRequest.onreadystatechange = function() {
         if (httpRequest.readyState === XMLHttpRequest.DONE) {
+            console.log('DataRequestWorker - server response received: responseCode=' + httpRequest.status);
             if (httpRequest.status === 200) {
                 //doPointlessComputationsWithBlocking();
                 let jsonResponse = JSON.parse(httpRequest.responseText);
-                context.postMessage({success: true, code: httpRequest.status, data: jsonResponse, requestToken: requestToken});
+                context.postMessage({success: true, code: httpRequest.status, data: jsonResponse, requestToken: worker.requestToken});
             } else {
                 context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});
             }
+            console.log("DataRequestWorker - send reseponse, responseCode: " + httpRequest.status);
+            console.log("DataRequestWorker - send reseponse, responseText: " + httpRequest.responseText);
         }
     };
 
-    console.log("Before sending request: pluginExecutionId=" + pluginExecutionId + ", startFrame=" + startFrameIndex);
-    httpRequest.open('GET',"/dataRequest/logAnimationData?pluginExecutionId=" + pluginExecutionId + "&startFrameIndex=" + startFrameIndex, true);
+    console.log("DataRequestWorker - sending request to the server: pluginExecutionId=" + pluginExecutionId +
+            ", startFrame=" + startFrameIndex + ', chunkSize=' + chunkSize);
+    httpRequest.open('GET',"/dataRequest/logAnimationData?pluginExecutionId=" + pluginExecutionId +
+                    "&startFrameIndex=" + startFrameIndex + "&chunkSize=" + chunkSize, true);
     httpRequest.send();
 
     function calculatePrimes(iterations, multiplier) {

@@ -112,7 +112,7 @@ let AnimationController = {
     };
 
     this.pluginExecutionId = pluginExecutionId;
-
+    this.pathElementCache = {};
   },
 
   pauseAnimations: function() {
@@ -242,7 +242,17 @@ let AnimationController = {
     //this.start();
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
     this.svgAnimator = new SVGAnimator(this.animationContext, this, this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
-    this.svgAnimator.animateLoop();
+  },
+
+  getPathElement: function (pathElementId) {
+    let pathElement = this.pathElementCache[pathElementId]
+    if (!pathElement) {
+      // pathElement = this.pathElementCache[path.id] = $j("#svg-"+path.id).find("g").find("g").find("g").find("path").get(0);
+      pathElement
+          = this.pathElementCache[pathElementId]
+          = $j('[data-element-id=' + pathElementId + ']').find('g').find('path').get(0)
+    }
+    return pathElement
   },
 
   // Add log intervals to timeline
@@ -666,7 +676,7 @@ let AnimationController = {
 
   play: function() {
     //this.unpauseAnimations();
-    this.svgAnimator.unpause();
+    this.svgAnimator.play();
     this.setPlayPauseBtn(false);
   },
 
