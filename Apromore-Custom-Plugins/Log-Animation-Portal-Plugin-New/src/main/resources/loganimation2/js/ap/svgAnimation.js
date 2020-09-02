@@ -1,84 +1,3 @@
-
-/**
- * Manage the frame index and frame time.
- * Frame indexes are sequential integers, e.g. 0, 1, 2...
- * Frame log time is a point in time (from an origin) in seconds, e.g. 0, 0.1, 0.2, 0.5, 1, 2,...
- */
-class TimelineController {
-    /**
-     *
-     * @param {AnimationContext} animationContext
-     */
-    constructor(animationContext) {
-        this._animationContext = animationContext;
-    }
-
-    /**
-     *
-     * @param {Number} logicalTime: number of milliseconds from the start
-     * @returns {number}: milliseconds timestamp
-     */
-    getLogTimeFromLogicalTime(logicalTime) {
-        return logicalTime*this._animationContext.getLogicalToLogFactor();
-    }
-
-    /**
-     *
-     * @param {Number} logicalTime: number of milliseconds from the start
-     * @returns {number}: number of milliseconds from the start
-     */
-    getActualTimeFromLogicalTime(logicalTime) {
-        if (this._animationContext.getActualToLogicalFactor() > 0) {
-            return logicalTime * (1 / this._animationContext.getActualToLogicalFactor());
-        }
-    }
-
-    /**
-     *
-     * @param {Number} actualTime: number of milliseconds from the start
-     * @returns {number}: number of milliseconds from the start
-     */
-    getLogicalTimeFromActualTime(actualTime) {
-        return actualTime * this._animationContext.getActualToLogicalFactor();
-    }
-
-    /**
-     * Get the logical time of a frame
-     * @param {Number} frameIndex
-     * @returns {Number} the number of milliseconds from the start
-     */
-    getFrameLogicalTime(frameIndex) {
-        return frameIndex*(1/this._animationContext.getRecordingFrameRate()*1000);
-    }
-
-    /**
-     * Get the log time of this frame
-     * @param {Number} frameIndex
-     * @returns {number}: the log timestamp of this frame
-     */
-    getFrameLogTime(frameIndex) {
-        return this.getLogTimeFromLogicalTime(this.getFrameLogicalTime(frameIndex));
-    }
-
-    /**
-     * Get the actual time of a frame
-     * @param {Number} frameIndex
-     * @returns {number}: number of millseconds from the start
-     */
-    getFrameActualTime(frameIndex) {
-        return this.getActualTimeFromLogicalTime(this.getFrameLogicalTime(frameIndex));
-    }
-
-    /**
-     *
-     * @param {Number} logicalTime: number of milliseconds from the start
-     * @returns {number}
-     */
-    getFrameIndexFromLogicalTime(logicalTime) {
-        return (logicalTime*this._animationContext.getRecordingFrameRate());
-    }
-}
-
 /**
  * SVGToken represents a token animated on a model element over a sequence of frames
  * It is created from reading frames, it keeps track of the first and last frame indexes and attributes
@@ -222,7 +141,6 @@ class SVGAnimator {
         this._svgProgressBar = svgProgressBar;
         this._svgViewport = svgViewport;
 
-        this._currentTime = svgTokenAnimation.getCurrentTime(); //keep track of the current time (should call to svg.getCurrenTime only once)
         this._playingFrameRate = animationContext.getRecordingFrameRate();
         this._startingFrameIndexSinceLastFrameRate = 0; //the starting frame index since applying the current playingFrameRate.
         this._startingTimeSinceLastFrameRate = svgTokenAnimation.getCurrentTime(); //the starting time since applying the current playingFrameRate
@@ -282,7 +200,6 @@ class SVGAnimator {
             this._startingFrameIndexSinceLastFrameRate = currentFrameIndex;
             this._startingTimeSinceLastFrameRate = currentTime;
             this._playingFrameRate = newPlayingFrameRate;
-            this._currentTime = currentTime;
 
             // Move the buffer to the current frame index and prepare it with subsequent frames
             this._frameBuffer.moveTo(currentFrameIndex);
@@ -297,6 +214,10 @@ class SVGAnimator {
         }
     }
 
+    _getCurrentTime() {
+        this._svgTokenAnimation.getCurrentTime();
+    }
+
     /**
      * Use SVG engine to animate tokens which have been converted from frames.
      * The SVG engine uses 'begin' (time since the start) and 'dur' (duration) to animate tokens
@@ -306,7 +227,7 @@ class SVGAnimator {
      * @returns {SVGElement}
      */
     _createElement (svgToken) {
-        let begin = this._currentTime;
+        let begin = this._getCurrentTime();
         let dur = (svgToken.setLastFrameIndex() - svgToken.getFirstFrameIndex() + 1)/this._playingFrameRate;
         let path = this._getPathElement(svgToken.getElementId());
 
