@@ -238,8 +238,8 @@ let AnimationController = {
 
     //Testing
     //console.log(this.svgViewport);
-    console.log('pathId=' + this.logs[0].tokenAnimations[0].paths[0].id);
-    window.setInterval(this.loadTest.bind(this), 5000);
+    //console.log('pathId=' + this.logs[0].tokenAnimations[0].paths[0].id);
+    //window.setInterval(this.loadTest.bind(this), 5000);
   },
 
   loadTest: function() {

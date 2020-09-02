@@ -85,6 +85,7 @@ public class AnimationContext {
         return this.totalDuration;
     }
     
+    //Unit: seconds
     public void setTotalDuration(int totalDuration) {
         if (totalDuration > 0) {
             this.totalDuration = totalDuration;

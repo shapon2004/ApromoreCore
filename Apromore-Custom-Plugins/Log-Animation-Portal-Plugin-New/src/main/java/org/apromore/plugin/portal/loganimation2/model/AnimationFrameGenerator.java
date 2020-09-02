@@ -40,6 +40,7 @@ public class AnimationFrameGenerator {
     
     public Chunk generateChunk(long startFrameIndex, int chunkSize) {
         Chunk chunk = new Chunk(startFrameIndex, chunkSize, animationContext);
+        if (chunk.isEmpty()) return chunk;
         
         Collection<ReplayTrace> selectedTraces = new HashSet<>();
         for (ReplayTrace trace : animationContext.getLog().getTraces()) {
