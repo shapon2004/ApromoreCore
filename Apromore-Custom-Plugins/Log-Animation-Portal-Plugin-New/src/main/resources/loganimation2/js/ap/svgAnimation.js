@@ -122,7 +122,7 @@ class AnimationContext {
 }
 
 /**
- * This class controls the animation
+ * Main class to control the animation via the SVG engine.
  */
 class SVGAnimator {
     /**
@@ -154,13 +154,16 @@ class SVGAnimator {
         this._startingTimeSinceLastRateChange = svgTokenAnimation.getCurrentTime(); //the starting time since applying the current playingFrameRate
 
         this._animationClockId = undefined;
-        this._tokenElements = new Map();
+        this._tokenElements = new Map(); //contains token's SVG elements created so far.
 
-        this._frameBuffer = new Buffer(animationContext);
+        this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
     }
 
     /**
-     * Animation loop to inject SVG elements into the document
+     * Read frames from the buffer and animate them
+     * There are reasons the buffer could be slow in supplying frames, e.g. network issues.
+     * The buffer is self-managed to fill itself with frames. The animator arranges asynchronous callback to check
+     * the buffer status until non-empty result is returned or the buffer has no more frames to supply.
      */
     _animateLoop() {
         console.log('SVGAnimator - animateLoop');
@@ -176,24 +179,26 @@ class SVGAnimator {
             }
         }
 
+        // Repeat reading the buffer until it has no more frames to supply (out of the server supply).
         if (!this._frameBuffer.isOutOfSupply()) {
             let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize() / this._playingFrameRate)*1000;
             this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
             console.log('SVGAnimator - animateLoop: start new animateLoop with a timerId=' + this._animationClockId);
         }
         else {
-            console.log('SVGAnimator - animateLoop: Buffer is out of frames. Stop animating.');
+            console.log('SVGAnimator - animateLoop: out of stock and no more frames in supply. The animateLoop stops.');
         }
     }
 
     /**
-     * Animate an array of frames
-     * @param {[]} frames
+     * Animate an array of frames by generating SVG elements.
+     * These elements are added to the svg document which will start animating them.
+     * For efficiency, these elements will be removed from the document once their animation finishes.
+     * @param {[]} frames: the frames to be animated.
      * @private
      */
     _animate(frames) {
-
-        let svgTokens = this._readSVGTokens(frames);
+        let svgTokens = this._createSVGTokens(frames);
         //console.log(svgTokens);
         for (let token of svgTokens) {
             let svgElement = this._createElement(token);
@@ -210,15 +215,18 @@ class SVGAnimator {
 
     /**
      * Set a new speed for the animation
-     * The effect of changing speed is that the position of everything being shown on the UI is unchanged but they will move
-     * slower or faster based on the difference between recordingFrameRate and playingFrameRate (both are frames per second).
-     * - recordingFrameRate is the rate of generating frames from the server
+     * The effect of changing speed is that the position of tokens being shown is unchanged but they will move
+     * slower or faster.
+     *
+     * The animation speed is driven by recordingFrameRate and playingFrameRate (both are frames per second).
+     * - recordingFrameRate is the rate of generating frames at the server
      * - playingFrameRate is the rate of playing frames at the client
-     * If playingFrameRate is greater than recordingFrameRate: the animation will be faster
-     * If playingFrameRate is lower than recordingFrameRate: the animation will be slower
+     * If playingFrameRate is higher than recordingFrameRate: the animation will be faster
+     * If playingFrameRate is lower than recordingFrameRate: the animation will be slower.
+     *
      * For example, if recordingFrameRate is 48fps and playingFrameRate is 24fps, then for 480 frames (10seconds recording),
-     * the animation will take 20 seconds to finish them and it will look slower than the recording. On the other hand,
-     * if the playingFrameRate is 96fps, then the animation will take 5 seconds and it looks faster.
+     * the animation will take 20 seconds to finish, thus it will look slower than the recording. On the other hand,
+     * if the playingFrameRate is 96fps, the animation will take 5 seconds and it looks faster than the recording.
      *
      * @param {Number} speedLevel
      */
@@ -251,6 +259,7 @@ class SVGAnimator {
         }
     }
 
+    // This is the logical time
     _getCurrentTime() {
         return this._svgTokenAnimation.getCurrentTime();
     }
@@ -258,7 +267,15 @@ class SVGAnimator {
     /**
      * Use SVG engine to animate tokens which have been converted from frames.
      * The SVG engine uses 'begin' (time since the start) and 'dur' (duration) to animate tokens
-     * Setting 'begin' and 'dur" is similar to setting a new frame rate for the token
+     * Setting 'begin' and 'dur" is the same as setting a new frame rate for the token.
+     *
+     * The token moves from its first frame distance to its last frame distance.
+     * keyPoints and keyTimes are used to control this movement. At the end of their movement, the SVG element will be
+     * deleted and thus it will disappear.
+     *
+     * In order to achieve a continuation of token movement, chunks of frames must be accurately calculated such that
+     * these distances are continued. For example, a token of id=1 must have distance 0.1-0.3 in one chunk and 0.3-0.7
+     * in the next check of frames.
      *
      * @param {SVGToken} svgToken
      * @returns {SVGElement}
@@ -301,7 +318,6 @@ class SVGAnimator {
 
     play() {
         this._animateLoop();
-        this.unpause();
     }
 
     pause() {
@@ -318,17 +334,18 @@ class SVGAnimator {
     }
 
     /**
-     * Move to a random logical timepoint, e.g. when the timeline tick is dragged and dropped.
+     * Move to a random logical timepoint, e.g. when the timeline tick is dragged to a new position.
      *
      * @param {Number} logicalTime: number of seconds from the start
      */
     goto(logicalTime) {
-        console.log('SVGAnimator - goto: a logical time, logicalTime=' + logicalTime + ', logTime=' + logTime);
+        console.log('SVGAnimator - goto: a logical time, logicalTime=' + logicalTime);
         if (logicalTime < 0 || logicalTime > this._animationContext.getLogicalTimelineMax()) {
-            console.log('SVGAnimator - goto: time is out of timeline, do nothing');
+            console.log('SVGAnimator - goto: goto time is outside the timeline, do nothing');
             return;
         }
 
+        // Stop and clear all the current tokens on the screen
         this.pause();
         this._clearTokenAnimation();
 
@@ -354,6 +371,12 @@ class SVGAnimator {
         this.goto(logicalTime - 5);
     }
 
+    /**
+     * Get the corresponding frame index at a logical time.
+     * @param {Number} logicalTime: the position of the tick on the timeline, how many seconds it is from the start.
+     * @returns {number}
+     * @private
+     */
     _getFrameIndexFromLogicalTime(logicalTime) {
         return (logicalTime*this._animationContext.getRecordingFrameRate());
     }
@@ -374,14 +397,15 @@ class SVGAnimator {
 
 
     /**
-     * Read a collection of SVGToken from an array of frames
-     * Frames are ordered in the increasing value of frame indexes and this is also the timing order of frames
-     * Thus, tokens with the same token key (elementId+caseId) are also ordered in consecutive frames
+     * Create a collection of SVGToken from an array of frames
+     * Frames are ordered by frame indexes, this is also the timing order of frames
+     * Thus, tokens with the same token key (elementId+caseId) are also ordered in consecutive frames which is convenient
+     * for identifying the starting and ending frames of the same token key.
      * @param {[]} frames
      * @returns {IterableIterator<any>}
      * @private
      */
-    _readSVGTokens(frames) {
+    _createSVGTokens(frames) {
         let tokenMap = new Map();
         for (let frame of frames) {
             let frameIndex = frame.index;

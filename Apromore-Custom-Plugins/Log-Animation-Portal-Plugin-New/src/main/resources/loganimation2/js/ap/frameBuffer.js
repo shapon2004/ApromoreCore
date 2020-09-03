@@ -1,6 +1,10 @@
 
 /**
- * Buffer contains array of frames like a stock (or store).
+ * Buffer contains array of frames like a stock (or store) containing frames as items.
+ * The buffer keeps a DataRequester to communicate with the server for frame supply. It self-manages the stock level
+ * by monitoring different stock thresholds such as minimum stock, safety stock, unused stock, etc. Replenishment is
+ * the process of stock refilling.
+ *
  * The buffer keeps three pointers to the frames:
  * - firstIndex: the buffer index of the first frame
  * - lastIndex: the buffer index of the last frame in the buffer
@@ -8,6 +12,8 @@
  * The frames from firstIndex to currentIndex-1 is the used stock
  * The frames from currentIndex to lastIndex is the current stock
  * Note that the buffer index is not the frame index.
+ * The currentIndex pointer is used to slide back and forth on the buffer to read frames. The buffer can self-manage to get
+ * frames from the server when the currentIndex is within the buffer or outside.
  *
  * Reading operation:
  * A read request is only fulfilled if there is available stock (chunkSize).
@@ -20,8 +26,8 @@
  * The write operation adds frames to the end of the buffer.
  *
  * Cleaning operation:
- * The used stock is kept in the buffer as long as it is under a history threshold, in case it will be read again (for read efficiency)
- * If the used stock is over a history threshold, old frames must be removed out (to avoid out of memory).
+ * The used stock is kept as long as it is under a history threshold, in case it will be read again (for read efficiency)
+ * If the used stock is over a history threshold, old frames must be removed out (to avoid out of memory issue).
  *
  * Each frame in the buffer has this format:
  * {
@@ -106,7 +112,12 @@ class Buffer {
     _clear() {
         this._frames = [];
         this._currentIndex = -1;
+
+        // A request token is used to control the result in the asynchronous communication with the server.
+        // Result returned from previous setting can be recognized from its request token and so not to use it.
+        // Only result relevant for the current setting should be used.
         this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);
+
         this._cancelPendingTasks();
     }
 
@@ -217,6 +228,9 @@ class Buffer {
      * The frame index corresponds to a buffer index which can be less or greater than the currentIndex, or can
      * be outside the current frames in the buffer. In the latter case, it is too far reaching, the buffer will be
      * cleared and new frames must be read into the buffer starting from the input frame.
+     *
+     * After the buffer has been cleared, results returned from previous communication with the server may not be used.
+     * This is controlled via a request token sent and received in the communication.
      *
      * @param {Number} frameIndex: the frame index
      */
