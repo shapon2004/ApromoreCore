@@ -1,6 +1,8 @@
 /**
  * SVGToken represents a token animated on a model element over a sequence of frames
- * It is created from reading frames, it keeps track of the first and last frame indexes and attributes
+ * It is created from reading frames, it keeps track of the first and last frame indexes and attributes.
+ *
+ * @author Bruce Nguyen
  */
 class SVGToken {
     /**
@@ -382,7 +384,7 @@ class SVGAnimator {
     }
 
     _clearTokenAnimation() {
-        this.pause();
+        if (this._animationClockId) window.clearTimeout(this._animationClockId); // ensure no tokens show up after clearing.
         for (let tokenId of this._tokenElements.keys()) {
             this._svgViewport.removeChild(tokenId);
         }

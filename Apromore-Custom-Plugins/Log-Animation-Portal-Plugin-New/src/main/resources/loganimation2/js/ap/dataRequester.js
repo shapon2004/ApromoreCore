@@ -1,6 +1,8 @@
 /**
  * Manage data requests and responses to/from the server
  * Use a Web Worker to do it in order not to block the UI processing.
+ *
+ * @author Bruce Nguyen
  */
 class DataRequester {
     /**

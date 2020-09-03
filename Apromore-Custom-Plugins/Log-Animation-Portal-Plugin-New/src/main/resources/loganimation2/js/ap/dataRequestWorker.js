@@ -1,3 +1,7 @@
+/**
+ * Web Worker to communicate with the server
+ * @author Bruce Nguyen
+ */
 
 onmessage = function(e) {
     console.log('DataRequestWorker - request received: requestToken=' + e.data.requestToken + ', startFrameIndex=' + e.data.startFrame);

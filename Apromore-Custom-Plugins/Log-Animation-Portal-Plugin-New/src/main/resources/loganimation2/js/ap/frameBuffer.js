@@ -39,6 +39,8 @@
  *          {elementIdN: [{caseId1:[0.1, 1, “#abcd”]}, {caseId2:[0.1, 1, “#abcd”]},…]},
  *      ]
  * }
+ *
+ * @author Bruce Nguyen
  */
 class Buffer {
     /**
