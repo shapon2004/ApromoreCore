@@ -176,7 +176,7 @@ class SVGAnimator {
             }
         }
 
-        if (!this._frameBuffer.isOutOfFrames()) {
+        if (!this._frameBuffer.isOutOfSupply()) {
             let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize() / this._playingFrameRate)*1000;
             this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
             console.log('SVGAnimator - animateLoop: start new animateLoop with a timerId=' + this._animationClockId);
