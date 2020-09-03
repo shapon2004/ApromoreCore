@@ -394,6 +394,7 @@ class SVGAnimator {
     clearToken(tokenId) {
         if (this._tokenElements.has(tokenId)) {
             this._svgViewport.removeChild(this._tokenElements.get(tokenId));
+            this._tokenElements.delete(tokenId);
         }
     }
 
