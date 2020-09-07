@@ -32,6 +32,7 @@ import java.util.Date;
 import javax.servlet.http.HttpSession;
 
 import org.apromore.logman.attribute.graph.MeasureAggregation;
+import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.loganimation.LogAnimationPluginInterface;
@@ -238,18 +239,17 @@ public class PDController extends BaseController {
     // E.g. before calling export log/model to the portal.
     public boolean prepareCriticalServices() {
         if (pluginSessionId == null) {
-            Messagebox.show("Process Discoverer session has not been initialized. Please open it again properly!");
+            Messagebox.show("You have logged off or your session has expired. Please log in again and reopen the file.");
             return false;
         }
         
         if (!preparePortalSession(pluginSessionId)) {
-            Messagebox.show("The Apromore Portal has become unavailable due to user logoff, timeout or some other reason. " + 
-                    "Please close Process Discover, refresh/relogin the portal and try opening Process Discoverer again.");
+            Messagebox.show("You have logged off or your session has expired. Please log in again and reopen the file.");
             return false;
         }
         
         if (!prepareSystemServices()) {
-            Messagebox.show("Critical system services are not available for Process Discoverer. Please check with your administrator!");
+            Messagebox.show("Errors occurred while initializing Process Discoverer. Please contact your administrator.");
             return false;
         }
         
@@ -592,15 +592,20 @@ public class PDController extends BaseController {
     public void setOverlay(
             MeasureType primaryType,
             MeasureAggregation primaryAggregation,
+            MeasureRelation primaryRelation,
             MeasureType secondaryType,
             MeasureAggregation secondaryAggregation,
+            MeasureRelation secondaryRelation,
             String aggregateCode
     ) throws InterruptedException {
 
         userOptions.setPrimaryType(primaryType);
         userOptions.setPrimaryAggregation(primaryAggregation);
+        userOptions.setPrimaryRelation(primaryRelation);
+        
         userOptions.setSecondaryType(secondaryType);
         userOptions.setSecondaryAggregation(secondaryAggregation);
+        userOptions.setSecondaryRelation(secondaryRelation);
 
         primaryAggregateCode = aggregateCode;
         if (primaryType == FREQUENCY) {
@@ -613,8 +618,8 @@ public class PDController extends BaseController {
 
     public AbstractionParams genAbstractionParamsSimple(
             boolean prioritizeParallelism, boolean preserve_connectivity, boolean secondary,
-            MeasureType primaryType, MeasureAggregation primaryAggregation,
-            MeasureType secondaryType, MeasureAggregation secondaryAggregation
+            MeasureType primaryType, MeasureAggregation primaryAggregation, MeasureRelation primaryRelation,
+            MeasureType secondaryType, MeasureAggregation secondaryAggregation, MeasureRelation secondaryRelation
             ) {
         return new AbstractionParams(
                 logData.getMainAttribute(),
@@ -627,10 +632,13 @@ public class PDController extends BaseController {
                 secondary,
                 userOptions.getFixedType(),
                 userOptions.getFixedAggregation(),
+                userOptions.getFixedRelation(),
                 primaryType,
                 primaryAggregation,
+                primaryRelation,
                 secondaryType,
                 secondaryAggregation,
+                secondaryRelation,
                 userOptions.getRelationReader(),
                 null);
     }
@@ -670,8 +678,10 @@ public class PDController extends BaseController {
                 userOptions.getIncludeSecondary(),
                 userOptions.getPrimaryType(),
                 userOptions.getPrimaryAggregation(),
+                userOptions.getPrimaryRelation(),
                 userOptions.getSecondaryType(),
-                userOptions.getSecondaryAggregation()
+                userOptions.getSecondaryAggregation(),
+                userOptions.getSecondaryRelation()
             );
 
             // Find a DFG first
