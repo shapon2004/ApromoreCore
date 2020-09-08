@@ -164,7 +164,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         if (replayedLogs.size() > 0) {
 
             //To be replaced
-            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, params);
+            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, bpmnDefinition, params);
             JSONObject json = jsonBuilder.parseLogCollection();
             json.put("success", true);  // Ext2JS's file upload requires this flag
             //String string = json.toString();
@@ -396,7 +396,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         if (replayedLogs.size() > 0) {
 
             //To be replaced
-            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, params);
+            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, bpmnDefNoGateways, params);
             JSONObject json = jsonBuilder.parseLogCollection();
             json.put("success", true);  // Ext2JS's file upload requires this flag
             //String string = json.toString();

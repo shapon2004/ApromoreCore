@@ -149,6 +149,11 @@ class SVGAnimator {
 
         this._animationClockId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
+        this._elementPool = []; //contains SVG elements to be reused, not to create new which is expensive
+        this._listernerMap = new Map();
+
+        // Initialize
+        this._createElementPool();
         this.pause();
     }
 
@@ -164,10 +169,10 @@ class SVGAnimator {
             let frames = this._frameBuffer.readNext();
             if (frames && frames.length > 0) {
                 this._animate(frames);
-                this.unpause();
+                //this.unpause();
                 console.log('SVGAnimator - animateLoop: readNext returns result for animation. Unpause and play.');
             } else {
-                this.pause();
+                //this.pause();
                 console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
             }
         }
@@ -196,15 +201,19 @@ class SVGAnimator {
      */
     _animate(frames) {
         let svgTokens = this._createSVGTokens(frames);
-        //console.log(svgTokens);
+        console.log(svgTokens);
         for (let token of svgTokens) {
-            let svgElement = this._createElement(token);
-            console.log('SVGElement');
-            //console.log(token);
-            console.log(svgElement);
-            if (svgElement) {
-                this._svgViewport.appendChild(svgElement);
+            if (token) {
+                let svgElement = this._createElement(token);
+                //console.log(token);
+                console.log('SVGElement');
+                //console.log(token);
+                console.log(svgElement);
+                if (svgElement) {
+                    this._svgViewport.appendChild(svgElement);
+                }
             }
+
 
         }
     }
@@ -260,6 +269,13 @@ class SVGAnimator {
         return this._svgTokenAnimation.getCurrentTime();
     }
 
+    _createElementPool() {
+        for (let i=0; i<20*this._frameBuffer.getChunkSize(); i++) {
+            let emptyElement = this._createNewElement("", "", 0, 0, 0, 0);
+            this._elementPool.push(emptyElement);
+        }
+    }
+
     /**
      * Use SVG engine to animate tokens which have been converted from frames.
      * The SVG engine uses 'begin' (time since the start) and 'dur' (duration) to animate tokens
@@ -277,17 +293,63 @@ class SVGAnimator {
      * @returns {SVGElement}
      */
     _createElement (svgToken) {
-        let self = this;
         let begin = this._getLogicalTimeFromFrameIndex(svgToken.getFirstFrameIndex());
         let dur = (svgToken.getLastFrameIndex() - svgToken.getFirstFrameIndex() + 1)/this._playingFrameRate;
         let pathElement = this._getPathElement(svgToken.getElementId());
         if (!pathElement) return;
         let path = pathElement.getAttribute('d');
 
+        console.log('Element pool POP one element: size = ' + this._elementPool.length);
+        //console.log(this._elementPool);
+        let animateMotion;
+        let svgElement = this._elementPool.pop();
+        if (!svgElement) {
+            svgElement = this._createNewElement(svgToken.getElementId()+","+svgToken.getCaseId(),
+                path, begin, dur, svgToken.getFirstDistance(), svgToken.getLastDistance());
+            animateMotion = svgElement.childNodes[0];
+        }
+        else {
+            //console.log(svgElement);
+            svgElement.setAttributeNS(null, 'id', svgToken.getElementId() + "," + svgToken.getCaseId());
+            //animateMotion = svgElement.childNodes[0].cloneNode();
+            //svgElement.replaceChild(animateMotion, svgElement.childNodes[0]);
+            animateMotion = svgElement.childNodes[0];
+            animateMotion.setAttributeNS(null, 'begin', begin);
+            animateMotion.setAttributeNS(null, 'dur', dur);
+            animateMotion.setAttributeNS(null, 'path', path);
+            animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
+                svgToken.getLastDistance());
+
+
+        }
+
+        // if (this._listernerMap.has(svgElement)) {
+        //     animateMotion.removeEventListener('endEvent', this._listernerMap.get(svgElement), true);
+        // }
+        if (animateMotion.onend) {
+            animateMotion.onend = {};
+        }
+
+        let animator = this;
+        function eventHandler() {
+            animator.getSVGViewport().removeChild(svgElement);
+            //this.removeEventListener('onend');
+            console.log('Element pool PUSH one element: size = ' + animator._elementPool.length);
+            console.log(svgElement);
+            animator._elementPool.push(svgElement);
+        };
+        //animateMotion.addEventListener('endEvent', eventHandler, true);
+        animateMotion.onend = eventHandler;
+        //this._listernerMap.set(svgElement, eventHandler);
+
+        return svgElement;
+    }
+
+    _createNewElement(tokenId, path, begin, dur, startDist, endDist) {
         let svgElement = document.createElementNS(SVG_NS, 'g');
         svgElement.setAttributeNS(null, 'stroke', 'none');
         svgElement.setAttributeNS(null, 'class', 'token');
-        svgElement.setAttributeNS(null, 'id', svgToken.getElementId()+","+svgToken.getCaseId());
+        svgElement.setAttributeNS(null, 'id', tokenId);
 
         let animateMotion = document.createElementNS(SVG_NS, 'animateMotion');
         animateMotion.setAttributeNS(null, 'begin', begin);
@@ -296,14 +358,9 @@ class SVGAnimator {
         animateMotion.setAttributeNS(null, 'path', path);
         animateMotion.setAttributeNS(null, 'rotate', 'auto');
         animateMotion.setAttributeNS(null, 'calcMode', 'linear');
-        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
-            svgToken.getLastDistance());
+        animateMotion.setAttributeNS(null, 'keyPoints', '0;' + startDist + ";" + endDist);
         animateMotion.setAttributeNS(null, 'keyTimes', '0;0;1');
         svgElement.appendChild(animateMotion);
-        let animator = this;
-        animateMotion.onend = function () {
-            animator.getSVGViewport().removeChild(this.parentElement);
-        }
 
         let circle = document.createElementNS(SVG_NS, 'circle');
         circle.setAttributeNS(null, 'cx', 0);
@@ -316,6 +373,7 @@ class SVGAnimator {
     }
 
     play() {
+        this.unpause();
         this._animateLoop();
     }
 

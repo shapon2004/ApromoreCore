@@ -24,8 +24,6 @@
 
 package org.apromore.service.loganimation2.replay;
 
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -37,11 +35,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.apromore.service.loganimation2.LogAnimationService;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+
+import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 public class AnimationLog {
     private XLog xlog = null;

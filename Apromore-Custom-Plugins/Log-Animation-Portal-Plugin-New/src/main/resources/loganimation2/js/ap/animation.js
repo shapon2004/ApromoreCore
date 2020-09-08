@@ -239,6 +239,13 @@ let AnimationController = {
       }
     };
 
+    // Cache path elements
+    for (let log of this.logs) {
+      for (let flowId of log.sequenceFlowIds) {
+        this.pathElementCache[flowId] = $j('[data-element-id=' + flowId + ']').find('g').find('path').get(0);
+      }
+    }
+
     //this.start();
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
     this.svgAnimator = new SVGAnimator(this.animationContext, this, this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
@@ -250,12 +257,14 @@ let AnimationController = {
 
   getPathElement: function (pathElementId) {
     let pathElement = this.pathElementCache[pathElementId]
+    /*
     if (!pathElement) {
       // pathElement = this.pathElementCache[path.id] = $j("#svg-"+path.id).find("g").find("g").find("g").find("path").get(0);
       pathElement
           = this.pathElementCache[pathElementId]
           = $j('[data-element-id=' + pathElementId + ']').find('g').find('path').get(0)
     }
+    */
     return pathElement
   },
 

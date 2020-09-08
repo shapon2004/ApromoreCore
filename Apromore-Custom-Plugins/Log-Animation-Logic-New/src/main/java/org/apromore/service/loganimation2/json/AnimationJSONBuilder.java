@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -48,6 +49,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import de.hpi.bpmn2_0.model.BaseElement;
+import de.hpi.bpmn2_0.model.Definitions;
+import de.hpi.bpmn2_0.model.FlowElement;
+import de.hpi.bpmn2_0.model.FlowNode;
+import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 /*
@@ -67,13 +73,16 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 */
 public class AnimationJSONBuilder {
     private ArrayList<AnimationLog> animations = null;
+    private Collection<SequenceFlow> sequenceFlows = new HashSet<>();
+    private Collection<FlowNode> nodes = new HashSet<>();
     private Interval totalRealInterval = null; //total time interval of all logs
     private ReplayParams params;
     private static final Logger LOGGER = Logger.getLogger(AnimationJSONBuilder.class.getCanonicalName());
     
-    public AnimationJSONBuilder(ArrayList<AnimationLog> animations, ReplayParams params) {
+    public AnimationJSONBuilder(ArrayList<AnimationLog> animations, Definitions diagram, ReplayParams params) {
         this.animations = animations;
         this.params = params;
+        this.collectModelElements(diagram);
         
         Set<DateTime> dateSet = new HashSet<>();
         for (AnimationLog animationLog : animations) {
@@ -124,6 +133,9 @@ public class AnimationJSONBuilder {
         json.put("color", animationLog.getColor());
         json.put("total", animationLog.getTraces().size() + animationLog.getUnplayTraces().size());        
         json.put("play", animationLog.getTraces().size());
+        json.put("progress", this.parseLogProgress(animationLog));
+        json.put("sequenceFlowIds", this.parseSequenceFlowIds(this.sequenceFlows));
+        /*
         json.put("unplayTraces", animationLog.getUnplayTracesString());
         json.put("reliable", animationLog.getReliableTraceCount());
         json.put("unreliableTraces", animationLog.getUnReliableTraceIDs());
@@ -140,9 +152,9 @@ public class AnimationJSONBuilder {
             json.put("exactFitnessFormulaTime", 0);
         }
         json.put("algoTime", df.format(1.0*animationLog.getAlgoRuntime()/1000));
-        json.put("progress", this.parseLogProgress(animationLog));
-        //json.put("tokenAnimations", this.parseTraces(animationLog));
-
+        json.put("tokenAnimations", this.parseTraces(animationLog));
+        */
+        
         return json;
     }
     
@@ -209,6 +221,14 @@ public class AnimationJSONBuilder {
         
         json.put("color", log.getColor());
         return json;
+    }
+    
+    protected JSONArray parseSequenceFlowIds(Collection<SequenceFlow> flows) {
+        JSONArray flowIds = new JSONArray();
+        for (SequenceFlow seqFlow : flows) {
+            flowIds.put(seqFlow.getId());
+        }
+        return flowIds;
     }
     
     //represent all token flows in the log
@@ -462,6 +482,24 @@ public class AnimationJSONBuilder {
         }
         animations.clear();
         animations = null;
+    }
+    
+    private void collectModelElements(Definitions diagram) {
+        List<BaseElement> rootElements = diagram.getRootElement();
+        if (rootElements.size() == 1) {
+            BaseElement rootElement = rootElements.get(0);
+            if (rootElement instanceof Process) {
+                Process process = (Process)rootElement;
+                for (FlowElement element : process.getFlowElement()) {
+                    if (element instanceof SequenceFlow) {
+                        sequenceFlows.add((SequenceFlow)element);
+                    }  
+                    else if (element instanceof FlowNode) {
+                        nodes.add((FlowNode)element);
+                    }                    
+                }
+            }
+        }
     }
     
 }
