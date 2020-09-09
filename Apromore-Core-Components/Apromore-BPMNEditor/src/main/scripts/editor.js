@@ -84,6 +84,9 @@ ORYX.Editor = {
                 container: '#' + this.getCanvas().rootNode.id,
                 keyboard: {
                     bindTo: window
+                },
+                propertiesPanel: {
+                    parent: '#js-properties-panel'
                 }
             }));
 
@@ -171,7 +174,6 @@ ORYX.Editor = {
                 region: 'east',
                 layout: 'fit',
                 cls: 'x-panel-editor-east',
-                autoEl: 'div',
                 collapseTitle: ORYX.I18N.View.East,
                 titleCollapse: true,
                 border: false,
@@ -181,7 +183,12 @@ ORYX.Editor = {
                 collapsible: true,
                 width: ORYX.CONFIG.PANEL_RIGHT_WIDTH || 200,
                 split: true,
-                title: "East"
+                title: "Properties",
+                items: {
+                    layout: "fit",
+                    autoHeight: true,
+                    el: document.getElementById("js-properties-panel")
+                }
             }),
 
             // DEFINES BOTTOM-AREA
@@ -277,7 +284,7 @@ ORYX.Editor = {
             this.layout = new Ext.Panel(layout_config)
         }
 
-        this.layout_regions.east.hide();
+        //this.layout_regions.east.hide();
         this.layout_regions.west.hide();
         this.layout_regions.info.hide();
         if (Ext.isIPad && "undefined" != typeof iScroll) {
