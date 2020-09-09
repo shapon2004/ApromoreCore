@@ -21,8 +21,81 @@
  */
 package org.apromore.service.loganimation2;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.util.List;
+import java.util.Random;
+
+import org.deckfour.xes.extension.std.XTimeExtension;
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryRegistry;
+import org.deckfour.xes.in.XParser;
+import org.deckfour.xes.in.XesXmlGZIPParser;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.out.XSerializer;
+import org.deckfour.xes.out.XesXmlGZIPSerializer;
+
 public class CreateTestLog {
     public static void main(String[] args) {
+        CreateTestLog creator = new CreateTestLog(); 
+        
+        final int COPY_TRACE_NUM = 99;
+        try {
+            FileInputStream is = new FileInputStream("Sepsis.xes.gz");
+            XFactory factory = XFactoryRegistry.instance().currentDefault();
+            XParser parser = new XesXmlGZIPParser(factory);
+            List<XLog> logs = parser.parse(is);
+            
+            if (logs != null && !logs.isEmpty()) {
+                XLog log = logs.iterator().next();
+                XLog newLog = factory.createLog(log.getAttributes());
+                
+                for (XTrace trace : log) {
+                    for (int i=0; i<COPY_TRACE_NUM; i++) {
+                        XTrace copyTrace = creator.copyTrace(trace, factory);
+                        newLog.add(copyTrace);
+                    }
+                }
+                
+                FileOutputStream outputStream = new FileOutputStream("Sepsis_big.xes.gz");
+                XSerializer serializer = new XesXmlGZIPSerializer();
+                serializer.serialize(log, outputStream);
+                outputStream.close();
+            }
+            else {
+                System.out.println("Error: cannot import log");
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } 
+        
         
     }
+    
+    private XTrace copyTrace(XTrace trace, XFactory factory) {
+        XTrace newTrace = factory.createTrace(trace.getAttributes());
+        for (XEvent event : trace) {
+            XEvent newEvent = factory.createEvent(event.getAttributes());
+            long eventTimestamp = XTimeExtension.instance().extractTimestamp(event).getTime();
+            XTimeExtension.instance().assignTimestamp(newEvent, eventTimestamp + 
+                                                        getRandomNumberInRange(4*3600*1000, 10*24*3600*1000)); //4h->10days
+            newTrace.add(newEvent);
+        }
+        return newTrace;
+    }
+    
+    private static int getRandomNumberInRange(int min, int max) {
+        Random r = new Random();
+        return r.ints(min, (max + 1)).findFirst().getAsInt();
+
+    }
+    
+    
 }
