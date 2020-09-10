@@ -150,11 +150,33 @@ class SVGAnimator {
         this._animationClockId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._elementPool = []; //contains SVG elements to be reused, not to create new which is expensive
+        this._elementPoolLimit = 20*this._frameBuffer.getChunkSize();
         this._listernerMap = new Map();
 
         // Initialize
-        this._createElementPool();
+        this._initElementPool();
         this.pause();
+    }
+
+    _initElementPool() {
+        this._elementPool = [];
+        for (let i=0; i<this._elementPoolLimit; i++) {
+            let emptyElement = this._createNewElement("", "", 0, 0, 0, 0);
+            this._elementPool.push(emptyElement);
+        }
+    }
+
+    /**
+     * @param {SVGElement} element
+     */
+    addToElementPool(element) {
+        if (this._elementPool.length < this._elementPoolLimit) {
+            this._elementPool.push(element);
+        }
+    }
+
+    getFromElementPool() {
+        return this._elementPool.pop();
     }
 
     /**
@@ -169,17 +191,17 @@ class SVGAnimator {
             let frames = this._frameBuffer.readNext();
             if (frames && frames.length > 0) {
                 this._animate(frames);
-                //this.unpause();
+                this.unpause();
                 console.log('SVGAnimator - animateLoop: readNext returns result for animation. Unpause and play.');
             } else {
-                //this.pause();
+                this.pause();
                 console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
             }
         }
 
         // Repeat reading the buffer until it has no more frames to supply (out of the server supply).
         if (!this._frameBuffer.isOutOfSupply()) {
-            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(2*this._playingFrameRate))*1000;
+            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(4*this._playingFrameRate))*1000;
             this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
             console.log('SVGAnimator - animateLoop: start new animateLoop with a timerId=' + this._animationClockId);
         }
@@ -201,14 +223,14 @@ class SVGAnimator {
      */
     _animate(frames) {
         let svgTokens = this._createSVGTokens(frames);
-        console.log(svgTokens);
+        //console.log(svgTokens);
         for (let token of svgTokens) {
             if (token) {
                 let svgElement = this._createElement(token);
                 //console.log(token);
-                console.log('SVGElement');
+                //console.log('SVGElement');
                 //console.log(token);
-                console.log(svgElement);
+                //console.log(svgElement);
                 if (svgElement) {
                     this._svgViewport.appendChild(svgElement);
                 }
@@ -269,13 +291,6 @@ class SVGAnimator {
         return this._svgTokenAnimation.getCurrentTime();
     }
 
-    _createElementPool() {
-        for (let i=0; i<20*this._frameBuffer.getChunkSize(); i++) {
-            let emptyElement = this._createNewElement("", "", 0, 0, 0, 0);
-            this._elementPool.push(emptyElement);
-        }
-    }
-
     /**
      * Use SVG engine to animate tokens which have been converted from frames.
      * The SVG engine uses 'begin' (time since the start) and 'dur' (duration) to animate tokens
@@ -299,10 +314,10 @@ class SVGAnimator {
         if (!pathElement) return;
         let path = pathElement.getAttribute('d');
 
-        console.log('Element pool POP one element: size = ' + this._elementPool.length);
+        //console.log('Element pool POP one element: size = ' + this._elementPool.length);
         //console.log(this._elementPool);
         let animateMotion;
-        let svgElement = this._elementPool.pop();
+        let svgElement = this.getFromElementPool();
         if (!svgElement) {
             svgElement = this._createNewElement(svgToken.getElementId()+","+svgToken.getCaseId(),
                 path, begin, dur, svgToken.getFirstDistance(), svgToken.getLastDistance());
@@ -311,16 +326,14 @@ class SVGAnimator {
         else {
             //console.log(svgElement);
             svgElement.setAttributeNS(null, 'id', svgToken.getElementId() + "," + svgToken.getCaseId());
-            //animateMotion = svgElement.childNodes[0].cloneNode();
-            //svgElement.replaceChild(animateMotion, svgElement.childNodes[0]);
-            animateMotion = svgElement.childNodes[0];
+            animateMotion = svgElement.childNodes[0].cloneNode();
+            svgElement.replaceChild(animateMotion, svgElement.childNodes[0]);
+            //animateMotion = svgElement.childNodes[0];
             animateMotion.setAttributeNS(null, 'begin', begin);
             animateMotion.setAttributeNS(null, 'dur', dur);
             animateMotion.setAttributeNS(null, 'path', path);
             animateMotion.setAttributeNS(null, 'keyPoints', '0;' + svgToken.getFirstDistance() + ";" +
                 svgToken.getLastDistance());
-
-
         }
 
         // if (this._listernerMap.has(svgElement)) {
@@ -333,10 +346,10 @@ class SVGAnimator {
         let animator = this;
         function eventHandler() {
             animator.getSVGViewport().removeChild(svgElement);
+            animator.addToElementPool(svgElement);
             //this.removeEventListener('onend');
-            console.log('Element pool PUSH one element: size = ' + animator._elementPool.length);
-            console.log(svgElement);
-            animator._elementPool.push(svgElement);
+            //console.log('Element pool PUSH one element: size = ' + animator._elementPool.length);
+            //console.log(svgElement);
         };
         //animateMotion.addEventListener('endEvent', eventHandler, true);
         animateMotion.onend = eventHandler;
