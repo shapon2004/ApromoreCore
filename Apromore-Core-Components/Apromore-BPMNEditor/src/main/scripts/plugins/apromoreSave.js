@@ -50,13 +50,6 @@ ORYX.Plugins.ApromoreSave = Clazz.extend({
             ]
         });
 
-        // document.addEventListener("keydown", function (e) {
-        //     if (e.ctrlKey && e.keyCode === 83) {
-        //         Event.stop(e);
-        //     }
-        // }, false);
-
-
         this.facade.offer({
             'name':ORYX.I18N.Save.saveAs,
             'functionality':this.save.bind(this, true),
@@ -67,23 +60,6 @@ ORYX.Plugins.ApromoreSave = Clazz.extend({
             'minShape':0,
             'maxShape':0
         });
-
-        // window.onbeforeunload = this.onUnLoad.bind(this);
-        // this.changeDifference = 0;
-        //
-        // // Register on event for executing commands --> store all commands in a stack
-        // this.facade.registerOnEvent(ORYX.CONFIG.EVENT_UNDO_EXECUTE, function () {
-        //     this.changeDifference++;
-        //     this.updateTitle();
-        // }.bind(this));
-        // this.facade.registerOnEvent(ORYX.CONFIG.EVENT_EXECUTE_COMMANDS, function () {
-        //     this.changeDifference++;
-        //     this.updateTitle();
-        // }.bind(this));
-        // this.facade.registerOnEvent(ORYX.CONFIG.EVENT_UNDO_ROLLBACK, function () {
-        //     this.changeDifference--;
-        //     this.updateTitle();
-        // }.bind(this));
 
     },
 
@@ -104,26 +80,25 @@ ORYX.Plugins.ApromoreSave = Clazz.extend({
         }
 
         this.saving = true;
-
-        var xml = this.facade.getXML();
-        var svg = this.facade.getSVG();
-
-        if (forceNew) {
-            if (ORYX.Plugins.ApromoreSave.apromoreSaveAs) {
-                ORYX.Plugins.ApromoreSave.apromoreSaveAs(xml, svg);
+        this.facade.getXML().then(value => {
+            const xml = value.xml;
+            if (forceNew) {
+                if (ORYX.Plugins.ApromoreSave.apromoreSaveAs) {
+                    ORYX.Plugins.ApromoreSave.apromoreSaveAs(xml, "");
+                } else {
+                    alert("Apromore Save As method is missing!");
+                }
             } else {
-                alert("Apromore Save As method is missing!");
+                if (ORYX.Plugins.ApromoreSave.apromoreSave) {
+                    ORYX.Plugins.ApromoreSave.apromoreSave(xml, "");
+                } else {
+                    alert("Apromore Save method is missing!");
+                }
             }
-        } else {
-            if (ORYX.Plugins.ApromoreSave.apromoreSave) {
-                ORYX.Plugins.ApromoreSave.apromoreSave(xml, svg);
-            } else {
-                alert("Apromore Save method is missing!");
-            }
-        }
 
-        this.saving = false;
-        return true;
+            this.saving = false;
+            return true;
+        });
     }
 
 });
