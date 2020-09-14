@@ -55,25 +55,21 @@ ORYX.Plugins.Export = Clazz.extend({
     },
 
     exportSVG: function() {
-        this.facade.getSVG().then(value => {
-            const svg = value.svg;
-            let hiddenElement = document.createElement('a');
-            hiddenElement.href = 'data:application/bpmn20-xml;charset=UTF-8,' + encodeURIComponent(svg);
-            hiddenElement.target = '_blank';
-            hiddenElement.download = 'diagram.svg';
-            hiddenElement.click();
-        });
+        var svg = this.facade.getSVG();
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:application/bpmn20-xml;charset=UTF-8,' + encodeURIComponent(svg);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = 'diagram.svg';
+        hiddenElement.click();
     },
 
     exportBPMN: function() {
-        this.facade.getXML().then(value => {
-            const xml = value.xml;
-            let hiddenElement = document.createElement('a');
-            hiddenElement.href = 'data:application/bpmn20-xml;charset=UTF-8,' + encodeURIComponent(xml);
-            hiddenElement.target = '_blank';
-            hiddenElement.download = 'diagram.bpmn';
-            hiddenElement.click();
-        });
+        var xml = this.facade.getXML();
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:application/bpmn20-xml;charset=UTF-8,' + encodeURIComponent(xml);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = 'diagram.bpmn';
+        hiddenElement.click();
     }
 
 });

@@ -157,24 +157,20 @@ ORYX.Canvas = {
       }.bind(this));
     },
 
-    //Use promises: https://github.com/bpmn-io/bpmn-js-callbacks-to-promises#saveXML
-    getXML: async function() {
-        try {
-            const result = await this._editor.saveXML({ format: true });
-            return result;
-        } catch (err) {
-            console.log(err);
-        }
+    getXML: function() {
+        var bpmnXML;
+        this._editor.saveXML({ format: true }, function(err, xml) {
+            bpmnXML = xml;
+        });
+        return bpmnXML;
     },
 
-    //Use promises: https://github.com/bpmn-io/bpmn-js-callbacks-to-promises#saveXML
-    getSVG: async function() {
-        try {
-            const result = await this._editor.saveSVG({ format: true });
-            return result;
-        } catch (err) {
-            console.log(err);
-        }
+    getSVG: function() {
+        var bpmnSVG;
+        this._editor.saveSVG(function(err, svg) {
+            bpmnSVG = svg;
+        });
+        return bpmnSVG;
     },
 
     zoomFitToModel: function() {
