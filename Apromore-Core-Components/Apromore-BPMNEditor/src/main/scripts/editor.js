@@ -181,9 +181,9 @@ ORYX.Editor = {
                 floatable: false,
                 expandTriggerAll: true,
                 collapsible: true,
-                width: ORYX.CONFIG.PANEL_RIGHT_WIDTH || 200,
+                width: 450,
                 split: true,
-                title: "Properties",
+                title: "Simulation Parameters",
                 items: {
                     layout: "fit",
                     autoHeight: true,
