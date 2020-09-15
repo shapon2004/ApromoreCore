@@ -284,7 +284,6 @@ ORYX.Editor = {
             this.layout = new Ext.Panel(layout_config)
         }
 
-        //this.layout_regions.east.hide();
         this.layout_regions.west.hide();
         this.layout_regions.info.hide();
         if (Ext.isIPad && "undefined" != typeof iScroll) {
@@ -507,6 +506,10 @@ ORYX.Editor = {
         return this._canvas;
     },
 
+    getSimulationDrawer: function() {
+        return this.layout_regions.east;
+    },
+
     /**
      * Returns a per-editor singleton plugin facade.
      * To be used in plugin initialization.
@@ -528,6 +531,7 @@ ORYX.Editor = {
                     setSelection: function() {},
                     updateSelection: function() {},
                     getCanvas: this.getCanvas.bind(this),
+                    getSimulationDrawer: this.getSimulationDrawer.bind(this),
                     importJSON: function() {},
                     importERDF: function() {},
                     getERDF: function() {},

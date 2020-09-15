@@ -46,6 +46,11 @@
     width: 26px !important;
 }
 
+.x-panel-editor-north .x-toolbar button[title='Toggle simulation parameters panel'] {
+    background-image: url('../../common/img/icons/tune.svg') !important;
+    width: 26px !important;
+}
+
 .x-panel-editor-north .x-toolbar button[title='Undo the last action'] {
     background-image: url('../../common/img/icons/undo.svg') !important;
     width: 26px !important;
