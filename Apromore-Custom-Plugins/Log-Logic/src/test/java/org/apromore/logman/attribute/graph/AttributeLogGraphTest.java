@@ -35,12 +35,12 @@ import org.junit.Test;
 public class AttributeLogGraphTest extends DataSetup {
 
     @Test
-    public void test_OneTraceAndCompleteEvents() throws Exception {
+    public void test_OneTraceAndCompleteEvents_StructureWithCaseFrequency() throws Exception {
         ALog log = new ALog(readLogWithOneTraceAndCompleteEvents());
         AttributeLog attLog = new AttributeLog(log, log.getAttributeStore().getStandardEventConceptName());
         
         AttributeLogGraph graph = attLog.getGraphView();
-        graph.buildSubGraphs(attLog.getAttribute(), MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false, false);
+        graph.buildSubGraphsWithStructuralWeight(MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false);
         
         Assert.assertEquals(IntSets.mutable.of(0,1,2,3,4,5), graph.getNodes());
         Assert.assertEquals(IntSets.mutable.of(0,1,2,8,12,15,17,20,24), graph.getArcs());
@@ -291,12 +291,92 @@ public class AttributeLogGraphTest extends DataSetup {
 
     }
     
+    @Test
+    public void testSubGraphs_OneTraceAndCompleteEvents_StructureWithCaseFrequency() throws Exception {
+        ALog log = new ALog(readLogWithOneTraceAndCompleteEvents());
+        AttributeLog attLog = new AttributeLog(log, log.getAttributeStore().getStandardEventConceptName());
+        AttributeLogGraph graph = attLog.getGraphView();
+        graph.buildSubGraphsWithStructuralWeight(MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false);
+        
+        FilteredGraph nodeBasedGraph0 = graph.getSubGraphs().get(0);
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(0).getArcs());  
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(1).getArcs());     
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 8, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(2).getArcs());           
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(3).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(1, 8, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(3).getArcs());          
+        
+        FilteredGraph nodeBasedGraph1 = graph.getSubGraphs().get(1);
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 15, 17, 20, 24), nodeBasedGraph1.getArcs());        
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(0).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(1).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(2, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(2).getArcs());  
+        
+        FilteredGraph nodeBasedGraph2 = graph.getSubGraphs().get(2);
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 17, 24), nodeBasedGraph2.getArcs());        
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 17, 24), nodeBasedGraph2.getSubGraphs().get(0).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 17, 24), nodeBasedGraph2.getSubGraphs().get(1).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(2, 17, 24), nodeBasedGraph2.getSubGraphs().get(2).getArcs()); 
+    }
+    
+    
+    public void testSubGraphs_OneTraceAndCompleteEvents_StructureWithMeanDuration() throws Exception {
+        ALog log = new ALog(readLogWithStartCompleteEventsOverlapping());
+        AttributeLog attLog = new AttributeLog(log, log.getAttributeStore().getStandardEventConceptName());
+        AttributeLogGraph graph = attLog.getGraphView();
+        graph.buildSubGraphsWithStructuralWeight(MeasureType.DURATION, MeasureAggregation.MEAN, false);
+        
+        FilteredGraph nodeBasedGraph0 = graph.getSubGraphs().get(0);
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(0).getArcs());  
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 8, 12, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(1).getArcs());     
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 8, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(2).getArcs());           
+        Assert.assertEquals(IntSets.mutable.of(0, 1, 2, 3, 4, 5), nodeBasedGraph0.getSubGraphs().get(3).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(1, 8, 15, 17, 20, 24), nodeBasedGraph0.getSubGraphs().get(3).getArcs());          
+        
+        FilteredGraph nodeBasedGraph1 = graph.getSubGraphs().get(1);
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 15, 17, 20, 24), nodeBasedGraph1.getArcs());        
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(0).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(1).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 3, 4, 5), nodeBasedGraph1.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(2, 15, 17, 20, 24), nodeBasedGraph1.getSubGraphs().get(2).getArcs());  
+        
+        FilteredGraph nodeBasedGraph2 = graph.getSubGraphs().get(2);
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 17, 24), nodeBasedGraph2.getArcs());        
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(0).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 12, 17, 24), nodeBasedGraph2.getSubGraphs().get(0).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(1).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 17, 24), nodeBasedGraph2.getSubGraphs().get(1).getArcs());
+        Assert.assertEquals(IntSets.mutable.of(0, 2, 4, 5), nodeBasedGraph2.getSubGraphs().get(2).getNodes());
+        Assert.assertEquals(IntSets.mutable.of(2, 17, 24), nodeBasedGraph2.getSubGraphs().get(2).getArcs());  
+    }
+    
     @Test 
     public void test_Exception() {
         ALog log = new ALog(readLogWithOneTraceAndCompleteEvents());
         AttributeLog attLog = new AttributeLog(log, log.getAttributeStore().getStandardEventConceptName());
         AttributeLogGraph graph = attLog.getGraphView();
-        graph.buildSubGraphs(attLog.getAttribute(), MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false, false);
+        graph.buildSubGraphsWithStructuralWeight(MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false);
         
         // Add invalid node: node not exist in the matrix graph
         boolean addResult = graph.addNode(100);
@@ -319,7 +399,7 @@ public class AttributeLogGraphTest extends DataSetup {
         AttributeLog attLog = new AttributeLog(log, log.getAttributeStore().getStandardEventConceptName());
         
         AttributeLogGraph graph = attLog.getGraphView();
-        graph.buildSubGraphs(attLog.getAttribute(), MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false, false);
+        graph.buildSubGraphsWithStructuralWeight(MeasureType.FREQUENCY, MeasureAggregation.TOTAL, false);
         
         Assert.assertEquals(IntSets.mutable.of(0,1,2,3,4,5,6), graph.getNodes());
         Assert.assertEquals(IntSets.mutable.of(1,3,4,9,20,23,25,30,31,35), graph.getArcs());

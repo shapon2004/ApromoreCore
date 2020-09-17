@@ -26,7 +26,6 @@ import java.util.Comparator;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apromore.logman.attribute.AttributeMatrixGraph;
-import org.apromore.logman.attribute.IndexableAttribute;
 import org.apromore.logman.attribute.graph.filtering.FilteredGraph;
 import org.apromore.logman.attribute.graph.filtering.NodeBasedGraph;
 import org.apromore.logman.attribute.log.AttributeLog;
@@ -98,11 +97,8 @@ public class AttributeLogGraph extends WeightedAttributeGraph {
     private MutableList<FilteredGraph> subGraphs = Lists.mutable.empty();
     private IntList sortedNodes;
     private IntList sortedArcs;
-    private IndexableAttribute subGraphsSortedAttribute;
-    private MeasureType weightType;
-    private MeasureAggregation weightAggregation;
-    private IntDoubleMap nodeWeightsForGraphStructure;
-    private IntDoubleMap arcWeightsForGraphStructure;
+    private IntDoubleMap nodeWeightsForGraphStructure = nodeCaseFreqs;
+    private IntDoubleMap arcWeightsForGraphStructure = arcCaseFreqs;
     private boolean nodeInverted = false; 
     private boolean arcInverted = false;
     
@@ -453,50 +449,23 @@ public class AttributeLogGraph extends WeightedAttributeGraph {
     
     ///////////////////////////// FILTER ////////////////////////////////////////
     
-    // The sorted nodes are sequenced: A (disconnected) B (connected) C (disconnected) D (connected, weight changes a lot) E (connected)
-    // Disconnected means removing the node would make the graph disconnected, the same for connected. 
-    // The batches would be: {A,B}, {C,D,E} 
-    public void buildSubGraphs(IndexableAttribute sortedAttribute, MeasureType newWeightType, MeasureAggregation newWeightAggregation, 
-            boolean newNodeInverted, boolean newArcInverted) {
+    /**
+     * Build a list of subgraphs from this graph.
+     * The subgraphs range from small to large (the largest one is this graph)
+     * This is done by selecting nodes/arcs to remove from a graph to produce smaller ones, starting from this graph.
+     * As nodes and arcs have multiple types of weights, the selection is based on selected weight type/aggregation
+     * and whether the ones with higher or lower weights should be selected first to remove.
+     * 
+     * @param invertedElementSelection: if true, nodes and arcs with lower weight would be kept in the smaller subgraph
+     */
+    public void buildSubGraphs(boolean invertedElementSelection) {
         System.out.println("Total Number of nodes: " + this.getNodes().size());
         System.out.println("Total Number of arcs: " + this.getArcs().size());
         
         long timer = System.currentTimeMillis();
         
-        boolean buildSubgraphs = false;
-        boolean sortNodesArcs = false;
-        
-        if (subGraphs.isEmpty()) {
-            sortNodesArcs = true;
-        }
-        else if (subGraphsSortedAttribute != sortedAttribute) {
-            sortNodesArcs = true;
-        }
-        else if (weightType != newWeightType || weightAggregation != newWeightAggregation) {
-            nodeWeightsForGraphStructure = getNodeWeightMap(weightType, weightAggregation);
-            arcWeightsForGraphStructure = getArcWeightMap(weightType, weightAggregation);
-            sortNodesArcs = true;
-        }
-        else if (nodeInverted != newNodeInverted || arcInverted != newArcInverted) {
-            buildSubgraphs = true;
-        }
-        
-        subGraphsSortedAttribute = sortedAttribute;
-        weightType = newWeightType;
-        weightAggregation = newWeightAggregation;
-        nodeInverted = newNodeInverted;
-        arcInverted = newArcInverted;
-        
-        if (!sortNodesArcs && !buildSubgraphs) {
-            return;
-        }
-        
-        // Start building sub-graphs
-        if (sortNodesArcs) {
-            nodeWeightsForGraphStructure = getNodeWeightMap(weightType, weightAggregation);
-            arcWeightsForGraphStructure = getArcWeightMap(weightType, weightAggregation);
-            sortNodesAndArcs();
-        }
+        this.nodeInverted = invertedElementSelection;
+        this.arcInverted = invertedElementSelection;
         
         // Select nodes
         //MutableList<MutableIntList> removableBins = buildRemovaleNodes();
@@ -514,18 +483,30 @@ public class AttributeLogGraph extends WeightedAttributeGraph {
             subGraphs.add(nodeBasedGraph);
         }
         
-        //System.out.println("Build all node slider graphs: " + (System.currentTimeMillis() - timer) + " ms.");
-        
         // Build arc-based graphs from the smallest one first
         //timer = System.currentTimeMillis();
         NodeBasedGraph preGraph = null;
         for (FilteredGraph nodeGraph: subGraphs.toReversed()) {
-            ((NodeBasedGraph)nodeGraph).buildSubGraphs(preGraph, arcInverted);
+            ((NodeBasedGraph)nodeGraph).buildSubGraphs(preGraph, this.arcInverted);
             preGraph = (NodeBasedGraph)nodeGraph;
         }
         
         System.out.println("Build all graphs: " + (System.currentTimeMillis() - timer) + " ms.");
-    }  
+    }
+    
+    /**
+     * Build subgraphs with selected structural weights used to sort the nodes and arcs
+     * @param weightType: the weight type to select the structural weight to sort nodes and arcs
+     * @param weightAggregation: the weight aggregation to select the structural weight to sort nodes and arcs
+     * @param invertedElementSelection: if true, nodes and arcs with lower weight would be kept in the smaller subgraph
+     */
+    public void buildSubGraphsWithStructuralWeight(MeasureType weightType, MeasureAggregation weightAggregation, 
+    												boolean invertedElementSelection) {
+    	nodeWeightsForGraphStructure = getNodeWeightMap(weightType, weightAggregation);
+        arcWeightsForGraphStructure = getArcWeightMap(weightType, weightAggregation);
+        sortNodesAndArcs();    	
+        buildSubGraphs(invertedElementSelection);
+    }
     
     // This method only builds bins of nodes based on one single connected node
     // (i.e. the node that after removing them the graph remains connected).
