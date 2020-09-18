@@ -109,6 +109,9 @@
 		<module>Apromore-Assembly/Manager-Assembly</module>
 		<module>Apromore-Assembly/Portal-Assembly</module>
 		<module>Apromore-Assembly/Custom-Plugins-Assembly</module>
+		
+		<!-- Apromore Storage -->
+		<module>Apromore-Storage/Apromore-persistence</module>
 
 	</modules>
 
@@ -137,7 +140,7 @@
 		<prodrift.version>1.1.0</prodrift.version>
 		<pax.runner.version>1.7.6</pax.runner.version>
 
-		<spring.version>3.1.0.RELEASE</spring.version>
+		<spring.version>3.1.4.RELEASE</spring.version>
 		<spring.data.jpa.version>1.4.1.RELEASE</spring.data.jpa.version>
 		<spring-ws.version>2.1.0.RELEASE</spring-ws.version>
 		<spring-security.version>3.1.4.RELEASE</spring-security.version>
