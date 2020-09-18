@@ -87,7 +87,7 @@
         <include name="OpenXES//target/openxes-2.27.jar"/>
     </fileset>    
     
-    <fileset id="fileset-repo-text" dir="${core-dir}">
+    <fileset id="fileset-repo-text" dir="${core-dir}">        
         <include name="apromore-core.plan"/>
         <include name="site.properties"/>
     </fileset>

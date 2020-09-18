@@ -34,8 +34,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 import org.apromore.common.Constants;
-import org.apromore.dao.ProcessModelVersionRepository;
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.repository.ProcessModelVersionRepository;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.exception.ExceptionMergeProcess;
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.plugin.merge.logic.MergeService;

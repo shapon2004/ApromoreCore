@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.equalTo;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apromore.dao.model.SearchHistory;
+import org.apromore.persistence.entity.SearchHistory;
 import org.apromore.portal.model.SearchHistoriesType;
 import org.junit.Before;
 import org.junit.Test;

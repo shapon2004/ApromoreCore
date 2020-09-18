@@ -40,7 +40,7 @@
 	<context:component-scan base-package="org.apromore.plugin.merge.logic" />
 
     <!-- Import OSGi service -->
-    <osgi:reference id="processModelVersionRepository" interface="org.apromore.dao.ProcessModelVersionRepository"/>
+    <osgi:reference id="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
     <osgi:reference id="processService" interface="org.apromore.service.ProcessService"/>
     <osgi:reference id="uiHelper" interface="org.apromore.service.helper.UserInterfaceHelper"/>
 

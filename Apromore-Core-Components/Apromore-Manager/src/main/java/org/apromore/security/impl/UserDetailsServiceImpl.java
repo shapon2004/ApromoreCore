@@ -28,18 +28,19 @@ import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apromore.dao.UserRepository;
-import org.apromore.dao.model.Membership;
-import org.apromore.dao.model.Permission;
-import org.apromore.dao.model.Role;
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.entity.Membership;
+import org.apromore.persistence.entity.Permission;
+import org.apromore.persistence.entity.Role;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.security.model.ApromorePermissionDetails;
 import org.apromore.security.model.ApromoreRoleDetails;
 import org.apromore.security.model.ApromoreSearchHistoryDetails;
 import org.apromore.security.model.ApromoreUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,17 +63,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
-    private UserRepository userRepo;
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Default Constructor allowing Spring to Autowire for testing and normal use.
      * @param userRepository User Repository.
      */
     @Inject
-    public UserDetailsServiceImpl(final UserRepository userRepository) {
-        userRepo = userRepository;
+    public UserDetailsServiceImpl(UserRepository userRepository) {
+    	userRepository = userRepository;
     }
 
+    
     /**
      * Load the User detail record from the username passed in.
      * @param username the user we are looking for.
@@ -91,7 +94,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user;
     }
 
-    /**
+    public UserRepository getUserRepository() {
+		return userRepository;
+	}
+
+	public void setUserRepository(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
+	/**
      * Executes the SQL <tt>usersByUsernameQuery</tt> and returns a list of UserDetails objects.
      * There should normally only be one matching user.
      */
@@ -100,7 +111,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Set<ApromorePermissionDetails> dbPermSet = new HashSet<>();
         Set<ApromoreSearchHistoryDetails> dbSearchSet = new HashSet<>();
         Set<GrantedAuthority> dbAuthsSet = new HashSet<>();
-        User usr = userRepo.findByUsername(username);
+        User usr = userRepository.findByUsername(username);
         Membership membership = usr.getMembership();
 
         for (Role role : usr.getRoles()) {

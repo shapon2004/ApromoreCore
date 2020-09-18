@@ -21,7 +21,6 @@
  */
 package org.apromore.util;
 
-import org.apromore.dao.jpa.LogRepositoryCustomImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

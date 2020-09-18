@@ -25,10 +25,20 @@
 package org.apromore.service.impl;
 
 import org.apromore.common.ConfigBean;
-import org.apromore.dao.*;
-import org.apromore.dao.dataObject.FolderTreeNode;
-import org.apromore.dao.model.Process;
-import org.apromore.dao.model.*;
+import org.apromore.persistence.repository.*;
+import org.apromore.persistence.entity.Folder;
+import org.apromore.persistence.entity.FolderTreeNode;
+import org.apromore.persistence.entity.Group;
+import org.apromore.persistence.entity.GroupFolder;
+import org.apromore.persistence.entity.GroupLog;
+import org.apromore.persistence.entity.GroupProcess;
+import org.apromore.persistence.entity.Log;
+import org.apromore.persistence.entity.Process;
+import org.apromore.persistence.entity.ProcessBranch;
+import org.apromore.persistence.entity.ProcessModelAttribute;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
+import org.apromore.persistence.entity.Workspace;
 import org.apromore.exception.NotAuthorizedException;
 import org.apromore.service.EventLogFileService;
 import org.apromore.service.UserMetadataService;

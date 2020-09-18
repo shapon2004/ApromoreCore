@@ -36,16 +36,16 @@ import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
-import org.apromore.dao.GroupRepository;
-import org.apromore.dao.MembershipRepository;
-import org.apromore.dao.PermissionRepository;
-import org.apromore.dao.RoleRepository;
-import org.apromore.dao.UserRepository;
-import org.apromore.dao.model.Group;
-import org.apromore.dao.model.Membership;
-import org.apromore.dao.model.Permission;
-import org.apromore.dao.model.Role;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.GroupRepository;
+import org.apromore.persistence.repository.MembershipRepository;
+import org.apromore.persistence.repository.PermissionRepository;
+import org.apromore.persistence.repository.RoleRepository;
+import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.entity.Group;
+import org.apromore.persistence.entity.Membership;
+import org.apromore.persistence.entity.Permission;
+import org.apromore.persistence.entity.Role;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;

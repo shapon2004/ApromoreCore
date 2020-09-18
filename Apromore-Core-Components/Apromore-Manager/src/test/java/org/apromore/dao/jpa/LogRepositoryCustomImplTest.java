@@ -40,7 +40,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class LogRepositoryCustomImplTest {
 
-    LogRepositoryCustomImpl logRepo = new LogRepositoryCustomImpl();
+//    LogRepositoryCustomImpl logRepo = new LogRepositoryCustomImpl();
 
 
     @Before
@@ -48,53 +48,53 @@ public class LogRepositoryCustomImplTest {
 
     }
 
-    @Test
-    public void testImportFromFile() {
-
-        System.out.println(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes"));
-
-        System.out.println(System.getProperty("user.dir"));
-
-        try {
-            String name = ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath();
-            System.out.println("name: " + name);
-
-//            FileInputStream fis = new FileInputStream(name);
-//            System.out.println("fis: " + fis);
-
-//            FilterInputStream filter = new BufferedInputStream(fis);// FilterInputStream is protected
-//            while (filter.available() > 0) {
-//                byte[] buf = new byte[1024];
-//                int len = filter.read(buf);
-//                String myStr = new String(buf, 0, len, "UTF-8");
-//                System.out.print(myStr);
-//            }
-//            fis.close();
-
-//            XFactoryExternalStore.InMemoryStoreImpl factory = new XFactoryExternalStore.InMemoryStoreImpl();
-
-//            XFactory factory = new XFactoryLiteImpl();
-            XFactory factory = XFactoryRegistry.instance().currentDefault();
-
-            XLog log = logRepo.importFromFile(factory, name);
-
-//            XFactory factory = new XFactoryNaiveImpl();
-//            XLog log = logRepo.importFromInputStream(fis, new XesXmlParser(factory));
-
-            System.out.println("log: " + log);
-
-            XLogInfo logInfo = XLogInfoFactory.createLogInfo(log);
-            System.out.println("logInfo: " + logInfo);
-
-            readSequentially(log);
-//            readRandom(log);
-
-//            XLog log = logRepo.importFromFile(new XFactoryNaiveImpl(), name);
-//            System.out.println("xlog: " + log);
-        } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
-        }
-    }
+//    @Test
+//    public void testImportFromFile() {
+//
+//        System.out.println(ClassLoader.getSystemResource("XES_logs/SepsisCases.xes"));
+//
+//        System.out.println(System.getProperty("user.dir"));
+//
+//        try {
+//            String name = ClassLoader.getSystemResource("XES_logs/SepsisCases.xes").getPath();
+//            System.out.println("name: " + name);
+//
+////            FileInputStream fis = new FileInputStream(name);
+////            System.out.println("fis: " + fis);
+//
+////            FilterInputStream filter = new BufferedInputStream(fis);// FilterInputStream is protected
+////            while (filter.available() > 0) {
+////                byte[] buf = new byte[1024];
+////                int len = filter.read(buf);
+////                String myStr = new String(buf, 0, len, "UTF-8");
+////                System.out.print(myStr);
+////            }
+////            fis.close();
+//
+////            XFactoryExternalStore.InMemoryStoreImpl factory = new XFactoryExternalStore.InMemoryStoreImpl();
+//
+////            XFactory factory = new XFactoryLiteImpl();
+//            XFactory factory = XFactoryRegistry.instance().currentDefault();
+//
+//            XLog log = logRepo.importFromFile(factory, name);
+//
+////            XFactory factory = new XFactoryNaiveImpl();
+////            XLog log = logRepo.importFromInputStream(fis, new XesXmlParser(factory));
+//
+//            System.out.println("log: " + log);
+//
+//            XLogInfo logInfo = XLogInfoFactory.createLogInfo(log);
+//            System.out.println("logInfo: " + logInfo);
+//
+//            readSequentially(log);
+////            readRandom(log);
+//
+////            XLog log = logRepo.importFromFile(new XFactoryNaiveImpl(), name);
+////            System.out.println("xlog: " + log);
+//        } catch (Exception e) {
+//            System.out.println("Error " + e.getMessage());
+//        }
+//    }
 
 
     @Test

@@ -30,7 +30,7 @@
     <target name="deploy-plan" depends="copy-virgo">
         <copy todir="${core-dir-virgo}/pickup" flatten="true" overwrite="true" filtering="true">
             <fileset dir="${basedir}">
-                <include name="apromore-core.plan" />        
+                <include name="apromore-core2.plan" />        
             </fileset>
         </copy>
     </target>

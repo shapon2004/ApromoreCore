@@ -35,9 +35,9 @@ import static org.powermock.api.easymock.PowerMock.verify;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apromore.dao.NativeRepository;
-import org.apromore.dao.NativeTypeRepository;
-import org.apromore.dao.model.NativeType;
+import org.apromore.persistence.repository.NativeRepository;
+import org.apromore.persistence.repository.NativeTypeRepository;
+import org.apromore.persistence.entity.NativeType;
 import org.junit.Before;
 import org.junit.Test;
 

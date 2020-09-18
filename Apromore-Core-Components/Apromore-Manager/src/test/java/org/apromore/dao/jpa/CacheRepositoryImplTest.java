@@ -149,7 +149,7 @@ public class CacheRepositoryImplTest {
                 + ehcache.getMemoryStoreSize());
         System.out.println("OffHeapSize=" + ehcache.calculateOffHeapSize() / 1024 / 1024 + "MB, OffHeapElements="
                 + ehcache.getOffHeapStoreSize());
-        System.out.println("DiskStoreSize=" + ehcache.calculateOnDiskSize() / 1024 / 1024 + "MB, DiskStoreElements="
+        System.out.println("DiskStoreSize=" + ehcache.getDiskStoreSize() / 1024 / 1024 + "MB, DiskStoreElements="
                 + ehcache.getDiskStoreSize());
     }
 }

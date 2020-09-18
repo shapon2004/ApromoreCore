@@ -34,7 +34,7 @@ import java.io.InputStream;
 
 import javax.inject.Inject;
 
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.portal.helper.Version;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.SummariesType;

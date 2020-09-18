@@ -86,7 +86,8 @@
                             org.springframework.security.web;version="[3.1.0,4.0)",
                             org.springframework.security.remoting;version="[3.1.0,4.0)",
                             org.apromore.zk-osgi;bundle-version="[6.5,9.0)",
-                            org.apromore.plugin.portal-custom-gui;version="[1.1,2.0)"
+                            org.apromore.plugin.portal-custom-gui;version="[1.1,2.0)",
+                            org.apromore.persistence.Apromore-persistence;version="[1.0,1.1)"
                         </Import-Bundle>
                         <Import-Package>
                             org.eclipse.virgo.web.dm,
@@ -142,6 +143,8 @@
                     </archive>
                 </configuration>
             </plugin>
+            
+            
         </plugins>
     </build>
 

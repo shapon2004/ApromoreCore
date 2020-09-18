@@ -24,7 +24,7 @@
 
 package org.apromore.service.impl;
 
-import org.apromore.dao.ProcessRepository;
+import org.apromore.persistence.repository.ProcessRepository;
 import org.junit.Before;
 import org.junit.Test;
 

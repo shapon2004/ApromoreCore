@@ -28,9 +28,9 @@ package org.apromore.service;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apromore.dao.model.NativeType;
-import org.apromore.dao.model.ProcessModelVersion;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.NativeType;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.ExportFormatException;
 import org.apromore.exception.ImportException;
 import org.apromore.exception.RepositoryException;

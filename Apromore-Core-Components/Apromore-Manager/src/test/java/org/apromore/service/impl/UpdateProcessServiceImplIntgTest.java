@@ -35,9 +35,9 @@ import javax.inject.Inject;
 import javax.mail.util.ByteArrayDataSource;
 
 import org.apromore.common.Constants;
-import org.apromore.dao.model.NativeType;
-import org.apromore.dao.model.ProcessModelVersion;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.NativeType;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
 import org.apromore.portal.helper.Version;
 import org.apromore.service.FormatService;
 import org.apromore.service.ProcessService;

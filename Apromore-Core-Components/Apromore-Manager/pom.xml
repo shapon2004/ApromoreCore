@@ -89,13 +89,11 @@
                             org.apromore.apmlog;version="[1.0,2)",
                             org.apromore.apmlog.util;version="[1.0,2)",
                             org.apromore.apmlog.impl;version="[1.0,2)",
+                            org.apromore.persistence.*;version="[1.0,2)",
                             *
                         </Import-Package>
                         <Export-Package>
                             org.apromore.common,
-                            org.apromore.dao,
-                            org.apromore.dao.dataObject,
-                            org.apromore.dao.model,
                             org.apromore.exception,
                             org.apromore.helper,
                             org.apromore.plugin.deployment.exception,
@@ -108,27 +106,7 @@
                             org.apromore.service.search,
                             org.apromore.util
                         </Export-Package>
-                        <JPA-PersistenceUnits>Apromore</JPA-PersistenceUnits>
                     </instructions>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${maven.exec.plugin}</version>
-                <executions>
-                    <execution>
-                        <id>weave-classes</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>org.eclipse.persistence.tools.weaving.jpa.StaticWeave</mainClass>
-                    <commandlineArgs>-classpath %classpath; -loglevel OFF -persistenceinfo ${basedir}/src/main/resources ${basedir}/target/classes ${basedir}/target/classes</commandlineArgs>
-                    <classpathScope>compile</classpathScope>
                 </configuration>
             </plugin>
         </plugins>
@@ -255,24 +233,11 @@
 
         <!-- Database -->
         <dependency>
-            <groupId>com.jolbox</groupId>
-            <artifactId>bonecp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-osgi</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.yaml</groupId>
-			<artifactId>snakeyaml</artifactId>
-			<version>1.26</version>
-		</dependency>
+			<groupId>org.apromore.persistence</groupId>
+			<artifactId>Apromore-persistence</artifactId>
+			<version>1.0</version>
+		</dependency>	
 		
-
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>com.springsource.org.apache.derby</artifactId>

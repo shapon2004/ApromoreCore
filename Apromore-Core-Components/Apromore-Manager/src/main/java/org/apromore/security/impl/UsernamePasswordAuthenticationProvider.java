@@ -23,9 +23,9 @@
  */
 package org.apromore.security.impl;
 
-import org.apromore.dao.UserRepository;
-import org.apromore.dao.model.Role;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.entity.Role;
+import org.apromore.persistence.entity.User;
 import org.apromore.mapper.UserMapper;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;

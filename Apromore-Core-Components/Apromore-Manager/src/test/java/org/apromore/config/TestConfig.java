@@ -77,7 +77,7 @@ public class TestConfig {
 		liquibase.setDataSource(dataSource());
 		liquibase.setChangeLog("classpath:db/migration/changeLog.yaml");
 		liquibase.setContexts(context);
-		liquibase.setDropFirst(true);
+//		liquibase.setDropFirst(true);
 		return liquibase;
 	}
 

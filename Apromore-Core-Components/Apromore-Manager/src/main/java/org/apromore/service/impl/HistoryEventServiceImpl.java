@@ -24,12 +24,12 @@
 
 package org.apromore.service.impl;
 
-import org.apromore.dao.HistoryEventRepository;
-import org.apromore.dao.UserRepository;
-import org.apromore.dao.model.HistoryEnum;
-import org.apromore.dao.model.HistoryEvent;
-import org.apromore.dao.model.StatusEnum;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.HistoryEventRepository;
+import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.entity.HistoryEnum;
+import org.apromore.persistence.entity.HistoryEvent;
+import org.apromore.persistence.entity.StatusEnum;
+import org.apromore.persistence.entity.User;
 import org.apromore.service.HistoryEventService;
 import org.apromore.util.SecurityUtils;
 import org.springframework.stereotype.Service;

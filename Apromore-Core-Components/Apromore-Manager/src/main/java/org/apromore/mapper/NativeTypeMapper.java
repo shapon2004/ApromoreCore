@@ -24,7 +24,7 @@
 
 package org.apromore.mapper;
 
-import org.apromore.dao.model.NativeType;
+import org.apromore.persistence.entity.NativeType;
 import org.apromore.portal.model.FormatType;
 import org.apromore.portal.model.NativeTypesType;
 

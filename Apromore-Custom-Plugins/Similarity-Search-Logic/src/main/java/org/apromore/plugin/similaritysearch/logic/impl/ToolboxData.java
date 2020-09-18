@@ -27,7 +27,7 @@ package org.apromore.plugin.similaritysearch.logic.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 
 /**

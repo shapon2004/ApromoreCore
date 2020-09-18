@@ -30,10 +30,10 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import org.apromore.dao.model.Native;
-import org.apromore.dao.model.NativeType;
-import org.apromore.dao.model.ProcessModelVersion;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.Native;
+import org.apromore.persistence.entity.NativeType;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
 
 /**
  * Interface for the Format Service. Defines all the methods that will do the majority of the work for

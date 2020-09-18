@@ -24,8 +24,8 @@
 
 package org.apromore.mapper;
 
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.portal.model.SearchHistoriesType;
 import org.apromore.portal.model.UserType;
 import org.apromore.portal.model.UsernamesType;

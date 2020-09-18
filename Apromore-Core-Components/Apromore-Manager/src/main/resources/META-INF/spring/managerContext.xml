@@ -35,8 +35,10 @@
             http://www.springframework.org/schema/aop             http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
             http://www.springframework.org/schema/context         http://www.springframework.org/schema/context/spring-context-3.1.xsd
             http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd
-            http://www.springframework.org/schema/cache           http://www.springframework.org/schema/cache/spring-cache.xsd"
+            http://www.springframework.org/schema/cache           http://www.springframework.org/schema/cache/spring-cache.xsd
+            http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd"
 >
+
 
     <context:property-placeholder properties-ref="managerProperties"/>
     <osgi-compendium:cm-properties id="managerProperties" persistent-id="site" init-timeout="60"/>

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.model.DomainsType;
 import org.apromore.portal.model.ExportFormatResultType;

@@ -30,8 +30,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apromore.dao.model.Folder;
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.Folder;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.portal.common.Constants;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
 import org.apromore.portal.helper.Version;

@@ -27,8 +27,8 @@ package org.apromore.service.impl;
 import javax.inject.Inject;
 
 import org.apromore.common.Constants;
-import org.apromore.dao.ProcessModelVersionRepository;
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.repository.ProcessModelVersionRepository;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.service.LockService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;

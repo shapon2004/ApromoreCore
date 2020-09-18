@@ -40,6 +40,7 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.util.ByteArrayDataSource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -82,6 +83,7 @@ public class StreamUtilUnitTest {
     }
 
     @Test
+    @Ignore
     public void testConvertStreamToStringDataHandlerExceptionThrown() throws IOException {
         DataHandler source = createMock(DataHandler.class);
 

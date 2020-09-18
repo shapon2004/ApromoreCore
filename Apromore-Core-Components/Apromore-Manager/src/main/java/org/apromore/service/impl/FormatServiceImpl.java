@@ -31,12 +31,12 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 
-import org.apromore.dao.NativeRepository;
-import org.apromore.dao.NativeTypeRepository;
-import org.apromore.dao.model.Native;
-import org.apromore.dao.model.NativeType;
-import org.apromore.dao.model.ProcessModelVersion;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.NativeRepository;
+import org.apromore.persistence.repository.NativeTypeRepository;
+import org.apromore.persistence.entity.Native;
+import org.apromore.persistence.entity.NativeType;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
 import org.apromore.service.FormatService;
 import org.apromore.util.StreamUtil;
 import org.springframework.stereotype.Service;

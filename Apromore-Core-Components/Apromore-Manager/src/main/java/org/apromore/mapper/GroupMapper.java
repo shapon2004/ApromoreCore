@@ -24,7 +24,7 @@
 
 package org.apromore.mapper;
 
-import org.apromore.dao.model.Group;
+import org.apromore.persistence.entity.Group;
 import org.apromore.portal.model.GroupType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

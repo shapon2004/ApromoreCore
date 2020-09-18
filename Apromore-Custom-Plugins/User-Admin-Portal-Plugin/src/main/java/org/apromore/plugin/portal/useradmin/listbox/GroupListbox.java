@@ -22,7 +22,7 @@
 package org.apromore.plugin.portal.useradmin.listbox;
 
 import org.apromore.plugin.portal.useradmin.common.SearchableListbox;
-import org.apromore.dao.model.Group;
+import org.apromore.persistence.entity.Group;
 import org.zkoss.zul.Listbox;
 import org.zkoss.zul.ListModelList;
 

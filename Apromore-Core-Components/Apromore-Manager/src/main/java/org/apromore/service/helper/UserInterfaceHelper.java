@@ -24,10 +24,10 @@
 
 package org.apromore.service.helper;
 
-import org.apromore.dao.model.Log;
-import org.apromore.dao.model.Process;
-import org.apromore.dao.model.ProcessBranch;
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.Log;
+import org.apromore.persistence.entity.Process;
+import org.apromore.persistence.entity.ProcessBranch;
+import org.apromore.persistence.entity.ProcessModelVersion;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.ProcessVersionsType;
 import org.apromore.portal.model.SummariesType;

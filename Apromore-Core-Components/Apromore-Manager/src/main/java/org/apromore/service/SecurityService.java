@@ -26,10 +26,10 @@ package org.apromore.service;
 
 import java.util.List;
 import java.util.Set;
-import org.apromore.dao.model.Group;
-import org.apromore.dao.model.Permission;
-import org.apromore.dao.model.Role;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.Group;
+import org.apromore.persistence.entity.Permission;
+import org.apromore.persistence.entity.Role;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.UserNotFoundException;
 
 /**

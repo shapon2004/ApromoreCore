@@ -21,9 +21,9 @@
  */
 package org.apromore.service;
 
-import org.apromore.dao.model.Log;
-import org.apromore.dao.model.User;
-import org.apromore.dao.model.Usermetadata;
+import org.apromore.persistence.entity.Log;
+import org.apromore.persistence.entity.User;
+import org.apromore.persistence.entity.Usermetadata;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.util.UserMetadataTypeEnum;
 

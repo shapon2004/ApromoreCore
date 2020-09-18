@@ -23,19 +23,39 @@
  */
 package org.apromore.service.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+import javax.activation.DataHandler;
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import javax.mail.util.ByteArrayDataSource;
+
 import org.apromore.apmlog.APMLog;
+import org.apromore.apmlog.APMLogService;
 import org.apromore.common.ConfigBean;
 import org.apromore.common.Constants;
-import org.apromore.dao.FolderRepository;
-import org.apromore.dao.GroupLogRepository;
-import org.apromore.dao.GroupRepository;
-import org.apromore.dao.LogRepository;
-import org.apromore.dao.model.Group;
-import org.apromore.dao.model.GroupLog;
-import org.apromore.dao.model.Log;
-import org.apromore.dao.model.User;
+import org.apromore.dao.CacheRepository;
 import org.apromore.exception.NotAuthorizedException;
 import org.apromore.exception.UserNotFoundException;
+import org.apromore.persistence.entity.*;
+import org.apromore.persistence.repository.*;
 import org.apromore.portal.model.ExportLogResultType;
 import org.apromore.portal.model.PluginMessages;
 import org.apromore.portal.model.SummariesType;
@@ -47,21 +67,20 @@ import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
 import org.deckfour.xes.in.*;
+import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.out.XMxmlGZIPSerializer;
+import org.deckfour.xes.out.XMxmlSerializer;
 import org.deckfour.xes.out.XSerializer;
 import org.deckfour.xes.out.XesXmlGZIPSerializer;
+import org.deckfour.xes.out.XesXmlSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.activation.DataHandler;
-import javax.inject.Inject;
-import javax.mail.util.ByteArrayDataSource;
-import java.io.*;
-import java.util.*;
 
 //import javax.annotation.Resource;
 
@@ -71,289 +90,641 @@ import java.util.*;
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
 @Service
-@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor =
-        Exception.class)
+@Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 //@EnableCaching
 public class EventLogServiceImpl implements EventLogService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventLogServiceImpl.class);
-    private LogRepository logRepo;
-    private GroupRepository groupRepo;
-    private GroupLogRepository groupLogRepo;
-    private FolderRepository folderRepo;
-    private UserService userSrv;
-    private UserInterfaceHelper ui;
-    private File logsDir;
-    private UserMetadataService userMetadataService;
+	public static final String PARENT_NODE_FLAG = "0";
+	public static final String STAT_NODE_NAME = "apromore:stat";
+	private static final Logger LOGGER = LoggerFactory.getLogger(EventLogServiceImpl.class);
+	private static final String APMLOG_CACHE_KEY_SUFFIX = "APMLog";
+	private LogRepository logRepo;
+	private GroupRepository groupRepo;
+	private GroupLogRepository groupLogRepo;
+	private FolderRepository folderRepo;
+	private UserService userSrv;
+	private UserInterfaceHelper ui;
+	private File logsDir;
+	private UserMetadataService userMetadataService;
+	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+
+	@Resource
+	private CacheRepository cacheRepo;
+
+	@Resource
+	private ConfigBean config;
+
+	@Resource
+	private APMLogService apmLogService;
 
 //    @javax.annotation.Resource
 //    private Set<EventLogPlugin> eventLogPlugins;
+	/**
+	 * Default Constructor allowing Spring to Autowire for testing and normal use.
+	 *
+	 * @param logRepository Log repository.
+	 * @param ui            User Interface Helper.
+	 */
+	@Inject
+	public EventLogServiceImpl(final LogRepository logRepository, final GroupRepository groupRepository,
+			final GroupLogRepository groupLogRepository, final FolderRepository folderRepo, final UserService userSrv,
+			final UserInterfaceHelper ui, final ConfigBean configBean, final UserMetadataService userMetadataService) {
+		this.logRepo = logRepository;
+		this.groupRepo = groupRepository;
+		this.groupLogRepo = groupLogRepository;
+		this.folderRepo = folderRepo;
+		this.userSrv = userSrv;
+		this.ui = ui;
+		this.logsDir = new File(configBean.getLogsDir());
+		this.userMetadataService = userMetadataService;
+	}
 
-    /**
-     * Default Constructor allowing Spring to Autowire for testing and normal use.
-     *
-     * @param logRepository Log repository.
-     * @param ui            User Interface Helper.
-     */
-    @Inject
-    public EventLogServiceImpl(final LogRepository logRepository, final GroupRepository groupRepository,
-                               final GroupLogRepository groupLogRepository, final FolderRepository folderRepo,
-                               final UserService userSrv, final UserInterfaceHelper ui,
-                               final ConfigBean configBean,
-                               final UserMetadataService userMetadataService) {
-        this.logRepo = logRepository;
-        this.groupRepo = groupRepository;
-        this.groupLogRepo = groupLogRepository;
-        this.folderRepo = folderRepo;
-        this.userSrv = userSrv;
-        this.ui = ui;
-        this.logsDir = new File(configBean.getLogsDir());
-        this.userMetadataService = userMetadataService;
-    }
+	public CacheRepository getCacheRepo() {
+		return cacheRepo;
+	}
 
-    public static XLog importFromStream(XFactory factory, InputStream is, String extension) throws Exception {
-        XParser parser;
-        parser = null;
-        if (extension.endsWith("mxml")) {
-            parser = new XMxmlParser(factory);
-        } else if (extension.endsWith("mxml.gz")) {
-            parser = new XMxmlGZIPParser(factory);
-        } else if (extension.endsWith("xes")) {
-            parser = new XesXmlParser(factory);
-        } else if (extension.endsWith("xes.gz")) {
-            parser = new XesXmlGZIPParser(factory);
-        }
+	public void setCacheRepo(CacheRepository cacheRepo) {
+		this.cacheRepo = cacheRepo;
+	}
 
-        Collection<XLog> logs;
-        try {
-            logs = parser.parse(is);
-        } catch (Exception e) {
-            e.printStackTrace();
-            logs = null;
-        }
-        if (logs == null) {
-            // try any other parser
-            for (XParser p : XParserRegistry.instance().getAvailable()) {
-                if (p == parser) {
-                    continue;
-                }
-                try {
-                    logs = p.parse(is);
-                    if (logs.size() > 0) {
-                        break;
-                    }
-                } catch (Exception e1) {
-                    // ignore and move on.
-                    logs = null;
-                }
-            }
-        }
+	public ConfigBean getConfig() {
+		return config;
+	}
 
-        // log sanity checks;
-        // notify user if the log is awkward / does miss crucial information
-        if (logs == null || logs.size() == 0) {
-            throw new Exception("No processes contained in log!");
-        }
+	public void setConfig(ConfigBean config) {
+		this.config = config;
+	}
 
-        XLog log = logs.iterator().next();
-        if (XConceptExtension.instance().extractName(log) == null) {
-            XConceptExtension.instance().assignName(log, "Anonymous log imported from ");
-        }
+	public static XLog importFromStream(XFactory factory, InputStream is, String extension) throws Exception {
+		XParser parser;
+		parser = null;
+		if (extension.endsWith("mxml")) {
+			parser = new XMxmlParser(factory);
+		} else if (extension.endsWith("mxml.gz")) {
+			parser = new XMxmlGZIPParser(factory);
+		} else if (extension.endsWith("xes")) {
+			parser = new XesXmlParser(factory);
+		} else if (extension.endsWith("xes.gz")) {
+			parser = new XesXmlGZIPParser(factory);
+		}
 
-        if (log.isEmpty()) {
-            throw new Exception("No process instances contained in log!");
-        }
+		Collection<XLog> logs;
+		try {
+			logs = parser.parse(is);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logs = null;
+		}
+		if (logs == null) {
+			// try any other parser
+			for (XParser p : XParserRegistry.instance().getAvailable()) {
+				if (p == parser) {
+					continue;
+				}
+				try {
+					logs = p.parse(is);
+					if (logs.size() > 0) {
+						break;
+					}
+				} catch (Exception e1) {
+					// ignore and move on.
+					logs = null;
+				}
+			}
+		}
 
-        return log;
+		// log sanity checks;
+		// notify user if the log is awkward / does miss crucial information
+		if (logs == null || logs.size() == 0) {
+			throw new Exception("No processes contained in log!");
+		}
 
-    }
+		XLog log = logs.iterator().next();
+		if (XConceptExtension.instance().extractName(log) == null) {
+			XConceptExtension.instance().assignName(log, "Anonymous log imported from ");
+		}
 
-    @Override
-    public SummariesType readLogSummaries(Integer folderId, String searchExpression) {
-        return null;
-    }
+		if (log.isEmpty()) {
+			throw new Exception("No process instances contained in log!");
+		}
 
-    /**
-     * Import serialisations into Apromore application.
-     *
-     * @param username       The user doing the importing.
-     * @param folderId       The folder we are saving the process in.
-     * @param logName        the name of the process being imported.
-     * @param inputStreamLog
-     * @param extension
-     * @param domain         the domain of the model
-     * @param created        the time created
-     * @param publicModel    is this a public model?
-     * @return
-     * @throws Exception
-     */
-    @Override
-    public Log importLog(String username, Integer folderId, String logName, InputStream inputStreamLog,
-                         String extension, String domain, String created, boolean publicModel) throws Exception {
-        User user = userSrv.findUserByLogin(username);
+		return log;
 
-        XFactory factory = XFactoryRegistry.instance().currentDefault();
-        LOGGER.info("Import XES log " + logName + " using " + factory.getClass());
-        XLog xLog = importFromStream(factory, inputStreamLog, extension);
-        String path = logRepo.storeProcessLog(folderId, logName, xLog, user.getId(), domain, created);
-        Log log = new Log();
-        log.setFolder(folderRepo.findUniqueByID(folderId));
-        log.setDomain(domain);
-        log.setCreateDate(created);
-        log.setFilePath(path);
-        updateLogName(log, logName);
-        log.setRanking("");
-        log.setUser(user);
+	}
 
-        Set<GroupLog> groupLogs = log.getGroupLogs();
+	@Override
+	public SummariesType readLogSummaries(Integer folderId, String searchExpression) {
+		return null;
+	}
 
-        // Add the user's personal group
-        groupLogs.add(new GroupLog(user.getGroup(), log, true, true, true));
+	/**
+	 * Import serialisations into Apromore application.
+	 *
+	 * @param username       The user doing the importing.
+	 * @param folderId       The folder we are saving the process in.
+	 * @param logName        the name of the process being imported.
+	 * @param inputStreamLog
+	 * @param extension
+	 * @param domain         the domain of the model
+	 * @param created        the time created
+	 * @param publicModel    is this a public model?
+	 * @return
+	 * @throws Exception
+	 */
+	@Override
+	public Log importLog(String username, Integer folderId, String logName, InputStream inputStreamLog,
+			String extension, String domain, String created, boolean publicModel) throws Exception {
+		User user = userSrv.findUserByLogin(username);
 
-        // Add the public group
-        if (publicModel) {
-            Group publicGroup = groupRepo.findPublicGroup();
-            if (publicGroup == null) {
-                LOGGER.warn("No public group present in repository");
-            } else {
-                groupLogs.add(new GroupLog(publicGroup, log, true, true, false));
-            }
-        }
+		XFactory factory = XFactoryRegistry.instance().currentDefault();
+		LOGGER.info("Import XES log " + logName + " using " + factory.getClass());
+		String path = storeProcessLog(folderId, logName, importFromStream(factory, inputStreamLog, extension),
+				user.getId(), domain, created);
+		Log log = new Log();
+		log.setFolder(folderRepo.findUniqueByID(folderId));
+		log.setDomain(domain);
+		log.setCreateDate(created);
+		log.setFilePath(path);
+		updateLogName(log, logName);
+		log.setRanking("");
+		log.setUser(user);
 
-        log.setGroupLogs(groupLogs);
+		Set<GroupLog> groupLogs = log.getGroupLogs();
 
-        // Perform the update
-        logRepo.saveAndFlush(log);
+		// Add the user's personal group
+		groupLogs.add(new GroupLog(user.getGroup(), log, true, true, true));
 
-        return log;
-    }
+		// Add the public group
+		if (publicModel) {
+			Group publicGroup = groupRepo.findPublicGroup();
+			if (publicGroup == null) {
+				LOGGER.warn("No public group present in repository");
+			} else {
+				groupLogs.add(new GroupLog(publicGroup, log, true, true, false));
+			}
+		}
 
-    @Override
-    public void updateLogMetaData(Integer logId, String logName, boolean isPublic) {
-        Log log = logRepo.findUniqueByID(logId);
-        updateLogName(log, logName);
+		log.setGroupLogs(groupLogs);
 
-        Set<GroupLog> groupLogs = log.getGroupLogs();
-        Set<GroupLog> publicGroupLogs = filterPublicGroupLogs(groupLogs);
+		// Perform the update
+		logRepo.saveAndFlush(log);
 
-        if (publicGroupLogs.isEmpty() && isPublic) {
-            groupLogs.add(new GroupLog(groupRepo.findPublicGroup(), log, true, true, false));
-            log.setGroupLogs(groupLogs);
+		return log;
+	}
 
-        } else if (!publicGroupLogs.isEmpty() && !isPublic) {
-            groupLogs.removeAll(publicGroupLogs);
-            log.setGroupLogs(groupLogs);
-        }
+	@Override
+	public void updateLogMetaData(Integer logId, String logName, boolean isPublic) {
+		Log log = logRepo.findUniqueByID(logId);
+		updateLogName(log, logName);
 
-        logRepo.saveAndFlush(log);
-    }
+		Set<GroupLog> groupLogs = log.getGroupLogs();
+		Set<GroupLog> publicGroupLogs = filterPublicGroupLogs(groupLogs);
 
-    private void updateLogName(Log log, String newName) {
-        String file_name = log.getFilePath() + "_" + log.getName() + ".xes.gz";
-        File file = new File("../Event-Logs-Repository/" + file_name);
-        String new_file_name = log.getFilePath() + "_" + newName + ".xes.gz";
-        file.renameTo(new File("../Event-Logs-Repository/" + new_file_name));
-        log.setName(newName);
-    }
+		if (publicGroupLogs.isEmpty() && isPublic) {
+			groupLogs.add(new GroupLog(groupRepo.findPublicGroup(), log, true, true, false));
+			log.setGroupLogs(groupLogs);
 
-    @Override
-    public boolean isPublicLog(Integer logId) {
-        return !filterPublicGroupLogs(logRepo.findUniqueByID(logId).getGroupLogs()).isEmpty();
-    }
+		} else if (!publicGroupLogs.isEmpty() && !isPublic) {
+			groupLogs.removeAll(publicGroupLogs);
+			log.setGroupLogs(groupLogs);
+		}
 
-    private Set<GroupLog> filterPublicGroupLogs(Set<GroupLog> groupLogs) {
-        Group publicGroup = groupRepo.findPublicGroup();
-        if (publicGroup == null) {
-            LOGGER.warn("No public group present in repository");
-            return Collections.emptySet();
-        }
+		logRepo.saveAndFlush(log);
+	}
 
-        Set<GroupLog> publicGroupLogs = new HashSet<>(); /* groupLogs
-                .stream()
-                .filter(groupLog -> publicGroup.equals(groupLog.getGroup()))
-                .collect(Collectors.toSet());*/
-        for (GroupLog groupLog : groupLogs) {
-            if (publicGroup.equals(groupLog.getGroup())) {
-                publicGroupLogs.add(groupLog);
-            }
-        }
+	private void updateLogName(Log log, String newName) {
+		String file_name = log.getFilePath() + "_" + log.getName() + ".xes.gz";
+		File file = new File("../Event-Logs-Repository/" + file_name);
+		String new_file_name = log.getFilePath() + "_" + newName + ".xes.gz";
+		file.renameTo(new File("../Event-Logs-Repository/" + new_file_name));
+		log.setName(newName);
+	}
 
-        return publicGroupLogs;
-    }
+	@Override
+	public boolean isPublicLog(Integer logId) {
+		return !filterPublicGroupLogs(logRepo.findUniqueByID(logId).getGroupLogs()).isEmpty();
+	}
 
-    public boolean canUserWriteLog(String username, Integer logId) throws UserNotFoundException {
-        User user = userSrv.findUserByLogin(username);
-        for (GroupLog gl : groupLogRepo.findByLogAndUser(logId, user.getRowGuid())) {
-            if (gl.getHasWrite()) {
-                return true;
-            }
-        }
-        return false;
-    }
+	private Set<GroupLog> filterPublicGroupLogs(Set<GroupLog> groupLogs) {
+		Group publicGroup = groupRepo.findPublicGroup();
+		if (publicGroup == null) {
+			LOGGER.warn("No public group present in repository");
+			return Collections.emptySet();
+		}
 
-    @Override
-    public ExportLogResultType exportLog(Integer logId) throws Exception {
-        Log log = logRepo.findUniqueByID(logId);
-        XLog xlog = logRepo.getProcessLog(log, null);
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        exportToStream(outputStream, xlog);
-        ExportLogResultType exportLogResultType = new ExportLogResultType();
+		Set<GroupLog> publicGroupLogs = new HashSet<>(); /*
+															 * groupLogs .stream() .filter(groupLog ->
+															 * publicGroup.equals(groupLog.getGroup()))
+															 * .collect(Collectors.toSet());
+															 */
+		for (GroupLog groupLog : groupLogs) {
+			if (publicGroup.equals(groupLog.getGroup())) {
+				publicGroupLogs.add(groupLog);
+			}
+		}
 
-        PluginMessages pluginMessages = new PluginMessages();
-        exportLogResultType.setMessage(pluginMessages);
-        exportLogResultType.setNative(new DataHandler(new ByteArrayDataSource(new ByteArrayInputStream(outputStream.toByteArray()), Constants.GZ_MIMETYPE)));
-        return exportLogResultType;
-    }
+		return publicGroupLogs;
+	}
 
-    @Override
-    public void cloneLog(String username, Integer folderId, String logName, Integer sourceLogId,
-                  String domain, String created, boolean publicModel)
-            throws Exception {
-        Log log = logRepo.findUniqueByID(sourceLogId);
-        XLog xlog = logRepo.getProcessLog(log, null);
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        exportToStream(outputStream, xlog);
-        ByteArrayInputStream inputStreamLog = new ByteArrayInputStream(outputStream.toByteArray());
-        importLog(username, folderId, logName, inputStreamLog, "xes.gz", domain, created, publicModel);
-    }
+	public boolean canUserWriteLog(String username, Integer logId) throws UserNotFoundException {
+		User user = userSrv.findUserByLogin(username);
+		for (GroupLog gl : groupLogRepo.findByLogAndUser(logId, user.getRowGuid())) {
+			if (gl.getHasWrite()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    @Override
-    public XLog getXLog(Integer logId) {
-        return getXLog(logId, null);
-    }
+	@Override
+	public ExportLogResultType exportLog(Integer logId) throws Exception {
+		Log log = logRepo.findUniqueByID(logId);
+		XLog xlog = getProcessLog(log, null);
+		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		exportToStream(outputStream, xlog);
+		ExportLogResultType exportLogResultType = new ExportLogResultType();
 
-    @Override
-    public XLog getXLog(Integer logId, String factoryName) {
-        Log log = logRepo.findUniqueByID(logId);
-        XLog xLog = logRepo.getProcessLog(log, factoryName);
-        LOGGER.info("[--IMPORTANT--] Plugin take over control ");
-        return xLog;
-    }
+		PluginMessages pluginMessages = new PluginMessages();
+		exportLogResultType.setMessage(pluginMessages);
+		exportLogResultType.setNative(new DataHandler(
+				new ByteArrayDataSource(new ByteArrayInputStream(outputStream.toByteArray()), Constants.GZ_MIMETYPE)));
+		return exportLogResultType;
+	}
 
-    @Override
-    public void deleteLogs(List<Log> logs, User user) throws Exception {
-        for (Log log : logs) {
-            if (!canUserWriteLog(user.getUsername(), log.getId())) {
-                throw new NotAuthorizedException("Log with id " + log.getId() + " may not be deleted by " + user.getUsername());
-            }
-            Log realLog = logRepo.findUniqueByID(log.getId());
-            userMetadataService.deleteUserMetadataByLog(realLog, user);
-            logRepo.delete(realLog);
-            logRepo.deleteProcessLog(realLog);
-            LOGGER.info("Delete XES log " + log.getId() + " from repository.");
-        }
-    }
+	@Override
+	public void cloneLog(String username, Integer folderId, String logName, Integer sourceLogId, String domain,
+			String created, boolean publicModel) throws Exception {
+		Log log = logRepo.findUniqueByID(sourceLogId);
+		XLog xlog = getProcessLog(log, null);
+		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		exportToStream(outputStream, xlog);
+		ByteArrayInputStream inputStreamLog = new ByteArrayInputStream(outputStream.toByteArray());
+		importLog(username, folderId, logName, inputStreamLog, "xes.gz", domain, created, publicModel);
+	}
 
-    @Override
-    public void exportToStream(OutputStream outputStream, XLog log) throws Exception {
-        XSerializer serializer = new XesXmlGZIPSerializer();
-        serializer.serialize(log, outputStream);
-    }
+	@Override
+	public XLog getXLog(Integer logId) {
+		return getXLog(logId, null);
+	}
 
-    @Override
-    public APMLog getAggregatedLog(Integer logId, XLog xLog) {
-        Log log = logRepo.findUniqueByID(logId);
-        return logRepo.getAggregatedLog(log, xLog);
-    }
+	@Override
+	public XLog getXLog(Integer logId, String factoryName) {
+		Log log = logRepo.findUniqueByID(logId);
+		XLog xLog = getProcessLog(log, factoryName);
+		LOGGER.info("[--IMPORTANT--] Plugin take over control ");
+		return xLog;
+	}
+
+	@Override
+	public void deleteLogs(List<Log> logs, User user) throws Exception {
+		for (Log log : logs) {
+			if (!canUserWriteLog(user.getUsername(), log.getId())) {
+				throw new NotAuthorizedException(
+						"Log with id " + log.getId() + " may not be deleted by " + user.getUsername());
+			}
+			Log realLog = logRepo.findUniqueByID(log.getId());
+			userMetadataService.deleteUserMetadataByLog(realLog, user);
+			logRepo.delete(realLog);
+			deleteProcessLog(realLog);
+			LOGGER.info("Delete XES log " + log.getId() + " from repository.");
+		}
+	}
+
+	@Override
+	public void exportToStream(OutputStream outputStream, XLog log) throws Exception {
+		XSerializer serializer = new XesXmlGZIPSerializer();
+		serializer.serialize(log, outputStream);
+	}
+
+	@Override
+	public APMLog getAggregatedLog(Integer logId, XLog xLog) {
+		Log log = logRepo.findUniqueByID(logId);
+		return getAggregatedLog(log, xLog);
+	}
+
+	public String storeProcessLog(final Integer folderId, final String logName, XLog log, final Integer userID,
+			final String domain, final String created) {
+
+		LOGGER.debug("Storing Log " + log.size() + " " + logName);
+		if (log != null && logName != null) {
+			String logNameId = simpleDateFormat.format(new Date());
+
+			try {
+				final String name = logNameId + "_" + logName + ".xes.gz";
+				exportToFile(config.getLogsDir() + "/", name, log);
+
+				LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+
+				if (shouldCache(log)) {
+// Store corresponding object into cache
+					cacheRepo.put(logNameId, log);
+					cacheRepo.put(logNameId + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(log));
+					LOGGER.info("Put XLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
+							+ "] using Key [" + logNameId + "]. ");
+					LOGGER.info("Put APMLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
+							+ "] " + "using Key [" + logNameId + "APMLog]. ");
+					LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+					LOGGER.info("Memory Available: "
+							+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
+					LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+				} else {
+					LOGGER.info("The total number of events in this log exceed cache threshold");
+				}
+
+				return logNameId;
+			} catch (Exception e) {
+				LOGGER.error("Error " + e.getMessage(), e);
+			}
+
+		}
+		return null;
+	}
+
+	public void exportToFile(String path, String name, XLog log) throws Exception {
+		if (name.endsWith("mxml.gz")) {
+			exportToInputStream(log, path, name, new XMxmlGZIPSerializer());
+		} else if (name.endsWith("mxml")) {
+			exportToInputStream(log, path, name, new XMxmlSerializer());
+		} else if (name.endsWith("xes.gz")) {
+			exportToInputStream(log, path, name, new XesXmlGZIPSerializer());
+		} else if (name.endsWith("xes")) {
+			exportToInputStream(log, path, name, new XesXmlSerializer());
+		}
+	}
+
+	protected MemoryUsage getMemoryUsage() {
+		MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+		return memoryMXBean.getHeapMemoryUsage();
+	}
+
+	public XLog importFromInputStream(InputStream inputStream, XParser parser) throws Exception {
+		Collection<XLog> logs;
+		try {
+			logs = parser.parse(inputStream);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logs = null;
+		}
+		if (logs == null) {
+			// try any other parser
+			for (XParser p : XParserRegistry.instance().getAvailable()) {
+				if (p == parser) {
+					continue;
+				}
+				try {
+					logs = p.parse(inputStream);
+					if (logs.size() > 0) {
+						break;
+					}
+				} catch (Exception e1) {
+					// ignore and move on.
+					logs = null;
+				}
+			}
+		}
+
+		// log sanity checks;
+		// notify user if the log is awkward / does miss crucial information
+		if (logs == null || logs.size() == 0) {
+			throw new Exception("No logs contained in log!");
+		}
+
+		XLog log = logs.iterator().next();
+		if (XConceptExtension.instance().extractName(log) == null) {
+			XConceptExtension.instance().assignName(log, "Anonymous log imported from ");
+		}
+
+		if (log.isEmpty()) {
+			throw new Exception("No process instances contained in log!");
+		}
+
+		return log;
+	}
+
+	public void exportToInputStream(XLog log, String path, String name, XSerializer serializer) {
+		FileOutputStream outputStream;
+		try {
+			File directory = new File(path);
+			if (!directory.exists())
+				directory.mkdirs();
+			File file = new File(path + name);
+			if (!file.exists())
+				file.createNewFile();
+			outputStream = new FileOutputStream(file);
+			serializer.serialize(log, outputStream);
+			outputStream.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Error");
+		}
+	}
+
+	public XLog importFromFile(XFactory factory, String location) throws Exception {
+		if (location.endsWith("mxml.gz")) {
+			return importFromInputStream(new FileInputStream(location), new XMxmlGZIPParser(factory));
+		} else if (location.endsWith("mxml")) {
+			return importFromInputStream(new FileInputStream(location), new XMxmlParser(factory));
+		} else if (location.endsWith("xes.gz")) {
+			return importFromInputStream(new FileInputStream(location), new XesXmlGZIPParser(factory));
+		} else if (location.endsWith("xes")) {
+			return importFromInputStream(new FileInputStream(location), new XesXmlParser(factory));
+		}
+		return null;
+	}
+
+	/**
+	 * Load XES log file from cache, if not found then load from Event Logs
+	 * Repository
+	 * 
+	 * @param log
+	 * @return
+	 */
+	public XLog getProcessLog(Log log, String factoryName) {
+
+		if (log != null) {
+
+			// ******* profiling code start here ********
+			long startTime = System.nanoTime();
+			long elapsedNanos;
+			// ******* profiling code end here ********
+
+			String key = log.getFilePath();
+			XLog element = (XLog) cacheRepo.get(key);
+
+			if (element == null) {
+				// If doesn't hit cache
+				LOGGER.info("Cache for [KEY: " + key + "] is null.");
+
+				try {
+					String name = config.getLogsDir() + "/" + log.getFilePath() + "_" + log.getName() + ".xes.gz";
+					XFactory factory = getXFactory(factoryName);
+					XLog xlog = importFromFile(factory, name);
+
+					// ******* profiling code start here ********
+					elapsedNanos = System.nanoTime() - startTime;
+					LOGGER.info("Retrieved XES log " + name + " [" + xlog.hashCode() + "]. Elapsed time: "
+							+ elapsedNanos / 1000000 + " ms");
+					LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+					LOGGER.info("Memory Available: "
+							+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
+					startTime = System.nanoTime();
+					// ******* profiling code end here ********
+
+					if (shouldCache(xlog)) {
+						cacheRepo.put(key, xlog);
+						elapsedNanos = System.nanoTime() - startTime;
+						LOGGER.info(
+								"Cache XLog [KEY:" + key + "]. " + "Elapsed time: " + elapsedNanos / 1000000 + " ms.");
+
+						startTime = System.nanoTime();
+						cacheRepo.put(key + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(xlog));
+						elapsedNanos = System.nanoTime() - startTime;
+						LOGGER.info("Construct and cache APMLog [KEY:" + key + APMLOG_CACHE_KEY_SUFFIX + "]. Elapsed "
+								+ "time: " + elapsedNanos / 1000000 + " ms.");
+
+						LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+						LOGGER.info("Memory Available: "
+								+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
+						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+					} else {
+						LOGGER.info("The total number of events in this log exceed cache threshold");
+					}
+
+					return xlog;
+				} catch (Exception e) {
+					LOGGER.error("Error " + e.getMessage());
+				}
+
+			} else {
+				// If cache hit
+				LOGGER.info("Got object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
+						+ cacheRepo.getCacheName() + "]");
+				LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+				return element;
+			}
+		}
+		return null;
+	}
+
+	public void deleteProcessLog(Log log) {
+		if (log != null) {
+			try {
+				String name = log.getFilePath() + "_" + log.getName() + ".xes.gz";
+				File file = new File(config.getLogsDir() + "/" + name);
+				file.delete();
+
+				// Remove corresponding object from cache
+				String key = log.getFilePath();
+				cacheRepo.evict(key);
+				cacheRepo.evict(key + APMLOG_CACHE_KEY_SUFFIX);
+				System.gc(); // Force GC after cache eviction
+				LOGGER.info("Delete XLog [ KEY: " + key + "] from cache [" + cacheRepo.getCacheName() + "]");
+				LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+
+			} catch (Exception e) {
+				LOGGER.error("Error " + e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * Load aggregated log
+	 * 
+	 * @param log
+	 * @return
+	 */
+	public APMLog getAggregatedLog(Log log, XLog xLog) {
+		if (log != null) {
+
+			// ******* profiling code start here ********
+			long startTime = System.nanoTime();
+			long elapsedNanos;
+			// ******* profiling code end here ********
+
+			String key = log.getFilePath() + APMLOG_CACHE_KEY_SUFFIX;
+			APMLog element = (APMLog) cacheRepo.get(key);
+
+			if (element == null) {
+				// If doesn't hit cache
+				LOGGER.info("Cache for [KEY: " + key + "] is null.");
+
+				try {
+					APMLog apmLog = apmLogService.findAPMLogForXLog(getProcessLog(log, null));
+
+					if (shouldCache(xLog)) {
+						cacheRepo.put(key, apmLog);
+						elapsedNanos = System.nanoTime() - startTime;
+						LOGGER.info("Put APMLog [KEY:" + key + "] into Cache. Elapsed time: " + elapsedNanos / 1000000
+								+ " ms.");
+						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+					}
+
+					return apmLog;
+
+				} catch (Exception e) {
+					LOGGER.error("Error " + e.getMessage());
+				}
+
+			} else {
+				// If cache hit
+				LOGGER.info("Get object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
+						+ cacheRepo.getCacheName() + "]");
+				return element;
+			}
+		}
+		return null;
+	}
+
+	private boolean shouldCache(XLog xLog) {
+
+		/**
+		 * The total number of events in this log.
+		 */
+		int numberOfEvents = 0;
+		/**
+		 * The number of traces in this log.
+		 */
+		int numberOfTraces = 0;
+
+		int numOfEventsLimit = 0;
+		int numOfTracesLimit = 0;
+
+		for (XTrace trace : xLog) {
+			numberOfTraces++;
+			for (XEvent event : trace) {
+				numberOfEvents++;
+			}
+		}
+
+		try {
+			numOfEventsLimit = Integer.parseInt(config.getNumOfEvent().replaceAll(",", ""));
+			numOfTracesLimit = Integer.parseInt(config.getNumOfTrace().replaceAll(",", ""));
+
+		} catch (NumberFormatException e) {
+			LOGGER.error("Cache threshold value is wrong, please check the setting in config file " + e.getMessage());
+		}
+
+		if ((numOfEventsLimit != 0 && numberOfEvents > numOfEventsLimit)
+				|| (numOfTracesLimit != 0 && numberOfTraces > numOfTracesLimit)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private XFactory getXFactory(String factoryName) {
+
+		if (factoryName != null) {
+			// Look for a registered XFactory with the specified name
+			for (XFactory factory : XFactoryRegistry.instance().getAvailable()) {
+				if (Objects.equals(factory.getName(), factoryName)) {
+					return factory;
+				}
+			}
+		}
+
+		// If the named factory couldn't be found, fall back to the default
+		return XFactoryRegistry.instance().currentDefault();
+	}
 
 }

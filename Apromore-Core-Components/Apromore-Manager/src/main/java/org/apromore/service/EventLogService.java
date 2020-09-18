@@ -25,7 +25,7 @@
 package org.apromore.service;
 
 import org.apromore.apmlog.APMLog;
-import org.apromore.dao.model.*;
+import org.apromore.persistence.entity.*;
 import org.apromore.exception.*;
 import org.apromore.portal.model.ExportLogResultType;
 import org.apromore.portal.model.SummariesType;

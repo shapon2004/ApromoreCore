@@ -24,9 +24,9 @@
 
 package org.apromore.service;
 
-import org.apromore.dao.model.HistoryEvent;
-import org.apromore.dao.model.HistoryEnum;
-import org.apromore.dao.model.StatusEnum;
+import org.apromore.persistence.entity.HistoryEvent;
+import org.apromore.persistence.entity.HistoryEnum;
+import org.apromore.persistence.entity.StatusEnum;
 
 /**
  * Interface for the Clustering Service. Defines all the methods that will do the majority of the work for

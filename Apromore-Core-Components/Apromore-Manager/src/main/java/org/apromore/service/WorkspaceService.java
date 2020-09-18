@@ -26,14 +26,14 @@ package org.apromore.service;
 
 import java.util.List;
 
-import org.apromore.dao.dataObject.FolderTreeNode;
-import org.apromore.dao.model.Folder;
-import org.apromore.dao.model.GroupFolder;
-import org.apromore.dao.model.GroupLog;
-import org.apromore.dao.model.GroupProcess;
-import org.apromore.dao.model.Log;
-import org.apromore.dao.model.Process;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.FolderTreeNode;
+import org.apromore.persistence.entity.Folder;
+import org.apromore.persistence.entity.GroupFolder;
+import org.apromore.persistence.entity.GroupLog;
+import org.apromore.persistence.entity.GroupProcess;
+import org.apromore.persistence.entity.Log;
+import org.apromore.persistence.entity.Process;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.NotAuthorizedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.bind.JAXBException;
 
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.mapper.SearchHistoryMapper;
 import org.apromore.mapper.UserMapper;
 import org.apromore.portal.common.Constants;

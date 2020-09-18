@@ -30,10 +30,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apromore.dao.SearchHistoryRepository;
-import org.apromore.dao.UserRepository;
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.repository.SearchHistoryRepository;
+import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.service.UserService;
 import org.slf4j.Logger;

@@ -24,7 +24,8 @@
                 <configuration>
                     <instructions>
                         <Import-Bundle>
-                            org.apromore.plugin.portal-custom-gui;version="[1.1.0,2.0)"
+                            org.apromore.plugin.portal-custom-gui;version="[1.1.0,2.0)",
+                             org.apromore.persistence.Apromore-persistence;version="[1.0,1.1)"
                         </Import-Bundle>
                         <Import-Package>
                             org.apromore.plugin,

@@ -24,12 +24,14 @@
 
 package org.apromore.aop;
 
-import org.apromore.dao.model.HistoryEnum;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import org.apromore.persistence.entity.HistoryEnum;
 
 /**
  * Mark a method to audit it using {@link org.apromore.aop.HistoryEventAspect}.

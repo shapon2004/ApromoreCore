@@ -24,7 +24,7 @@ package org.apromore.service.impl;
 
 import com.google.common.collect.Sets;
 import org.apromore.common.ConfigBean;
-import org.apromore.dao.*;
+import org.apromore.persistence.repository.*;
 import org.apromore.service.UserMetadataService;
 import org.apromore.service.UserService;
 import org.apromore.service.helper.UserInterfaceHelper;

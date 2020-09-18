@@ -30,11 +30,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.apromore.dao.model.Membership;
-import org.apromore.dao.model.Permission;
-import org.apromore.dao.model.Role;
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.Membership;
+import org.apromore.persistence.entity.Permission;
+import org.apromore.persistence.entity.Role;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.portal.model.*;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;

@@ -24,7 +24,7 @@
 
 package org.apromore.aop;
 
-import org.apromore.dao.model.StatusEnum;
+import org.apromore.persistence.entity.StatusEnum;
 import org.apromore.service.HistoryEventService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

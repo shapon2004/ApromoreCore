@@ -21,8 +21,8 @@
  */
 package org.apromore.service.impl;
 
-import org.apromore.dao.*;
-import org.apromore.dao.model.*;
+import org.apromore.persistence.repository.*;
+import org.apromore.persistence.entity.*;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.service.UserMetadataService;
 import org.apromore.service.UserService;

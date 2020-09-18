@@ -24,8 +24,8 @@
 
 package org.apromore.service;
 
-import org.apromore.dao.model.SearchHistory;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.SearchHistory;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.UserNotFoundException;
 
 import java.util.List;

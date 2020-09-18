@@ -23,8 +23,8 @@
 package org.apromore.plugin.portal.csvimporter;
 
 import com.opencsv.CSVReader;
-import org.apromore.dao.model.Usermetadata;
-import org.apromore.dao.model.UsermetadataLog;
+import org.apromore.persistence.entity.Usermetadata;
+import org.apromore.persistence.entity.UsermetadataLog;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.plugin.portal.FileImporterPlugin;
 import org.apromore.plugin.portal.PortalContext;

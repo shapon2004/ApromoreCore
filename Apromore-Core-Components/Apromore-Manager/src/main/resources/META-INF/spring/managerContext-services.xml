@@ -35,10 +35,23 @@
         <property name="numOfTrace" value="${cache.numOfTrace}"/>
     </bean>
 
-    <context:component-scan base-package="org.apromore.security"/>
+   
     <context:component-scan base-package="org.apromore.service"/>
     <context:component-scan base-package="org.apromore.toolbox"/>
     <context:component-scan base-package="org.apromore.manager"/>
+    
+    
+    <!-- Security bean -->
+     <bean id="userDetailsServiceImpl" class="org.apromore.security.impl.UserDetailsServiceImpl">
+    	 <property name="userRepository" ref="userRepository"/>
+     </bean>
+     
+      <bean id="usernamePasswordAuthenticationProvider" class="org.apromore.security.impl.UsernamePasswordAuthenticationProvider">
+    	 <property name="userRepository" ref="userRepository"/>
+    	 <property name="securityService" ref="securityServiceImpl"/>
+     </bean>
+     
+     
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="defaultEncoding" value="UTF-8"/>

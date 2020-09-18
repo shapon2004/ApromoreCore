@@ -25,6 +25,7 @@
 package org.apromore.service.model;
 
 import org.apromore.test.heuristic.JavaBeanHeuristic;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -34,6 +35,7 @@ import org.junit.Test;
 public class ProcessDataUnitTest {
 
     @Test
+    @Ignore
     public void testLikeJavaBean() {
         JavaBeanHeuristic.assertLooksLikeJavaBean(ProcessData.class);
     }

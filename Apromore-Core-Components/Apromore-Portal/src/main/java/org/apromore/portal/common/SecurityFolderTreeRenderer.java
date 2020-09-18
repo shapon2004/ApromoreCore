@@ -24,8 +24,8 @@
 
 package org.apromore.portal.common;
 
-import org.apromore.dao.model.Group;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.Group;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.manager.client.ManagerService;
 import org.apromore.portal.dialogController.SecuritySetupController;

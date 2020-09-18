@@ -24,7 +24,7 @@
 
 package org.apromore.service;
 
-import org.apromore.dao.model.ProcessModelVersion;
+import org.apromore.persistence.entity.ProcessModelVersion;
 
 /**
  * Lock Service, This service is used to to control the Locks that are held on the database tables and records.

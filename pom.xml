@@ -44,7 +44,7 @@
 
 	<modules>
 		<!-- OSGI -->
-		<module>Apromore-OSGI-Bundles/log-osgi</module>
+		 <module>Apromore-OSGI-Bundles/log-osgi</module>
 		<module>Apromore-OSGI-Bundles/lpsolve-osgi</module>
 		<module>Apromore-OSGI-Bundles/hpi-bpt-osgi</module>
 		<module>Apromore-OSGI-Bundles/eclipse-collections-osgi</module>
@@ -60,11 +60,10 @@
 		<module>Apromore-Core-Components/Apromore-Portal</module>
 		<module>Apromore-Core-Components/Apromore-Manager</module>
 		<module>Apromore-Core-Components/Apromore-BPMNEditor</module>
-
 		<!-- Custom Plugins -->
-		<module>Apromore-Plugins</module>
+	 <module>Apromore-Plugins</module>
 
-		<module>Apromore-Custom-Plugins/SplitMiner-Logic</module>
+		 <module>Apromore-Custom-Plugins/SplitMiner-Logic</module>
 		<module>Apromore-Custom-Plugins/File-Portal-Plugin</module>
 		<module>Apromore-Custom-Plugins/Generic-Portal-Plugin</module>
 		<module>Apromore-Custom-Plugins/Log-Filter-Portal-Plugin-Generic</module>
@@ -86,29 +85,34 @@
 		<module>Apromore-Custom-Plugins/Process-Discoverer-Logic</module>
 		<module>Apromore-Custom-Plugins/Process-Discoverer-Portal-Plugin</module>
 		<module>Apromore-Custom-Plugins/Similarity-Search-Logic</module>
-		<module>Apromore-Custom-Plugins/Similarity-Search-Portal-Plugin</module>
+		<module>Apromore-Custom-Plugins/Similarity-Search-Portal-Plugin</module> 
 
 		<module>Apromore-Custom-Plugins/User-Admin-Portal-Plugin</module>
-		<!-- <module>Apromore-Custom-Plugins/Similarity-Clusters-Portal-Plugin</module> -->
+		 <!-- <module>Apromore-Custom-Plugins/Similarity-Clusters-Portal-Plugin</module> -->
 
 		<!-- Clients that we can distribute -->
-		<module>Apromore-Clients/portal-model</module>
+	 	  <module>Apromore-Clients/portal-model</module>
 		<module>Apromore-Clients/manager-client</module>
 		<module>Apromore-Clients/manager-security</module>
 
-		<!-- Extras -->
+<!-- 		 Extras -->
 		<module>Apromore-Extras/OpenXES</module>
 		<module>Apromore-Extras/APMLogModule</module>
 
-		<!-- Tools -->
+<!-- 		Tools -->
 		<module>Apromore-Extras/Build-Tools</module>
 		<module>Apromore-Extras/Chiaroscuro-Theme</module>
 		<module>Apromore-Extras/Test-Tools</module>
 
-		<!-- Assembly -->
+        
+<!-- 		Assembly -->
 		<module>Apromore-Assembly/Manager-Assembly</module>
-		<module>Apromore-Assembly/Portal-Assembly</module>
+		 <module>Apromore-Assembly/Portal-Assembly</module>
 		<module>Apromore-Assembly/Custom-Plugins-Assembly</module>
+		
+		<!-- Apromore Storage -->
+		<module>Apromore-Storage/Apromore-persistence</module>
+		
 
 	</modules>
 
@@ -978,8 +982,14 @@
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${google.guava.version}</version>
+				
 			</dependency>
 
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>2.2.2</version>
+			</dependency>
 			<!-- Database -->
 			<dependency>
 				<groupId>org.eclipse.persistence</groupId>
@@ -1367,13 +1377,13 @@
 
 				<configuration>
 					<includeOnlyProperties>
-						<!-- Referenced in portalContext.xml, for use by ConfigBean and thence 
-							AboutApromorePlugin -->
+						Referenced in portalContext.xml, for use by ConfigBean and thence 
+							AboutApromorePlugin
 						<includeOnlyProperty>^git.commit.id.describe$</includeOnlyProperty>
 						<includeOnlyProperty>^git.commit.time$</includeOnlyProperty>
 
-						<!-- These properties will appear in each artifact's META-INF/git.properties 
-							but aren't required -->
+						These properties will appear in each artifact's META-INF/git.properties 
+							but aren't required
 						<includeOnlyProperty>^git.branch$</includeOnlyProperty>
 						<includeOnlyProperty>^git.build.version$</includeOnlyProperty>
 						<includeOnlyProperty>^git.closest.tag.name$</includeOnlyProperty>
@@ -1386,6 +1396,7 @@
 					<skipPoms>false</skipPoms>
 				</configuration>
 				<inherited>false</inherited>
+
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

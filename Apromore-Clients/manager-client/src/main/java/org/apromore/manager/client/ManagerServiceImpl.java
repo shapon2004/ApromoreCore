@@ -39,11 +39,11 @@ import javax.inject.Inject;
 
 import org.apromore.common.Constants;
 //import org.apromore.dao.model.Cluster;
-import org.apromore.dao.model.Group;
-import org.apromore.dao.model.Log;
-import org.apromore.dao.model.NativeType;
-import org.apromore.dao.model.ProcessModelVersion;
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.Group;
+import org.apromore.persistence.entity.Log;
+import org.apromore.persistence.entity.NativeType;
+import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.entity.User;
 import org.apromore.exception.NotAuthorizedException;
 import org.apromore.mapper.DomainMapper;
 import org.apromore.mapper.GroupMapper;

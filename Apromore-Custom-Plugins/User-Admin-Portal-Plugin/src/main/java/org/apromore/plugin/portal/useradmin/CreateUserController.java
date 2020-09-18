@@ -21,7 +21,7 @@
  */
 package org.apromore.plugin.portal.useradmin;
 
-import org.apromore.dao.model.User;
+import org.apromore.persistence.entity.User;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
