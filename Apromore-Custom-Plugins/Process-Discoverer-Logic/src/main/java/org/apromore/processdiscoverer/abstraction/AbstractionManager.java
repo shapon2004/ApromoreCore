@@ -65,7 +65,7 @@ public class AbstractionManager {
     	boolean attributeChanged = true;
     	boolean thresholdChanged = true;
     	boolean structuralWeightChanged = true;
-    	boolean selectionOrderChanged = true;
+    	boolean elementSelectionOrderChanged = true;
     	
     	if (dfgAbstraction != null) {
     		AbstractionParams currentParams = dfgAbstraction.getAbstractionParams();
@@ -74,22 +74,19 @@ public class AbstractionManager {
         					currentParams.getArcSelectThreshold() != params.getArcSelectThreshold());
 	    	structuralWeightChanged = (currentParams.getFixedType() != params.getFixedType() ||
         							currentParams.getFixedAggregation() != params.getFixedAggregation());
-	    	selectionOrderChanged = (currentParams.invertedNodes() != params.invertedNodes());
+	    	elementSelectionOrderChanged = (currentParams.invertedNodes() != params.invertedNodes());
 	    	
     		if (!log.isDataStatusChanged() && !attributeChanged && !thresholdChanged && !structuralWeightChanged && 
-    				!selectionOrderChanged) {
+    				!elementSelectionOrderChanged) {
     			dfgAbstraction.updateWeights(params);
     			return dfgAbstraction;
     		}
         }
         
-    	if (structuralWeightChanged) {
-    		graph.buildSubGraphsWithStructuralWeight(params.getFixedType(), params.getFixedAggregation(), 
-    												params.invertedNodes());
+    	if (structuralWeightChanged || attributeChanged) {
+    		graph.sortNodesAndArcs(params.getFixedType(), params.getFixedAggregation());
     	}
-    	else {
-    		graph.buildSubGraphs(params.invertedNodes());
-    	}
+    	graph.buildSubGraphs(params.invertedNodes());
         long timer = System.currentTimeMillis();
         FilteredGraph filteredGraph = graph.filter(params.getNodeSelectThreshold(), params.getArcSelectThreshold());
         this.dfgAbstraction = new DFGAbstraction(log, filteredGraph, params);
