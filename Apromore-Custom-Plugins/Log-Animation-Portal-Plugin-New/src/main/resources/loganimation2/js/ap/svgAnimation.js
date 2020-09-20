@@ -80,7 +80,6 @@ class AnimationContext {
         this._logEndTime = logEndTime;
         this._logicalTimelineMax = logicalTimelineMax;
         this._recordingFrameRate = 24;
-        this._actualToLogicalFactor = 1;
         if (this._logicalTimelineMax > 0) {
             this._logicalToLogFactor = (logEndTime - logStartTime)/(this._logicalTimelineMax*1000); //convert from logical timeline to log timeline
         }
@@ -151,7 +150,6 @@ class SVGAnimator {
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._elementPool = []; //contains SVG elements to be reused, not to create new which is expensive
         this._elementPoolLimit = 20*this._frameBuffer.getChunkSize();
-        this._listernerMap = new Map();
 
         // Initialize
         this._initElementPool();
@@ -201,9 +199,9 @@ class SVGAnimator {
 
         // Repeat reading the buffer until it has no more frames to supply (out of the server supply).
         if (!this._frameBuffer.isOutOfSupply()) {
-            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(4*this._playingFrameRate))*1000;
+            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(5*this._playingFrameRate))*1000;
             this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
-            console.log('SVGAnimator - animateLoop: start new animateLoop with a timerId=' + this._animationClockId);
+            console.log('SVGAnimator - animateLoop: start new animateLoop after ' + timeOutInterval/1000 + 's.');
         }
         else {
             console.log('SVGAnimator - animateLoop: out of stock and no more frames in supply. The animateLoop stops.');

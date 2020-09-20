@@ -79,6 +79,9 @@
 
 		<module>Apromore-Custom-Plugins/Log-Animation-Logic</module>
 		<module>Apromore-Custom-Plugins/Log-Animation-Portal-Plugin</module>
+        
+		<module>Apromore-Custom-Plugins/Log-Animation-Logic-New</module>
+		<module>Apromore-Custom-Plugins/Log-Animation-Portal-Plugin-New</module>        
 
 		<module>Apromore-Custom-Plugins/Log-Logic</module>
 		<module>Apromore-Custom-Plugins/Merge-Logic</module>
