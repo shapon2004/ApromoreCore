@@ -26,6 +26,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.apromore.persistence.repository.UserRepositoryImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -59,18 +60,6 @@ public class JPAConfig {
 	public static final String PERSISTENCE_UNIT_NAME = "Apromore";
 	public static final String TRANSACTION_MANAGER = "transactionManager";
 
-	@Value("${jdbc.username}")
-	private String dbUser;
-
-	@Value("${jdbc.password}")
-	private String password;
-
-	@Value("${jdbc.url}")
-	private String url;
-
-	@Value("${jdbc.driver}")
-	private String driver;
-
 	@Value("${jpa.database}")
 	private String context;
 
@@ -82,28 +71,16 @@ public class JPAConfig {
 
 	@Value("${jpa.generateDDL}")
 	private boolean generateDDL;
-
-	@Bean(destroyMethod = "close")
-	public DataSource dataSource() {
-		BoneCPDataSource ds = new BoneCPDataSource();
-		ds.setJdbcUrl(url);
-		ds.setDriverClass(driver);
-		ds.setUsername(dbUser);
-		ds.setPassword(password);
-		ds.setMaxConnectionsPerPartition(30);
-		ds.setMinConnectionsPerPartition(10);
-		ds.setPartitionCount(5);
-		ds.setAcquireIncrement(5);
-		ds.setStatementCacheSize(100);
-		ds.setReleaseHelperThreads(3);
-		return ds;
-	}
+	
+	@Autowired
+	private DataSource dataSource;
+	
 
 	@Bean
 	@DependsOn({ "liquibase" })
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(dataSource());
+		em.setDataSource(dataSource);
 		em.setPackagesToScan("org.apromore.persistence.entity");
 		em.setPersistenceUnitName("Apromore");
 		em.setJpaVendorAdapter(jpaVendorAdapter());
@@ -136,7 +113,7 @@ public class JPAConfig {
 
 		SpringLiquibase liquibase = new SpringLiquibase();
 
-		liquibase.setDataSource(unpooledDataSource());
+		liquibase.setDataSource(dataSource);
 		liquibase.setChangeLog("classpath:db/migration/changeLog.yaml");
 		liquibase.setContexts(context);
 //		liquibase.setDropFirst(true);
@@ -145,7 +122,7 @@ public class JPAConfig {
 
 	@Bean
 	public JdbcTemplate jdbcTemplate() {
-		return new JdbcTemplate(dataSource());
+		return new JdbcTemplate(dataSource);
 	}
 
 	Properties additionalProperties() {
@@ -153,19 +130,12 @@ public class JPAConfig {
 		properties.setProperty("hibernate.hbm2ddl.auto", "none");
 		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
 		properties.setProperty("hibernate.default_batch_fetch_size", "4");
-		properties.setProperty("hibernate.cache.use_query_cache", "true");
-		properties.setProperty("hibernate.cache.use_second_level_cache", "true");
-		properties.setProperty("hibernate.cache.region.factory_class",
-				"org.hibernate.cache.ehcache.EhCacheRegionFactory");
+//		properties.setProperty("hibernate.cache.use_query_cache", "true");
+//		properties.setProperty("hibernate.cache.use_second_level_cache", "true");
+//		properties.setProperty("hibernate.cache.region.factory_class",
+//				"org.hibernate.cache.ehcache.EhCacheRegionFactory");
 		return properties;
 	}
 
-	DataSource unpooledDataSource() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setDriverClassName(driver);
-		dataSource.setUrl(url);
-		dataSource.setUsername(dbUser);
-		dataSource.setPassword(password);
-		return dataSource;
-	}
+	
 }

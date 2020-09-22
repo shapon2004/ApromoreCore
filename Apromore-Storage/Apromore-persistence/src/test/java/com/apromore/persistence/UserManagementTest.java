@@ -1,5 +1,7 @@
 package com.apromore.persistence;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.apromore.persistence.entity.Group;
 import org.apromore.persistence.entity.Role;
 import org.apromore.persistence.entity.User;
@@ -9,7 +11,6 @@ import org.apromore.persistence.repository.UserRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.assertj.core.api.Assertions.*;
 
 import com.apromore.persistence.model.builder.UserManagementBuilder;
 
