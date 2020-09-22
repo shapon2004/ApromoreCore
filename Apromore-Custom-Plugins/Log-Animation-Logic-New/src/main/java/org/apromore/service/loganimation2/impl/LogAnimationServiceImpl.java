@@ -385,6 +385,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
          */
         for (AnimationLog animationLog : replayedLogs) {
             transformToNonGateways(animationLog, diagramMapping);
+            animationLog.setDiagram(bpmnDefNoGateways);
         }
         LOGGER.info("Finish replaying log over model");
         

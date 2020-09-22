@@ -24,11 +24,13 @@
 
 package org.apromore.service.loganimation2.replay;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -39,26 +41,35 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.json.JSONArray;
 
+import de.hpi.bpmn2_0.model.BaseElement;
+import de.hpi.bpmn2_0.model.Definitions;
+import de.hpi.bpmn2_0.model.FlowElement;
+import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 public class AnimationLog {
     private XLog xlog = null;
+    private Definitions diagram;
     private Map<XTrace, ReplayTrace> traceMap = new HashMap();
     private Set<XTrace> unplayTraces = new HashSet();
     private String name = "";
     private String fileName = "";
     private DateTime startDate = null;
     private DateTime endDate = null;
-    private Interval interval = null;
     private String color = "";
     private double exactTraceFitnessFormulaTime = 0; //in milliseconds
     private double approxTraceFitnessFormulaTime = 0; //in milliseconds
     private double minBoundMoveOnModel = 0;
-    private static final Logger LOGGER = Logger.getLogger(ReplayTrace.class.getCanonicalName());
+    private static final Logger LOGGER = Logger.getLogger(AnimationLog.class.getCanonicalName());
+    
+    private CaseMapping caseMapping;
+    private ElementMapping elementMapping;
     
     public AnimationLog(XLog xlog) {
         this.xlog = xlog;
+        this.caseMapping = new CaseMapping(xlog);
     }
     
     public Map<XTrace, ReplayTrace> getTraceMap() {
@@ -83,6 +94,31 @@ public class AnimationLog {
     
     public XLog getXLog() {
         return this.xlog;
+    }
+    
+    public void setDiagram(Definitions diagram) {
+    	this.diagram = diagram;
+    	this.createElementMapping(diagram);
+    }
+    
+    public int getCaseIndexFromId(String caseId) {
+    	return this.caseMapping.getIndex(caseId);
+    }
+    
+    public int getElementIndexFromId(String elementId) {
+    	return this.elementMapping.getIndex(elementId);
+    }
+    
+    public int getNumberOfCases() {
+    	return caseMapping != null ? caseMapping.size() : 0;
+    }
+    
+    public int getNumberOfElements() {
+    	return elementMapping != null ? elementMapping.size() : 0;
+    }
+    
+    public JSONArray getElementJSONArray() {
+    	return this.elementMapping.getElementJSONArray();
     }
     
     public DateTime getStartDate() {
@@ -155,6 +191,16 @@ public class AnimationLog {
     
     public Collection<ReplayTrace> getTraces() {
         return this.traceMap.values();
+    }
+    
+    public List<ReplayTrace> getTracesWithOriginalOrder() {
+    	List<ReplayTrace> orderedTraces = new ArrayList<ReplayTrace>();
+    	for (XTrace xtrace : this.xlog) {
+    		if (traceMap.containsKey(xtrace)) {
+    			orderedTraces.add(traceMap.get(xtrace));
+    		}
+    	}
+    	return orderedTraces;
     }
     
     public double getCostBasedMoveLogFitness() {
@@ -350,5 +396,22 @@ public class AnimationLog {
         }
         unplayTraces.clear();
     }
+    
+    private void createElementMapping(Definitions diagram) {
+    	Set<FlowElement> sequenceFlows = new HashSet<>();
+        List<BaseElement> rootElements = diagram.getRootElement();
+        if (rootElements.size() == 1) {
+            BaseElement rootElement = rootElements.get(0);
+            if (rootElement instanceof Process) {
+                Process process = (Process)rootElement;
+                for (FlowElement element : process.getFlowElement()) {
+                    if (element instanceof SequenceFlow) {
+                        sequenceFlows.add(element);
+                    }                  
+                }
+            }
+        }
+        this.elementMapping = new ElementMapping(sequenceFlows);
+    }    
 
 }

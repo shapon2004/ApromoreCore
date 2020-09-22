@@ -82,7 +82,7 @@ public class AnimationJSONBuilder {
     public AnimationJSONBuilder(ArrayList<AnimationLog> animations, Definitions diagram, ReplayParams params) {
         this.animations = animations;
         this.params = params;
-        this.collectModelElements(diagram);
+        //this.collectModelElements(diagram);
         
         Set<DateTime> dateSet = new HashSet<>();
         for (AnimationLog animationLog : animations) {
@@ -134,7 +134,7 @@ public class AnimationJSONBuilder {
         json.put("total", animationLog.getTraces().size() + animationLog.getUnplayTraces().size());        
         json.put("play", animationLog.getTraces().size());
         json.put("progress", this.parseLogProgress(animationLog));
-        json.put("sequenceFlowIds", this.parseSequenceFlowIds(this.sequenceFlows));
+        //json.put("sequenceFlowIds", this.parseSequenceFlowIds(this.sequenceFlows));
         /*
         json.put("unplayTraces", animationLog.getUnplayTracesString());
         json.put("reliable", animationLog.getReliableTraceCount());
@@ -223,13 +223,13 @@ public class AnimationJSONBuilder {
         return json;
     }
     
-    protected JSONArray parseSequenceFlowIds(Collection<SequenceFlow> flows) {
-        JSONArray flowIds = new JSONArray();
-        for (SequenceFlow seqFlow : flows) {
-            flowIds.put(seqFlow.getId());
-        }
-        return flowIds;
-    }
+//    protected JSONArray parseSequenceFlowIds(Collection<SequenceFlow> flows) {
+//        JSONArray flowIds = new JSONArray();
+//        for (SequenceFlow seqFlow : flows) {
+//            flowIds.put(seqFlow.getId());
+//        }
+//        return flowIds;
+//    }
     
     //represent all token flows in the log
     protected JSONObject parseTrace(AnimationLog animationLog, ReplayTrace trace) throws JSONException {

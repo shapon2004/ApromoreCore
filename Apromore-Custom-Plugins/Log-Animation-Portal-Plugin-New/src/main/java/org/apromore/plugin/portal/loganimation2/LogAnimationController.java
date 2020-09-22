@@ -24,7 +24,6 @@
 
 package org.apromore.plugin.portal.loganimation2;
 
-// Java 2 Standard packages
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,10 +32,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// Third party packages
 import org.apromore.plugin.editor.EditorPlugin;
-import org.apromore.plugin.portal.loganimation2.model.AnimationFrameGenerator;
-import org.apromore.plugin.portal.loganimation2.model.Chunk;
+import org.apromore.plugin.portal.loganimation2.frames.AnimationContext;
+import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
+import org.apromore.plugin.portal.loganimation2.frames.Frames;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.common.UserSessionManager;
 //import org.apromore.portal.context.EditorPluginResolver;
@@ -78,8 +77,7 @@ public class LogAnimationController extends BaseController {
     private VersionSummaryType version;
     private Set<RequestParameterType<?>> params;
     private String pluginExecutionId = "";
-    private AnimationLog animationLog;
-    private AnimationFrameGenerator animationFrameGenerator;
+    private Frames animationFrames;
     
     /*
      * The initialization must be put inside the constructor as
@@ -157,12 +155,14 @@ public class LogAnimationController extends BaseController {
                 param.put("doAutoLayout", "true");
             }
 
-            this.animationLog = (AnimationLog)session.get("animationLog");
-            this.animationFrameGenerator = new AnimationFrameGenerator(animationLog);
+            AnimationLog animationLog = (AnimationLog)session.get("animationLog");
+            AnimationContext animateContext = new AnimationContext(animationLog);
+            this.animationFrames = FrameRecorder.record(animationLog, animateContext);
             JSONObject setupData = (JSONObject)session.get("setupData");
-            setupData.put("fps", animationFrameGenerator.getAnimationSetting().getFrameRate());
-            setupData.put("frameGap", animationFrameGenerator.getAnimationSetting().getFrameInterval());
-            setupData.put("frameChunkSize", animationFrameGenerator.getAnimationSetting().getChunkSize());
+            setupData.put("fps", animateContext.getRecordingFrameRate());
+            setupData.put("frameGap", animateContext.getFrameInterval());
+            setupData.put("frameChunkSize", animateContext.getChunkSize());
+            setupData.put("elementIds", animationLog.getElementJSONArray());
             if(setupData == null) {
                 if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
                     //List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
@@ -257,27 +257,26 @@ public class LogAnimationController extends BaseController {
      * @param event ZK event
      * @throws RuntimeException if the data associated with <var>event</var> is neither a {@link String} nor an array of {@link String}s
      */
-    private static String eventToString(final Event event) {
-        if (event.getData() instanceof String[]) {
-            return ((String[]) event.getData())[0];
-        }
-        if (event.getData() instanceof String) {
-            return (String) event.getData();
-        }
-
-        throw new RuntimeException("Unsupported class of event data: " + event.getData());
-    }
+//    private static String eventToString(final Event event) {
+//        if (event.getData() instanceof String[]) {
+//            return ((String[]) event.getData())[0];
+//        }
+//        if (event.getData() instanceof String) {
+//            return (String) event.getData();
+//        }
+//
+//        throw new RuntimeException("Unsupported class of event data: " + event.getData());
+//    }
     
     @Override
     public String processRequest(Map<String,String[]> parameterMap) {
-        String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
+        //String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
         String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
         String  chunkSize = parameterMap.get("chunkSize")[0];
         //return "Response from server: pluginExecutionId=" + pluginExecutionId + ", startFrameIndex=" + startFrameIndex;
         try {
-            Chunk frameChunk = animationFrameGenerator.generateChunk(Long.parseLong(startFrameIndex), 
-                                                                        Integer.parseInt(chunkSize));
-            return escapeQuotedJavascript(frameChunk.getJSON().toString());
+            String chunkJSON = animationFrames.getChunkJSON(Integer.parseInt(startFrameIndex), Integer.parseInt(chunkSize));
+            return escapeQuotedJavascript(chunkJSON);
         }
         catch (NumberFormatException | JSONException e) {
             return "Error: " + e.getMessage();

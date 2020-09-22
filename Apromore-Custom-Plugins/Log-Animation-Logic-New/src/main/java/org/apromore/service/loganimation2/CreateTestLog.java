@@ -24,9 +24,12 @@ package org.apromore.service.loganimation2;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryRegistry;
@@ -40,6 +43,8 @@ import org.deckfour.xes.out.XSerializer;
 import org.deckfour.xes.out.XesXmlGZIPSerializer;
 
 public class CreateTestLog {
+	private Map<XTrace,Integer> traceCopyCountMap = new HashMap<>();
+	
     public static void main(String[] args) {
         CreateTestLog creator = new CreateTestLog(); 
         
@@ -55,7 +60,7 @@ public class CreateTestLog {
                 XLog newLog = factory.createLog(log.getAttributes());
                 
                 for (XTrace trace : log) {
-                    for (int i=0; i<COPY_TRACE_NUM; i++) {
+                    for (int i=0; i<=COPY_TRACE_NUM; i++) {
                         XTrace copyTrace = creator.copyTrace(trace, factory);
                         newLog.add(copyTrace);
                     }
@@ -80,8 +85,20 @@ public class CreateTestLog {
         
     }
     
+    private int getCopyCount(XTrace trace) {
+    	return traceCopyCountMap.containsKey(trace) ? traceCopyCountMap.get(trace) : 0;
+    }
+    
+    private int getNextCopyNumber(XTrace trace) {
+    	int nextCopyNumber = getCopyCount(trace) + 1;
+    	traceCopyCountMap.put(trace, nextCopyNumber);
+    	return nextCopyNumber;
+    }
+    
     private XTrace copyTrace(XTrace trace, XFactory factory) {
-        XTrace newTrace = factory.createTrace(trace.getAttributes());
+    	String traceId = XConceptExtension.instance().extractName(trace);
+        XTrace newTrace = factory.createTrace((XAttributeMap)trace.getAttributes().clone());
+        XConceptExtension.instance().assignName(newTrace, traceId + "_" + getNextCopyNumber(trace)); 
         int random = getRandomNumberInRange(4*3600*1000, 10*24*3600*1000); //4h->10days
         for (XEvent event : trace) {
             XEvent newEvent = factory.createEvent((XAttributeMap)event.getAttributes().clone());

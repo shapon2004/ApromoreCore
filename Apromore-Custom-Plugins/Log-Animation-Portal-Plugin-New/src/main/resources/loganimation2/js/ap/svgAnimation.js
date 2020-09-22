@@ -475,16 +475,17 @@ class SVGAnimator {
         for (let frame of frames) {
             let frameIndex = frame.index;
             for (let element of frame.elements) {
-                let elementId = Object.keys(element)[0];
-                for (let token of element[elementId]) {
-                    let caseId = Object.keys(token)[0];
-                    let tokenKey = elementId + "," + caseId;
+                let elementIndex = Object.keys(element)[0];
+                let elementId = this._getElementId(elementIndex);
+                for (let token of element[elementIndex]) {
+                    let caseIndex = Object.keys(token)[0];
+                    let tokenKey = elementId + "," + caseIndex;
                     if (!tokenMap.has(tokenKey)) {
-                        tokenMap.set(tokenKey, new SVGToken(elementId, caseId, frameIndex, token[caseId], frameIndex, token[caseId]));
+                        tokenMap.set(tokenKey, new SVGToken(elementId, caseIndex, frameIndex, token[caseIndex], frameIndex, token[caseIndex]));
                     }
                     else {
                         tokenMap.get(tokenKey).setLastFrameIndex(frameIndex);
-                        tokenMap.get(tokenKey).setLastAtts(token[caseId]);
+                        tokenMap.get(tokenKey).setLastAtts(token[caseIndex]);
                     }
                 }
             }
@@ -495,6 +496,10 @@ class SVGAnimator {
 
     _getPathElement(elementId) {
         return this._modelController.getPathElement(elementId);
+    }
+
+    _getElementId(elementIndex) {
+        return this._modelController.getElementId(elementIndex);
     }
 
     //Not used

@@ -152,11 +152,12 @@ let AnimationController = {
 
   reset: function(jsonRaw) {
     this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, tracedates} = this.jsonServer;
+    let {logs, timeline, tracedates, elementIds} = this.jsonServer;
     this.logs = logs;
     this.logNum = logs.length;
     this.timeline = timeline;
     this.tracedates = tracedates;
+    this.elementIds = elementIds;
 
     this.svgMain = this.canvas.getSVGContainer();
     this.svgViewport = this.canvas.getSVGViewport();
@@ -241,7 +242,7 @@ let AnimationController = {
 
     // Cache path elements
     for (let log of this.logs) {
-      for (let flowId of log.sequenceFlowIds) {
+      for (let flowId of this.elementIds) {
         this.pathElementCache[flowId] = $j('[data-element-id=' + flowId + ']').find('g').find('path').get(0);
       }
     }
@@ -268,6 +269,10 @@ let AnimationController = {
     return pathElement
   },
 
+  getElementId: function(elementIndex) {
+    return this.elementIds[elementIndex];
+  },
+
   // Add log intervals to timeline
   createLogIntervals: function() {
     let {
@@ -287,7 +292,7 @@ let AnimationController = {
       // Display date label at the two ends
       if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 != 0) {
         let txt = log.startDateLabel.substr(0, 19);
-        x = ox + slotWidth * log.startDatePos - 50;
+        let x = ox + slotWidth * log.startDatePos - 50;
         y += 5;
         new SVG.Text().plain(txt).font(this.textFont).attr({x, y}).addTo(timelineEl);
       }
