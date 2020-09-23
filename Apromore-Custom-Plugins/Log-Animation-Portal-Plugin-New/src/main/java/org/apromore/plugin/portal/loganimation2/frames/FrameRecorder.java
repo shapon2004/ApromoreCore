@@ -21,6 +21,11 @@
  */
 package org.apromore.plugin.portal.loganimation2.frames;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apromore.service.loganimation2.replay.AnimationLog;
 import org.apromore.service.loganimation2.replay.ReplayTrace;
 import org.apromore.service.loganimation2.replay.TraceNode;
@@ -35,13 +40,17 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
  */
 public class FrameRecorder {
 	public static Frames record(AnimationLog log, AnimationContext animateContext) throws InvalidFrameParamsException {
+		Map<ReplayTrace,Collection<SequenceFlow>> traceToSequenceFlows = new HashMap<>();
+		List<ReplayTrace> replayTraces = log.getTracesWithOriginalOrder();
 		Frames frames = new Frames(animateContext);
 		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
+			System.out.println("Collect data for frame index = " + frameIndex);
 			Frame frame = new Frame(frameIndex, log.getNumberOfElements(), log.getNumberOfCases());
 			long frameTimestamp = frame.getTimestamp(animateContext);
-			for (ReplayTrace trace : log.getTracesWithOriginalOrder()) {
+			for (ReplayTrace trace : replayTraces) {
 	            if (trace.getStartDate().getMillis()<=frameTimestamp && frameTimestamp<=trace.getEndDate().getMillis()) {
-			        for (SequenceFlow seq : trace.getSequenceFlows()) {
+	            	if (!traceToSequenceFlows.containsKey(trace)) traceToSequenceFlows.put(trace, trace.getSequenceFlows());
+			        for (SequenceFlow seq : traceToSequenceFlows.get(trace)) {
 			            long seqStart = ((TraceNode)seq.getSourceRef()).getComplete().getMillis();
 			            long seqEnd = ((TraceNode)seq.getTargetRef()).getStart().getMillis();
 			            long seqDuration = seqEnd - seqStart; // only animate if duration > 0

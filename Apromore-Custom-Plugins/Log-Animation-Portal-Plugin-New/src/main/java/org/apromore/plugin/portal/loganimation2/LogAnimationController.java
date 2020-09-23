@@ -157,7 +157,10 @@ public class LogAnimationController extends BaseController {
 
             AnimationLog animationLog = (AnimationLog)session.get("animationLog");
             AnimationContext animateContext = new AnimationContext(animationLog);
+            long timer = System.currentTimeMillis();
+            System.out.println("Start recording frames");
             this.animationFrames = FrameRecorder.record(animationLog, animateContext);
+            System.out.println("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             JSONObject setupData = (JSONObject)session.get("setupData");
             setupData.put("fps", animateContext.getRecordingFrameRate());
             setupData.put("frameGap", animateContext.getFrameInterval());

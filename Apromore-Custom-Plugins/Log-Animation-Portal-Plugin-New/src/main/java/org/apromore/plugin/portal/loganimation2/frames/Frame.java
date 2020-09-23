@@ -21,6 +21,8 @@
  */
 package org.apromore.plugin.portal.loganimation2.frames;
 
+import java.text.DecimalFormat;
+
 import org.eclipse.collections.api.list.primitive.MutableIntList;
 import org.eclipse.collections.api.map.primitive.MutableIntDoubleMap;
 import org.eclipse.collections.impl.factory.primitive.IntDoubleMaps;
@@ -195,7 +197,8 @@ public class Frame {
 	
 	private JSONArray getAttributesJSON(int attIndex) throws JSONException {
 		JSONArray attJSON = new JSONArray();
-		attJSON.put(distances.get(attIndex));
+		DecimalFormat df = new DecimalFormat("#.###");
+		attJSON.put(df.format(distances.get(attIndex)));
 		return attJSON;
 	}
 }

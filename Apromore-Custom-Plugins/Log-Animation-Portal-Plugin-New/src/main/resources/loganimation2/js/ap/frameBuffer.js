@@ -64,15 +64,15 @@ class Buffer {
     }
 
     static get DEFAULT_CHUNK_SIZE() {
-        return 300;
+        return 120;
     }
 
     static get DEFAULT_SAFETY_THRES() {
-        return 900;
+        return 600;
     }
 
     static get DEFAULT_MIN_THRES() {
-        return 600;
+        return 300;
     }
 
     static get DEFAULT_HISTORY_THRES() {

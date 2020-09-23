@@ -199,7 +199,7 @@ class SVGAnimator {
 
         // Repeat reading the buffer until it has no more frames to supply (out of the server supply).
         if (!this._frameBuffer.isOutOfSupply()) {
-            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(5*this._playingFrameRate))*1000;
+            let timeOutInterval = Math.floor(this._frameBuffer.getChunkSize()/(this._playingFrameRate))*1000;
             this._animationClockId = setTimeout(this._animateLoop.bind(this), timeOutInterval);
             console.log('SVGAnimator - animateLoop: start new animateLoop after ' + timeOutInterval/1000 + 's.');
         }
