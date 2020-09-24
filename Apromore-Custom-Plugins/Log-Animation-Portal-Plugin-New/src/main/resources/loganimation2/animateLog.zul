@@ -26,7 +26,7 @@
 <?script src="../themes/ap/common/js/index.js"?>
 <?script src="/loganimation2/js/ap/dataRequester.js" ?>
 <?script src="/loganimation2/js/ap/frameBuffer.js" ?>
-<?script src="/loganimation2/js/ap/svgAnimation.js" ?>
+<?script src="/loganimation2/js/ap/svgAnimation2.js" ?>
 <z:window id="win"
           xmlns="http://www.zkoss.org/2005/zk/native"
           xmlns:n="http://www.zkoss.org/2005/zk/native"
@@ -137,6 +137,7 @@
     <!-- THIS PAGE USE DIV FLOAT FOR LAYOUTING -->
 
     <div id="editorcanvas"></div>
+    <canvas id="canvas" style="top:66px; position:absolute; background:none; z-index:1000;"></canvas>
     <n:div id="controls">
         <!-- Relative positioning: relative to its normal position using top, left, right,...-->
         <!-- Its normal position is the top left corner of the containing div -->

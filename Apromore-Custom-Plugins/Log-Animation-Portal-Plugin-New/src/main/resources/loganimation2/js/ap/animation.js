@@ -113,6 +113,7 @@ let AnimationController = {
 
     this.pluginExecutionId = pluginExecutionId;
     this.pathElementCache = {};
+    this.pathElementLengths = [];
   },
 
   pauseAnimations: function() {
@@ -242,14 +243,18 @@ let AnimationController = {
 
     // Cache path elements
     for (let log of this.logs) {
-      for (let flowId of this.elementIds) {
+      for (let i=0; i<this.elementIds.length; i++) {
+        let flowId = this.elementIds[i];
         this.pathElementCache[flowId] = $j('[data-element-id=' + flowId + ']').find('g').find('path').get(0);
+        this.pathElementLengths[i] = this.pathElementCache[flowId] .getTotalLength();
       }
     }
 
     //this.start();
+    let canvas = document.querySelector("#canvas");
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
-    this.svgAnimator = new SVGAnimator(this.animationContext, this, this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
+    this.svgAnimator = new CanvasAnimator(this.animationContext, this, canvas.getContext('2d'),
+                                          this.svgDocs[0], this.svgDocs[1], this.svgDocs[2], this.svgViewport);
   },
 
   getSVGAnimator: function() {
@@ -267,6 +272,10 @@ let AnimationController = {
     }
     */
     return pathElement
+  },
+
+  getPathElementLength: function(elementIndex) {
+    return this.pathElementLengths[elementIndex];
   },
 
   getElementId: function(elementIndex) {
