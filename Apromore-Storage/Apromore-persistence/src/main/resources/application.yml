@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: 'jdbc:h2:mem:Manager;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false; '
+    username: apromore
+    password: MAcri
+    hikari:
+      connectionTimeout: 30000
+      idleTimeout: 600000
+      maxLifetime: 1800000
+  jpa:
+    showSql: "true"
+    generate-ddl: "false"
+    database: H2
+    database-platform: org.hibernate.dialect.H2Dialect
+  liquibase:
+    change-log: classpath:db/migration/changeLog.yaml
+    contexts: H2
+  cache:    jcache:      config: classpath:ehcache.xml

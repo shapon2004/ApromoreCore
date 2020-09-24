@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.apromore.persistence.model.builder.UserManagementBuilder;
 
-public class UserManagementTest extends BaseTestClass {
+public class UserManagementTest{
 
 	@Autowired
 	GroupRepository groupRepository;
