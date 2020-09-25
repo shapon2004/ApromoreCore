@@ -22,24 +22,36 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.bimp;
+package org.apromore.plugin.portal.bimp.controller;
 
-import java.util.ResourceBundle;
+import org.apromore.plugin.portal.bimp.BIMPRequestBodyBuilder;
+import org.apromore.plugin.portal.bimp.BIMPRequestBodyBuilderImpl;
+import org.apromore.plugin.portal.bimp.client.BIMPClient;
+import org.apromore.plugin.portal.bimp.client.BIMPClientImpl;
 import org.apromore.service.EventLogService;
-import org.deckfour.xes.model.XLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.zkoss.util.Locales;
 import org.zkoss.zk.ui.Executions;
-import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.MouseEvent;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zkplus.spring.SpringUtil;
 import org.zkoss.zul.Label;
-import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ResourceBundle;
 
 /**
  * Controller for <code>bimp.zul</code>.
@@ -48,16 +60,16 @@ public class BIMPController extends SelectorComposer<Window> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BIMPController.class);
 
-    // Fields injected from Spring beans/OSGi services
-    private EventLogService eventLogService = (EventLogService) SpringUtil.getBean("eventLogService");
+    private final EventLogService eventLogService = (EventLogService) SpringUtil.getBean("eventLogService");
 
-    // Fields injected from the ZK execution
     private String bpmn = (String) Executions.getCurrent().getArg().get("bpmn");
 
-    // Fields injected from bimp.zul
-    @Wire("#testLabel") private Label testLabel;
+    @Wire("#testLabel")
+    private Label testLabel;
 
-    /** @return the ZK localizations */
+    /**
+     * @return the ZK localizations
+     */
     public ResourceBundle getLabels() {
         return ResourceBundle.getBundle("WEB-INF.zk-label", Locales.getCurrent(), getClass().getClassLoader());
     }
@@ -77,11 +89,25 @@ public class BIMPController extends SelectorComposer<Window> {
     @Listen("onClick = #testButton")
     public void onClickTestButton(MouseEvent event) {
         testLabel.setValue(getLabels().getString("testLabel_clickedValue"));
-        LOGGER.info("BPMN: {}", bpmn);
-        LOGGER.info("EventLogService: {}", eventLogService);
-    }
 
-    // Internal methods supporting event handlers (@Listen)
+        LOGGER.info("bpmn {}", bpmn);
+
+        try {
+            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+            Document document = docBuilder.parse(new InputSource(new StringReader(bpmn)));
+
+            BIMPRequestBodyBuilder bimpRequestBodyBuilder = new BIMPRequestBodyBuilderImpl();
+            String bimpRequestBody = bimpRequestBodyBuilder.createBIMPRequestBody(document);
+
+            BIMPClient bimpClient = new BIMPClientImpl();
+            String s = bimpClient.postSimulation(bimpRequestBody);
+
+            LOGGER.info(s);
+        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException | JAXBException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
 
     private void close() {
         getSelf().detach();
