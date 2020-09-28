@@ -21,10 +21,17 @@
  */
 package org.apromore.plugin.portal.bimp.client;
 
+
+import org.apromore.plugin.portal.bimp.model.SimulationRequest;
+import org.apromore.plugin.portal.bimp.model.SimulationResponse;
+
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface BIMPClient {
 
-    String postSimulation(String simulationRequestBody) throws IOException, JAXBException;
+    SimulationResponse postSimulation(SimulationRequest simulationRequestBody) throws IOException, JAXBException;
+
+    InputStream getSimulationMXMLLogs(String simulationId) throws IOException;
 }

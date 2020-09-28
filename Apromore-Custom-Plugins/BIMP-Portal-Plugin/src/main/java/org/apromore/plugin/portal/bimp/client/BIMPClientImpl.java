@@ -21,10 +21,12 @@
  */
 package org.apromore.plugin.portal.bimp.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+
+import org.apromore.plugin.portal.bimp.model.SimulationRequest;
+import org.apromore.plugin.portal.bimp.model.SimulationResponse;
+import org.zkoss.zul.Filedownload;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -32,31 +34,49 @@ import java.nio.charset.StandardCharsets;
 public class BIMPClientImpl implements BIMPClient {
 
     @Override
-    public String postSimulation(String simulationRequestBody) throws IOException {
+    public SimulationResponse postSimulation(SimulationRequest simulationRequestBody) throws IOException {
         URL url = new URL("https://api-test.qbp-simulator.com/rest/v1/Simulation");
+        SimulationResponse response = new SimulationResponse();
 
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/xml");
         con.setRequestProperty("Accept", "*/*");
-        con.setRequestProperty("Authorization", "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhcHJvbW9yZSIsInJvbGVzIjpbIlVTRVIiXSwiZXhwIjoxNjAxMDU0MjY1LCJpYXQiOjE2MDEwMzk4NjV9.OE4nzilY0FtvNa2xU8-QMvx8IWLmiiSQuQiJT7gmPwNiPzjgHpWW3U0Ha94FpikoUeTftqae_Tr6vChJqMo9Qg");
+        con.setRequestProperty("Authorization", "Bearer");
         con.setDoOutput(true);
 
         try (OutputStream os = con.getOutputStream()) {
-            byte[] input = simulationRequestBody.getBytes(StandardCharsets.UTF_8);
+            byte[] input = simulationRequestBody.getBody().getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
         }
 
-        StringBuilder response = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
             String responseLine;
             while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
+                stringBuilder.append(responseLine.trim());
             }
+
+            response.setCode(con.getResponseCode());
+            response.setBody(stringBuilder.toString());
         }
 
-        return response.toString();
+        return response;
+    }
+
+    @Override
+    public InputStream getSimulationMXMLLogs(String simulationId) throws IOException {
+        URL url = new URL(String.format("https://api-test.qbp-simulator.com/rest/v1/Simulation/%s/MXML", simulationId));
+
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("Content-Type", "application/xml");
+        con.setRequestProperty("Accept", "*/*");
+        con.setRequestProperty("Authorization", "Bearer");
+        con.setDoOutput(true);
+
+        return con.getInputStream();
     }
 }
