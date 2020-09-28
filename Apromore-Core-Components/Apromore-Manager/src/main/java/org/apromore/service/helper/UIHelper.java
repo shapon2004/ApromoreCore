@@ -29,16 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import org.apromore.common.ConfigBean;
-import org.apromore.persistence.repository.FolderRepository;
-import org.apromore.persistence.repository.GroupFolderRepository;
-import org.apromore.persistence.repository.GroupLogRepository;
-import org.apromore.persistence.repository.GroupProcessRepository;
-import org.apromore.persistence.repository.LogRepository;
-import org.apromore.persistence.repository.ProcessModelVersionRepository;
-import org.apromore.persistence.repository.ProcessRepository;
 import org.apromore.persistence.entity.Folder;
 import org.apromore.persistence.entity.GroupFolder;
 import org.apromore.persistence.entity.GroupLog;
@@ -47,6 +38,13 @@ import org.apromore.persistence.entity.Log;
 import org.apromore.persistence.entity.Process;
 import org.apromore.persistence.entity.ProcessBranch;
 import org.apromore.persistence.entity.ProcessModelVersion;
+import org.apromore.persistence.repository.FolderRepository;
+import org.apromore.persistence.repository.GroupFolderRepository;
+import org.apromore.persistence.repository.GroupLogRepository;
+import org.apromore.persistence.repository.GroupProcessRepository;
+import org.apromore.persistence.repository.LogRepository;
+import org.apromore.persistence.repository.ProcessModelVersionRepository;
+import org.apromore.persistence.repository.ProcessRepository;
 import org.apromore.portal.helper.Version;
 import org.apromore.portal.model.FolderSummaryType;
 import org.apromore.portal.model.LogSummaryType;
@@ -60,7 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -68,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 *
 * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
 */
-@Service
+
 @Transactional
 public class UIHelper implements UserInterfaceHelper {
 
@@ -94,16 +91,16 @@ public class UIHelper implements UserInterfaceHelper {
      * @param groupFolderRepository folder access control group repository
      * @param workspaceService Workspace Services.
      */
-    @Inject
-    public UIHelper(final ProcessRepository processRepository,
-                    final LogRepository logRepository,
-                    final GroupProcessRepository groupProcessRepository,
-                    final GroupLogRepository groupLogRepository,
-                    final ProcessModelVersionRepository processModelVersionRepository,
-                    final FolderRepository folderRepository,
-                    final GroupFolderRepository groupFolderRepository,
-                    final WorkspaceService workspaceService,
-                    final ConfigBean config) {
+ 
+    public UIHelper( ProcessRepository processRepository,
+                     LogRepository logRepository,
+                     GroupProcessRepository groupProcessRepository,
+                     GroupLogRepository groupLogRepository,
+                     ProcessModelVersionRepository processModelVersionRepository,
+                     FolderRepository folderRepository,
+                     GroupFolderRepository groupFolderRepository,
+                     WorkspaceService workspaceService,
+                     ConfigBean config) {
 
         this.fRepository = folderRepository;
         this.pRepository = processRepository;

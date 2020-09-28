@@ -45,18 +45,22 @@ import java.util.List;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-@Service
+
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class HistoryEventServiceImpl implements HistoryEventService {
 
-    @Inject
+   
     private HistoryEventRepository historyRepo;
-    @Inject
+
     private UserRepository userRepo;
 
+    
+    public HistoryEventServiceImpl(HistoryEventRepository historyRepo, UserRepository userRepo) {
+		this.historyRepo = historyRepo;
+		this.userRepo = userRepo;
+	}
 
-
-    /**
+	/**
      * @see org.apromore.service.HistoryEventService#addNewEvent(org.apromore.dao.model.StatusEnum, org.apromore.dao.model.HistoryEnum)
      * {@inheritDoc}
      */

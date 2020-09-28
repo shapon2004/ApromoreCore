@@ -34,13 +34,36 @@
     <osgi:reference id="pluginProvider" interface="org.apromore.plugin.provider.PluginProvider"/>
     <osgi:reference id="apmLogService" interface="org.apromore.apmlog.APMLogService"/>
     
-     <osgi:reference id="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
+    <osgi:reference id="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
      
     <osgi:reference id="folderRepository" interface="org.apromore.persistence.repository.FolderRepository"/>
+    <osgi:reference id="groupFolderRepository.java" interface="org.apromore.persistence.repository.GroupFolderRepository"/>
+    <osgi:reference id="groupLogRepository" interface="org.apromore.persistence.repository.GroupLogRepository"/>
+    <osgi:reference id="groupProcessRepository" interface="org.apromore.persistence.repository.GroupProcessRepository"/>
+    <osgi:reference id="groupRepository" interface="org.apromore.persistence.repository.GroupRepository"/>
+    
+    
     <osgi:reference id="groupUsermetadataRepository" interface="org.apromore.persistence.repository.GroupUsermetadataRepository"/>
+    <osgi:reference id="historyEventRepository" interface="org.apromore.persistence.repository.HistoryEventRepository"/>
+    <osgi:reference id="logRepository" interface="org.apromore.persistence.repository.LogRepository"/>
+    <osgi:reference id="membershipRepository" interface="org.apromore.persistence.repository.MembershipRepository"/>
+    <osgi:reference id="nativeRepository" interface="org.apromore.persistence.repository.NativeRepository"/>
+    <osgi:reference id="nativeTypeRepository" interface="org.apromore.persistence.repository.NativeTypeRepository"/>
+    <osgi:reference id="permissionRepository" interface="org.apromore.persistence.repository.PermissionRepository"/>
+    <osgi:reference id="processBranchRepository" interface="org.apromore.persistence.repository.ProcessBranchRepository"/>
+    
+    <osgi:reference id="processModelAttributeRepository" interface="org.apromore.persistence.repository.ProcessModelAttributeRepository"/>
+    <osgi:reference id="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
+    
+    <osgi:reference id="processRepository" interface="org.apromore.persistence.repository.ProcessRepository"/>
+    
+    <osgi:reference id="roleRepository" interface="org.apromore.persistence.repository.RoleRepository"/>
+    <osgi:reference id="searchHistoryRepository" interface="org.apromore.persistence.repository.SearchHistoryRepository"/>
+    <osgi:reference id="usermetadataLogRepository" interface="org.apromore.persistence.repository.UsermetadataLogRepository"/>
     <osgi:reference id="usermetadataRepository" interface="org.apromore.persistence.repository.UsermetadataRepository"/>
-                  
-    <osgi:reference id="userRepository" interface="org.apromore.persistence.repository.UsermetadataRepository"/>
+    <osgi:reference id="usermetadataTypeRepository" interface="org.apromore.persistence.repository.UsermetadataTypeRepository"/>
+    <osgi:reference id="userRepository" interface="org.apromore.persistence.repository.UserRepository"/>
+    <osgi:reference id="workspaceRepository" interface="org.apromore.persistence.repository.WorkspaceRepository"/>
 
     
     <osgi:service ref="pluginServiceImpl" interface="org.apromore.service.PluginService" auto-export="interfaces"/>
@@ -50,22 +73,10 @@
     <osgi:service ref="userServiceImpl" interface="org.apromore.service.UserService" auto-export="interfaces"/>
     <osgi:service ref="securityServiceImpl" interface="org.apromore.service.SecurityService" auto-export="interfaces"/>
     <osgi:service ref="workspaceServiceImpl" interface="org.apromore.service.WorkspaceService" auto-export="interfaces"/>
-    <osgi:service ref="UIHelper" interface="org.apromore.service.helper.UserInterfaceHelper" auto-export="interfaces"/>
+    <osgi:service ref="uIHelper" interface="org.apromore.service.helper.UserInterfaceHelper" auto-export="interfaces"/>
     <osgi:service ref="eventLogServiceImpl" interface="org.apromore.service.EventLogService" auto-export="interfaces"/>
-    
-    
     <osgi:service ref="userDetailsServiceImpl" interface="org.springframework.security.core.userdetails.UserDetailsService" auto-export="interfaces"/>
-    
-    
-    <osgi:service ref="usernamePasswordAuthenticationProvider" interface="org.springframework.security.authentication.AuthenticationProvider" auto-export="interfaces"/>
-    
-    <osgi:service ref="processModelVersionRepository" interface="org.apromore.dao.ProcessModelVersionRepository" auto-export="interfaces"/>
-    <osgi:service ref="folderRepository" interface="org.apromore.dao.FolderRepository" auto-export="interfaces"/>
-    <osgi:service ref="groupUsermetadataRepository" interface="org.apromore.dao.GroupUsermetadataRepository"
-                  auto-export="interfaces"/>
-    <osgi:service ref="usermetadataRepository" interface="org.apromore.dao.UsermetadataRepository"
-                  auto-export="interfaces"/>
-                  
+    <osgi:service ref="usernamePasswordAuthenticationProvider" interface="org.springframework.security.authentication.AuthenticationProvider" auto-export="interfaces"/>            
     <osgi:service ref="userMetadataServiceImpl" interface="org.apromore.service.UserMetadataService"
                   auto-export="interfaces"/>
 

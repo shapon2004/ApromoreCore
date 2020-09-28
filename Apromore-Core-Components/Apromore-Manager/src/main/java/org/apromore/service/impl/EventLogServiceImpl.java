@@ -89,7 +89,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-@Service
+
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 //@EnableCaching
 public class EventLogServiceImpl implements EventLogService {
@@ -125,7 +125,7 @@ public class EventLogServiceImpl implements EventLogService {
 	 * @param logRepository Log repository.
 	 * @param ui            User Interface Helper.
 	 */
-	@Inject
+	
 	public EventLogServiceImpl(final LogRepository logRepository, final GroupRepository groupRepository,
 			final GroupLogRepository groupLogRepository, final FolderRepository folderRepo, final UserService userSrv,
 			final UserInterfaceHelper ui, final ConfigBean configBean, final UserMetadataService userMetadataService) {

@@ -28,10 +28,28 @@ import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
 
 import org.apromore.persistence.repository.FolderRepository;
+import org.apromore.persistence.repository.GroupFolderRepository;
+import org.apromore.persistence.repository.GroupLogRepository;
+import org.apromore.persistence.repository.GroupProcessRepository;
+import org.apromore.persistence.repository.GroupRepository;
 import org.apromore.persistence.repository.GroupUsermetadataRepository;
+import org.apromore.persistence.repository.HistoryEventRepository;
+import org.apromore.persistence.repository.LogRepository;
+import org.apromore.persistence.repository.MembershipRepository;
+import org.apromore.persistence.repository.NativeRepository;
+import org.apromore.persistence.repository.NativeTypeRepository;
+import org.apromore.persistence.repository.PermissionRepository;
+import org.apromore.persistence.repository.ProcessBranchRepository;
+import org.apromore.persistence.repository.ProcessModelAttributeRepository;
 import org.apromore.persistence.repository.ProcessModelVersionRepository;
+import org.apromore.persistence.repository.ProcessRepository;
+import org.apromore.persistence.repository.RoleRepository;
+import org.apromore.persistence.repository.SearchHistoryRepository;
 import org.apromore.persistence.repository.UserRepository;
+import org.apromore.persistence.repository.UsermetadataLogRepository;
 import org.apromore.persistence.repository.UsermetadataRepository;
+import org.apromore.persistence.repository.UsermetadataTypeRepository;
+import org.apromore.persistence.repository.WorkspaceRepository;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -55,12 +73,39 @@ public class Activator implements BundleActivator  {
     	appContext.refresh();
     	appContext.start();    	
   
-    	context.registerService(EntityManagerFactory.class.getName(), appContext.getBean("entityManagerFactory"), null);
+  
     	context.registerService(ProcessModelVersionRepository.class.getName(), appContext.getBean("processModelVersionRepository"), null);
     	context.registerService(FolderRepository.class.getName(), appContext.getBean("folderRepository"), null);
     	context.registerService(GroupUsermetadataRepository.class.getName(), appContext.getBean("groupUsermetadataRepository"), null);
     	context.registerService(UsermetadataRepository.class.getName(), appContext.getBean("usermetadataRepository"), null);    	
-    	context.registerService(UserRepository.class.getName(), appContext.getBean("userRepository"), null);    
+    	context.registerService(UserRepository.class.getName(), appContext.getBean("userRepository"), null);  
+    	
+    	context.registerService(GroupFolderRepository.class.getName(), appContext.getBean("groupFolderRepository"), null);  
+    	context.registerService(GroupLogRepository.class.getName(), appContext.getBean("groupLogRepository"), null);  
+    	context.registerService(GroupProcessRepository.class.getName(), appContext.getBean("groupProcessRepository"), null);  
+    	context.registerService(GroupRepository.class.getName(), appContext.getBean("groupRepository"), null);
+    	
+    	
+    	context.registerService(HistoryEventRepository.class.getName(), appContext.getBean("historyEventRepository"), null);  
+    	context.registerService(LogRepository.class.getName(), appContext.getBean("logRepository"), null); 
+    	
+    	context.registerService(MembershipRepository.class.getName(), appContext.getBean("membershipRepository"), null);  
+    	context.registerService(NativeRepository.class.getName(), appContext.getBean("nativeRepository"), null); 
+    	 
+    	
+    	context.registerService(NativeTypeRepository.class.getName(), appContext.getBean("nativeTypeRepository"), null);  
+    	context.registerService(PermissionRepository.class.getName(), appContext.getBean("permissionRepository"), null); 
+    	 
+    	context.registerService(ProcessBranchRepository.class.getName(), appContext.getBean("processBranchRepository"), null);  
+    	context.registerService(ProcessModelAttributeRepository.class.getName(), appContext.getBean("processModelAttributeRepository"), null); 
+    	context.registerService(ProcessRepository.class.getName(), appContext.getBean("processRepository"), null); 
+    	
+    	
+    	context.registerService(RoleRepository.class.getName(), appContext.getBean("roleRepository"), null);  
+    	context.registerService(SearchHistoryRepository.class.getName(), appContext.getBean("searchHistoryRepository"), null); 
+    	context.registerService(UsermetadataLogRepository.class.getName(), appContext.getBean("usermetadataLogRepository"), null); 
+    	context.registerService(UsermetadataTypeRepository.class.getName(), appContext.getBean("usermetadataTypeRepository"), null); 
+    	context.registerService(WorkspaceRepository.class.getName(), appContext.getBean("workspaceRepository"), null); 
     	
     	
     	System.out.println("ok");

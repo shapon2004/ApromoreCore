@@ -84,7 +84,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Implementation of the ProcessService Contract.
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class ProcessServiceImpl implements ProcessService {
 
@@ -115,7 +114,7 @@ public class ProcessServiceImpl implements ProcessService {
      * @param ui User Interface Helper.
      * @param workspaceService
      */
-    @Inject
+    
     public ProcessServiceImpl(final NativeRepository nativeRepo, final GroupRepository groupRepo,
             final ProcessBranchRepository processBranchRepo, ProcessRepository processRepo,
             final ProcessModelVersionRepository processModelVersionRepo, final GroupProcessRepository groupProcessRepo,

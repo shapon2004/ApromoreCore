@@ -33,13 +33,7 @@
         <property name="logsDir" value="${logs.dir}"/>
         <property name="numOfEvent" value="${cache.numOfEvent}"/>
         <property name="numOfTrace" value="${cache.numOfTrace}"/>
-    </bean>
-
-   
-    <context:component-scan base-package="org.apromore.service"/>
-    <context:component-scan base-package="org.apromore.toolbox"/>
-    <context:component-scan base-package="org.apromore.manager"/>
-    
+    </bean> 
     
     <!-- Security bean -->
      <bean id="userDetailsServiceImpl" class="org.apromore.security.impl.UserDetailsServiceImpl">
