@@ -114,12 +114,7 @@ class Buffer {
     _clear() {
         this._frames = [];
         this._currentIndex = -1;
-
-        // A request token is used to control the result in the asynchronous communication with the server.
-        // Result returned from previous setting can be recognized from its request token and so not to use it.
-        // Only result relevant for the current setting should be used.
-        this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);
-
+        this._clearServerRequests();
         this._cancelPendingTasks();
     }
 
@@ -238,6 +233,7 @@ class Buffer {
      */
     moveTo(frameIndex) {
         console.log('Buffer - moveTo: frameIndex=' + frameIndex);
+        this._clearServerRequests();
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
         if (bufferIndex >= 0) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
@@ -339,6 +335,14 @@ class Buffer {
         console.log('Buffer - current used level: ' + this.getUsedStockLevel());
     }
 
+    /**
+     * Reject all pending server requests by setting a new request tokens.
+     * Server responses received from previously prending requests will be rejected
+     * @private
+     */
+    _clearServerRequests() {
+        this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);
+    }
 }
 
 

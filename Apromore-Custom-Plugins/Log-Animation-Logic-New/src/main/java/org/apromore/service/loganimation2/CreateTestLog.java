@@ -48,7 +48,7 @@ public class CreateTestLog {
     public static void main(String[] args) {
         CreateTestLog creator = new CreateTestLog(); 
         
-        final int COPY_TRACE_NUM = 9;
+        final int COPY_TRACE_NUM = 199;
         try {
             FileInputStream is = new FileInputStream("Sepsis.xes.gz");
             XFactory factory = XFactoryRegistry.instance().currentDefault();
@@ -81,7 +81,6 @@ public class CreateTestLog {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } 
-        
         
     }
     

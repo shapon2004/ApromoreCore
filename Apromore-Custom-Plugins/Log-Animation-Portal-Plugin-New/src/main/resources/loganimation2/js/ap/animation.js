@@ -191,40 +191,6 @@ let AnimationController = {
     this.logIntervalSize = 5;
     this.logIntervalHeight = 7;
     this.logIntervalMargin = 8;
-
-
-    // Reconstruct this.logCases
-    /*
-    this.logCases = [];
-    let offsets = [3, -3, 9, -9, 12, -12, 15, -15];
-
-    for (let i = 0; i < this.logNum; i++) {
-      let log = logs[i];
-      log.index = (i + 1); // set index
-      this.logCases[i] = [];
-
-      for (let j = 0; j < log.tokenAnimations.length; j++) {
-        let tokenAnimation = log.tokenAnimations[j];
-        let color = this.apPalette[i] || log.color;
-        this.logCases[i][j] = new Ap.la.LogCase(
-            this,
-            tokenAnimation,
-            color,
-            tokenAnimation.caseId,
-            offsets[i],
-        );
-      }
-    }
-     */
-
-    // Recreate progress indicators (deprecated)
-    // let tokenE = this.svgMain.getElementById('progressAnimation');
-    // if (tokenE != null) {
-    //   this.svgMain.removeChild(tokenE);
-    // }
-    // let progressIndicatorE = this.createProgressIndicatorsDeprecated(logs, timeline);
-    // $j("div#ap-la-progress svg")[0].append(progressIndicatorE);
-
     this.createProgressIndicators();
     this.createLogInfoPopups();
     this.createTimeline();
@@ -246,7 +212,7 @@ let AnimationController = {
       for (let i=0; i<this.elementIds.length; i++) {
         let flowId = this.elementIds[i];
         this.pathElementCache[flowId] = $j('[data-element-id=' + flowId + ']').find('g').find('path').get(0);
-        this.pathElementLengths[i] = this.pathElementCache[flowId] .getTotalLength();
+        this.pathElementLengths[i] = this.pathElementCache[flowId].getTotalLength();
       }
     }
 
@@ -263,14 +229,6 @@ let AnimationController = {
 
   getPathElement: function (pathElementId) {
     let pathElement = this.pathElementCache[pathElementId]
-    /*
-    if (!pathElement) {
-      // pathElement = this.pathElementCache[path.id] = $j("#svg-"+path.id).find("g").find("g").find("g").find("path").get(0);
-      pathElement
-          = this.pathElementCache[pathElementId]
-          = $j('[data-element-id=' + pathElementId + ']').find('g').find('path').get(0)
-    }
-    */
     return pathElement
   },
 
@@ -408,8 +366,9 @@ let AnimationController = {
     // this.svgDocs.forEach(function(svgDoc) {
     //   svgDoc.setCurrentTime(time);
     // });
+    let self=this;
     this.svgDocs.forEach(function(svgDoc) {
-      if (svgDoc != this.svgMain) svgDoc.setCurrentTime(time);
+      if (svgDoc != self.svgMain) svgDoc.setCurrentTime(time);
     });
 
     if (!changeSpeed && !forController) {
@@ -449,20 +408,6 @@ let AnimationController = {
     let t = this.getCurrentTime();
     let dt = (this.timeCoef * 1000) / this.slotDataMs; // 1/this.SlotEngineUnit
     t *= dt; // Number of engine slots: t = t/this.SlotEngineUnit
-
-    // Display all the log trace markers
-    /*
-    for (let logIdx = 0; logIdx < this.logs.length; logIdx++) {
-      for (
-          let tokenAnimIdx = 0;
-          tokenAnimIdx < this.logs[logIdx].tokenAnimations.length;
-          tokenAnimIdx++
-      ) {
-        this.logCases[logIdx][tokenAnimIdx].updateMarker(t, dt);
-      }
-    }
-
-     */
   },
 
   /*
@@ -573,17 +518,7 @@ let AnimationController = {
       animateEl.setAttributeNS(null, 'dur', curDur / speedRatio + 's');
       animateEl.setAttributeNS(null, 'begin', curBegin / speedRatio + 's');
     }
-    // this.createProgressIndicators(speedRatio);
 
-    /*
-    let cursorAnim = $j('#cursor-animation').get(0);
-    curDur = cursorAnim.getAttribute('dur');
-    curDur = curDur.substr(0, curDur.length - 1);
-    curBegin = cursorAnim.getAttribute('begin');
-    curBegin = curBegin.substr(0, curBegin.length - 1);
-    cursorAnim.setAttributeNS(null, 'begin', '0s');
-    cursorAnim.setAttributeNS(null, 'dur', slotNum * slotEngineS + 's');
-    */
     // Update timeline cursor with the new speed
     if (this.cursorEl) {
       this.timelineEl.removeChild(this.cursorEl)
@@ -612,65 +547,17 @@ let AnimationController = {
   // Move forward 1 slot
   fastforward: function() {
     this.svgAnimator.fastForward();
-    // if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
-    //   return;
-    // } else {
-    //   let s = this.getCurrentTime() + (1 * this.slotEngineMs) / 1000
-    //   this.setCurrentTime(s, this.slotSecondstoRealMs(s));
-    // }
   },
 
   // Move backward 1 slot
   fastBackward: function() {
     this.svgAnimator.fastBackward();
-    // if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
-    //   return;
-    // } else {
-    //   let s = this.getCurrentTime() - (1 * this.slotEngineMs) / 1000
-    //   this.setCurrentTime(s, this.slotSecondstoRealMs(s));
-    // }
   },
 
   nextTrace: function() {
-    /*
-    if (this.getCurrentTime() >= (this.endPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let tracedates = this.tracedates; // assume that this.jsonServer.tracedates has been sorted in ascending order
-      // search for the next trace date/time immediately after the current time
-      let currentS = this.getCurrentTime();
-      this.currentMs = this.slotSecondstoRealMs(currentS);
-      for (let i = 0; i < tracedates.length; i++) {
-        let traceS = (tracedates[i] - this.startMs) / (1000 * this.timeCoef);
-        if (Math.round(currentS * 1000) < Math.round(traceS * 1000)) {
-          this.setCurrentTime((tracedates[i] - this.startMs) / (1000 * this.timeCoef), tracedates[i]);
-          return;
-        }
-      }
-    }
-
-     */
   },
 
   previousTrace: function() {
-    /*
-    if (this.getCurrentTime() <= (this.startPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let tracedates = this.tracedates; //assume that this.jsonServer.tracedates has been sorted in ascending order
-      // search for the previous trace date/time immediately before the current time
-      let currentS = this.getCurrentTime();
-      this.currentMs = this.slotSecondstoRealMs(currentS);
-      for (let i = tracedates.length - 1; i >= 0; i--) {
-        let traceS = (tracedates[i] - this.startMs) / (1000 * this.timeCoef);
-        if (Math.round(currentS * 1000) > Math.round(traceS * 1000)) {
-          this.setCurrentTime((tracedates[i] - this.startMs) / (1000 * this.timeCoef), tracedates[i]);
-          return;
-        }
-      }
-    }
-
-     */
   },
 
   canPause: function() {
@@ -995,18 +882,6 @@ let AnimationController = {
     animateEl.setAttributeNS(null, 'repeatCount', '1');
 
     pathEl.appendChild(animateEl);
-
-    // let textE = document.createElementNS(SVG_NS,"text");
-    // textE.setAttributeNS(null,"x", x);
-    // textE.setAttributeNS(null,"y", y - 10);
-    // textE.setAttributeNS(null,"text-anchor","middle");
-    // let textNode = document.createTextNode(log.name);
-    // textE.appendChild(textNode);
-
-    // let tooltip = document.createElementNS(SVG_NS,"title");
-    // tooltip.appendChild(document.createTextNode(log.name));
-    // textE.appendChild(tooltip);
-
     pieE.appendChild(pathEl);
     // pieE.appendChild(textE);
 
@@ -1060,11 +935,6 @@ let AnimationController = {
       cellExactFitness.innerHTML = logs[i].exactTraceFitness;
       cellExactFitness.style.textAlign = 'center';
       cellExactFitness.style.font = '1em monospace';
-
-      //cellExactFitnessFormulaTime.innerHTML = logs[i].exactFitnessFormulaTime;
-      //cellApproxFitness.innerHTML = logs[i].approxTraceFitness;
-      //cellApproxFitnessFormulaTime.innerHTML = logs[i].approxFitnessFormulaTime;
-      //cellAlgoTime.innerHTML = logs[i].algoTime;
     }
   },
 

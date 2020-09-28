@@ -53,7 +53,13 @@ class AnimationContext {
 }
 
 /**
- * Main class to control the animation via the SVG engine.
+ * Main class to control the animation via HTML5 Canvas
+ * It has two asynchronous loops:
+ *  _readBuffer: read the buffer into a playing store of frames
+ *  _runLoop: draw frames from the playing store.
+ *  The first loop is used to control when the buffer may need time to fill up and so
+ *  the animation should pause and wait until it can move on. The second loop is used
+ *  to control the animation progress.
  */
 class CanvasAnimator {
     /**
@@ -88,136 +94,110 @@ class CanvasAnimator {
         this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
         this._canvasTransform = matrix;
 
-
         this._svgTimeline = svgTimeline;
         this._svgProgressBar = svgProgressBar;
 
-        this._playingFrameRate = animationContext.getRecordingFrameRate();
-        this._startingFrameIndexSinceLastRateChange = 0; //the starting frame index since applying the current playingFrameRate.
-        this._startingTimeSinceLastRateChange = this._getCurrentTime(); //the starting time since applying the current playingFrameRate
-
-        this._animationClockId = undefined;
+        this._readBufferLoopId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
-        this._frames = [];
+        this._frames = []; // queue of frames used for animating
+        this._currentFrameIndex = 0;
 
-        this._paused = false;
-        this._stop = false;
-
-        this._then = window.performance.now();
-        this._now = this._then;
-        this._elapsed = 0;
-        this._currentTime = 0; //seconds since start
-
-        this._frameInterval = 1000/this._playingFrameRate;
-        this._readFrameInterval = Math.floor(this._frameBuffer.getChunkSize()/(this._playingFrameRate))*1000;
+        this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
+        this._paused = false; // pausing flag
+        this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
+        this._now = this._then; // current point in time (milliseconds since the time origin)
 
         // Initialize
+        this._setPlayingFrameRate(animationContext.getRecordingFrameRate());
         this.pause();
     }
 
     /**
-     * Read frames from the buffer and animate them
-     * There are reasons the buffer could be slow in supplying frames, e.g. network issues.
-     * The buffer is self-managed to fill itself with frames. The animator arranges asynchronous callback to check
-     * the buffer status until non-empty result is returned or the buffer has no more frames to supply.
+     * Change the playing frame rate
+     * @param {Number} playingFrameRate
+     * @private
      */
-    _readFrames() {
+    _setPlayingFrameRate(playingFrameRate) {
+        this._playingFrameRate = playingFrameRate;
+        this._playingFrameInterval = 1000/playingFrameRate;
+        this._bufferReadingInterval = Math.floor(this._frameBuffer.getChunkSize()/(2*playingFrameRate))*1000;
+    }
+
+    /**
+     * Read frames from the buffer into the playing store
+     * This operation enters a loop of reading frames from the buffer.
+     */
+    _readBufferLoop() {
         console.log('SVGAnimator - animateLoop');
-        if (this._paused) {
-            this._animationClockId = setTimeout(this._readFrames.bind(this), 0);
-            return;
+        this._readBufferLoopId = setTimeout(this._readBufferLoop.bind(this), this._bufferReadingInterval);
+        if (this._paused) return;
+
+        let frames = this._frameBuffer.readNext();
+        if (frames && frames.length > 0) {
+            this._frames.push(...frames);
+            this.unpause();
+            console.log('SVGAnimator - animateLoop: readNext returns result for animation. Unpause and play.');
+        } else if (this._frames.length <= 0) {
+            this.pause();
+            console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
         }
 
-        if (this._frameBuffer.isStockAvailable()) {
-            let frames = this._frameBuffer.readNext();
-            if (frames && frames.length > 0) {
-                this._frames.push(...frames);
-                this.unpause();
-                console.log('SVGAnimator - animateLoop: readNext returns result for animation. Unpause and play.');
-            } else {
-                this.pause();
-                console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
-            }
-        }
-
-        // Repeat reading the buffer until it has no more frames to supply (out of the server supply).
-        if (!this._frameBuffer.isOutOfSupply()) {
-            this._animationClockId = setTimeout(this._readFrames.bind(this), this._readFrameInterval);
-            console.log('SVGAnimator - animateLoop: start new animateLoop after ' + this._readFrameInterval/1000 + 's.');
-        }
-        else {
+        if (this._frameBuffer.isOutOfSupply()) {
             console.log('SVGAnimator - animateLoop: out of stock and no more frames in supply. The animateLoop stops.');
+            this._clearPendingBufferReads();
         }
     }
 
     play() {
-        this._clearCanvas();
         this._canvasContext.lineWidth = 0.5;
         this._canvasContext.strokeStyle = '#000';
         this._canvasContext.fillStyle = "red";
 
-        this._frameInterval = 1000/this._playingFrameRate;
+        this._currentTime = 0;
         this._then = window.performance.now();
         this._now = this._then;
 
         this.unpause();
-        this._readFrames();
-        this._animate();
+        this._readBufferLoop();
+        this._runLoop(0);
     }
 
     pause() {
         this._paused = true;
-        this._then = window.performance.now();
-        this._now = this._then;
-
         this._svgTimeline.pauseAnimations();
         this._svgProgressBar.pauseAnimations();
-        if (this._animationClockId) window.clearTimeout(this._animationClockId);
     }
 
     unpause() {
+        this._then = window.performance.now();
+        this._now = this._then;
         this._paused = false;
         this._svgTimeline.unpauseAnimations();
         this._svgProgressBar.unpauseAnimations();
     }
 
-    stop() {
-        this._frames = [];
-        this._stop = true;
+    // The logical time since this Animator is created.
+    getCurrentTime() {
+        return this._currentTime;
     }
 
     /**
-     * Animate an array of frames by generating SVG elements.
-     * These elements are added to the svg document which will start animating them.
-     * For efficiency, these elements will be removed from the document once their animation finishes.
-     * @param {Number} newTime: the frames to be animated.
+     * Animate frames from the current store of play frames
+     * Use window.requestAnimationFrame and elapsed time to control the speed of animation
+     * The animation clock time is also controlled here
+     * @param {Number} newTime: the passing time (milliseconds) since time origin
      * @private
      */
-    _animate(newTime) {
-        if (this._stop) {
-            return;
-        }
-        else if (this._paused) {
-            window.requestAnimationFrame(this._animate.bind(this));
-            return;
-        }
-
-        window.requestAnimationFrame(this._animate.bind(this));
+    _runLoop(newTime) {
+        window.requestAnimationFrame(this._runLoop.bind(this));
         this._now = newTime;
-        this._elapsed = this._now - this._then;
-
-        if (this._elapsed >= 1000) {
-            this._currentTime++;
-        }
-
-        if (this._elapsed >= this._frameInterval) {
-            this._then = this._now - (this._elapsed % this._frameInterval);
-            let frame = this._frames.shift();
-            if (frame) {
+        let elapsed = this._now - this._then;
+        if (elapsed >= this._playingFrameInterval) {
+            this._then = this._now - (elapsed % this._playingFrameInterval);
+            if (!this._paused && this._frames.length > 0) {
+                let frame = this._frames.shift();
                 this._drawFrame(frame);
-            }
-            else {
-                this.pause();
+                this._currentTime += this._playingFrameInterval;
             }
         }
     }
@@ -228,20 +208,20 @@ class CanvasAnimator {
      * @private
      */
     _drawFrame(frame) {
-        console.log(frame);
         this._clearCanvas();
+        this._currentFrameIndex = frame.index;
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
             let elementId = this._getElementId(elementIndex);
             let pathElement = this._getPathElement(elementId);
+            let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
                 let distance = token[caseIndex];
-                let point = pathElement.getPointAtLength(this._getPathElementLength(elementIndex) * distance);
+                let point = pathElement.getPointAtLength(totalLength * distance);
                 this._canvasContext.beginPath();
                 this._canvasContext.arc(point.x, point.y, 5, 0, 2 * Math.PI);
                 this._canvasContext.fill();
-                this._canvasContext.stroke();
             }
         }
     }
@@ -264,37 +244,12 @@ class CanvasAnimator {
      * @param {Number} speedLevel
      */
     setSpeed(speedLevel) {
-        let lastPlayingFrameRate = this._playingFrameRate;
-        let currentTime = this._getCurrentTime();
-        let newPlayingFrameRate = Math.floor(speedLevel*this._animationContext.getRecordingFrameRate());
-        if (newPlayingFrameRate === 0) return;
-
-        if (newPlayingFrameRate !== lastPlayingFrameRate) {
-            //Wipe out all the current tokens
-            this.pause();
-            this._clearTokenAnimation();
-
-            // Identify the current frame index that the animation has reached to at this point
-            let passingTime = currentTime - this._startingTimeSinceLastRateChange;
-            let currentFrameIndex = this._startingFrameIndexSinceLastRateChange + passingTime*lastPlayingFrameRate;
-
-            // Set the new playing attributes for use by other calculations
-            this._playingFrameRate = newPlayingFrameRate;
-            this._startingFrameIndexSinceLastRateChange = currentFrameIndex;
-            this._startingTimeSinceLastRateChange = currentTime;
-
-            // Move the buffer to the current frame index and prepare it to store subsequent frames
-            this._frameBuffer.moveTo(currentFrameIndex);
-            //if (speedLevel > 1) this._frameBuffer.setChunkSize(Buffer.DEFAULT_CHUNK_SIZE + (speedLevel-1)*Buffer.DEFAULT_CHUNK_SIZE);
-
-            // Animate frames in the buffer starting from the current frame index and using the new playing settings
-            this.play();
+        let newPlayingFrameRate = speedLevel*this._animationContext.getRecordingFrameRate();
+        if (newPlayingFrameRate !== this._playingFrameRate) {
+            //this.pause();
+            this._setPlayingFrameRate(newPlayingFrameRate);
+            //this.unpause();
         }
-    }
-
-    // This is the logical time
-    _getCurrentTime() {
-        return this._currentTime;
     }
 
     /**
@@ -311,7 +266,6 @@ class CanvasAnimator {
 
         // Stop and clear all the current tokens on the screen
         this.pause();
-        this._clearTokenAnimation();
 
         // Identify the frame index at this logical time and
         // prepare the buffer to contain frames starting from that frame index
@@ -325,13 +279,13 @@ class CanvasAnimator {
 
     fastForward() {
         console.log('SVGAnimator - fastForward: new logical time=' + logicalTime + 5);
-        let logicalTime = this._getCurrentTime();
+        let logicalTime = this.getCurrentTime();
         this.goto(logicalTime + 5);
     }
 
     fastBackward() {
         console.log('SVGAnimator - fastBackward: new logical time=' + logicalTime - 5);
-        let logicalTime = this._getCurrentTime();
+        let logicalTime = this.getCurrentTime();
         this.goto(logicalTime - 5);
     }
 
@@ -347,10 +301,6 @@ class CanvasAnimator {
 
     _getLogicalTimeFromFrameIndex(frameIndex) {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
-    }
-
-    _clearTokenAnimation() {
-        if (this._animationClockId) window.clearTimeout(this._animationClockId); // ensure no tokens show up after clearing.
     }
 
     _clearCanvas() {
@@ -372,5 +322,8 @@ class CanvasAnimator {
         return this._modelController.getElementId(elementIndex);
     }
 
+    _clearPendingBufferReads() {
+        if (this._readBufferLoopId) window.clearTimeout(this._readBufferLoopId);
+    }
 
 }

@@ -178,8 +178,6 @@
                     </div>
     
                     <!-- Use jQuery-ui-Slider-Pips at github.com/simeydotme/jQuery-ui-Slider-Pips -->
-                    <!-- Use absolute position to place this control on top of the editor -->
-                    <!-- <div id="speed_controls" style="position: absolute; background: #EEE; border: 1px solid black; left: 200px; top: 360px; width: 800px; height: 70px; overflow: hidden"> -->
                     <div id="speed-control-wrapper">
                         <!-- <center style="font: 1em monospace">Replay Speed</center> -->
                         <div id="speed-control" disabled="disabled" style="margin: auto;">
@@ -218,16 +216,7 @@
             </div>
             <div sclass="ap-la-right-container">
                 <!-- Animation progress -->
-                <div id="ap-la-progress">
-                    <!-- Running Clock -->
-                    <!--                    <table>-->
-                    <!--                        <tr><td id="date">&#xA0;</td></tr>-->
-                    <!--                        <tr><td id="time">&#x2D;-:&#x2D;-:&#x2D;-</td></tr>-->
-                    <!--                        <tr><td id="subtitle">&#xA0;</td></tr>-->
-                    <!--                    </table>-->
-                    <!-- SVG for the circular progress bars -->
-                    <!--<n:svg id="progressbars_svg" xmlns="http://www.w3.org/2000/svg"></n:svg>-->
-                </div>
+                <div id="ap-la-progress"></div>
                 <div sclass="ap-la-timeline">
                     <n:svg id="timeline_svg" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
                 </div>
