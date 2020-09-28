@@ -1,4 +1,4 @@
-/*-
+package org.apromore.plugin.portal.bimp.utils;/*-
  * #%L
  * This file is part of "Apromore Core".
  * %%
@@ -19,11 +19,11 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.bimp;
 
+import org.apromore.plugin.portal.bimp.exception.ScenarioNotFoundException;
+import org.apromore.plugin.portal.bimp.model.SimulationRequest;
 import org.w3c.dom.Document;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.xpath.XPathExpressionException;
 
 public abstract class BIMPRequestBodyBuilder {
@@ -33,5 +33,5 @@ public abstract class BIMPRequestBodyBuilder {
     protected final String extensionElementsPath = "/definitions/process/extensionElements";
     protected final String processSimulationInfoPath = "/definitions/process/extensionElements/processSimulationInfo";
 
-    public abstract String createBIMPRequestBody(Document document) throws XPathExpressionException, JAXBException;
+    public abstract SimulationRequest createBIMPRequestBody(Document document) throws XPathExpressionException, ScenarioNotFoundException;
 }

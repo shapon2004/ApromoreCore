@@ -1,4 +1,4 @@
-/*-
+package org.apromore.plugin.portal.bimp.utils;/*-
  * #%L
  * This file is part of "Apromore Core".
  * %%
@@ -19,8 +19,9 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.bimp;
 
+import org.apromore.plugin.portal.bimp.exception.ScenarioNotFoundException;
+import org.apromore.plugin.portal.bimp.model.SimulationRequest;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,11 +38,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.StringWriter;
+import java.util.Objects;
 
 public class BIMPRequestBodyBuilderImpl extends BIMPRequestBodyBuilder {
 
     @Override
-    public String createBIMPRequestBody(Document document) throws XPathExpressionException {
+    public SimulationRequest createBIMPRequestBody(Document document) throws XPathExpressionException, ScenarioNotFoundException {
         XPath xPath = XPathFactory.newInstance().newXPath();
 
         // Create StartSimulationRequest wrapper
@@ -60,6 +62,10 @@ public class BIMPRequestBodyBuilderImpl extends BIMPRequestBodyBuilder {
         Node extensionElementsNode = (Node) xPath.compile(extensionElementsPath).evaluate(document, XPathConstants.NODE);
         Node processSimulationInfoNode = (Node) xPath.compile(processSimulationInfoPath).evaluate(document, XPathConstants.NODE);
 
+        if (Objects.isNull(extensionElementsNode) || Objects.isNull(processSimulationInfoNode)) {
+            throw new ScenarioNotFoundException("The process does not contains a simulation scenario.");
+        }
+
         // Move processSimulationInfo from extensionElements to the definitions
         definitionsNode.appendChild(processSimulationInfoNode);
         processNode.removeChild(extensionElementsNode);
@@ -68,7 +74,7 @@ public class BIMPRequestBodyBuilderImpl extends BIMPRequestBodyBuilder {
         CDATASection scenarioData = document.createCDATASection(convertNodeToString(definitionsNode, false));
         modelData.appendChild(scenarioData);
 
-        return convertNodeToString(startSimulationRequest, true);
+        return new SimulationRequest(convertNodeToString(startSimulationRequest, true));
     }
 
     private String convertNodeToString(Node node, boolean omitXMLDeclaration) {
