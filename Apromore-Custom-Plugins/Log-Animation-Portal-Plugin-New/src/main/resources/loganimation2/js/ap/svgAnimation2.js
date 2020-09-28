@@ -52,11 +52,20 @@ class AnimationContext {
     }
 }
 
+class PlayMode {
+    static get SEQUENTIAL() {
+        return 0;
+    }
+    static get RANDOM() {
+        return 1;
+    }
+}
+
 /**
  * Main class to control the animation via HTML5 Canvas
  * It has two asynchronous loops:
  *  _readBuffer: read the buffer into a playing store of frames
- *  _runLoop: draw frames from the playing store.
+ *  _drawLoop: draw frames from the playing store.
  *  The first loop is used to control when the buffer may need time to fill up and so
  *  the animation should pause and wait until it can move on. The second loop is used
  *  to control the animation progress.
@@ -99,13 +108,14 @@ class CanvasAnimator {
 
         this._readBufferLoopId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
-        this._frames = []; // queue of frames used for animating
-        this._currentFrameIndex = 0;
+        this._frameQueue = []; // queue of frames used for animating
 
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._paused = false; // pausing flag
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
+
+        this._playMode = PlayMode.SEQUENTIAL;
 
         // Initialize
         this._setPlayingFrameRate(animationContext.getRecordingFrameRate());
@@ -128,22 +138,22 @@ class CanvasAnimator {
      * This operation enters a loop of reading frames from the buffer.
      */
     _readBufferLoop() {
-        console.log('SVGAnimator - animateLoop');
-        this._readBufferLoopId = setTimeout(this._readBufferLoop.bind(this), this._bufferReadingInterval);
-        if (this._paused) return;
+        this._readBufferLoopId = setTimeout(this._readBufferLoop.bind(this), 0);
+        if (this._playMode !== PlayMode.SEQUENTIAL) return;
+        if (this._frameQueue.length >= 300) return;
 
         let frames = this._frameBuffer.readNext();
         if (frames && frames.length > 0) {
-            this._frames.push(...frames);
+            this._frameQueue.push(...frames);
             this.unpause();
-            console.log('SVGAnimator - animateLoop: readNext returns result for animation. Unpause and play.');
-        } else if (this._frames.length <= 0) {
+            console.log('SVGAnimator - readBufferLoop: readNext returns result for animation. Unpause and play.');
+        } else if (this._frameQueue.length <= 0) {
             this.pause();
-            console.log('SVGAnimator - animateLoop: readNext returns NO result for animation. Pause to wait.');
+            console.log('SVGAnimator - readBufferLoop: readNext returns NO result for animation. Pause to wait.');
         }
 
         if (this._frameBuffer.isOutOfSupply()) {
-            console.log('SVGAnimator - animateLoop: out of stock and no more frames in supply. The animateLoop stops.');
+            console.log('SVGAnimator - readBufferLoop: out of stock and no more frames in supply. The animateLoop stops.');
             this._clearPendingBufferReads();
         }
     }
@@ -159,7 +169,7 @@ class CanvasAnimator {
 
         this.unpause();
         this._readBufferLoop();
-        this._runLoop(0);
+        this._drawLoop(0);
     }
 
     pause() {
@@ -188,16 +198,19 @@ class CanvasAnimator {
      * @param {Number} newTime: the passing time (milliseconds) since time origin
      * @private
      */
-    _runLoop(newTime) {
-        window.requestAnimationFrame(this._runLoop.bind(this));
+    _drawLoop(newTime) {
+        window.requestAnimationFrame(this._drawLoop.bind(this));
         this._now = newTime;
         let elapsed = this._now - this._then;
         if (elapsed >= this._playingFrameInterval) {
             this._then = this._now - (elapsed % this._playingFrameInterval);
-            if (!this._paused && this._frames.length > 0) {
-                let frame = this._frames.shift();
-                this._drawFrame(frame);
-                this._currentTime += this._playingFrameInterval;
+            if (!this._paused) {
+                let frame = this._frameQueue.shift();
+                //let frame = this._frameBuffer.readOne();
+                if (frame) {
+                    this._drawFrame(frame);
+                    this._currentTime += this._playingFrameInterval;
+                }
             }
         }
     }
@@ -209,7 +222,6 @@ class CanvasAnimator {
      */
     _drawFrame(frame) {
         this._clearCanvas();
-        this._currentFrameIndex = frame.index;
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
             let elementId = this._getElementId(elementIndex);
@@ -255,48 +267,49 @@ class CanvasAnimator {
     /**
      * Move to a random logical timepoint, e.g. when the timeline tick is dragged to a new position.
      *
-     * @param {Number} logicalTime: number of seconds from the start
+     * @param {Number} logicalTimeMark: number of seconds from the start
      */
-    goto(logicalTime) {
-        console.log('SVGAnimator - goto: a logical time, logicalTime=' + logicalTime);
-        if (logicalTime < 0 || logicalTime > this._animationContext.getLogicalTimelineMax()) {
+    goto(logicalTimeMark) {
+        if (logicalTimeMark < 0 || logicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
             console.log('SVGAnimator - goto: goto time is outside the timeline, do nothing');
             return;
         }
-
-        // Stop and clear all the current tokens on the screen
-        this.pause();
-
-        // Identify the frame index at this logical time and
-        // prepare the buffer to contain frames starting from that frame index
-        let currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTime);
+        this._clearData();
+        let currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
         this._frameBuffer.moveTo(currentFrameIndex);
-
-        // Animate the frames in the buffer starting from the current frame index
-        this.play();
-        console.log('SVGAnimator - goto: move to frame index = ' + currentFrameIndex);
+        this._currentTime = logicalTimeMark*1000;
+        console.log('SVGAnimator - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + currentFrameIndex);
     }
 
     fastForward() {
-        console.log('SVGAnimator - fastForward: new logical time=' + logicalTime + 5);
-        let logicalTime = this.getCurrentTime();
-        this.goto(logicalTime + 5);
+        this._playMode = PlayMode.RANDOM;
+        let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) + 5;
+        if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
+            newLogicalTimeMark = this._animationContext.getLogicalTimelineMax();
+        }
+        this.goto(newLogicalTimeMark);
+        this._playMode = PlayMode.SEQUENTIAL;
+        console.log('SVGAnimator - fastForward: new logical time=' + newLogicalTimeMark);
     }
 
     fastBackward() {
-        console.log('SVGAnimator - fastBackward: new logical time=' + logicalTime - 5);
-        let logicalTime = this.getCurrentTime();
-        this.goto(logicalTime - 5);
+        this._playMode = PlayMode.RANDOM;
+        let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) - 5;
+        if (newLogicalTimeMark < 0) newLogicalTimeMark = 0;
+        this.goto(newLogicalTimeMark);
+        this._playMode = PlayMode.SEQUENTIAL;
+        console.log('SVGAnimator - fastBackward: new logical time=' + newLogicalTimeMark);
     }
 
     /**
      * Get the corresponding frame index at a logical time.
-     * @param {Number} logicalTime: the position of the tick on the timeline, how many seconds it is from the start.
-     * @returns {number}
+     * @param {Number} logicalTimeMark: number of seconds from the start.
+     * @returns {number}: frame index
      * @private
      */
-    _getFrameIndexFromLogicalTime(logicalTime) {
-        return (logicalTime*this._animationContext.getRecordingFrameRate());
+    _getFrameIndexFromLogicalTime(logicalTimeMark) {
+        if (logicalTimeMark == 0) return 0;
+        return (logicalTimeMark*this._animationContext.getRecordingFrameRate() - 1);
     }
 
     _getLogicalTimeFromFrameIndex(frameIndex) {
@@ -326,4 +339,8 @@ class CanvasAnimator {
         if (this._readBufferLoopId) window.clearTimeout(this._readBufferLoopId);
     }
 
+    _clearData() {
+        this._frameQueue = [];
+        this._clearPendingBufferReads();
+    }
 }

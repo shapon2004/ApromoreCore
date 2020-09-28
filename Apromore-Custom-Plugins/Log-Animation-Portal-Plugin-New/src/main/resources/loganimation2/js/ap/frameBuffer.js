@@ -58,7 +58,6 @@ class Buffer {
         this._minimumThreshold = Buffer.DEFAULT_MIN_THRES;
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
         this._serverOutOfFrames = false;
-
         this._clear();
         this._replenish();
     }
@@ -114,6 +113,7 @@ class Buffer {
     _clear() {
         this._frames = [];
         this._currentIndex = -1;
+        this._serverOutOfFrames = false;
         this._clearServerRequests();
         this._cancelPendingTasks();
     }
@@ -220,6 +220,26 @@ class Buffer {
         return frames;
     }
 
+    readOne() {
+        console.log('Buffer - readOne');
+        this._logStockLevel();
+        if (this.isStockAvailable()) {
+            let i = this._currentIndex;
+            this._currentIndex++;
+            //House keeping
+            if (!this.isMinimumStock()) {
+                this._replenish();
+            }
+            if (this.isObsoleteStock()) {
+                this._removeObsolete();
+            }
+            return this._frames[i];
+        }
+        else {
+            this._replenish();
+        }
+    }
+
     /**
      * Move the buffer currentIndex to a frame, e.g when the tick is dragged randomly on the timeline.
      * The frame index corresponds to a buffer index which can be less or greater than the currentIndex, or can
@@ -233,9 +253,9 @@ class Buffer {
      */
     moveTo(frameIndex) {
         console.log('Buffer - moveTo: frameIndex=' + frameIndex);
-        this._clearServerRequests();
+        this._clearServerRequests(); // to reject all pending responses from the server
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
-        if (bufferIndex >= 0) {
+        if (bufferIndex >= 0 && bufferIndex < this.size()) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
             this._replenish();
@@ -308,8 +328,11 @@ class Buffer {
             console.log('Buffer - replenish: safety stock not yet reached, send request to DataRequester');
             this._dataRequester.requestData(this, this._requestToken, _frameIndex, this._chunkSize);
         }
+        else if (this.isSafetyStock()) {
+            console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
+        }
         else {
-            console.log('Buffer - replenish: safety stock REACHED or Server out of frames, stop sending request to DataRequester');
+            console.log('Buffer - replenish: server is out of frames, stop sending request to DataRequester');
         }
         this._logStockLevel();
     }
