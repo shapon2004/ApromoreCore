@@ -24,13 +24,34 @@
   -->
 
 <zk xmlns:h="http://www.w3.org/1999/xhtml" xmlns:w="http://www.zkoss.org/2005/zk/client">
-  <window id="bimpWindow" title="${bimpWindow$composer.labels.bimpWindow_title}" apply="org.apromore.plugin.portal.bimp.BIMPController" closable="true">
-    <vlayout>
-      <label id="testLabel" value="${bimpWindow$composer.labels.testLabel_value}"/>
-      <hlayout>
-        <button id="testButton" label="${bimpWindow$composer.labels.testButton_label}" iconSclass="z-icon-check-circle fa-lg z-icon-fw" style="position:relative;padding-left:2px;" width="100px"/>
-        <button id="cancelButton" label="${bimpWindow$composer.labels.cancelButton_label}" iconSclass="z-icon-times-circle fa-lg z-icon-fw" style="position:relative;padding-left:2px;" width="100px"/>
-      </hlayout>
-    </vlayout>
-  </window>
+    <window id="bimpWindow" title="${bimpWindow$composer.labels.bimp_window_title}"
+            apply="org.apromore.plugin.portal.bimp.BIMPController"
+            position="center"
+            width="300px"
+            closable="true">
+        <vbox vflex="1">
+            <grid>
+                <columns sizable="true">
+                    <column width="40%"/>
+                    <column width="60%"/>
+                </columns>
+                <rows>
+                    <row>
+                        <label value="Enter log name"/>
+                        <textbox id="logNameTextbox" width="100%" submitByEnter="true"/>
+                    </row>
+                    <row spans="3">
+                        <div align="center">
+                            <button id="generateButton" label="${bimpWindow$composer.labels.bimp_generateButton_label}"
+                                    iconSclass="z-icon-check-circle fa-lg z-icon-fw"
+                                    style="position:relative;padding-left:2px;" width="100px"/>
+                            <button id="cancelButton" label="${bimpWindow$composer.labels.bimp_cancelButton_label}"
+                                    iconSclass="z-icon-times-circle fa-lg z-icon-fw"
+                                    style="position:relative;padding-left:2px;" width="100px"/>
+                        </div>
+                    </row>
+                </rows>
+            </grid>
+        </vbox>
+    </window>
 </zk>

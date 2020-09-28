@@ -22,35 +22,40 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.bimp.controller;
+package org.apromore.plugin.portal.bimp;
 
-import org.apromore.plugin.portal.bimp.BIMPRequestBodyBuilder;
-import org.apromore.plugin.portal.bimp.BIMPRequestBodyBuilderImpl;
+import org.apromore.dao.model.Log;
+import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.bimp.client.BIMPClient;
 import org.apromore.plugin.portal.bimp.client.BIMPClientImpl;
+import org.apromore.plugin.portal.bimp.exception.ScenarioNotFoundException;
+import org.apromore.plugin.portal.bimp.model.SimulationRequest;
+import org.apromore.plugin.portal.bimp.model.SimulationResponse;
+import org.apromore.plugin.portal.bimp.service.SimulationRequestService;
+import org.apromore.plugin.portal.bimp.service.SimulationResponseService;
 import org.apromore.service.EventLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.zkoss.util.Locales;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.MouseEvent;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zkplus.spring.SpringUtil;
-import org.zkoss.zul.Label;
+import org.zkoss.zul.Messagebox;
+import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.util.GregorianCalendar;
 import java.util.ResourceBundle;
 
 /**
@@ -60,12 +65,12 @@ public class BIMPController extends SelectorComposer<Window> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BIMPController.class);
 
+    private final PortalContext portalContext = (PortalContext) Sessions.getCurrent().getAttribute("portalContext");
     private final EventLogService eventLogService = (EventLogService) SpringUtil.getBean("eventLogService");
-
     private String bpmn = (String) Executions.getCurrent().getArg().get("bpmn");
 
-    @Wire("#testLabel")
-    private Label testLabel;
+    @Wire("#logNameTextbox")
+    private Textbox logNameTextbox;
 
     /**
      * @return the ZK localizations
@@ -86,26 +91,42 @@ public class BIMPController extends SelectorComposer<Window> {
         close();
     }
 
-    @Listen("onClick = #testButton")
-    public void onClickTestButton(MouseEvent event) {
-        testLabel.setValue(getLabels().getString("testLabel_clickedValue"));
-
-        LOGGER.info("bpmn {}", bpmn);
-
+    @Listen("onClick = #generateButton")
+    public void onClickGenerateButton(MouseEvent event) {
         try {
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            Document document = docBuilder.parse(new InputSource(new StringReader(bpmn)));
-
-            BIMPRequestBodyBuilder bimpRequestBodyBuilder = new BIMPRequestBodyBuilderImpl();
-            String bimpRequestBody = bimpRequestBodyBuilder.createBIMPRequestBody(document);
+            SimulationRequestService simulationRequestService = new SimulationRequestService();
+            SimulationRequest bimpRequest = simulationRequestService.createBIMPRequest(bpmn);
 
             BIMPClient bimpClient = new BIMPClientImpl();
-            String s = bimpClient.postSimulation(bimpRequestBody);
+            SimulationResponse simulationResponse = bimpClient.postSimulation(bimpRequest);
 
-            LOGGER.info(s);
-        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException | JAXBException e) {
-            LOGGER.error(e.getMessage());
+            SimulationResponseService simulationResponseService = new SimulationResponseService();
+            String simulationId = simulationResponseService.getSimulationId(simulationResponse);
+
+            InputStream simulationMXMLLog = bimpClient.getSimulationMXMLLogs(simulationId);
+
+            PortalContext portalContext = this.portalContext;
+            Log log = eventLogService.importLog(
+                    portalContext.getCurrentUser().getUsername(), portalContext.getCurrentFolder().getId(),
+                    logNameTextbox.getValue(),
+                    simulationMXMLLog,
+                    "mxml.gz",
+                    "",
+                    DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()).toString(),
+                    false
+            );
+
+//            Messagebox.show("A new log named '" + log.getName() + "' has been saved in the '" +
+//                    log.getFolder().getName() + "' folder.", "Success", Messagebox.OK, Messagebox.NONE);
+
+            getSelf().detach();
+            portalContext.refreshContent();
+        } catch (ParserConfigurationException | IOException | SAXException | XPathExpressionException | JAXBException | ScenarioNotFoundException e) {
+            LOGGER.error("Error ", e);
+            Messagebox.show(e.getMessage(), "Attention", Messagebox.OK, Messagebox.ERROR);
+        } catch (Exception e) {
+            LOGGER.error("Error ", e);
+            e.printStackTrace();
         }
     }
 

@@ -22,13 +22,6 @@
 
 package org.apromore.plugin.portal.bimp;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Scanner;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.portal.common.UserSessionManager;
@@ -39,19 +32,18 @@ import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.VersionSummaryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zkoss.zk.ui.Executions;
-import org.zkoss.zk.ui.Sessions;
-import org.zkoss.zul.Button;
-import org.zkoss.zul.Label;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 
+import java.io.InputStream;
+import java.util.*;
+
 public class BIMPPortalPlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(BIMPPortalPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BIMPPortalPlugin.class);
 
-    private String label = "Generate BIMP simulated log";
-    private String groupLabel = "Analyze";
+    private final String label = "Generate BIMP simulated log";
+    private final String groupLabel = "Analyze";
 
 
     // PortalPlugin overrides
@@ -83,11 +75,11 @@ public class BIMPPortalPlugin extends DefaultPortalPlugin {
             if (!(summaryType instanceof ProcessSummaryType)) {
                 throw new Exception("Only processes may be simulated");
             }
-            ProcessSummaryType model = (ProcessSummaryType) summaryType;;
+            ProcessSummaryType model = (ProcessSummaryType) summaryType;
             VersionSummaryType version = selectedProcessVersions.get(model).get(0);
             ExportFormatResultType exportResult = mainController.getService().exportFormat(
-                model.getId(), model.getName(), version.getName(),
-                version.getVersionNumber(), model.getOriginalNativeType(), UserSessionManager.getCurrentUser().getUsername()
+                    model.getId(), model.getName(), version.getName(),
+                    version.getVersionNumber(), model.getOriginalNativeType(), UserSessionManager.getCurrentUser().getUsername()
             );
             InputStream in = exportResult.getNative().getInputStream();
             Scanner scanner = new Scanner(in).useDelimiter("\\A");
