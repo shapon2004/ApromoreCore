@@ -205,17 +205,16 @@ class Buffer {
             this._currentIndex += frames.length;
 
             //House keeping
-            if (!this.isMinimumStock()) {
-                this._replenish();
-            }
-            if (this.isObsoleteStock()) {
-                this._removeObsolete();
-            }
+            // if (!this.isMinimumStock()) {
+            //     this._replenish();
+            // }
+            // if (this.isObsoleteStock()) {
+            //     this._removeObsolete();
+            // }
         }
-        else {
-            this._replenish();
-        }
-
+        // else {
+        //     this._replenish();
+        // }
         this._logStockLevel();
         return frames;
     }
@@ -239,7 +238,7 @@ class Buffer {
         if (bufferIndex >= 0 && bufferIndex < this.size()) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
-            this._replenish();
+            //this._replenish();
         }
         else { // the new requested frames are too far outside this buffer
             console.log('Buffer - moveTo: moveTo point is out of buffer, buffer cleared to read new frames');
@@ -267,7 +266,7 @@ class Buffer {
                 //console.log('Added Frames: ' + frames);
                 //console.log('Buffer: ' + this._frames);
                 this._logStockLevel();
-                this._replenish();
+                //this._replenish();
             }
             else {
                 this._serverOutOfFrames = true;
@@ -277,7 +276,6 @@ class Buffer {
         else {
             console.log('Buffer - write: obsolete requestToken, frames rejected, token=' + requestToken);
         }
-
     }
 
     /**
@@ -303,6 +301,7 @@ class Buffer {
      * @private
      */
     _replenish(frameIndex) {
+        window.setTimeout(this._replenish.bind(this),0);
         let _frameIndex = (!frameIndex ? this.getNextFrameIndex() : frameIndex);
         console.log('Buffer - replenish: frameIndex=' + _frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
         if (!this.isSafetyStock() && !this._serverOutOfFrames) {
