@@ -63,12 +63,12 @@ class PlayMode {
 
 /**
  * Main class to control the animation via HTML5 Canvas
- * It has two asynchronous loops:
- *  _readBuffer: read the buffer into a playing store of frames
- *  _drawLoop: draw frames from the playing store.
- *  The first loop is used to control when the buffer may need time to fill up and so
- *  the animation should pause and wait until it can move on. The second loop is used
- *  to control the animation progress.
+ * It reads frames from the Buffer into a Frame Queue and draws them on the canvas.
+ * The animator has two endless loops:
+ *  _readBuffer: read frames in chunks from the buffer into the frame queue.
+ *  _drawLoop: draw frames from the frame queue, one by one.
+ *  The other operations (e.g. pause/unpause, fast forward, fast backward) work by
+ *  affecting these two main loops.
  */
 class CanvasAnimator {
     /**
@@ -133,13 +133,49 @@ class CanvasAnimator {
         this._bufferReadingInterval = Math.floor(this._frameBuffer.getChunkSize()/(2*playingFrameRate))*1000;
     }
 
+    _setCanvasStyle() {
+        this._canvasContext.lineWidth = 0.5;
+        this._canvasContext.strokeStyle = '#000';
+        this._canvasContext.fillStyle = "red";
+    }
+
+    start() {
+        this._setCanvasStyle();
+        this._currentTime = 0;
+        this.unpause();
+        this.startSequenceMode();
+    }
+
+    /**
+     * Pause affects the two main loops by setting a paused flag.
+     */
+    pause() {
+        this._paused = true;
+        this._svgTimeline.pauseAnimations();
+        this._svgProgressBar.pauseAnimations();
+    }
+
+    unpause() {
+        this._now = this._then; //restart counting frame intervals
+        this._paused = false;
+        this._svgTimeline.unpauseAnimations();
+        this._svgProgressBar.unpauseAnimations();
+    }
+
+    // The logical time since this Animator is created.
+    getCurrentTime() {
+        return this._currentTime;
+    }
+
     /**
      * Read frames from the buffer into the playing store
      * This operation enters a loop of reading frames from the buffer.
+     * This is to support sequential mode, so it doesn't apply to random play mode
      */
     _readBufferLoop() {
         this._readBufferLoopId = setTimeout(this._readBufferLoop.bind(this), 0);
         if (this._playMode !== PlayMode.SEQUENTIAL) return;
+        if (this._paused) return;
         if (this._frameQueue.length >= 300) return;
 
         let frames = this._frameBuffer.readNext();
@@ -158,41 +194,8 @@ class CanvasAnimator {
         }
     }
 
-    play() {
-        this._canvasContext.lineWidth = 0.5;
-        this._canvasContext.strokeStyle = '#000';
-        this._canvasContext.fillStyle = "red";
-
-        this._currentTime = 0;
-        this._then = window.performance.now();
-        this._now = this._then;
-
-        this.unpause();
-        this._readBufferLoop();
-        this._drawLoop(0);
-    }
-
-    pause() {
-        this._paused = true;
-        this._svgTimeline.pauseAnimations();
-        this._svgProgressBar.pauseAnimations();
-    }
-
-    unpause() {
-        this._then = window.performance.now();
-        this._now = this._then;
-        this._paused = false;
-        this._svgTimeline.unpauseAnimations();
-        this._svgProgressBar.unpauseAnimations();
-    }
-
-    // The logical time since this Animator is created.
-    getCurrentTime() {
-        return this._currentTime;
-    }
-
     /**
-     * Animate frames from the current store of play frames
+     * Draw frames from the current store of play frames
      * Use window.requestAnimationFrame and elapsed time to control the speed of animation
      * The animation clock time is also controlled here
      * @param {Number} newTime: the passing time (milliseconds) since time origin
@@ -200,6 +203,7 @@ class CanvasAnimator {
      */
     _drawLoop(newTime) {
         window.requestAnimationFrame(this._drawLoop.bind(this));
+        if (this._playMode !== PlayMode.SEQUENTIAL) return;
         this._now = newTime;
         let elapsed = this._now - this._then;
         if (elapsed >= this._playingFrameInterval) {
@@ -258,15 +262,23 @@ class CanvasAnimator {
     setSpeed(speedLevel) {
         let newPlayingFrameRate = speedLevel*this._animationContext.getRecordingFrameRate();
         if (newPlayingFrameRate !== this._playingFrameRate) {
-            //this.pause();
             this._setPlayingFrameRate(newPlayingFrameRate);
-            //this.unpause();
         }
     }
 
+    startSequenceMode() {
+        this._playMode = PlayMode.SEQUENTIAL;
+        this._readBufferLoop();
+        this._drawLoop(0);
+    }
+
+    startRandomMode() {
+        this._playMode = PlayMode.RANDOM;
+    }
+
     /**
-     * Move to a random logical timepoint, e.g. when the timeline tick is dragged to a new position.
-     *
+     * Move to a random logical time mark, e.g. when the timeline tick is dragged to a new position.
+     * Goto affects the two main loops by setting a playing mode from sequential to random.
      * @param {Number} logicalTimeMark: number of seconds from the start
      */
     goto(logicalTimeMark) {
@@ -274,30 +286,28 @@ class CanvasAnimator {
             console.log('SVGAnimator - goto: goto time is outside the timeline, do nothing');
             return;
         }
+        this.startRandomMode();
         this._clearData();
         let currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
         this._frameBuffer.moveTo(currentFrameIndex);
         this._currentTime = logicalTimeMark*1000;
+        this.startSequenceMode();
         console.log('SVGAnimator - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + currentFrameIndex);
     }
 
     fastForward() {
-        this._playMode = PlayMode.RANDOM;
         let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) + 5;
         if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
             newLogicalTimeMark = this._animationContext.getLogicalTimelineMax();
         }
         this.goto(newLogicalTimeMark);
-        this._playMode = PlayMode.SEQUENTIAL;
         console.log('SVGAnimator - fastForward: new logical time=' + newLogicalTimeMark);
     }
 
     fastBackward() {
-        this._playMode = PlayMode.RANDOM;
         let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) - 5;
         if (newLogicalTimeMark < 0) newLogicalTimeMark = 0;
         this.goto(newLogicalTimeMark);
-        this._playMode = PlayMode.SEQUENTIAL;
         console.log('SVGAnimator - fastBackward: new logical time=' + newLogicalTimeMark);
     }
 

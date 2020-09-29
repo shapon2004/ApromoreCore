@@ -590,7 +590,7 @@ let AnimationController = {
 
   play: function() {
     //this.unpauseAnimations();
-    this.svgAnimator.play();
+    this.svgAnimator.start();
     this.setPlayPauseBtn(false);
   },
 

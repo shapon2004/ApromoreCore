@@ -220,26 +220,6 @@ class Buffer {
         return frames;
     }
 
-    readOne() {
-        console.log('Buffer - readOne');
-        this._logStockLevel();
-        if (this.isStockAvailable()) {
-            let i = this._currentIndex;
-            this._currentIndex++;
-            //House keeping
-            if (!this.isMinimumStock()) {
-                this._replenish();
-            }
-            if (this.isObsoleteStock()) {
-                this._removeObsolete();
-            }
-            return this._frames[i];
-        }
-        else {
-            this._replenish();
-        }
-    }
-
     /**
      * Move the buffer currentIndex to a frame, e.g when the tick is dragged randomly on the timeline.
      * The frame index corresponds to a buffer index which can be less or greater than the currentIndex, or can
@@ -254,6 +234,7 @@ class Buffer {
     moveTo(frameIndex) {
         console.log('Buffer - moveTo: frameIndex=' + frameIndex);
         this._clearServerRequests(); // to reject all pending responses from the server
+        this._serverOutOfFrames = false;
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
         if (bufferIndex >= 0 && bufferIndex < this.size()) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
@@ -338,6 +319,7 @@ class Buffer {
     }
 
     _removeObsolete() {
+        return;
         console.log('Buffer - removeObsolote: historyThreshold=' + this._historyThreshold);
         this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
