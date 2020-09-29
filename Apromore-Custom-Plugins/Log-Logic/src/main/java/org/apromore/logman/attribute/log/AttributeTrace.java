@@ -138,8 +138,6 @@ public class AttributeTrace {
         if (!originalValueTrace.isEmpty()) {
             originalValueTrace.addAtIndex(0, attribute.getArtificialStartIndex());
             originalValueTrace.add(attribute.getArtificialEndIndex());
-            originalActIndexes.addAtIndex(0, -1); // add to be in parallel with the value trace
-            originalActIndexes.add(-1); // add to be in parallel with the value trace
             
             // The artificial start event has the start time equal to the start time of the first activity
             // And its end time is the same as its start time

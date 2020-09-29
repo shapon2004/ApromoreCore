@@ -57,17 +57,9 @@ class Buffer {
         this._safetyThreshold = Buffer.DEFAULT_SAFETY_THRES;
         this._minimumThreshold = Buffer.DEFAULT_MIN_THRES;
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
-
-        this._frames = [];
-        this._currentIndex = -1;
-        this._nextReadingFrameIndex = 0;
-        this._waitingFrameIndex = 0;
         this._serverOutOfFrames = false;
-        this._requestToken = 0; // token to control server responses
-        this._sequentialMode = true;
-
-        this._requestLoop();
-        this._cleanLoop();
+        this._clear();
+        this._replenish();
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -121,11 +113,16 @@ class Buffer {
     _clear() {
         this._frames = [];
         this._currentIndex = -1;
-        this._nextReadingFrameIndex = 0;
-        this._waitingFrameIndex = -1;
         this._serverOutOfFrames = false;
-        this._sequentialMode = true;
         this._clearServerRequests();
+        this._cancelPendingTasks();
+    }
+
+    _cancelPendingTasks() {
+        if (this._timerIds && this._timerIds instanceof Array) {
+            this._timerIds.forEach(timeOutId => window.clearTimeout(timeOutId));
+        }
+        this._timerIds = [];
     }
 
     isEmpty() {
@@ -148,7 +145,7 @@ class Buffer {
         return this._currentIndex;
     }
 
-    getNextSequentialFrameIndex() {
+    getNextFrameIndex() {
         return (this.isEmpty() ? 0 : this._frames[this.getLastIndex()].index + 1);
     }
 
@@ -241,23 +238,14 @@ class Buffer {
         if (bufferIndex >= 0 && bufferIndex < this.size()) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
-            this._nextReadingFrameIndex = this.getNextSequentialFrameIndex();
+            //this._replenish();
         }
         else { // the new requested frames are too far outside this buffer
             console.log('Buffer - moveTo: moveTo point is out of buffer, buffer cleared to read new frames');
             this._clear();
-            this.setRandomMode();
-            this._nextReadingFrameIndex = frameIndex;
+            this._replenish(frameIndex);
         }
         this._logStockLevel();
-    }
-
-    setSequentialMode() {
-        this._sequentialMode = true;
-    }
-
-    setRandomMode() {
-        this._sequentialMode = false;
     }
 
     /**
@@ -275,7 +263,6 @@ class Buffer {
                 if (this._currentIndex < 0) {
                     this._currentIndex = 0;
                 }
-                this._nextReadingFrameIndex = this.getNextSequentialFrameIndex();
                 //console.log('Added Frames: ' + frames);
                 //console.log('Buffer: ' + this._frames);
                 this._logStockLevel();
@@ -313,15 +300,13 @@ class Buffer {
      * @param {Number} frameIndex: frame index of the first frame in the chunk to be added to the buffer
      * @private
      */
-    _requestLoop() {
-        window.setTimeout(this._requestLoop.bind(this),0);
-        if (this._nextReadingFrameIndex <= this._waitingFrameIndex) return;
-        let frameIndex = this._nextReadingFrameIndex;
-        console.log('Buffer - replenish: frameIndex=' + frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
+    _replenish(frameIndex) {
+        window.setTimeout(this._replenish.bind(this),0);
+        let _frameIndex = (!frameIndex ? this.getNextFrameIndex() : frameIndex);
+        console.log('Buffer - replenish: frameIndex=' + _frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
         if (!this.isSafetyStock() && !this._serverOutOfFrames) {
             console.log('Buffer - replenish: safety stock not yet reached, send request to DataRequester');
-            this._dataRequester.requestData(this, this._requestToken, frameIndex, this._chunkSize);
-            this._waitingFrameIndex = frameIndex;
+            this._dataRequester.requestData(this, this._requestToken, _frameIndex, this._chunkSize);
         }
         else if (this.isSafetyStock()) {
             console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
@@ -332,18 +317,18 @@ class Buffer {
         this._logStockLevel();
     }
 
-    _cleanLoop() {
-        window.setTimeout(this._cleanLoop.bind(this),0);
-        console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);
+    _removeObsolete() {
+        return;
+        console.log('Buffer - removeObsolote: historyThreshold=' + this._historyThreshold);
         this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
         if (obsoleteSize > 0) {
-            console.log('Buffer - cleanLoop: remove obsolete frames, amount of removed frames: ' + obsoleteSize);
+            console.log('Buffer - remove obsolete frames, amount of removed frames: ' + obsoleteSize);
             this._frames.splice(0, obsoleteSize);
             this._currentIndex -= obsoleteSize;
         }
         else {
-            console.log('Buffer - cleanLoop: no obsolete frames: ' + obsoleteSize);
+            console.log('Buffer - no obsolete frames: ' + obsoleteSize);
         }
     }
 
