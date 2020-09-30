@@ -181,15 +181,14 @@ class CanvasAnimator {
         let frames = this._frameBuffer.readNext();
         if (frames && frames.length > 0) {
             this._frameQueue.push(...frames);
-            this.unpause();
-            console.log('SVGAnimator - readBufferLoop: readNext returns result for animation. Unpause and play.');
-        } else if (this._frameQueue.length <= 0) {
-            this.pause();
-            console.log('SVGAnimator - readBufferLoop: readNext returns NO result for animation. Pause to wait.');
+            //this.unpause();
+            console.log('SVGAnimator - readBufferLoop: readNext returns result.');
+        } else {
+            console.log('SVGAnimator - readBufferLoop: readNext returns EMPTY result.');
         }
 
         if (this._frameBuffer.isOutOfSupply()) {
-            console.log('SVGAnimator - readBufferLoop: out of stock and no more frames in supply. The animateLoop stops.');
+            console.log('SVGAnimator - readBufferLoop: out of stock and no more frames in supply. The readBufferLoop stops.');
             this._clearPendingBufferReads();
         }
     }
@@ -298,7 +297,9 @@ class CanvasAnimator {
     fastForward() {
         let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) + 5;
         if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
-            newLogicalTimeMark = this._animationContext.getLogicalTimelineMax();
+            this._clearData();
+            this._clearCanvas();
+            return;
         }
         this.goto(newLogicalTimeMark);
         console.log('SVGAnimator - fastForward: new logical time=' + newLogicalTimeMark);
@@ -306,7 +307,11 @@ class CanvasAnimator {
 
     fastBackward() {
         let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) - 5;
-        if (newLogicalTimeMark < 0) newLogicalTimeMark = 0;
+        if (newLogicalTimeMark < 0) {
+            this._clearData();
+            this._clearCanvas();
+            return;
+        }
         this.goto(newLogicalTimeMark);
         console.log('SVGAnimator - fastBackward: new logical time=' + newLogicalTimeMark);
     }

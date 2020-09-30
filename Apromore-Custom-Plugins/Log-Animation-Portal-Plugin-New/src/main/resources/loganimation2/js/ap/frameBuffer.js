@@ -1,33 +1,23 @@
 
 /**
  * Buffer contains array of frames like a stock (or store) containing frames as items.
- * The buffer keeps a DataRequester to communicate with the server for frame supply. It self-manages the stock level
- * by monitoring different stock thresholds such as minimum stock, safety stock, unused stock, etc. Replenishment is
- * the process of stock refilling.
- *
- * The buffer keeps three pointers to the frames:
- * - firstIndex: the buffer index of the first frame
- * - lastIndex: the buffer index of the last frame in the buffer
- * - currentIndex: the buffer index of the first frame in the next chunk available for reading from the buffer
- * The frames from firstIndex to currentIndex-1 is the used stock
- * The frames from currentIndex to lastIndex is the current stock
+ * The buffer keeps a currentIndex pointer to the first frame in the next chunk available for reading from the buffer
+ * The frames from the first one to currentIndex-1 is the used stock
+ * The frames from currentIndex to the last one is the current stock
  * Note that the buffer index is not the frame index.
- * The currentIndex pointer is used to slide back and forth on the buffer to read frames. The buffer can self-manage to get
- * frames from the server when the currentIndex is within the buffer or outside.
  *
- * Reading operation:
- * A read request is only fulfilled if there is available stock (chunkSize).
- * The stock is replenished as soon as it is below the minimum stock to avoid interruptions to the reading operation (i.e.
- * not waiting until the stock is empty to replenish).
- * The replenishment will fill up the buffer until reaching a safety stock level which is higher than the minimum stock level.
- * This is to avoid too many replenishment requests (do it a bit more than enough).
+ * House keeping operations:
+ * The buffer adds and removes frames via two endless loops: _requestLoop and _cleanLoop.
+ *  - Request Loop: connects to the server to get new frames whenever the current stock drops below a minimum threshold
+ *  and keeps filling up the buffer until the current stock reaches a safety threshold.
+ *  - Clean Loop:  the used stock is kept in the buffer as long as it is under a history threshold in case it will be
+ *  read again for read efficiency. If the used stock is over a history threshold, old frames are removed out of the buffer
+ *  to avoid over-filled buffer.
  *
- * Write operation:
- * The write operation adds frames to the end of the buffer.
- *
- * Cleaning operation:
- * The used stock is kept as long as it is under a history threshold, in case it will be read again (for read efficiency)
- * If the used stock is over a history threshold, old frames must be removed out (to avoid out of memory issue).
+ * Frames operation:
+ * - Read: read the next chunk of frames from the buffer
+ * - Write: write a chunk of frames to the end of the buffer
+ * - Moveto: move the current pointer to a new position in the buffer
  *
  * Each frame in the buffer has this format:
  * {
@@ -55,11 +45,18 @@ class Buffer {
         this._dataRequester = new DataRequester(animationContext.getPluginExecutionId());
         this._chunkSize = Buffer.DEFAULT_CHUNK_SIZE; //number of frames in every read
         this._safetyThreshold = Buffer.DEFAULT_SAFETY_THRES;
-        this._minimumThreshold = Buffer.DEFAULT_MIN_THRES;
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
+
+        this._frames = [];
+        this._currentIndex = -1;
+        this._nextRequestFrameIndex = 0;
+        this._waitingFrameIndex = -1;
         this._serverOutOfFrames = false;
-        this._clear();
-        this._replenish();
+        this._requestToken = 0; // token to control server responses
+        this._sequentialMode = true;
+
+        this._requestLoop();
+        this._cleanLoop();
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -68,10 +65,6 @@ class Buffer {
 
     static get DEFAULT_SAFETY_THRES() {
         return 900;
-    }
-
-    static get DEFAULT_MIN_THRES() {
-        return 300;
     }
 
     static get DEFAULT_HISTORY_THRES() {
@@ -84,14 +77,6 @@ class Buffer {
 
     setSafetyThreshold(safetyThreshold) {
         this._safetyThreshold = safetyThreshold;
-    }
-
-    getMinimumThreshold() {
-        return this._minimumThreshold;
-    }
-
-    setMinimumThreshold(minimumThreshold) {
-        this._minimumThreshold = minimumThreshold;
     }
 
     getHistoryThreshold() {
@@ -113,16 +98,11 @@ class Buffer {
     _clear() {
         this._frames = [];
         this._currentIndex = -1;
+        this._nextRequestFrameIndex = 0;
+        this._waitingFrameIndex = -1;
         this._serverOutOfFrames = false;
+        this._sequentialMode = true;
         this._clearServerRequests();
-        this._cancelPendingTasks();
-    }
-
-    _cancelPendingTasks() {
-        if (this._timerIds && this._timerIds instanceof Array) {
-            this._timerIds.forEach(timeOutId => window.clearTimeout(timeOutId));
-        }
-        this._timerIds = [];
     }
 
     isEmpty() {
@@ -145,7 +125,7 @@ class Buffer {
         return this._currentIndex;
     }
 
-    getNextFrameIndex() {
+    getNextRequestFrameIndex() {
         return (this.isEmpty() ? 0 : this._frames[this.getLastIndex()].index + 1);
     }
 
@@ -171,10 +151,6 @@ class Buffer {
         return (this.getUnusedStockLevel() >= this._safetyThreshold);
     }
 
-    isMinimumStock() {
-        return (this.getUnusedStockLevel() >= this._minimumThreshold);
-    }
-
     isObsoleteStock() {
         return (this.getUsedStockLevel() > this._historyThreshold);
     }
@@ -191,7 +167,7 @@ class Buffer {
 
     /**
      * Sequential reading the next chunk from the buffer starting from currentIndex
-     * @returns {Array}
+     * @returns {Array} array of frames, empty if running out of frames.
      */
     readNext() {
         console.log('Buffer - readNext');
@@ -203,18 +179,7 @@ class Buffer {
                 frames.push(this._frames[i]);
             }
             this._currentIndex += frames.length;
-
-            //House keeping
-            // if (!this.isMinimumStock()) {
-            //     this._replenish();
-            // }
-            // if (this.isObsoleteStock()) {
-            //     this._removeObsolete();
-            // }
         }
-        // else {
-        //     this._replenish();
-        // }
         this._logStockLevel();
         return frames;
     }
@@ -232,25 +197,36 @@ class Buffer {
      */
     moveTo(frameIndex) {
         console.log('Buffer - moveTo: frameIndex=' + frameIndex);
-        this._clearServerRequests(); // to reject all pending responses from the server
-        this._serverOutOfFrames = false;
         let bufferIndex = this._getBufferIndexFromFrameIndex(frameIndex);
         if (bufferIndex >= 0 && bufferIndex < this.size()) {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
-            //this._replenish();
         }
         else { // the new requested frames are too far outside this buffer
             console.log('Buffer - moveTo: moveTo point is out of buffer, buffer cleared to read new frames');
+            this.setRandomMode();
             this._clear();
-            this._replenish(frameIndex);
+            this._nextRequestFrameIndex = frameIndex;
         }
         this._logStockLevel();
     }
 
+    setSequentialMode() {
+        this._sequentialMode = true;
+    }
+
+    isSequentialMode() {
+        return this._sequentialMode;
+    }
+
+    setRandomMode() {
+        this._sequentialMode = false;
+    }
+
     /**
-     * Write a chunk of frames to the buffer
-     * The frames are concatenated to the end of the buffer
+     * Append a chunk of frames to the end of buffer
+     * A request token is used to identify if the coming frames are no longer needed due to
+     * local changes while waiting for the server response.
      * @param {Array} frames
      * @param {Number} batchNumber
      */
@@ -263,10 +239,8 @@ class Buffer {
                 if (this._currentIndex < 0) {
                     this._currentIndex = 0;
                 }
-                //console.log('Added Frames: ' + frames);
-                //console.log('Buffer: ' + this._frames);
+                this._nextRequestFrameIndex = this.getNextRequestFrameIndex();
                 this._logStockLevel();
-                //this._replenish();
             }
             else {
                 this._serverOutOfFrames = true;
@@ -295,40 +269,47 @@ class Buffer {
     }
 
     /**
-     * Buffer replenishment reads data until reaching a safety stock level
-     * Replenish - data request - write forms a loop.
-     * @param {Number} frameIndex: frame index of the first frame in the chunk to be added to the buffer
+     * Keeps sending requests to the server for new chunks of frames if the current stock is below a safety threshold
+     * It operates in two modes: sequential and random. In sequential requests, subsequent chunks are requested in
+     * sequential ordering. The ordering must be checked and maintained between these chunks. In random mode, the buffer
+     * can move to a certain frame out of the sequential order, but going forwards, it will come back to the sequential
+     * mode.
      * @private
      */
-    _replenish(frameIndex) {
-        window.setTimeout(this._replenish.bind(this),0);
-        let _frameIndex = (!frameIndex ? this.getNextFrameIndex() : frameIndex);
-        console.log('Buffer - replenish: frameIndex=' + _frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
+    _requestLoop() {
+        window.setTimeout(this._requestLoop.bind(this),2000);
+        if (this.isSequentialMode() && this._nextRequestFrameIndex <= this._waitingFrameIndex) {
+            return;
+        }
+        let frameIndex = this._nextRequestFrameIndex;
+        //console.log('Buffer - replenish: frameIndex=' + frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
         if (!this.isSafetyStock() && !this._serverOutOfFrames) {
-            console.log('Buffer - replenish: safety stock not yet reached, send request to DataRequester');
-            this._dataRequester.requestData(this, this._requestToken, _frameIndex, this._chunkSize);
+            this._dataRequester.requestData(this, this._requestToken, frameIndex, this._chunkSize);
+            this._waitingFrameIndex = frameIndex;
+            if (!this.isSequentialMode()) this.setSequentialMode();
+            console.log('Buffer - replenish: safety stock not yet reached, send request to DataRequester, frameIndex = ' + frameIndex);
         }
         else if (this.isSafetyStock()) {
-            console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
+            //console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
         }
         else {
-            console.log('Buffer - replenish: server is out of frames, stop sending request to DataRequester');
+            //console.log('Buffer - replenish: server is out of frames, stop sending request to DataRequester');
         }
-        this._logStockLevel();
+        //this._logStockLevel();
     }
 
-    _removeObsolete() {
-        return;
-        console.log('Buffer - removeObsolote: historyThreshold=' + this._historyThreshold);
-        this._logStockLevel();
+    _cleanLoop() {
+        window.setTimeout(this._cleanLoop.bind(this),2000);
+        //console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);
+        //this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
         if (obsoleteSize > 0) {
-            console.log('Buffer - remove obsolete frames, amount of removed frames: ' + obsoleteSize);
+            //console.log('Buffer - cleanLoop: remove obsolete frames, amount of removed frames: ' + obsoleteSize);
             this._frames.splice(0, obsoleteSize);
             this._currentIndex -= obsoleteSize;
         }
         else {
-            console.log('Buffer - no obsolete frames: ' + obsoleteSize);
+            //console.log('Buffer - cleanLoop: no obsolete frames: ' + obsoleteSize);
         }
     }
 
@@ -345,9 +326,6 @@ class Buffer {
      * @private
      */
     _clearServerRequests() {
-        this._requestToken = (!this._requestToken ? 0 : this._requestToken+1);
+        this._requestToken++;
     }
 }
-
-
-
