@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class LockServiceImpl implements LockService {
     private ProcessModelVersionRepository processModelVersionRepo;
@@ -51,7 +52,7 @@ public class LockServiceImpl implements LockService {
      * @param fragmentVersionDagRepository Fragment Version Dag Repository.
      * @param processModelVersionRepository Process Model Version repository.
      */
-   
+    @Inject
     public LockServiceImpl(final ProcessModelVersionRepository processModelVersionRepository) {
         processModelVersionRepo = processModelVersionRepository;
     }

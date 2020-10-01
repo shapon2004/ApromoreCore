@@ -33,7 +33,7 @@ import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.out.XSerializer;
 import org.springframework.stereotype.Service;
 
-
+@Service
 public class EventLogFileServiceImpl implements EventLogFileService  {
     private String directoryPath;
     

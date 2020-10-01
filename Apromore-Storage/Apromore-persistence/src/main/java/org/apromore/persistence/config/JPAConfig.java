@@ -26,11 +26,14 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,12 +50,7 @@ import com.jolbox.bonecp.BoneCPDataSource;
 import liquibase.integration.spring.SpringLiquibase;
 
 @Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(basePackages = JPAConfig.REPOSITORY_PACKAGE,
-entityManagerFactoryRef = JPAConfig.ENTITY_MANAGER_FACTORY,
-transactionManagerRef = JPAConfig.TRANSACTION_MANAGER)
-@ComponentScan(basePackages = { "org.apromore.persistence" })
-@PropertySource("classpath:db.properties")
+@ComponentScan(basePackages = {"org.apromore.persistence.entity","org.apromore.persistence.repository"})
 public class JPAConfig {
 
 	public static final String REPOSITORY_PACKAGE = "org.apromore.persistence.repository";
@@ -136,7 +134,7 @@ public class JPAConfig {
 
 		SpringLiquibase liquibase = new SpringLiquibase();
 
-		liquibase.setDataSource(unpooledDataSource());
+		liquibase.setDataSource(dataSource());
 		liquibase.setChangeLog("classpath:db/migration/changeLog.yaml");
 		liquibase.setContexts(context);
 //		liquibase.setDropFirst(true);
@@ -145,7 +143,16 @@ public class JPAConfig {
 
 	@Bean
 	public JdbcTemplate jdbcTemplate() {
-		return new JdbcTemplate(dataSource());
+		return new JdbcTemplate(unpooledDataSource());
+	}
+	
+	@Bean
+	public static PropertyPlaceholderConfigurer properties() {
+		PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
+		Resource[] resources = new ClassPathResource[] { new ClassPathResource("db.properties") };
+		ppc.setLocations(resources);
+		ppc.setIgnoreUnresolvablePlaceholders(true);
+		return ppc;
 	}
 
 	Properties additionalProperties() {

@@ -23,13 +23,12 @@ package org.apromore.persistence;
 
 
 import org.apromore.persistence.config.JPAConfig;
-import org.apromore.persistence.config.TestConfig;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {TestConfig.class,JPAConfig.class})
+@ContextConfiguration(locations = {"classpath:META-INF/spring/persistence-service.xml","classpath:test-config.xml"})
 public class BaseTestClass {
 
 }

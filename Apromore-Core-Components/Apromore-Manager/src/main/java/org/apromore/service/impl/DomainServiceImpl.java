@@ -39,7 +39,7 @@ import javax.inject.Inject;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class DomainServiceImpl implements DomainService {
 
@@ -50,7 +50,7 @@ public class DomainServiceImpl implements DomainService {
      * Default Constructor allowing Spring to Autowire for testing and normal use.
      * @param processRepository Process Repository.
      */
-  
+    @Inject
     public DomainServiceImpl(final ProcessRepository processRepository) {
         pRepository = processRepository;
     }

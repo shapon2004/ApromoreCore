@@ -76,24 +76,24 @@ import javax.inject.Inject;
  * threw 'java.lang.IllegalArgumentException: incorrect email by admin coming from 192.168.1.10</code>
  * </p>
  */
-@Aspect
-public class HistoryEventAspect {
-
-    @Inject
-    private HistoryEventService historyEventService;
-
-
-    @Around(value = "@annotation(event)", argNames = "pjp,event")
-    public Object logMessage(ProceedingJoinPoint pjp, Event event) throws Throwable {
-        try {
-            historyEventService.addNewEvent(StatusEnum.START, event.message());
-            Object returned = pjp.proceed();
-            historyEventService.addNewEvent(StatusEnum.FINISHED, event.message());
-            return returned;
-        } catch (Throwable t) {
-            historyEventService.addNewEvent(StatusEnum.ERROR, event.message());
-            throw t;
-        }
-    }
-
-}
+//@Aspect
+//public class HistoryEventAspect {
+//
+//    @Inject
+//    private HistoryEventService historyEventService;
+//
+//
+//    @Around(value = "@annotation(event)", argNames = "pjp,event")
+//    public Object logMessage(ProceedingJoinPoint pjp, Event event) throws Throwable {
+//        try {
+//            historyEventService.addNewEvent(StatusEnum.START, event.message());
+//            Object returned = pjp.proceed();
+//            historyEventService.addNewEvent(StatusEnum.FINISHED, event.message());
+//            return returned;
+//        } catch (Throwable t) {
+//            historyEventService.addNewEvent(StatusEnum.ERROR, event.message());
+//            throw t;
+//        }
+//    }
+//
+//}

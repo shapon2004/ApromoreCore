@@ -39,7 +39,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor =
         Exception.class)
 public class UserMetadataServiceImpl implements UserMetadataService {
@@ -62,7 +62,7 @@ public class UserMetadataServiceImpl implements UserMetadataService {
      *
      * @param groupUserMetadataRepo Log repository.
      */
-    
+    @Inject
     public UserMetadataServiceImpl(final LogRepository logRepository,
                                    final GroupLogRepository groupLogRepository,
                                    final UserService userSrv,

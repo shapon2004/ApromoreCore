@@ -65,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class SecurityServiceImpl implements SecurityService {
 
@@ -94,7 +94,7 @@ public class SecurityServiceImpl implements SecurityService {
      * @param groupRepository Group Repository.
      * @param roleRepository Role Repository.
      */
-    
+    @Inject
     public SecurityServiceImpl(final UserRepository       userRepository,
                                final GroupRepository      groupRepository,
                                final RoleRepository       roleRepository,

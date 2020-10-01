@@ -24,23 +24,23 @@
 
 package org.apromore.security.impl;
 
-import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apromore.persistence.repository.UserRepository;
+import javax.inject.Inject;
+
 import org.apromore.persistence.entity.Membership;
 import org.apromore.persistence.entity.Permission;
 import org.apromore.persistence.entity.Role;
 import org.apromore.persistence.entity.SearchHistory;
 import org.apromore.persistence.entity.User;
+import org.apromore.persistence.repository.UserRepository;
 import org.apromore.security.model.ApromorePermissionDetails;
 import org.apromore.security.model.ApromoreRoleDetails;
 import org.apromore.security.model.ApromoreSearchHistoryDetails;
 import org.apromore.security.model.ApromoreUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -63,7 +63,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
-    @Autowired
+
     private UserRepository userRepository;
 
     /**
@@ -94,15 +94,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return user;
     }
 
-    public UserRepository getUserRepository() {
-		return userRepository;
-	}
-
-	public void setUserRepository(UserRepository userRepository) {
-		this.userRepository = userRepository;
-	}
-
-	/**
+    /**
      * Executes the SQL <tt>usersByUsernameQuery</tt> and returns a list of UserDetails objects.
      * There should normally only be one matching user.
      */

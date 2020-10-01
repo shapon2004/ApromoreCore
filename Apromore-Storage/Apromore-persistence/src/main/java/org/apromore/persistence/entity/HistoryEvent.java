@@ -51,7 +51,6 @@ import org.springframework.cache.annotation.Cacheable;
  */
 @Entity
 @Table(name = "history_event")
-
 @Cacheable("history_event")
 public class HistoryEvent implements Serializable {
 

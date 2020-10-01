@@ -84,6 +84,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Implementation of the ProcessService Contract.
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class ProcessServiceImpl implements ProcessService {
 
@@ -114,7 +115,7 @@ public class ProcessServiceImpl implements ProcessService {
      * @param ui User Interface Helper.
      * @param workspaceService
      */
-    
+    @Inject
     public ProcessServiceImpl(final NativeRepository nativeRepo, final GroupRepository groupRepo,
             final ProcessBranchRepository processBranchRepo, ProcessRepository processRepo,
             final ProcessModelVersionRepository processModelVersionRepo, final GroupProcessRepository groupProcessRepo,
@@ -179,7 +180,7 @@ public class ProcessServiceImpl implements ProcessService {
      */
     @Override
     @Transactional(readOnly = false)
-    @Event(message = HistoryEnum.UPDATE_PROCESS_MODEL)
+//    @Event(message = HistoryEnum.UPDATE_PROCESS_MODEL)
     public ProcessModelVersion updateProcessModelVersion(final Integer processId, final String branchName, 
             final Version version, final User user, final String lockStatus,
             final NativeType nativeType, final InputStream nativeStream) throws ImportException, RepositoryException {
@@ -225,7 +226,7 @@ public class ProcessServiceImpl implements ProcessService {
      */
     @Override
     @Transactional(readOnly = false)
-    @Event(message = HistoryEnum.UPDATE_PROCESS_MODEL)
+//    @Event(message = HistoryEnum.UPDATE_PROCESS_MODEL)
     public ProcessModelVersion createProcessModelVersion(final Integer processId, final String branchName, 
             final Version newVersion, final Version originalVersion, final User user, final String lockStatus,
             final NativeType nativeType, final InputStream nativeStream) throws ImportException, RepositoryException {

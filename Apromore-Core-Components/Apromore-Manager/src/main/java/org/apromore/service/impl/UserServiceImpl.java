@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class UserServiceImpl implements UserService {
 
@@ -64,8 +65,8 @@ public class UserServiceImpl implements UserService {
      * Default Constructor allowing Spring to Autowire for testing and normal use.
      * @param userRepository User Repository.
      */
-    
-    public UserServiceImpl(UserRepository userRepository,SearchHistoryRepository searchHistoryRepository) {
+    @Inject
+    public UserServiceImpl(final UserRepository userRepository, final SearchHistoryRepository searchHistoryRepository) {
         userRepo = userRepository;
         searchHistoryRepo = searchHistoryRepository;
     }

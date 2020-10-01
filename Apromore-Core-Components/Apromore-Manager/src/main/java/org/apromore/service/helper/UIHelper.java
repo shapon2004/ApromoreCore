@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -65,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 *
 * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
 */
-
+@Service
 @Transactional
 public class UIHelper implements UserInterfaceHelper {
 

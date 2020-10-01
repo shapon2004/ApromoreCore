@@ -89,7 +89,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
  */
-
+@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 //@EnableCaching
 public class EventLogServiceImpl implements EventLogService {
@@ -108,8 +108,8 @@ public class EventLogServiceImpl implements EventLogService {
 	private UserMetadataService userMetadataService;
 	private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
-	@Resource
-	private CacheRepository cacheRepo;
+//	@Resource
+//	private CacheRepository cacheRepo;
 
 	@Resource
 	private ConfigBean config;
@@ -125,7 +125,7 @@ public class EventLogServiceImpl implements EventLogService {
 	 * @param logRepository Log repository.
 	 * @param ui            User Interface Helper.
 	 */
-	
+	@Inject
 	public EventLogServiceImpl(final LogRepository logRepository, final GroupRepository groupRepository,
 			final GroupLogRepository groupLogRepository, final FolderRepository folderRepo, final UserService userSrv,
 			final UserInterfaceHelper ui, final ConfigBean configBean, final UserMetadataService userMetadataService) {
@@ -139,13 +139,13 @@ public class EventLogServiceImpl implements EventLogService {
 		this.userMetadataService = userMetadataService;
 	}
 
-	public CacheRepository getCacheRepo() {
-		return cacheRepo;
-	}
-
-	public void setCacheRepo(CacheRepository cacheRepo) {
-		this.cacheRepo = cacheRepo;
-	}
+//	public CacheRepository getCacheRepo() {
+//		return cacheRepo;
+//	}
+//
+//	public void setCacheRepo(CacheRepository cacheRepo) {
+//		this.cacheRepo = cacheRepo;
+//	}
 
 	public ConfigBean getConfig() {
 		return config;
@@ -417,16 +417,16 @@ public class EventLogServiceImpl implements EventLogService {
 
 				if (shouldCache(log)) {
 // Store corresponding object into cache
-					cacheRepo.put(logNameId, log);
-					cacheRepo.put(logNameId + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(log));
-					LOGGER.info("Put XLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
-							+ "] using Key [" + logNameId + "]. ");
-					LOGGER.info("Put APMLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
-							+ "] " + "using Key [" + logNameId + "APMLog]. ");
-					LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
-					LOGGER.info("Memory Available: "
-							+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
-					LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//					cacheRepo.put(logNameId, log);
+//					cacheRepo.put(logNameId + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(log));
+//					LOGGER.info("Put XLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
+//							+ "] using Key [" + logNameId + "]. ");
+//					LOGGER.info("Put APMLog [hash: " + log.hashCode() + "] into Cache [" + cacheRepo.getCacheName()
+//							+ "] " + "using Key [" + logNameId + "APMLog]. ");
+//					LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
+//					LOGGER.info("Memory Available: "
+//							+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
+//					LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
 				} else {
 					LOGGER.info("The total number of events in this log exceed cache threshold");
 				}
@@ -549,7 +549,7 @@ public class EventLogServiceImpl implements EventLogService {
 			// ******* profiling code end here ********
 
 			String key = log.getFilePath();
-			XLog element = (XLog) cacheRepo.get(key);
+			XLog element = null;
 
 			if (element == null) {
 				// If doesn't hit cache
@@ -571,13 +571,13 @@ public class EventLogServiceImpl implements EventLogService {
 					// ******* profiling code end here ********
 
 					if (shouldCache(xlog)) {
-						cacheRepo.put(key, xlog);
+//						cacheRepo.put(key, xlog);
 						elapsedNanos = System.nanoTime() - startTime;
 						LOGGER.info(
 								"Cache XLog [KEY:" + key + "]. " + "Elapsed time: " + elapsedNanos / 1000000 + " ms.");
 
 						startTime = System.nanoTime();
-						cacheRepo.put(key + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(xlog));
+//						cacheRepo.put(key + APMLOG_CACHE_KEY_SUFFIX, apmLogService.findAPMLogForXLog(xlog));
 						elapsedNanos = System.nanoTime() - startTime;
 						LOGGER.info("Construct and cache APMLog [KEY:" + key + APMLOG_CACHE_KEY_SUFFIX + "]. Elapsed "
 								+ "time: " + elapsedNanos / 1000000 + " ms.");
@@ -585,7 +585,7 @@ public class EventLogServiceImpl implements EventLogService {
 						LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
 						LOGGER.info("Memory Available: "
 								+ (getMemoryUsage().getMax() - getMemoryUsage().getUsed()) / 1024 / 1024 + " " + "MB ");
-						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
 					} else {
 						LOGGER.info("The total number of events in this log exceed cache threshold");
 					}
@@ -597,8 +597,8 @@ public class EventLogServiceImpl implements EventLogService {
 
 			} else {
 				// If cache hit
-				LOGGER.info("Got object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
-						+ cacheRepo.getCacheName() + "]");
+//				LOGGER.info("Got object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
+//						+ cacheRepo.getCacheName() + "]");
 				LOGGER.info("Memory Used: " + getMemoryUsage().getUsed() / 1024 / 1024 + " MB ");
 				return element;
 			}
@@ -615,11 +615,11 @@ public class EventLogServiceImpl implements EventLogService {
 
 				// Remove corresponding object from cache
 				String key = log.getFilePath();
-				cacheRepo.evict(key);
-				cacheRepo.evict(key + APMLOG_CACHE_KEY_SUFFIX);
+//				cacheRepo.evict(key);
+//				cacheRepo.evict(key + APMLOG_CACHE_KEY_SUFFIX);
 				System.gc(); // Force GC after cache eviction
-				LOGGER.info("Delete XLog [ KEY: " + key + "] from cache [" + cacheRepo.getCacheName() + "]");
-				LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//				LOGGER.info("Delete XLog [ KEY: " + key + "] from cache [" + cacheRepo.getCacheName() + "]");
+//				LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
 
 			} catch (Exception e) {
 				LOGGER.error("Error " + e.getMessage());
@@ -642,7 +642,7 @@ public class EventLogServiceImpl implements EventLogService {
 			// ******* profiling code end here ********
 
 			String key = log.getFilePath() + APMLOG_CACHE_KEY_SUFFIX;
-			APMLog element = (APMLog) cacheRepo.get(key);
+			APMLog element = null;
 
 			if (element == null) {
 				// If doesn't hit cache
@@ -652,11 +652,11 @@ public class EventLogServiceImpl implements EventLogService {
 					APMLog apmLog = apmLogService.findAPMLogForXLog(getProcessLog(log, null));
 
 					if (shouldCache(xLog)) {
-						cacheRepo.put(key, apmLog);
+//						cacheRepo.put(key, apmLog);
 						elapsedNanos = System.nanoTime() - startTime;
 						LOGGER.info("Put APMLog [KEY:" + key + "] into Cache. Elapsed time: " + elapsedNanos / 1000000
 								+ " ms.");
-						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
+//						LOGGER.info("The number of elements in the memory store = " + cacheRepo.getMemoryStoreSize());
 					}
 
 					return apmLog;
@@ -667,8 +667,8 @@ public class EventLogServiceImpl implements EventLogService {
 
 			} else {
 				// If cache hit
-				LOGGER.info("Get object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
-						+ cacheRepo.getCacheName() + "]");
+//				LOGGER.info("Get object [HASH: " + element.hashCode() + " KEY:" + key + "] from cache ["
+//						+ cacheRepo.getCacheName() + "]");
 				return element;
 			}
 		}
