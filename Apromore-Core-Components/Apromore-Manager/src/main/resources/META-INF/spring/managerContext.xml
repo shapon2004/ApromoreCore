@@ -35,8 +35,10 @@
             http://www.springframework.org/schema/aop             http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
             http://www.springframework.org/schema/context         http://www.springframework.org/schema/context/spring-context-3.1.xsd
             http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd
-            http://www.springframework.org/schema/cache           http://www.springframework.org/schema/cache/spring-cache.xsd"
+            http://www.springframework.org/schema/cache           http://www.springframework.org/schema/cache/spring-cache.xsd
+            http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd"
 >
+
 
     <context:property-placeholder properties-ref="managerProperties"/>
     <osgi-compendium:cm-properties id="managerProperties" persistent-id="site" init-timeout="60"/>
@@ -46,12 +48,12 @@
 
     <aop:aspectj-autoproxy/>
 
-   <!--  <bean id="historyEventAspect" class="org.apromore.aop.HistoryEventAspect"/> -->
+   <!-- <bean id="historyEventAspect" class="org.apromore.aop.HistoryEventAspect"/> -->
 
     <!-- Import other Application Context used to construct the Spring context. -->
     <import resource="manager-osgi-context.xml"/>
-    <!-- <import resource="managerContext-cache.xml"/> -->
-    <import resource="managerContext-services.xml"/>
+    <import resource="managerContext-security.xml"/>
+    <import resource="managerContext-service.xml"/>
     <import resource="managerContext-scheduler.xml"/>
 
 </beans>

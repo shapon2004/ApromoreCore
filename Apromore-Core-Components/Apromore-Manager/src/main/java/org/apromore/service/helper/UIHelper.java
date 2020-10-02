@@ -66,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
 *
 * @author <a href="mailto:cam.james@gmail.com">Cameron James</a>
 */
-@Service
 @Transactional
 public class UIHelper implements UserInterfaceHelper {
 

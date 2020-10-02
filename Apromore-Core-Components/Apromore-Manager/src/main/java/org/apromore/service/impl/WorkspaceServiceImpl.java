@@ -58,7 +58,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-@Service
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class WorkspaceServiceImpl implements WorkspaceService {
 
@@ -88,7 +87,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      * @param processRepository Process Repository.
      * @param folderRepository Folder Repository.
      */
-    @Inject
+
     public WorkspaceServiceImpl(final WorkspaceRepository workspaceRepository,
                                 final UserRepository userRepository,
                                 final ProcessRepository processRepository,

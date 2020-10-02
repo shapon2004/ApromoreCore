@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Cameron James
  */
-@Service
+
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class UserDetailsServiceImpl implements UserDetailsService {
 

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  This file is part of "Apromore Core".
+  Copyright (C) 2012 - 2017 Queensland University of Technology.
+  %%
+  Copyright (C) 2018 - 2020 Apromore Pty Ltd.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Lesser Public License for more details.
+  
+  You should have received a copy of the GNU General Lesser Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/lgpl-3.0.html>.
+  #L%
+  -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:sws="http://www.springframework.org/schema/web-services"
+       xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/web-services http://www.springframework.org/schema/web-services/web-services-2.0.xsd">
+
+   
+   
+    <context:component-scan base-package="org.apromore.service"/>
+     
+    
+    <bean id="domainServiceImpl" class="org.apromore.service.impl.DomainServiceImpl">
+        <constructor-arg index="0" ref="processRepository"/>  
+    </bean>
+    
+    <bean id="uIHelper" class="org.apromore.service.helper.UIHelper">
+        <constructor-arg index="0" ref="processRepository"/>
+        <constructor-arg index="1" ref="logRepository"/>
+        <constructor-arg index="2" ref="groupProcessRepository"/>
+        <constructor-arg index="3" ref="groupLogRepository"/>
+        <constructor-arg index="4" ref="processModelVersionRepository"/>
+        <constructor-arg index="5" ref="folderRepository"/>
+        <constructor-arg index="6" ref="groupFolderRepository"/>
+        <constructor-arg index="7" ref="workspaceServiceImpl"/>
+        <constructor-arg index="8" ref="config"/>  
+    </bean>
+    
+    
+    <bean id="eventLogFileServiceImpl" class="org.apromore.service.impl.EventLogFileServiceImpl">
+        <constructor-arg index="0" ref="configBean"/>  
+    </bean>
+    
+    <bean id="eventLogServiceImpl" class="org.apromore.service.impl.EventLogServiceImpl">
+        <constructor-arg index="0" ref="logRepository"/>
+        <constructor-arg index="1" ref="groupRepository"/>
+        <constructor-arg index="2" ref="groupLogRepository"/>
+        <constructor-arg index="3" ref="folderRepository"/>
+        <constructor-arg index="4" ref="userServiceImpl"/>
+        <constructor-arg index="5" ref="uIHelper"/>
+        <constructor-arg index="6" ref="config"/>
+        <constructor-arg index="7" ref="userMetadataService"/>
+    </bean>
+    
+    
+    <bean id="formatServiceImpl" class="org.apromore.service.impl.FormatServiceImpl">
+        <constructor-arg index="0" ref="nativeRepository"/>  
+        <constructor-arg index="1" ref="nativeTypeRepository"/>  
+    </bean>
+
+	<bean id="historyEventServiceImpl" class="org.apromore.service.impl.HistoryEventServiceImpl">
+        <constructor-arg index="0" ref="historyEventRepository"/>  
+        <constructor-arg index="1" ref="userRepository"/>  
+    </bean>
+    
+     <bean id="lockServiceImpl" class="org.apromore.service.impl.LockServiceImpl">
+        <constructor-arg index="0" ref="processModelVersionRepository"/>  
+    </bean>
+    
+    
+    <bean id="processServiceImpl" class="org.apromore.service.impl.ProcessServiceImpl">
+        <constructor-arg index="0" ref="nativeRepository"/>
+        <constructor-arg index="1" ref="groupRepository"/>
+        <constructor-arg index="2" ref="processRepository"/>
+        <constructor-arg index="3" ref="processModelVersionRepository"/>
+        <constructor-arg index="4" ref="groupProcessRepository"/>
+        <constructor-arg index="5" ref="lockServiceImpl"/>
+        <constructor-arg index="6" ref="userServiceImpl"/>
+        <constructor-arg index="7" ref="formatServiceImpl"/>
+        <constructor-arg index="8" ref="uIHelper"/>
+        <constructor-arg index="9" ref="workspaceServiceImpl"/>
+        <constructor-arg index="10" ref="config"/>
+    </bean>
+    
+    <bean id="securityServiceImpl" class="org.apromore.service.impl.SecurityServiceImpl">
+        <constructor-arg index="0" ref="userRepository"/>
+        <constructor-arg index="1" ref="groupRepository"/>
+        <constructor-arg index="2" ref="roleRepository"/>
+        <constructor-arg index="3" ref="permissionRepository"/>
+        <constructor-arg index="4" ref="membershipRepository"/>
+        <constructor-arg index="5" ref="workspaceServiceImpl"/>
+        <constructor-arg index="6" ref="mailSender"/>
+        <constructor-arg index="7" ref="eventAdmin"/>
+       
+    </bean>
+    
+    <bean id="userMetadataServiceImpl" class="org.apromore.service.impl.UserMetadataServiceImpl">
+        <constructor-arg index="0" ref="logRepository"/>
+        <constructor-arg index="1" ref="groupLogRepository"/>
+        <constructor-arg index="2" ref="userServiceImpl"/>
+        <constructor-arg index="3" ref="groupUsermetadataRepository"/>
+        <constructor-arg index="4" ref="usermetadataRepository"/>
+        <constructor-arg index="5" ref="usermetadataTypeRepository"/>
+        <constructor-arg index="6" ref="usermetadataLogRepository"/>
+        <constructor-arg index="7" ref="groupRepository"/>
+       
+    </bean>
+    
+    <bean id="userServiceImpl" class="org.apromore.service.impl.UserServiceImpl">
+        <constructor-arg index="0" ref="userRepository"/>  
+        <constructor-arg index="1" ref="searchHistoryRepository"/>  
+    </bean>
+    
+    <bean id="workspaceServiceImpl" class="org.apromore.service.impl.WorkspaceServiceImpl">
+        <constructor-arg index="0" ref="workspaceRepository"/>
+        <constructor-arg index="1" ref="userRepository"/>
+        <constructor-arg index="2" ref="processRepository"/>
+        <constructor-arg index="3" ref="processModelVersionRepository"/>
+        <constructor-arg index="4" ref="logRepository"/>
+        <constructor-arg index="5" ref="folderRepository"/>
+        <constructor-arg index="6" ref="groupRepository"/>
+        <constructor-arg index="7" ref="groupFolderRepository"/>
+        <constructor-arg index="8" ref="groupProcessRepository"/>
+        <constructor-arg index="9" ref="groupLogRepository"/>
+        <constructor-arg index="10" ref="eventLogFileService"/>
+        <constructor-arg index="11" ref="userMetadataServiceImpl"/>
+    </bean>
+    
+</beans>

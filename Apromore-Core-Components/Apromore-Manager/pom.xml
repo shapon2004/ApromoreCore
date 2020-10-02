@@ -82,6 +82,7 @@
                             org.springframework.ws.transport.http,
                             org.springframework.ws,
                             com.sun.xml.bind.v2,
+         					org.springframework.aop,
                             !edu.sussex.nlp.jws,
                             !junit*,
                             !net.didion.jwnl*,

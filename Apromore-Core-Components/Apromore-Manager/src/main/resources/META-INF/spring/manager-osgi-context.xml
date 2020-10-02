@@ -33,28 +33,11 @@
 
     <osgi:reference id="pluginProvider" interface="org.apromore.plugin.provider.PluginProvider"/>
     <osgi:reference id="apmLogService" interface="org.apromore.apmlog.APMLogService"/>
-
-   
     
-    <osgi:service ref="pluginServiceImpl" interface="org.apromore.service.PluginService" auto-export="interfaces"/>
-    <osgi:service ref="processServiceImpl" interface="org.apromore.service.ProcessService" auto-export="interfaces"/>
-    <osgi:service ref="formatServiceImpl" interface="org.apromore.service.FormatService" auto-export="interfaces"/>
-    <osgi:service ref="domainServiceImpl" interface="org.apromore.service.DomainService" auto-export="interfaces"/>
-    <osgi:service ref="userServiceImpl" interface="org.apromore.service.UserService" auto-export="interfaces"/>
-    <osgi:service ref="securityServiceImpl" interface="org.apromore.service.SecurityService" auto-export="interfaces"/>
-    <osgi:service ref="workspaceServiceImpl" interface="org.apromore.service.WorkspaceService" auto-export="interfaces"/>
-    <osgi:service ref="UIHelper" interface="org.apromore.service.helper.UserInterfaceHelper" auto-export="interfaces"/>
-    <osgi:service ref="eventLogServiceImpl" interface="org.apromore.service.EventLogService" auto-export="interfaces"/>
-    <osgi:service ref="userDetailsServiceImpl" interface="org.springframework.security.core.userdetails.UserDetailsService" auto-export="interfaces"/>
-    <osgi:service ref="usernamePasswordAuthenticationProvider" interface="org.springframework.security.authentication.AuthenticationProvider" auto-export="interfaces"/>
- 
-    <osgi:service ref="userMetadataServiceImpl" interface="org.apromore.service.UserMetadataService"
-                  auto-export="interfaces"/>
-                  
-                  
-    <osgi:service ref="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
+    <osgi:reference id="processModelVersionRepository" interface="org.apromore.persistence.repository.ProcessModelVersionRepository"/>
+     
     <osgi:reference id="folderRepository" interface="org.apromore.persistence.repository.FolderRepository"/>
-    <osgi:reference id="groupFolderRepository" interface="org.apromore.persistence.repository.GroupFolderRepository"/>
+    <osgi:reference id="groupFolderRepository.java" interface="org.apromore.persistence.repository.GroupFolderRepository"/>
     <osgi:reference id="groupLogRepository" interface="org.apromore.persistence.repository.GroupLogRepository"/>
     <osgi:reference id="groupProcessRepository" interface="org.apromore.persistence.repository.GroupProcessRepository"/>
     <osgi:reference id="groupRepository" interface="org.apromore.persistence.repository.GroupRepository"/>
@@ -81,7 +64,21 @@
     <osgi:reference id="usermetadataTypeRepository" interface="org.apromore.persistence.repository.UsermetadataTypeRepository"/>
     <osgi:reference id="userRepository" interface="org.apromore.persistence.repository.UserRepository"/>
     <osgi:reference id="workspaceRepository" interface="org.apromore.persistence.repository.WorkspaceRepository"/>
-    <osgi:reference id="transactionManager" interface="org.springframework.transaction.PlatformTransactionManager"/>
+
+    
+    <osgi:service ref="pluginServiceImpl" interface="org.apromore.service.PluginService" auto-export="interfaces"/>
+    <osgi:service ref="processServiceImpl" interface="org.apromore.service.ProcessService" auto-export="interfaces"/>
+    <osgi:service ref="formatServiceImpl" interface="org.apromore.service.FormatService" auto-export="interfaces"/>
+    <osgi:service ref="domainServiceImpl" interface="org.apromore.service.DomainService" auto-export="interfaces"/>
+    <osgi:service ref="userServiceImpl" interface="org.apromore.service.UserService" auto-export="interfaces"/>
+    <osgi:service ref="securityServiceImpl" interface="org.apromore.service.SecurityService" auto-export="interfaces"/>
+    <osgi:service ref="workspaceServiceImpl" interface="org.apromore.service.WorkspaceService" auto-export="interfaces"/>
+    <osgi:service ref="uIHelper" interface="org.apromore.service.helper.UserInterfaceHelper" auto-export="interfaces"/>
+    <osgi:service ref="eventLogServiceImpl" interface="org.apromore.service.EventLogService" auto-export="interfaces"/>
+    <osgi:service ref="userDetailsServiceImpl" interface="org.springframework.security.core.userdetails.UserDetailsService" auto-export="interfaces"/>
+    <osgi:service ref="usernamePasswordAuthenticationProvider" interface="org.springframework.security.authentication.AuthenticationProvider" auto-export="interfaces"/>            
+    <osgi:service ref="userMetadataServiceImpl" interface="org.apromore.service.UserMetadataService"
+                  auto-export="interfaces"/>
 
 
 </beans:beans>
