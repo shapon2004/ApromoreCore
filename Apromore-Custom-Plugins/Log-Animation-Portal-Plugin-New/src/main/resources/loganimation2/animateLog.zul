@@ -21,12 +21,14 @@
   -->
 
 
-<!--<?link rel="shortcut icon" href="favicon.ico" ?>-->
 <?link rel="shortcut icon" href="../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?script src="../themes/ap/common/js/index.js"?>
 <?script src="/loganimation2/js/ap/dataRequester.js" ?>
 <?script src="/loganimation2/js/ap/frameBuffer.js" ?>
-<?script src="/loganimation2/js/ap/svgAnimation2.js" ?>
+<?script src="/loganimation2/js/ap/animationEngine.js" ?>
+<?script src="/loganimation2/js/ap/utils.js" ?>
+<?script src="/loganimation2/js/ap/animation.js" ?>
+
 <z:window id="win"
           xmlns="http://www.zkoss.org/2005/zk/native"
           xmlns:n="http://www.zkoss.org/2005/zk/native"
@@ -96,7 +98,7 @@
         <n:script src="/${arg.editor}/editor/i18n/translation_en_us.js" type="text/javascript"/>
         <n:script src="/${arg.editor}/editor/i18n/translation_signavio_en_us.js" type="text/javascript"/>
         <n:script src="/${arg.editor}/editor/apromore-editor.js" type="text/javascript"/>
-
+        
         <n:script src="/loganimation2/js/jquery-1.10.2.min.js" type="text/javascript"/>
         <n:script src="/loganimation2/js/jquery-ui.min.js" type="text/javascript"/>
         <n:script src="/loganimation2/js/jquery-ui-slider-pips.js" type="text/javascript"/>
@@ -104,9 +106,7 @@
         <n:script src="/themes/ap/common/js/lodash/lodash.min.js" type="text/javascript"/>
         <n:script src="/themes/ap/common/js/moment/moment.min.js" type="text/javascript"/>
 
-        <n:script src="/loganimation2/js/ap/utils.js" type="text/javascript"/>
-        <n:script src="/loganimation2/js/ap/animation.js" type="text/javascript"/>
-        <n:script src="/loganimation2/js/ap/trace.js" type="text/javascript"/>
+
 
         <!-- Include all editor plug-ins -->
         <z:zk forEach="${arg.plugins}">

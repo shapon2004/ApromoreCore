@@ -55,8 +55,8 @@ class Buffer {
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
 
-        this._requestLoop();
-        this._cleanLoop();
+        this._loopRequestData();
+        this._loopCleanup();
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -276,8 +276,9 @@ class Buffer {
      * mode.
      * @private
      */
-    _requestLoop() {
-        window.setTimeout(this._requestLoop.bind(this),2000);
+    _loopRequestData() {
+        console.log('Buffer - loopRequestData');
+        window.setTimeout(this._loopRequestData.bind(this),2000);
         if (this.isSequentialMode() && this._nextRequestFrameIndex <= this._waitingFrameIndex) {
             return;
         }
@@ -287,7 +288,7 @@ class Buffer {
             this._dataRequester.requestData(this, this._requestToken, frameIndex, this._chunkSize);
             this._waitingFrameIndex = frameIndex;
             if (!this.isSequentialMode()) this.setSequentialMode();
-            console.log('Buffer - replenish: safety stock not yet reached, send request to DataRequester, frameIndex = ' + frameIndex);
+            console.log('Buffer - loopRequestData: safety stock not yet reached, send request to DataRequester, frameIndex = ' + frameIndex);
         }
         else if (this.isSafetyStock()) {
             //console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
@@ -298,13 +299,14 @@ class Buffer {
         //this._logStockLevel();
     }
 
-    _cleanLoop() {
-        window.setTimeout(this._cleanLoop.bind(this),2000);
+    _loopCleanup() {
+        //console.log('Buffer - loopCleanup');
+        window.setTimeout(this._loopCleanup.bind(this),2000);
         //console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);
         //this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
         if (obsoleteSize > 0) {
-            //console.log('Buffer - cleanLoop: remove obsolete frames, amount of removed frames: ' + obsoleteSize);
+            //console.log('Buffer - loopCleanup: remove obsolete frames, number of frames removed: ' + obsoleteSize);
             this._frames.splice(0, obsoleteSize);
             this._currentIndex -= obsoleteSize;
         }

@@ -52,7 +52,7 @@ Ap.la.session = (function() {
   function init(xml, url, namespace, data, pluginExecutionId) {
     animationData = data;
     editor = initEditor(xml, url, namespace);
-    controller = new Ap.la.AnimationController(editor.getCanvas(), pluginExecutionId);
+    controller = new AnimationController(editor.getCanvas(), pluginExecutionId);
     initSpeedControl();
   }
 
@@ -130,7 +130,7 @@ Ap.la.session = (function() {
       controller.playPause(e);
     },
     fastForward: function() {
-      controller.fastforward();
+      controller.fastForward();
     },
     fastBackward: function() {
       controller.fastBackward();
