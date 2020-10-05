@@ -111,6 +111,7 @@ class AnimationController {
 
     if (this.clockTimer) {
       clearInterval(this.clockTimer);
+      this.clockTimer = undefined;
     }
   }
 
@@ -127,6 +128,9 @@ class AnimationController {
     console.log('AnimationController: unpauseOthers');
     let me = this;
 
+    console.log("Cursor duration=" + this.cursorAnim.getAttribute('dur'));
+    console.log("Timeline current time=" + this.svgTimeline.getCurrentTime());
+
     this.svgDocs.forEach(function(svgDoc) {
       svgDoc.unpauseAnimations();
     });
@@ -138,6 +142,10 @@ class AnimationController {
     this.clockTimer = setInterval(function() {
       me.updateClock();
     }, 100);
+  }
+
+  isRunning() {
+    return (this.clockTimer !== undefined);
   }
 
   reset(jsonRaw) {
@@ -453,22 +461,18 @@ class AnimationController {
    * @param speedLevel
    */
   changeSpeed(speedLevel) {
-    console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel);
     let newFrameRate = speedLevel*this.animationContext.getRecordingFrameRate();
+    console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel + ", new frame rate=" + newFrameRate);
     this.updateOtherAnimations(speedLevel);
     this.animationEngine.setPlayingFrameRate(newFrameRate);
   }
 
   updateOtherAnimations(speedLevel) {
-    console.log('AnimationController - updateOtherAnimations: speedRatio = ' + speedLevel + " currentLogicalTime=" +
-              this.animationEngine.getCurrentLogicalTime());
-    let speedRatio = speedLevel/this.animationEngine.getPlayingFrameRateLevel();
-    let fullPathTimeAsRecording = this.animationContext.getLogicalTimelineMax();
-    let currentTimePercentAsRecording = this.animationEngine.getCurrentLogicalTime()/fullPathTimeAsRecording;
-    let newFullPathTime = fullPathTimeAsRecording/speedRatio;
-    let newLogicalTime = this.animationEngine.getCurrentLogicalTime()/speedLevel;
-
+    console.log('AnimationController - updateOtherAnimations: speedRatio = ' + speedLevel);
     this.pauseOthers();
+    let currentTime = this.svgTimeline.getCurrentTime();
+    let speedRatio = speedLevel/this.animationEngine.getPlayingFrameRateLevel();
+
     // Update the speed of circle progress bar
     let curDur, animateEl;
     let animations = $j('.progress-animation');
@@ -476,18 +480,26 @@ class AnimationController {
       animateEl = animations[i];
       curDur = animateEl.getAttribute('dur');
       curDur = curDur.substr(0, curDur.length - 1);
-      animateEl.setAttributeNS(null, 'dur', curDur/speedRatio + 's');
+      animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
     }
 
     // Update timeline cursor
-    let cursorAnim = this.cursorAnim;
-    curDur = cursorAnim.getAttribute('dur');
-    curDur = curDur.substr(0, curDur.length - 1);
-    cursorAnim.setAttributeNS(null, 'dur', curDur/speedRatio + 's');
-    let currentTime = this.svgTimeline.getCurrentTime();
-    this.setCurrentLogicalTime(currentTime/speedRatio);
+    // let cursorAnim = this.cursorAnim;
+    // curDur = cursorAnim.getAttribute('dur');
+    // curDur = curDur.substr(0, curDur.length - 1);
+    // cursorAnim.setAttributeNS(null, 'dur', curDur/speedRatio + 's');
+    // Only this code works, setAttributeNS doesn't work
+    if (this.cursorEl) {
+      this.timelineEl.removeChild(this.cursorEl)
+    }
+    this.slotEngineS = this.slotEngineS/speedRatio;
+    this.createCursor();
 
+    // Now set the current SVG engine time: the SVG animation will change speed at the same position
+    this.setCurrentLogicalTime(currentTime/speedRatio);
     this.unpauseOthers();
+    console.log('AnimationController - updateOtherAnimations: new cursor duration=' + curDur/speedRatio +
+              ", new current time=" + currentTime/speedRatio);
   }
 
   slotSecondstoRealMs(seconds) {
@@ -506,6 +518,17 @@ class AnimationController {
     this.animationEngine.fastBackward();
   }
 
+  // Cy = Cx/SpeedRatio
+  // SpeedRatio is the speed level as it is compared with the normal speed
+  goto(logicalTime) {
+    let newLogicalTime = logicalTime;
+    if (newLogicalTime < 0) { newLogicalTime = 0; }
+    if (newLogicalTime > this.totalEngineS) { newLogicalTime = this.totalEngineS; }
+    let currentTime = this.svgTimeline.getCurrentTime();
+    this.setCurrentLogicalTime(newLogicalTime/this.animationEngine.getPlayingFrameRateLevel())
+    this.animationEngine.goto(newLogicalTime);
+  }
+
   nextTrace() {
   }
 
@@ -516,7 +539,7 @@ class AnimationController {
     return $j('#pause').hasClass(this.PAUSE_CLS);
   }
 
-  isPlaying() {
+  playButtonPressed() {
     return $j('#pause').hasClass(this.PAUSE_CLS);
   }
 
@@ -681,7 +704,8 @@ class AnimationController {
     cursorAnim.setAttributeNS(null, 'type', 'translate');
     cursorAnim.setAttributeNS(null, 'id', 'cursor-animation');
     cursorAnim.setAttributeNS(null, 'begin', '0s');
-    cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
+    //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
+    cursorAnim.setAttributeNS(null, 'dur', slotNum*slotEngineS + 's');
     cursorAnim.setAttributeNS(null, 'by', 1);
     cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
     cursorAnim.setAttributeNS(null, 'to', x + slotNum * slotWidth + ',' + y);
@@ -702,7 +726,7 @@ class AnimationController {
     svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
 
     function startDragging(evt) {
-      isPlayingBeforeDrag = me.isPlaying();
+      isPlayingBeforeDrag = me.playButtonPressed();
       evt.preventDefault();
       dragging = true;
       me.pause();
@@ -720,11 +744,10 @@ class AnimationController {
       }
       dragging = false;
       let time = getTimeFromMouseX(evt);
-      this.setCurrentLogicalTime(time);
+      me.goto(time);
       if (isPlayingBeforeDrag) {
         me.play();
       }
-      this.animationEngine.goto(time);
     }
 
     function getTimeFromMouseX(evt) {
@@ -891,13 +914,13 @@ class AnimationController {
    * @param {EventType} event
    */
   update(event) {
-    console.log('AnimationController: event processing');
+    //console.log('AnimationController: event processing');
     if (!(event instanceof AnimationEvent)) return;
 
-    if (event.getEventType() === EventType.OUT_OF_FRAME) {
+    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isRunning()) {
       this.pauseOthers();
     }
-    else if (event.getEventType() === EventType.FRAMES_AVAILABLE) {
+    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isRunning()) {
       this.unpauseOthers();
     }
     else if (event.getEventType() === EventType.TIME_CHANGED) {

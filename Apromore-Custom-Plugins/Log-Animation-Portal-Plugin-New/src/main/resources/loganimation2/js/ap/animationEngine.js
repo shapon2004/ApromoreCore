@@ -185,8 +185,8 @@ class AnimationEngine {
     }
 
     isInProgress () {
-        return ((this._currentTime/1000) > 0 &&
-            (this._currentTime/1000) < this._animationContext.getLogicalTimelineMax());
+        let currentLogicalTime = this.getCurrentLogicalTime();
+        return (currentLogicalTime > 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
     }
 
     /**
@@ -231,7 +231,7 @@ class AnimationEngine {
         if (this._paused) return;
         this._readBufferLoopId = setTimeout(this._loopBufferReading.bind(this), 1000);
         if (this._playMode !== PlayMode.SEQUENTIAL) return;
-        if (this._frameQueue.length >= 300) return;
+        if (this._frameQueue.length >= 2*Buffer.DEFAULT_CHUNK_SIZE) return;
 
         let frames = this._frameBuffer.readNext();
         if (frames && frames.length > 0) {
@@ -241,10 +241,10 @@ class AnimationEngine {
             console.log('AnimationEngine - loopBufferReading: readNext returns EMPTY result.');
         }
 
-        if (this._frameBuffer.isOutOfSupply()) {
-            console.log('AnimationEngine - loopBufferReading: out of stock and no more frames in supply. The readBufferLoop stops.');
-            this._clearPendingBufferReads();
-        }
+        // if (this._frameBuffer.isOutOfSupply()) {
+        //     console.log('AnimationEngine - loopBufferReading: out of stock and no more frames in supply. The readBufferLoop stops.');
+        //     this._clearPendingBufferReads();
+        // }
     }
 
     /**
@@ -266,10 +266,10 @@ class AnimationEngine {
                 this._currentTime += this._playingFrameInterval;
                 this._currentFrameIndex = frame.index;
                 this._drawFrame(frame);
-                //this._notifyAll(new AnimationEvent(EventType.FRAMES_AVAILABLE, undefined));
+                this._notifyAll(new AnimationEvent(EventType.FRAMES_AVAILABLE, undefined));
             }
             else {
-                //this._notifyAll(new AnimationEvent(EventType.OUT_OF_FRAME, undefined));
+                this._notifyAll(new AnimationEvent(EventType.OUT_OF_FRAME, undefined));
             }
         }
     }
@@ -312,7 +312,7 @@ class AnimationEngine {
     /**
      * Move to a random logical time mark, e.g. when the timeline tick is dragged to a new position.
      * Goto affects the two main loops by setting a playing mode from sequential to random.
-     * @param {Number} logicalTimeMark: number of seconds from the start
+     * @param {Number} logicalTimeMark: number of seconds from the start on the timeline
      */
     goto(logicalTimeMark) {
         if (logicalTimeMark < 0 || logicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
@@ -408,7 +408,6 @@ class AnimationEngine {
 
     _clearData() {
         this._frameQueue = [];
-        //this._clearPendingBufferReads();
     }
 
     registerListener(listener) {

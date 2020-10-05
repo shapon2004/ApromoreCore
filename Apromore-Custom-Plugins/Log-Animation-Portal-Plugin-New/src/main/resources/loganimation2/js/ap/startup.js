@@ -115,7 +115,7 @@ Ap.la.session = (function() {
     let lastSliderValue = speedControl.slider("value");
     speedControl.on("slidechange", function(event, ui) {
       let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
-      controller.changeSpeed(speedRatio, STEP_VALUES[ui.value - 1]);
+      controller.changeSpeed(STEP_VALUES[ui.value - 1]);
       lastSliderValue = ui.value;
     });
   }
