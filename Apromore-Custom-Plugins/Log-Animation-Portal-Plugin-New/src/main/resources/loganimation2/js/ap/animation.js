@@ -87,7 +87,6 @@ class AnimationController {
     this.endMs = 120;
     this.slotNum = 120;
     this.slotDataMs = 1000;
-    this.caseLabelsVisible = false;
 
     this.textFont = {size: '11', anchor: 'middle'};
     this.PLAY_CLS = 'ap-mc-icon-play';
@@ -172,7 +171,7 @@ class AnimationController {
     this.endMs = new Date(timeline.endDateLabel).getTime(); // End date in milliseconds
     this.totalMs = this.endMs - this.startMs;
     this.currentMs = this.startMs;
-    this.totalEngineS = timeline.totalEngineSeconds; // Total engine seconds
+    this.totalEngineS = timeline.totalEngineSeconds; // Total engine seconds (may change according to the speed)
     this.oriTotalEngineS = timeline.totalEngineSeconds;
     this.startPos = timeline.startDateSlot; // Start slot, starting from 0
     this.endPos = timeline.endDateSlot; // End slot, currently set at 120
@@ -183,6 +182,7 @@ class AnimationController {
     this.slotDataMs = this.totalMs / this.slotNum;
     // Ratio for data ms / animation ms
     this.timeCoef = this.slotDataMs / this.slotEngineMs;
+    this.speedLevel = 1;
 
     this.slotWidth = 9;
     this.timelineWidth = this.slotNum * this.slotWidth;
@@ -357,18 +357,26 @@ class AnimationController {
     }
   }
 
-  // Note: the engine time is changed in two situations:
-  // 1. Change the token speed: go slower/faster
-  // 2. Change the engine time to move the token forward/backward
-  // In changing speed situation: the tokens (or markers) and clock are not updated. Their settings must be the same
-  // after the engine time is changed, e.g. tokens must stay in the same position, clock must show the same datetime
-  setCurrentLogicalTime(time) {
+  getActualTimeFromLogicalTime(logicalTime) {
+    return logicalTime/this.speedLevel;
+  }
+
+  getLogicalTimeFromActualTime(time) {
+    return time*this.speedLevel;
+  }
+
+  getCurrentActualTime() {
+    return this.svgTimeline.getCurrentTime();
+  }
+
+  setCurrentActualTime(time) {
     if (time < 0) { time = 0; }
     if (time > this.totalEngineS) { time = this.totalEngineS; }
     let self=this;
     this.svgDocs.forEach(function(svgDoc) {
       if (svgDoc != self.svgMain) svgDoc.setCurrentTime(time);
     });
+    this.updateClockOnce(timeMs);
   }
 
   /*
@@ -461,6 +469,7 @@ class AnimationController {
    * @param speedLevel
    */
   changeSpeed(speedLevel) {
+    this.speedLevel = speedLevel;
     let newFrameRate = speedLevel*this.animationContext.getRecordingFrameRate();
     console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel + ", new frame rate=" + newFrameRate);
     this.updateOtherAnimations(speedLevel);
@@ -469,9 +478,16 @@ class AnimationController {
 
   updateOtherAnimations(speedLevel) {
     console.log('AnimationController - updateOtherAnimations: speedRatio = ' + speedLevel);
+
     this.pauseOthers();
-    let currentTime = this.svgTimeline.getCurrentTime();
+    let currentTime = this.getCurrentActualTime();
     let speedRatio = speedLevel/this.animationEngine.getPlayingFrameRateLevel();
+
+    // Update visual configurations to match the new speed
+    this.slotEngineS = this.slotEngineS / speedRatio;
+    this.slotEngineMs = this.slotEngineMs / speedRatio;
+    this.slotEngineS = this.slotEngineS / speedRatio;
+    if (this.timeCoef) this.timeCoef = this.slotDataMs / this.slotEngineMs;
 
     // Update the speed of circle progress bar
     let curDur, animateEl;
@@ -483,20 +499,14 @@ class AnimationController {
       animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
     }
 
-    // Update timeline cursor
-    // let cursorAnim = this.cursorAnim;
-    // curDur = cursorAnim.getAttribute('dur');
-    // curDur = curDur.substr(0, curDur.length - 1);
-    // cursorAnim.setAttributeNS(null, 'dur', curDur/speedRatio + 's');
-    // Only this code works, setAttributeNS doesn't work
+    // Update the cursor, must recreate the cursor because setAttributeNS doesn't work
     if (this.cursorEl) {
-      this.timelineEl.removeChild(this.cursorEl)
+      this.timelineEl.removeChild(this.cursorEl);
     }
-    this.slotEngineS = this.slotEngineS/speedRatio;
     this.createCursor();
 
     // Now set the current SVG engine time: the SVG animation will change speed at the same position
-    this.setCurrentLogicalTime(currentTime/speedRatio);
+    this.setCurrentActualTime(currentTime/speedRatio);
     this.unpauseOthers();
     console.log('AnimationController - updateOtherAnimations: new cursor duration=' + curDur/speedRatio +
               ", new current time=" + currentTime/speedRatio);
@@ -509,24 +519,34 @@ class AnimationController {
   // Move forward 1 slot
   fastForward() {
     console.log('AnimationController - fastForward');
-    this.animationEngine.fastForward();
+    if (this.getCurrentActualTime() >= (this.endPos * this.slotEngineMs) / 1000) {
+      return;
+    } else {
+      let s = this.getCurrentActualTime() + (1 * this.slotEngineMs) / 1000
+      this.setCurrentActualTime(s);
+    }
   }
 
   // Move backward 1 slot
   fastBackward() {
     console.log('AnimationController - fastBackward');
-    this.animationEngine.fastBackward();
+    if (this.getCurrentActualTime() <= (this.startPos * this.slotEngineMs) / 1000) {
+      return;
+    } else {
+      let s = this.getCurrentActualTime() - (1 * this.slotEngineMs) / 1000
+      this.setCurrentActualTime(s);
+    }
   }
 
   // Cy = Cx/SpeedRatio
   // SpeedRatio is the speed level as it is compared with the normal speed
-  goto(logicalTime) {
-    let newLogicalTime = logicalTime;
-    if (newLogicalTime < 0) { newLogicalTime = 0; }
-    if (newLogicalTime > this.totalEngineS) { newLogicalTime = this.totalEngineS; }
+  goto(actualTime) {
+    let newTime = actualTime;
+    if (newTime < 0) { newTime = 0; }
+    if (newTime > this.totalEngineS) { newTime = this.totalEngineS; }
     let currentTime = this.svgTimeline.getCurrentTime();
-    this.setCurrentLogicalTime(newLogicalTime/this.animationEngine.getPlayingFrameRateLevel())
-    this.animationEngine.goto(newLogicalTime);
+    this.setCurrentActualTime(newTime/this.animationEngine.getPlayingFrameRateLevel());
+    this.animationEngine.goto(this.getLogicalTimeFromActualTime(newTime));
   }
 
   nextTrace() {
@@ -791,10 +811,6 @@ class AnimationController {
     this.timelineEl = timelineEl;
     this.svgTimeline.append(timelineEl);
     return timelineEl;
-  }
-
-  setCaseLabelsVisible(visible) {
-
   }
 
   // Deprecated section

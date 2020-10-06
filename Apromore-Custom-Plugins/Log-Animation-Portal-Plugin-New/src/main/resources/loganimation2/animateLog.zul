@@ -184,9 +184,11 @@
                             <n:div class="speed-control-tip">Speed control</n:div>
                         </div>
                     </div>
+                    <!--
                     <div sclass="ap-la-show-case-id">
                         <input id="toggleCaseLabelVisibility" type="checkbox" onchange="Ap.la.session.toggleCaseLabelVisibility()">Show Case IDs</input>
                     </div>
+                    -->
 
                 </div>
 
@@ -200,17 +202,7 @@
                             <td>Replayed</td>
                             <td>Reliable</td>
                             <td>Fitness</td>
-                            <!--
-                            <td style="text-align: center; font: 1em monospace">Time(s)</td>
-                            <td style="text-align: center; font: 1em monospace">A. Fitness</td>
-                            <td style="text-align: center; font: 1em monospace">A. Time(s)</td>
-                            <td style="text-align: center; font: 1em monospace">Algo Runtime(s)</td>
-                            -->
                         </tr>
-                        <!--
-                        <tr>
-                            <td colspan="6"><input id="toggleCaseLabelVisibility" type="checkbox" onchange="toggleCaseLabelVisibility()">Show case labels</input></td>
-                        </tr>-->
                     </table>
                 </div>
             </div>
