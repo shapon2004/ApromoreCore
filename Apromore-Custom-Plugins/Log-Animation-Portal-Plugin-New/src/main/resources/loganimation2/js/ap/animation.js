@@ -506,7 +506,8 @@ class AnimationController {
   }
 
   isPlayingState() {
-    return $j('#pause').hasClass(this.PAUSE_CLS);
+    //return $j('#pause').hasClass(this.PAUSE_CLS);
+    return !this.svgTimeline.animationsPaused();
   }
 
   /**
