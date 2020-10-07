@@ -86,10 +86,8 @@ Ap.la.session = (function() {
       // No data
       return;
     }
-    // Disable play controls as the controller init. may take time
-    setPlayControls(true);
-    controller.reset(animationData);
-    // Enable play controls back
+    setPlayControls(true); // Disable play controls as the controller init. may take time
+    controller.initialize(animationData);
     setPlayControls(false);
     document.title = "Apromore - Log Animator";
   }
@@ -141,11 +139,11 @@ Ap.la.session = (function() {
     previousTrace: function() {
       controller.previousTrace();
     },
-    start: function(e) {
-      controller.start();
+    gotoStart: function(e) {
+      controller.gotoStart();
     },
-    end: function(e) {
-      controller.end();
+    gotoEnd: function(e) {
+      controller.gotoEnd();
     },
     toggleCaseLabelVisibility: function() {
       let input = $j("input#toggleCaseLabelVisibility")[0];

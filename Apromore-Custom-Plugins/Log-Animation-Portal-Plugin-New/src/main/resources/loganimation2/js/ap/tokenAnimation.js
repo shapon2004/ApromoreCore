@@ -65,11 +65,8 @@ class EventType {
     static get OUT_OF_FRAME() {
         return 1;
     }
-    static get TIME_CHANGED() {
-        return 2;
-    }
     static get FRAMES_AVAILABLE() {
-        return 3;
+        return 2;
     }
 }
 
@@ -103,7 +100,7 @@ class AnimationEvent {
  *  The main animation configurations are contained in an AnimationContext
  *  The engine informs the outside via events and listeners.
  */
-class AnimationEngine {
+class TokenAnimation {
     /**
      * @param {AnimationContext} animationContext
      * @param {RenderingContext} canvasContext
@@ -111,7 +108,7 @@ class AnimationEngine {
      * @param {Array} elementIds
      */
     constructor(animationContext, canvasContext, pathMap, elementIds) {
-        console.log('AnimationEngine - initializing');
+        console.log('TokenAnimation - initializing');
         this._animationContext = animationContext;
         this._canvasContext = canvasContext;
         this._canvasTransform = this._canvasContext.getTransform();
@@ -127,6 +124,8 @@ class AnimationEngine {
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrameIndex = 0;
+        this._playingFrameRate = 0;
+        this._playingFrameInterval = 0;
 
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._paused = false; // pausing flag
@@ -135,7 +134,8 @@ class AnimationEngine {
         this._playMode = PlayMode.SEQUENTIAL;
 
         this._listeners = [];
-        this.setPlayingFrameRate(animationContext.getRecordingFrameRate());
+
+        this._initialize();
     }
 
     /**
@@ -174,14 +174,14 @@ class AnimationEngine {
         this._canvasContext.fillStyle = "red";
     }
 
-    start() {
-        console.log('AnimationEngine: start');
+    _initialize() {
+        console.log('TokenAnimation: initialize');
         this._setCanvasStyle();
         this._currentTime = 0;
-        this.unpause();
         this.startSequenceMode();
+        this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
         this._loopBufferReading();
-        this._loopDrawing(0);
+        this._loopDrawingSequentially(0);
     }
 
     isInProgress () {
@@ -193,32 +193,33 @@ class AnimationEngine {
      * Pause affects the two main loops by setting a paused flag.
      */
     pause() {
-        console.log('AnimationEngine: pause');
+        console.log('TokenAnimation: pause');
         this._paused = true;
     }
 
     unpause() {
-        console.log('AnimationEngine: unpause');
+        console.log('TokenAnimation: unpause');
         this._paused = false;
         this._now = this._then; //restart counting frame intervals
-        this._loopBufferReading();
-        this._loopDrawing(this._now);
-    }
-
-    // This is the current actual clock time
-    // How long the animation has run excluding pausing time.
-    getCurrentTime() {
-        return this._currentTime;
-    }
-
-    // The actual logical time as shown on the timeline at the cursor
-    // It is based on the number of frames has passed so far from the start of the animation
-    getCurrentLogicalTime() {
-        return this._currentFrameIndex/this._animationContext.getRecordingFrameRate();
+        this._loopDrawingSequentially(this._now);
     }
 
     getCurrentFrameIndex() {
         return this._currentFrameIndex;
+    }
+
+    // This is the current actual clock time
+    // How long the animation has run excluding pausing time.
+    getCurrentClockTime() {
+        return this._currentTime;
+    }
+
+    getCurrentLogicalTime() {
+        return this.getCurrentFrameIndex()/this._animationContext.getRecordingFrameRate();
+    }
+
+    getCurrentActualTime() {
+        return this.getCurrentFrameIndex()/this.getPlayingFrameRate();
     }
 
     /**
@@ -227,8 +228,8 @@ class AnimationEngine {
      * This is to support sequential mode, so it doesn't apply to random play mode
      */
     _loopBufferReading() {
-        //console.log('AnimationEngine - loopBufferReading');
-        if (this._paused) return;
+        //console.log('TokenAnimation - loopBufferReading');
+        //if (this._paused) return;
         this._readBufferLoopId = setTimeout(this._loopBufferReading.bind(this), 1000);
         if (this._playMode !== PlayMode.SEQUENTIAL) return;
         if (this._frameQueue.length >= 2*Buffer.DEFAULT_CHUNK_SIZE) return;
@@ -236,13 +237,13 @@ class AnimationEngine {
         let frames = this._frameBuffer.readNext();
         if (frames && frames.length > 0) {
             this._frameQueue.push(...frames);
-            console.log('AnimationEngine - loopBufferReading: readNext returns with first frame index=' + frames[0].index);
+            console.log('TokenAnimation - loopBufferReading: readNext returns result, first frame index=' + frames[0].index);
         } else {
-            console.log('AnimationEngine - loopBufferReading: readNext returns EMPTY result.');
+            console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY result.');
         }
 
         // if (this._frameBuffer.isOutOfSupply()) {
-        //     console.log('AnimationEngine - loopBufferReading: out of stock and no more frames in supply. The readBufferLoop stops.');
+        //     console.log('TokenAnimation - loopBufferReading: out of stock and no more frames in supply. The readBufferLoop stops.');
         //     this._clearPendingBufferReads();
         // }
     }
@@ -253,9 +254,9 @@ class AnimationEngine {
      * @param {Number} newTime: the passing time (milliseconds) since time origin
      * @private
      */
-    _loopDrawing(newTime) {
+    _loopDrawingSequentially(newTime) {
         if (this._paused) return;
-        window.requestAnimationFrame(this._loopDrawing.bind(this));
+        window.requestAnimationFrame(this._loopDrawingSequentially.bind(this));
         if (this._playMode !== PlayMode.SEQUENTIAL) return;
         this._now = newTime;
         let elapsed = this._now - this._then;
@@ -275,12 +276,28 @@ class AnimationEngine {
     }
 
     /**
+     * Only use for drawing the next available frame.
+     * Use case: when the animation is pausing.
+     * @private
+     */
+    _loopDrawingNextFrame() {
+        let frame = this._frameQueue.shift();
+        if (frame) {
+            this._currentFrameIndex = frame.index;
+            this._drawFrame(frame);
+        }
+        else {
+            this._loopDrawingNextFrameId = setTimeout(this._loopDrawingNextFrame.bind(this), 100);
+        }
+    }
+
+    /**
      * Draw a frame on the canvas
      * @param frame
      * @private
      */
     _drawFrame(frame) {
-        this._clearCanvas();
+        this.clearCanvas();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
             let elementId = this._getElementId(elementIndex);
@@ -298,14 +315,14 @@ class AnimationEngine {
     }
 
     startSequenceMode() {
-        console.log('AnimationEngine: start SEQUENTIAL model');
+        console.log('TokenAnimation: start SEQUENTIAL model');
         this._playMode = PlayMode.SEQUENTIAL;
         //this._readBufferLoop();
         //this._drawLoop(0);
     }
 
     startRandomMode() {
-        console.log('AnimationEngine: start RANDOM mode');
+        console.log('TokenAnimation: start RANDOM mode');
         this._playMode = PlayMode.RANDOM;
     }
 
@@ -316,57 +333,60 @@ class AnimationEngine {
      */
     goto(logicalTimeMark) {
         if (logicalTimeMark < 0 || logicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
-            console.log('AnimationEngine - goto: goto time is outside the timeline, do nothing');
+            console.log('TokenAnimation - goto: goto time is outside the timeline, do nothing');
             return;
         }
         this.startRandomMode();
         this._clearData();
         this._currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
-        console.log('AnimationEngine - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + this._currentFrameIndex);
+        console.log('TokenAnimation - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + this._currentFrameIndex);
         this._frameBuffer.moveTo(this._currentFrameIndex);
         this.startSequenceMode();
-        this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, logicalTimeMark*1000));
-    }
-
-    gotoStart() {
-        console.log('AnimationEngine: gotoStart');
-        this.goto(0);
-        this._clearData();
-        this._clearCanvas();
-    }
-
-    gotoEnd() {
-        console.log('AnimationEngine: gotoEnd');
-        this.goto(this._animationContext.getLogicalTimelineMax());
-        this._clearData();
-        this._clearCanvas();
-    }
-
-    fastForward() {
-        console.log('AnimationEngine: fastForward');
-        let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) + 5;
-        console.log('AnimationEngine - fastForward: new logical time=' + newLogicalTimeMark);
-        if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
-            this._clearData();
-            this._clearCanvas();
-            this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, this._animationContext.getLogicalTimelineMax()));
-            return;
+        if (this._paused) {
+            if (this._loopDrawingNextFrameId) clearTimeout(this._loopDrawingNextFrameId);
+            this._loopDrawingNextFrame();
         }
-        this.goto(newLogicalTimeMark);
     }
 
-    fastBackward() {
-        console.log('AnimationEngine: fastBackward');
-        let newLogicalTimeMark = Math.floor(this.getCurrentTime()/1000) - 5;
-        console.log('AnimationEngine - fastBackward: new logical time=' + newLogicalTimeMark);
-        if (newLogicalTimeMark < 0) {
-            this._clearData();
-            this._clearCanvas();
-            this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, 0));
-            return;
-        }
-        this.goto(newLogicalTimeMark);
-    }
+    // gotoStart() {
+    //     console.log('TokenAnimation: gotoStart');
+    //     this.goto(0);
+    //     this._clearData();
+    //     this._clearCanvas();
+    // }
+    //
+    // gotoEnd() {
+    //     console.log('TokenAnimation: gotoEnd');
+    //     this.goto(this._animationContext.getLogicalTimelineMax());
+    //     this._clearData();
+    //     this._clearCanvas();
+    // }
+    //
+    // fastForward() {
+    //     console.log('TokenAnimation: fastForward');
+    //     let newLogicalTimeMark = Math.floor(this.getCurrentClockTime()/1000) + 5;
+    //     console.log('TokenAnimation - fastForward: new logical time=' + newLogicalTimeMark);
+    //     if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
+    //         this._clearData();
+    //         this._clearCanvas();
+    //         this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, this._animationContext.getLogicalTimelineMax()));
+    //         return;
+    //     }
+    //     this.goto(newLogicalTimeMark);
+    // }
+    //
+    // fastBackward() {
+    //     console.log('TokenAnimation: fastBackward');
+    //     let newLogicalTimeMark = Math.floor(this.getCurrentClockTime()/1000) - 5;
+    //     console.log('TokenAnimation - fastBackward: new logical time=' + newLogicalTimeMark);
+    //     if (newLogicalTimeMark < 0) {
+    //         this._clearData();
+    //         this._clearCanvas();
+    //         this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, 0));
+    //         return;
+    //     }
+    //     this.goto(newLogicalTimeMark);
+    // }
 
     /**
      * Get the corresponding frame index at a logical time.
@@ -383,7 +403,7 @@ class AnimationEngine {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
     }
 
-    _clearCanvas() {
+    clearCanvas() {
         this._canvasContext.setTransform(1,0,0,1,0,0);
         this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
         let matrix = this._canvasTransform;

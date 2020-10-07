@@ -28,27 +28,19 @@
  * Chrome:
  * - Does not support reference variable to point DOM elements, must use selectors (getElementsBy)
  *   otherwise the innerHTML and element attributes are not updated
- * - svg.setCurrentLogicalTime is not processed properly, must call svg to reload via innerHTML
+ * - svg.setCurrentTime is not processed properly, must call svg to reload via innerHTML
  *
  * Dependencies:
  * utils.js (for Clazz)
  *
  * The animation page has four animation components:
  *
- * 1. The process model with tokens moving along the nodes and edges
- * 2. The timeline bar with a cursor moving along
- * 3. The circular progress bar showing the completion percentage for the log
- * 4. The digital clock running and showing the passing time
- *
- * These four components belong to four separate SVG document (<svg> tags).
- * Each SVG document has an internal SVG engine time
- *
- * The process model has nodes and edges which are SVG shapes. The animation shows tokens moving along these shapes.
- * Each token (or marker) belongs to a case in the log. A case is kept track in a LogCase object.
- * Each LogCase has multiple markers created and animated along certain nodes and edges
- * on the model in a continuous manner. Each marker is an SVG animateMotion element with a path attribute pointing
- * to the node or edge it has to move along. Two key attributes for animations are begin and dur (duration),
- * respectively when it begins and for how long. These attribute values are based on the time of the containing SVG document.
+ * 1. The process model with tokens moving along the nodes and edges: Canvas animation (TokenAnimation)
+ * 2. The timeline bar with a cursor moving along: SVG animation
+ * 3. The circular progress bar showing the completion percentage for the log: SVG animation
+ * 4. The digital clock running and showing the passing time: animation with setTimeInterval
+ * Four animations above have different internal state, but they share the same logical time which is
+ * the timeline when speed level is 1.
  *
  * The timeline bar has a number of equal slots configured in the configuration file, e.g. TimelineSlots = 120.
  * Each slot represents a duration of time in the event log, called SlotDataUnit, i.e. how many seconds per slot
@@ -59,11 +51,6 @@
  * timeCoef: the ratio of SlotDataUnit to SlotEngineUnit, i.e. 1 second in the engine = how many seconds in the data.
  * The starting point of time in all logs is set in json data sent from the server: startMs.
  *
- * The digital clock must keep running to show the clock jumping. It is governed by a timer property of
- * the controller. This timer is set to execute a function every interval of 100ms.
- * Starting from 0, it counts 100, 200, 300,...ms.
- * Call getCurrentLogicalTime() to the SVG document returns the current clock intervals = 100x (x = count)
- * The actual current time is: getCurrentLogicalTime()*timeCoef + startMs.
  */
 
 class AnimationController {
@@ -71,18 +58,18 @@ class AnimationController {
     this.jsonModel = null; // Parsed objects of the process model
     this.jsonServer = null; // Parsed objects returned from the server
     this.timeline = null;
-    this.tracedates = null;
     this.logs = null;
     this.logNum = 0;
 
-    this.canvas = canvas; // the editor canvas
+    // Animation environments: canvas, SVG documents and the clock
+    this.canvas = canvas; // the editor canvas object
     this.svgViewport = null; // initialized in Controller.reset
     this.svgDocs = [];
     this.svgMain = null; // initialized in Controller.reset
     this.svgTimeline = undefined;
     this.svgProgresses = [];
-
     this.clockTimer = null;
+
     this.startMs = 0;
     this.endMs = 120;
     this.slotNum = 120;
@@ -102,61 +89,18 @@ class AnimationController {
     this.pathElementLengths = [];
   }
 
-  pauseOthers() {
-    console.log('AnimationController: pauseOthers');
-    this.svgDocs.forEach(function(svgDoc) {
-      svgDoc.pauseAnimations();
-    });
-
-    if (this.clockTimer) {
-      clearInterval(this.clockTimer);
-      this.clockTimer = undefined;
-    }
-  }
-
-  /*
-   * Only this method creates a timer.
-   *
-   * This timer is used to update the digital clock.
-   * The mechanism is the digital clock reads SVG document current time every 100ms via updateClock() method.
-   * This is pulling way.
-   * In case of updating the clock once, it is safer to call updateClockOnce() method than updateClock(),
-   * to avoid endless loop.
-   */
-  unpauseOthers() {
-    console.log('AnimationController: unpauseOthers');
-    let me = this;
-
-    console.log("Cursor duration=" + this.cursorAnim.getAttribute('dur'));
-    console.log("Timeline current time=" + this.svgTimeline.getCurrentTime());
-
-    this.svgDocs.forEach(function(svgDoc) {
-      svgDoc.unpauseAnimations();
-    });
-
-    if (this.clockTimer) {
-      clearInterval(this.clockTimer);
-    }
-
-    this.clockTimer = setInterval(function() {
-      me.updateClock();
-    }, 100);
-  }
-
-  isRunning() {
-    return (this.clockTimer !== undefined);
-  }
-
-  reset(jsonRaw) {
+  initialize(jsonRaw) {
     console.log('AnimationController: reset/start');
+
+    // Data for animation
     this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, tracedates, elementIds} = this.jsonServer;
+    let {logs, timeline, elementIds} = this.jsonServer;
     this.logs = logs;
     this.logNum = logs.length;
     this.timeline = timeline;
-    this.tracedates = tracedates;
     this.elementIds = elementIds;
 
+    // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
     this.svgViewport = this.canvas.getSVGViewport();
     this.svgTimeline = $j('div.ap-la-timeline > svg')[0];
@@ -167,23 +111,25 @@ class AnimationController {
     this.svgDocs.push(this.svgMain);
     this.svgDocs.push(this.svgTimeline);
 
+    // Time configuration for the animation
     this.startMs = new Date(timeline.startDateLabel).getTime(); // Start date in milliseconds
     this.endMs = new Date(timeline.endDateLabel).getTime(); // End date in milliseconds
     this.totalMs = this.endMs - this.startMs;
-    this.currentMs = this.startMs;
-    this.totalEngineS = timeline.totalEngineSeconds; // Total engine seconds (may change according to the speed)
-    this.oriTotalEngineS = timeline.totalEngineSeconds;
-    this.startPos = timeline.startDateSlot; // Start slot, starting from 0
     this.endPos = timeline.endDateSlot; // End slot, currently set at 120
     this.slotNum = timeline.timelineSlots; // The number of timeline vertical bars or (timeline.endDateSlot - timeline.startDateSlot)
-    this.slotEngineMs = timeline.slotEngineUnit * 1000; // Animation milliseconds per slot
-    this.slotEngineS = timeline.slotEngineUnit; // in seconds
-    // Data milliseconds per slot
-    this.slotDataMs = this.totalMs / this.slotNum;
-    // Ratio for data ms / animation ms
-    this.timeCoef = this.slotDataMs / this.slotEngineMs;
-    this.speedLevel = 1;
+    this.slotDataMs = this.totalMs / this.slotNum; // Data milliseconds per slot
 
+    this.totalEngineS = timeline.totalEngineSeconds; // Total engine seconds (may change according to the speed)
+    this.slotEngineS = timeline.slotEngineUnit; // in seconds
+    this.timeCoef = this.slotDataMs / this.slotEngineS / 1000; // Ratio for data ms / animation ms
+
+    // Values for speed level = 1
+    this.currentSpeedLevel = 1;
+    this.oriTotalEngineS = this.totalEngineS;
+    this.oriSlotEngineS = this.slotEngineS;
+    this.oriTimeCoef = this.timeCoef;
+
+    // Visual drawing for timeline
     this.slotWidth = 9;
     this.timelineWidth = this.slotNum * this.slotWidth;
     this.logIntervalSize = 5;
@@ -199,6 +145,7 @@ class AnimationController {
       }
     }
 
+    // Create token animation
     let box = this.svgMain.getBoundingClientRect();
     let matrix = this.svgViewport.transform.baseVal.consolidate().matrix;
     let ctx = document.querySelector("#canvas").getContext('2d');
@@ -208,9 +155,10 @@ class AnimationController {
     ctx.canvas.y = box.y;
     ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
-    this.animationEngine = new AnimationEngine(this.animationContext, ctx, this.pathElementCache, this.elementIds);
-    this.animationEngine.registerListener(this);
+    this.tokenAnimation = new TokenAnimation(this.animationContext, ctx, this.pathElementCache, this.elementIds);
+    this.tokenAnimation.registerListener(this);
 
+    // Create visual controls
     this.createProgressIndicators();
     this.createLogInfoPopups();
     this.createTimeline();
@@ -218,33 +166,16 @@ class AnimationController {
     this.createTicks();
     this.createCursor();
     this.createMetricTables();
+
     let me = this;
-    window.onkeydown = function(event){
+    window.onkeydown = function(event) {
       if(event.keyCode === 32 || event.key === " ") {
         event.preventDefault();
-        // event.stopPropagation();
         me.playPause();
       }
     };
 
     this.pause();
-  }
-
-  getAnimationEngine() {
-    return this.animationEngine;
-  }
-
-  getPathElement(pathElementId) {
-    let pathElement = this.pathElementCache[pathElementId]
-    return pathElement
-  }
-
-  getPathElementLength(elementIndex) {
-    return this.pathElementLengths[elementIndex];
-  }
-
-  getElementId(elementIndex) {
-    return this.elementIds[elementIndex];
   }
 
   // Add log intervals to timeline
@@ -357,26 +288,39 @@ class AnimationController {
     }
   }
 
-  getActualTimeFromLogicalTime(logicalTime) {
-    return logicalTime/this.speedLevel;
+  /**
+   * Logical time: the time as shown on the timeline when the cursor speed level is 1.
+   * Actual time: the actual time of the timeline cursor when its speed is less than or greater than 1.
+   * @param logicalTime
+   * @returns {number}
+   */
+  getSVGTimeFromLogicalTime(logicalTime) {
+    if (logicalTime <= 0) return 0;
+    if (logicalTime >= this.oriTotalEngineS) return this.totalEngineS;
+    return logicalTime/this.currentSpeedLevel;
   }
 
-  getLogicalTimeFromActualTime(time) {
-    return time*this.speedLevel;
+  getLogicalTimeFromSVGTime(svgTime) {
+    if (svgTime <= 0) return 0;
+    if (svgTime >= this.totalEngineS) return this.oriTotalEngineS;
+    return svgTime*this.currentSpeedLevel;
   }
 
-  getCurrentActualTime() {
+  getLogTimeFromLogicalTime(logicalTime) {
+    return logicalTime * this.oriTimeCoef * 1000 + this.startMs;
+  }
+
+  getCurrentSVGTime() {
     return this.svgTimeline.getCurrentTime();
   }
 
-  setCurrentActualTime(time) {
+  setCurrentSVGTime(time) {
     if (time < 0) { time = 0; }
     if (time > this.totalEngineS) { time = this.totalEngineS; }
     let self=this;
     this.svgDocs.forEach(function(svgDoc) {
       if (svgDoc != self.svgMain) svgDoc.setCurrentTime(time);
     });
-    this.updateClockOnce(timeMs);
   }
 
   /*
@@ -387,12 +331,11 @@ class AnimationController {
    */
   updateClock() {
     // Original implementation -- checks for termination, updates clock view
-    if (this.animationEngine.getCurrentLogicalTime() > (this.endPos * this.slotEngineMs) / 1000) {
-      console.log('AnimationController - updateClock: gotoEnd because out of animation time. Current time=' +
-          this.animationEngine.getCurrentLogicalTime());
-      this.end();
+    if (this.getCurrentSVGTime() >= this.totalEngineS) {
+      console.log('AnimationController - updateClock: gotoEnd because out of animation time.');
+      this.gotoEnd();
     } else {
-      this.updateClockOnce(this.startMs + this.animationEngine.getCurrentLogicalTime()*this.timeCoef*1000);
+      this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
     }
   }
 
@@ -422,28 +365,25 @@ class AnimationController {
     }
   }
 
-  start() {
-    console.log('AnimationController - gotoStart');
-    this.animationEngine.gotoStart();
-    this.setCurrentLogicalTime((this.animationEngine.getCurrentLogicalTime()/1000));
-    this.pause();
-  }
-
-  /*
-   * This method is used to process tasks when replay reaches the end of the timeline
+  /**
+   * SVG animation controls speed on a fixed path via time duration and determines the current position via
+   * the current engine time. However, TokenAnimation (canvas based) controls speed via frame rates.
+   * The time system in TokenAnimation and SVG animations are different because of different frame rates
+   * (we don't know what happens inside the SVG animation engine). However, we can use the current logical time
+   * as the shared information to synchronize them.
+   * @param {Number} speedLevel: the level number on the speed control component
    */
-  end() {
-    // this.updateClockOnce(this.endPos * this.slotEngineMs * this.timeCoef + this.startMs);
-    // if (this.clockTimer) {
-    //   clearInterval(this.clockTimer);
-    // }
-    console.log('AnimationController - gotoEnd');
-    this.animationEngine.gotoEnd();
-    this.setCurrentLogicalTime((this.animationEngine.getCurrentLogicalTime()/1000));
+  changeSpeed(speedLevel) {
     this.pause();
+    console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel);
+    this.updateSVGAnimations(speedLevel);
+    this.tokenAnimation.setPlayingFrameRate(speedLevel*this.animationContext.getRecordingFrameRate());
+    this.unPause();
+    this.currentSpeedLevel = speedLevel;
   }
 
   /**
+   * Below is the SVG rule to make sure the animation continues from the same position at the new speed.
    * Let L be the total length of an element where tokens are moved along (e.g. a sequence flow)
    * Let X be the current time duration set for the token to finish the length L (X is the value of dur attribute)
    * Let D be the distance that the token has done right before the speed is changed
@@ -455,98 +395,107 @@ class AnimationController {
    * the last position they were right before the speed change.
    * We have: D = Cy*L/Y = Cx*L/X => Cy = (Y/X)*Cx
    * Thus, for the token to start from the same position it was before the speed changes (i.e. dur changes from X to Y),
-   * the engine time must be set to (Y/X)*Cx, where Cx = svgDoc.getCurrentLogicalTime().
-   * Y/X is called the TimeRatio.
+   * the engine time must be set to (Y/X)*Cx, where Cx = svgDoc.getCurrentTime().
    * Instead of making changes to the distances, the user sets the speed through a speed slider control.
    * Each level represents a speed rate of the tokens
-   * The SpeedRatio Sy/Sx is the inverse of the TimeRatio Y/X (Sy = L/Y, Sx = L/X, SpeedRatio = Sy/Sx = X/Y = 1/TimeRatio).
+   * Sy = L/Y, Sx = L/X, SpeedRatio = Sy/Sx = X/Y: the ratio between the new and old speed levels.
    * In the formula above:
    *  Cy = Cx/SpeedRatio
    *  Y = X/SpeedRatio.
-   * In summary, by setting the engine current time (svgDoc.setCurrentTime) and the token duration as above,
-   * keeping the begin attribute of tokens UNCHANGED, the engine will automatically adjust the tokens to go
-   * faster or slower from the current position.
-   * @param speedLevel
+   * In summary, by setting the animation duration as above and keeping the begin attribute UNCHANGED,
+   * the SVG engine will automatically adjust its animation to go faster or slower. By setting the engine current time,
+   * the engine will start from the current position.
+   *
+   * Note that when SVG Animation changes its speed (i.e. change its time duration and current time), its internal
+   * current time has changed. This means svg.getCurrentTime() returns a different internal engine time depending on
+   * the new speed.
+   *
+   * @param {Number} speedLevel: the level number on the speed control component
    */
-  changeSpeed(speedLevel) {
-    this.speedLevel = speedLevel;
-    let newFrameRate = speedLevel*this.animationContext.getRecordingFrameRate();
-    console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel + ", new frame rate=" + newFrameRate);
-    this.updateOtherAnimations(speedLevel);
-    this.animationEngine.setPlayingFrameRate(newFrameRate);
-  }
-
-  updateOtherAnimations(speedLevel) {
-    console.log('AnimationController - updateOtherAnimations: speedRatio = ' + speedLevel);
-
-    this.pauseOthers();
-    let currentTime = this.getCurrentActualTime();
-    let speedRatio = speedLevel/this.animationEngine.getPlayingFrameRateLevel();
+  updateSVGAnimations(speedLevel) {
+    let speedRatio = speedLevel/this.currentSpeedLevel;
+    console.log('AnimationController - updateSVGAnimations: speedRatio = ' + speedRatio);
 
     // Update visual configurations to match the new speed
+    this.totalEngineS = this.totalEngineS / speedRatio;
     this.slotEngineS = this.slotEngineS / speedRatio;
-    this.slotEngineMs = this.slotEngineMs / speedRatio;
-    this.slotEngineS = this.slotEngineS / speedRatio;
-    if (this.timeCoef) this.timeCoef = this.slotDataMs / this.slotEngineMs;
+    this.timeCoef = this.slotDataMs / (this.slotEngineS*1000);
 
     // Update the speed of circle progress bar
-    let curDur, animateEl;
     let animations = $j('.progress-animation');
     for (let i = 0; i < animations.length; i++) {
-      animateEl = animations[i];
-      curDur = animateEl.getAttribute('dur');
+      let animateEl = animations[i];
+      let curDur = animateEl.getAttribute('dur');
       curDur = curDur.substr(0, curDur.length - 1);
       animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
     }
 
-    // Update the cursor, must recreate the cursor because setAttributeNS doesn't work
+    // Update the cursor. Must recreate the cursor because setAttributeNS doesn't work
     if (this.cursorEl) {
       this.timelineEl.removeChild(this.cursorEl);
     }
     this.createCursor();
 
     // Now set the current SVG engine time: the SVG animation will change speed at the same position
-    this.setCurrentActualTime(currentTime/speedRatio);
-    this.unpauseOthers();
-    console.log('AnimationController - updateOtherAnimations: new cursor duration=' + curDur/speedRatio +
-              ", new current time=" + currentTime/speedRatio);
+    let newActualTime = this.getCurrentSVGTime()/speedRatio;
+    this.setCurrentSVGTime(newActualTime);
   }
 
-  slotSecondstoRealMs(seconds) {
-    return seconds * this.timeCoef * 1000 + this.startMs
+  /**
+   *
+   * @param {Number} logicalTime: the time when speed level = 1.
+   */
+  goto(logicalTime) {
+    let newLogicalTime = logicalTime;
+    if (newLogicalTime < 0) { newLogicalTime = 0; }
+    if (newLogicalTime > this.oriTotalEngineS) { newLogicalTime = this.oriTotalEngineS; }
+    this.setCurrentSVGTime(this.getSVGTimeFromLogicalTime(newLogicalTime));
+    this.tokenAnimation.goto(newLogicalTime);
+    this.updateClockOnce(this.getLogTimeFromLogicalTime(newLogicalTime));
+  }
+
+  isAtStart() {
+    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+    return (currentLogicalTime === 0);
+  }
+
+  isAtEnd() {
+    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+    return (currentLogicalTime === this.oriTotalEngineS);
   }
 
   // Move forward 1 slot
   fastForward() {
     console.log('AnimationController - fastForward');
-    if (this.getCurrentActualTime() >= (this.endPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let s = this.getCurrentActualTime() + (1 * this.slotEngineMs) / 1000
-      this.setCurrentActualTime(s);
-    }
+    if (this.isAtEnd()) return;
+    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+    let newLogicalTime = currentLogicalTime + this.oriSlotEngineS;
+    this.goto(newLogicalTime);
   }
 
   // Move backward 1 slot
   fastBackward() {
     console.log('AnimationController - fastBackward');
-    if (this.getCurrentActualTime() <= (this.startPos * this.slotEngineMs) / 1000) {
-      return;
-    } else {
-      let s = this.getCurrentActualTime() - (1 * this.slotEngineMs) / 1000
-      this.setCurrentActualTime(s);
-    }
+    if (this.isAtStart()) return;
+    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+    let newLogicalTime = currentLogicalTime - this.oriSlotEngineS;
+    this.goto(newLogicalTime);
   }
 
-  // Cy = Cx/SpeedRatio
-  // SpeedRatio is the speed level as it is compared with the normal speed
-  goto(actualTime) {
-    let newTime = actualTime;
-    if (newTime < 0) { newTime = 0; }
-    if (newTime > this.totalEngineS) { newTime = this.totalEngineS; }
-    let currentTime = this.svgTimeline.getCurrentTime();
-    this.setCurrentActualTime(newTime/this.animationEngine.getPlayingFrameRateLevel());
-    this.animationEngine.goto(this.getLogicalTimeFromActualTime(newTime));
+  gotoStart() {
+    console.log('AnimationController - gotoStart');
+    if (this.isAtStart()) return;
+    this.tokenAnimation.clearCanvas();
+    this.goto(0);
+    this.pause();
+  }
+
+  gotoEnd() {
+    console.log('AnimationController - gotoEnd');
+    if (this.isAtEnd()) return;
+    this.tokenAnimation.clearCanvas();
+    this.goto(this.oriTotalEngineS);
+    this.pause();
   }
 
   nextTrace() {
@@ -555,60 +504,74 @@ class AnimationController {
   previousTrace() {
   }
 
-  canPause() {
+  isPlayingState() {
     return $j('#pause').hasClass(this.PAUSE_CLS);
   }
 
-  playButtonPressed() {
-    return $j('#pause').hasClass(this.PAUSE_CLS);
-  }
-
-  setPlayPauseBtn(state) {
+  /**
+   * @param {Boolean} changeToPlay: true means setting the button to a Play shape, false: set it to a Pause shape.
+   */
+  setPlayPauseButton(changeToPlay) {
     const {PAUSE_CLS, PLAY_CLS} = this;
-    const btn = $j('#pause');
+    const button = $j('#pause');
 
-    if (typeof state === 'undefined') {
-      state = this.canPause(); // do toggle
+    if (typeof changeToPlay === 'undefined') {
+      changeToPlay = !this.isPlayingState();
     }
-    if (state) {
-      btn.removeClass(PAUSE_CLS).addClass(PLAY_CLS);
+    if (changeToPlay) {
+      button.removeClass(PAUSE_CLS).addClass(PLAY_CLS);
     } else {
-      btn.removeClass(PLAY_CLS).addClass(PAUSE_CLS);
+      button.removeClass(PLAY_CLS).addClass(PAUSE_CLS);
     }
   }
 
   pause() {
     console.log('AnimationController: pause');
-    this.animationEngine.pause();
-    this.pauseOthers();
-    this.setPlayPauseBtn(true);
+    this.tokenAnimation.pause();
+    this.pauseSecondaryAnimations();
+    this.setPlayPauseButton(true);
+  }
+
+  pauseSecondaryAnimations() {
+    console.log('AnimationController - pauseSecondaryAnimations');
+    this.svgDocs.forEach(function(svgDoc) {
+      svgDoc.pauseAnimations();
+    });
+
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer);
+      this.clockTimer = undefined;
+    }
   }
 
   unPause() {
     console.log('AnimationController: unPause');
-    this.animationEngine.unpause();
-    this.unpauseOthers();
-    this.setPlayPauseBtn(false);
+    this.tokenAnimation.unpause();
+    this.unPauseSecondaryAnimations();
+    this.setPlayPauseButton(false);
   }
 
-  play() {
-    console.log('AnimationController: play');
-    if (this.animationEngine.isInProgress()) {
-      this.animationEngine.unpause();
+  unPauseSecondaryAnimations() {
+    console.log('AnimationController - unPauseSecondaryAnimations');
+    let me = this;
+    this.svgDocs.forEach(function(svgDoc) {
+      svgDoc.unpauseAnimations();
+    });
+
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer);
     }
-    else {
-      this.animationEngine.start();
-    }
-    this.unpauseOthers();
-    this.setPlayPauseBtn(false);
+    this.clockTimer = setInterval(function() {
+      me.updateClock();
+    }, 100);
   }
 
   playPause() {
     console.log('AnimationController: toggle play/pause');
-    if (this.canPause()) {
+    if (this.isPlayingState()) {
       this.pause();
     } else {
-      this.play();
+      this.unPause();
     }
   }
 
@@ -739,41 +702,36 @@ class AnimationController {
 
     // Control dragging of the timeline cursor
     let dragging = false;
-    let isPlayingBeforeDrag = null;
+    let isPlayingBeforeDrag = false;
 
     cursorEl.addEventListener('mousedown', startDragging.bind(this));
     svgTimeline.addEventListener('mouseup', stopDragging.bind(this));
     svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
 
     function startDragging(evt) {
-      isPlayingBeforeDrag = me.playButtonPressed();
+      isPlayingBeforeDrag = me.isPlayingState();
       evt.preventDefault();
       dragging = true;
       me.pause();
     }
 
-    // Only update SVG current time when the dragging finishes to avoid heavy on-the-fly updates
-    // After every call to setCurrentLogicalTime, the SVG coordinate is moved to the new position of the cursor
-    // As calling setCurrentLogicalTime will also update the cursor's position, we have to move the cursor
-    // back to its original position before the call to setCurrentLogicalTime, otherwise it is moved two times
-    // The dragging flag is checked to avoid doing two times for mouseup and mouseleave events
     function stopDragging(evt) {
       if (!dragging) return; // Avoid doing the below two times
       if (evt.type == 'mouseleave' && dragging) {
         return;
       }
       dragging = false;
-      let time = getTimeFromMouseX(evt);
-      me.goto(time);
+      let logicalTime = getLogicalTimeFromMouseX(evt);
+      me.goto(logicalTime);
       if (isPlayingBeforeDrag) {
-        me.play();
+        me.unPause();
       }
     }
 
-    function getTimeFromMouseX(evt) {
+    function getLogicalTimeFromMouseX(evt) {
       let x = getSVGMousePosition(evt).x;
       let dx = x - me.timelineOffset.x;
-      return (dx / me.timelineWidth) * me.totalEngineS;
+      return (dx / me.timelineWidth) * me.oriTotalEngineS;
     }
 
     // Convert from screen coordinates to SVG document coordinates
@@ -811,73 +769,6 @@ class AnimationController {
     this.timelineEl = timelineEl;
     this.svgTimeline.append(timelineEl);
     return timelineEl;
-  }
-
-  // Deprecated section
-
-  /*
-   * <g id="progressAnimation"><g class='progress'><path><animate class='progressanimation'>
-   * logs: array of log object
-   * timeline: object containing timeline information
-   */
-  createProgressIndicatorsDeprecated(logs, timeline) {
-    let progressE = document.createElementNS(SVG_NS, 'g');
-    progressE.setAttributeNS(null, 'id', 'progressAnimation');
-
-    let x = 30;
-    let y = 20;
-    for (let i = 0; i < logs.length; i++) {
-      progressE.appendChild(
-          this.createProgressIndicatorsForLog(i + 1, logs[i], timeline, x, y),
-      );
-      x += 150;
-    }
-    return progressE;
-  }
-
-  /*
-   * Create progress indicator for one log
-   * log: the log object (name, color, traceCount, progress, tokenAnimations)
-   * x,y: the coordinates to draw the progress bar
-   */
-  createProgressIndicatorsForLogDeprecated(logNo, log, timeline, x, y) {
-    let pieE = document.createElementNS(SVG_NS, 'g');
-    pieE.setAttributeNS(null, 'id', 'ap-la-progress-' + logNo);
-    pieE.setAttributeNS(null, 'class', 'progress');
-
-    let color = this.apPalette[logNo - 1] || log.color;
-    let pathEl = document.createElementNS(SVG_NS, 'path');
-    pathEl.setAttributeNS(
-        null,
-        'd',
-        'M ' + x + ',' + y + ' m 0, 0 a 20,20 0 1,0 0.00001,0',
-    );
-    // pathEl.setAttributeNS(null,"fill","#CCCCCC");
-    pathEl.setAttributeNS(null, 'fill', color);
-    pathEl.setAttributeNS(null, 'fill-opacity', 0.5);
-    pathEl.setAttributeNS(null, 'stroke', color);
-    pathEl.setAttributeNS(null, 'stroke-width', '5');
-    pathEl.setAttributeNS(null, 'stroke-dasharray', '0 126 126 0');
-    pathEl.setAttributeNS(null, 'stroke-dashoffset', '1');
-
-    let animateEl = document.createElementNS(SVG_NS, 'animate');
-    animateEl.setAttributeNS(null, 'class', 'progress-animation');
-    animateEl.setAttributeNS(null, 'attributeName', 'stroke-dashoffset');
-    animateEl.setAttributeNS(null, 'values', log.progress.values);
-    animateEl.setAttributeNS(null, 'keyTimes', log.progress.keyTimes);
-    //console.log("values:" + log.progress.values);
-    //console.log("keyTimes:" + log.progress.keyTimes);
-    animateEl.setAttributeNS(null, 'begin', log.progress.begin + 's');
-    //animateEl.setAttributeNS(null,"dur",timeline.slotNum*this.slotEngineMs/1000 + "s");
-    animateEl.setAttributeNS(null, 'dur', log.progress.dur + 's');
-    animateEl.setAttributeNS(null, 'fill', 'freeze');
-    animateEl.setAttributeNS(null, 'repeatCount', '1');
-
-    pathEl.appendChild(animateEl);
-    pieE.appendChild(pathEl);
-    // pieE.appendChild(textE);
-
-    return pieE;
   }
 
   createMetricTables() {
@@ -933,14 +824,11 @@ class AnimationController {
     //console.log('AnimationController: event processing');
     if (!(event instanceof AnimationEvent)) return;
 
-    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isRunning()) {
-      this.pauseOthers();
+    if (event.getEventType() === EventType.OUT_OF_FRAME) {
+      this.pauseSecondaryAnimations();
     }
-    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isRunning()) {
-      this.unpauseOthers();
-    }
-    else if (event.getEventType() === EventType.TIME_CHANGED) {
-      this.setCurrentLogicalTime(event.getEventData()/1000);
+    else if (event.getEventType() === EventType.FRAMES_AVAILABLE) {
+      this.unPauseSecondaryAnimations();
     }
   }
 

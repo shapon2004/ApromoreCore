@@ -25,7 +25,7 @@
 <?script src="../themes/ap/common/js/index.js"?>
 <?script src="/loganimation2/js/ap/dataRequester.js" ?>
 <?script src="/loganimation2/js/ap/frameBuffer.js" ?>
-<?script src="/loganimation2/js/ap/animationEngine.js" ?>
+<?script src="/loganimation2/js/ap/tokenAnimation.js" ?>
 <?script src="/loganimation2/js/ap/utils.js" ?>
 <?script src="/loganimation2/js/ap/animation.js" ?>
 
@@ -154,7 +154,7 @@
                     </div>
 
                     <div id="buttons_and_rate">
-                        <button id='start' onclick="Ap.la.session.start(event);" title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
+                        <button id='start' onclick="Ap.la.session.gotoStart(event);" title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
                             <img></img>
                         </button>
                         <button id='previousTrace' onclick="Ap.la.session.previousTrace();" disabled="disabled" title="Previous Segment" sclass="ap-mc-icon ap-mc-icon-step-backward">
@@ -172,7 +172,7 @@
                         <button id='nextTrace' onclick="Ap.la.session.nextTrace();" disabled="disabled" title="Next Segment" sclass="ap-mc-icon ap-mc-icon-step-forward">
                             <img></img>
                         </button>
-                        <button id='end' onclick="Ap.la.session.end(event);" disabled="disabled" title="End" sclass="ap-mc-icon ap-mc-icon-end">
+                        <button id='end' onclick="Ap.la.session.gotoEnd(event);" disabled="disabled" title="End" sclass="ap-mc-icon ap-mc-icon-end">
                             <img></img>
                         </button>
                     </div>
