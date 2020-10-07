@@ -175,6 +175,7 @@ class AnimationController {
       }
     };
 
+    this.updateClockOnce(this.startMs);
     this.pause();
   }
 
@@ -540,7 +541,6 @@ class AnimationController {
 
     if (this.clockTimer) {
       clearInterval(this.clockTimer);
-      this.clockTimer = undefined;
     }
   }
 
@@ -558,12 +558,8 @@ class AnimationController {
       svgDoc.unpauseAnimations();
     });
 
-    if (this.clockTimer) {
-      clearInterval(this.clockTimer);
-    }
-    this.clockTimer = setInterval(function() {
-      me.updateClock();
-    }, 100);
+    if (this.clockTimer) clearInterval(this.clockTimer);
+    this.clockTimer = setInterval(me.updateClock.bind(this),100);
   }
 
   playPause() {
@@ -824,10 +820,12 @@ class AnimationController {
     //console.log('AnimationController: event processing');
     if (!(event instanceof AnimationEvent)) return;
 
-    if (event.getEventType() === EventType.OUT_OF_FRAME) {
+    // Need to check playing state to avoid calling pause/unpause too many times
+    // which will disable the digital clock
+    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isPlayingState()) {
       this.pauseSecondaryAnimations();
     }
-    else if (event.getEventType() === EventType.FRAMES_AVAILABLE) {
+    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isPlayingState()) {
       this.unPauseSecondaryAnimations();
     }
   }
