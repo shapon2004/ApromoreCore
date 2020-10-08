@@ -22,6 +22,7 @@
 package org.apromore;
 
 import org.apromore.config.TestConfig;
+import org.apromore.dao.UserRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfig.class)
 @PropertySource("classpath:database/test-config.properties")
-@Transactional
 public class BaseTestClass {
 
 	
-	@Autowired
 	
-//	Be carefull wtih the db properties, as this test will drop everything and rerun.
-//	Comment the dropfirst in the liquibase setting to not drop the table
-	@Test
-	public void testLiquibase() {
-		System.out.println("ok");
-	}
-
 }
