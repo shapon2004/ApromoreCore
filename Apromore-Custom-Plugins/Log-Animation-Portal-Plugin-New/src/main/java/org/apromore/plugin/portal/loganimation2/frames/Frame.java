@@ -34,27 +34,28 @@ import org.roaringbitmap.RoaringBitmap;
 
 /**
  * Each Frame is a matrix where a row index is the index of a modelling element (node/arc)
- * and a column index is the index of a case. Each token is identified by a pair {elementIndex, caseIndex} 
- * which together called token's position index. As the number of cases can be extremely high, 
- * case indexes are stored in a compressed bitmap. From the token's position index, it is desirable to 
- * identify a single index called token index. Token index = elementIndex*numberOfCases + caseIndex.
+ * and a column index is the index of a case. 
+ * Each token is identified by a pair (elementIndex, caseIndex), so called token coordinate. 
+ * As the number of cases can be extremely high, case indexes are stored in a compressed bitmap. 
+ * From the token coordinate, it is possible to obtain a single index called token index. 
+ * Token index = elementIndex*numberOfCases + caseIndex. 
  * The token index is used to point to token's attributes such as the distance of the dot from the element start.
  * 
  * @author Bruce Nguyen
  *
  */
 public class Frame {
-	private int index;
-	private int numberOfElements;
-	private int numberOfCases;
+	protected int index;
+	protected int numberOfElements;
+	protected int numberOfCases;
 	// Each array item represents a modelling element, the item index is the element index
-	// Each bit in a bitmap represents a case, the bit index is case index
-	private RoaringBitmap[] tokenBitmap;
-	// Key = elementIndex*numberOfTraces + caseIndex, value = distance from the element start
-	private MutableIntDoubleMap distances = IntDoubleMaps.mutable.empty();
+	// Each bit in a bitmap represents a case, the bit index is the case index
+	protected RoaringBitmap[] tokenBitmap;
+	// Key = token's position index = elementIndex*numberOfTraces + caseIndex, 
+	// Value = distance from the element start
+	protected MutableIntDoubleMap distances = IntDoubleMaps.mutable.empty();
 	
 	public Frame(int index, int numberOfElements, int numberOfCases) throws InvalidFrameParamsException {
-		super();
 		if (index < 0 || numberOfElements <= 0 || numberOfCases <= 0) {
 			throw new InvalidFrameParamsException();
 		}
@@ -71,6 +72,14 @@ public class Frame {
 		return this.index;
 	}
 	
+	public int getNumberOfCases() {
+		return this.numberOfCases;
+	}
+	
+	public int getNumberOfElements() {
+		return this.numberOfElements;
+	}
+	
 	public void addToken(int elementIndex, int caseIndex, double distance) {
 		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
 			tokenBitmap[elementIndex].add(caseIndex);
@@ -85,15 +94,15 @@ public class Frame {
 		}
 	}
 	
-	private boolean validElementIndex(int elementIndex) {
+	protected boolean validElementIndex(int elementIndex) {
 		return (elementIndex >=0 && elementIndex < numberOfElements);
 	}
 	
-	private boolean validCaseIndex(int caseIndex) {
+	protected boolean validCaseIndex(int caseIndex) {
 		return (caseIndex >=0 && caseIndex < numberOfCases);
 	}
 	
-	private int getTokenIndex(int elementIndex, int caseIndex) {
+	protected int getTokenIndex(int elementIndex, int caseIndex) {
 		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
 			return elementIndex*numberOfCases + caseIndex;
 		}
@@ -102,13 +111,13 @@ public class Frame {
 		}
 	}
 	
-	private int[] getPositionIndexes(int attributeIndex) {
-		if (attributeIndex >= 0 && attributeIndex < numberOfElements*numberOfCases) {
-			return new int[]{attributeIndex/numberOfCases, attributeIndex%numberOfCases};
-		}
-		else {
-			return new int[]{};
-		}
+	protected int getElementIndex(int tokenIndex) {
+		return tokenIndex/numberOfCases;
+	}
+	
+	
+	protected int getCaseIndex(int tokenIndex) {
+		return tokenIndex%numberOfCases;
 	}
 	
 	public boolean containsElement(int elementIndex) {
@@ -132,6 +141,14 @@ public class Frame {
 		return indexes.toArray();
 	}
 	
+	public int[] getCaseIndexes() {
+		RoaringBitmap scanElement = new RoaringBitmap();
+		for (RoaringBitmap b : tokenBitmap) {
+			scanElement.or(b);
+		}
+		return scanElement.toArray();
+	}
+	
 	// Return case indexes from an element index
 	public int[] getCasesByElementIndex(int elementIndex) {
 		return validElementIndex(elementIndex) ? tokenBitmap[elementIndex].toArray() : new int[]{};
@@ -148,12 +165,16 @@ public class Frame {
 		return elementIndexes.toArray();
 	}
 	
-	public int[] getAllCaseIndexes() {
-		RoaringBitmap scanElement = new RoaringBitmap();
-		for (RoaringBitmap b : tokenBitmap) {
-			scanElement.or(b);
+	public int[] getTokensByElementIndex(int elementIndex) {
+		MutableIntList tokenIndexes = IntLists.mutable.empty();
+		for (int caseIndex : this.getCasesByElementIndex(elementIndex)) {
+			tokenIndexes.add(getTokenIndex(elementIndex, caseIndex));
 		}
-		return scanElement.toArray();
+		return tokenIndexes.toArray();
+	}
+	
+	public double getTokenDistance(int tokenIndex) {
+		return distances.get(tokenIndex);
 	}
 	
 	public long getTimestamp(AnimationContext context) {
@@ -186,8 +207,8 @@ public class Frame {
         for (int elementIndex : this.getElementIndexes()) {;
         	JSONArray cases = new JSONArray();
         	for (int caseIndex : this.getCasesByElementIndex(elementIndex)) {
-        		int attIndex = getTokenIndex(elementIndex, caseIndex);
-        		cases.put((new JSONObject()).put(caseIndex+"", getAttributesJSON(attIndex)));
+        		int tokenIndex = getTokenIndex(elementIndex, caseIndex);
+        		cases.put((new JSONObject()).put(caseIndex+"", getAttributesJSON(tokenIndex)));
         	}
         	elements.put((new JSONObject()).put(elementIndex+"", cases));
         }
@@ -195,10 +216,10 @@ public class Frame {
         return json;
 	}
 	
-	private JSONArray getAttributesJSON(int attIndex) throws JSONException {
+	protected JSONArray getAttributesJSON(int tokenIndex) throws JSONException {
 		JSONArray attJSON = new JSONArray();
 		DecimalFormat df = new DecimalFormat("#.###");
-		attJSON.put(df.format(distances.get(attIndex)));
+		attJSON.put(df.format(distances.get(tokenIndex)));
 		return attJSON;
 	}
 }

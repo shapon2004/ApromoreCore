@@ -135,6 +135,8 @@ class TokenAnimation {
 
         this._listeners = [];
 
+        this._tokenColors = ['#7f0000', '#990000', '#b20000', '#cc0000', '#e50000', '#ff0000'];
+
         this._initialize();
     }
 
@@ -241,11 +243,6 @@ class TokenAnimation {
         } else {
             console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY result.');
         }
-
-        // if (this._frameBuffer.isOutOfSupply()) {
-        //     console.log('TokenAnimation - loopBufferReading: out of stock and no more frames in supply. The readBufferLoop stops.');
-        //     this._clearPendingBufferReads();
-        // }
     }
 
     /**
@@ -305,20 +302,48 @@ class TokenAnimation {
             let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
-                let distance = token[caseIndex];
+                let distance = token[caseIndex][0];
+                let count = token[caseIndex][1];
                 let point = pathElement.getPointAtLength(totalLength * distance);
                 this._canvasContext.beginPath();
-                this._canvasContext.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                let radius = count;
+                if (radius > 10) radius = 10;
+
+                if (count <= 5) {
+                    this._canvasContext.lineWidth = 1;
+                    this._canvasContext.strokeStyle = 'red';
+                    this._canvasContext.lineTo(point.x, point.y);
+                }
+
+                this._canvasContext.fillStyle = this._selectTokenColor(count);
+                this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.fill();
             }
         }
     }
 
+    /**
+     *
+     * @param {Number} numberOfTokens
+     * @returns {string}
+     * @private
+     */
+    _selectTokenColor(numberOfTokens) {
+        let colorIndex = 0;
+        if (numberOfTokens <= 2) colorIndex = 0;
+        else if (numberOfTokens <= 4) colorIndex = 1;
+        else if (numberOfTokens <= 6) colorIndex = 2;
+        else if (numberOfTokens <= 8) colorIndex = 3;
+        else if (numberOfTokens <= 10) colorIndex = 4;
+        else {
+            colorIndex = 5;
+        }
+        return this._tokenColors[colorIndex];
+    }
+
     startSequenceMode() {
         console.log('TokenAnimation: start SEQUENTIAL model');
         this._playMode = PlayMode.SEQUENTIAL;
-        //this._readBufferLoop();
-        //this._drawLoop(0);
     }
 
     startRandomMode() {
@@ -347,46 +372,6 @@ class TokenAnimation {
             this._loopDrawingNextFrame();
         }
     }
-
-    // gotoStart() {
-    //     console.log('TokenAnimation: gotoStart');
-    //     this.goto(0);
-    //     this._clearData();
-    //     this._clearCanvas();
-    // }
-    //
-    // gotoEnd() {
-    //     console.log('TokenAnimation: gotoEnd');
-    //     this.goto(this._animationContext.getLogicalTimelineMax());
-    //     this._clearData();
-    //     this._clearCanvas();
-    // }
-    //
-    // fastForward() {
-    //     console.log('TokenAnimation: fastForward');
-    //     let newLogicalTimeMark = Math.floor(this.getCurrentClockTime()/1000) + 5;
-    //     console.log('TokenAnimation - fastForward: new logical time=' + newLogicalTimeMark);
-    //     if (newLogicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
-    //         this._clearData();
-    //         this._clearCanvas();
-    //         this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, this._animationContext.getLogicalTimelineMax()));
-    //         return;
-    //     }
-    //     this.goto(newLogicalTimeMark);
-    // }
-    //
-    // fastBackward() {
-    //     console.log('TokenAnimation: fastBackward');
-    //     let newLogicalTimeMark = Math.floor(this.getCurrentClockTime()/1000) - 5;
-    //     console.log('TokenAnimation - fastBackward: new logical time=' + newLogicalTimeMark);
-    //     if (newLogicalTimeMark < 0) {
-    //         this._clearData();
-    //         this._clearCanvas();
-    //         this._notifyAll(new AnimationEvent(EventType.TIME_CHANGED, 0));
-    //         return;
-    //     }
-    //     this.goto(newLogicalTimeMark);
-    // }
 
     /**
      * Get the corresponding frame index at a logical time.
