@@ -111,7 +111,7 @@ class TokenAnimation {
         console.log('TokenAnimation - initializing');
         this._animationContext = animationContext;
         this._canvasContext = canvasContext;
-        this._canvasTransform = this._canvasContext.getTransform();
+        this._canvasTransformMatrix = this._canvasContext.getTransform();
         this._pathMap = pathMap;
         this._elementIds = elementIds;
         this._pathElementLengths = [];
@@ -135,7 +135,7 @@ class TokenAnimation {
 
         this._listeners = [];
 
-        this._tokenColors = ['#7f0000', '#990000', '#b20000', '#cc0000', '#e50000', '#ff0000'];
+        this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
 
         this._initialize();
     }
@@ -307,7 +307,7 @@ class TokenAnimation {
                 let point = pathElement.getPointAtLength(totalLength * distance);
                 this._canvasContext.beginPath();
                 let radius = count;
-                if (radius > 10) radius = 10;
+                if (radius > 3) radius = 3;
 
                 if (count <= 5) {
                     this._canvasContext.lineWidth = 1;
@@ -388,10 +388,16 @@ class TokenAnimation {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
     }
 
+    setTranformMatrix(transformMatrix) {
+        this._canvasTransformMatrix = transformMatrix;
+    }
+
+    // Require switching transformation matrix back and forth to clear
+    // the canvas properly.
     clearCanvas() {
         this._canvasContext.setTransform(1,0,0,1,0,0);
         this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
-        let matrix = this._canvasTransform;
+        let matrix = this._canvasTransformMatrix;
         this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     }
 

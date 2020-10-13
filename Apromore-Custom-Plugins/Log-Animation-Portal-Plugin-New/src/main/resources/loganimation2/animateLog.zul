@@ -157,9 +157,6 @@
                         <button id='start' onclick="Ap.la.session.gotoStart(event);" title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
                             <img></img>
                         </button>
-                        <button id='previousTrace' onclick="Ap.la.session.previousTrace();" disabled="disabled" title="Previous Segment" sclass="ap-mc-icon ap-mc-icon-step-backward">
-                            <img></img>
-                        </button>
                         <button id='backward' onclick="Ap.la.session.fastBackward();" disabled="disabled" title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
                             <img></img>
                         </button>
@@ -167,9 +164,6 @@
                             <img></img>
                         </button>
                         <button id='forward' onclick="Ap.la.session.fastForward();" disabled="disabled" title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
-                            <img></img>
-                        </button>
-                        <button id='nextTrace' onclick="Ap.la.session.nextTrace();" disabled="disabled" title="Next Segment" sclass="ap-mc-icon ap-mc-icon-step-forward">
                             <img></img>
                         </button>
                         <button id='end' onclick="Ap.la.session.gotoEnd(event);" disabled="disabled" title="End" sclass="ap-mc-icon ap-mc-icon-end">

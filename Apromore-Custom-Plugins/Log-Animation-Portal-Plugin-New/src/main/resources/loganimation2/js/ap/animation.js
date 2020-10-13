@@ -146,17 +146,20 @@ class AnimationController {
     }
 
     // Create token animation
-    let box = this.svgMain.getBoundingClientRect();
-    let matrix = this.svgViewport.transform.baseVal.consolidate().matrix;
-    let ctx = document.querySelector("#canvas").getContext('2d');
-    ctx.canvas.width = box.width;
-    ctx.canvas.height = box.height;
-    ctx.canvas.x = box.x;
-    ctx.canvas.y = box.y;
-    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+    let canvasContext = this._setTokenCanvasAttributes();
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
-    this.tokenAnimation = new TokenAnimation(this.animationContext, ctx, this.pathElementCache, this.elementIds);
+    this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.pathElementCache, this.elementIds);
     this.tokenAnimation.registerListener(this);
+
+    let controller = this;
+    this.canvas.addEventBusListener("canvas.viewbox.changed", function(event) {
+      console.log('Token canvas (x,y,width,height): ', event.viewbox.x, event.viewbox.y, event.viewbox.width, event.viewbox.height);
+      controller.pause();
+      controller.tokenAnimation.clearCanvas();
+      let canvasContext = controller._setTokenCanvasAttributes();
+      controller.tokenAnimation.setTranformMatrix(canvasContext.getTransform());
+      controller.unPause();
+    });
 
     // Create visual controls
     this.createProgressIndicators();
@@ -177,6 +180,19 @@ class AnimationController {
 
     this.updateClockOnce(this.startMs);
     this.pause();
+  }
+
+  _setTokenCanvasAttributes() {
+    let box = this.svgMain.getBoundingClientRect();
+    let matrix = this.svgViewport.transform.baseVal.consolidate().matrix;
+    let ctx = document.querySelector("#canvas").getContext('2d');
+    ctx.canvas.width = box.width;
+    ctx.canvas.height = box.height;
+    ctx.canvas.x = box.x;
+    ctx.canvas.y = box.y;
+    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+    console.log("TokenCanvas: ", matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+    return ctx;
   }
 
   // Add log intervals to timeline
@@ -499,13 +515,7 @@ class AnimationController {
     this.pause();
   }
 
-  nextTrace() {
-  }
-
-  previousTrace() {
-  }
-
-  isPlayingState() {
+  isPlaying() {
     //return $j('#pause').hasClass(this.PAUSE_CLS);
     return !this.svgTimeline.animationsPaused();
   }
@@ -518,7 +528,7 @@ class AnimationController {
     const button = $j('#pause');
 
     if (typeof changeToPlay === 'undefined') {
-      changeToPlay = !this.isPlayingState();
+      changeToPlay = !this.isPlaying();
     }
     if (changeToPlay) {
       button.removeClass(PAUSE_CLS).addClass(PLAY_CLS);
@@ -565,7 +575,7 @@ class AnimationController {
 
   playPause() {
     console.log('AnimationController: toggle play/pause');
-    if (this.isPlayingState()) {
+    if (this.isPlaying()) {
       this.pause();
     } else {
       this.unPause();
@@ -706,7 +716,7 @@ class AnimationController {
     svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
 
     function startDragging(evt) {
-      isPlayingBeforeDrag = me.isPlayingState();
+      isPlayingBeforeDrag = me.isPlaying();
       evt.preventDefault();
       dragging = true;
       me.pause();
@@ -823,10 +833,10 @@ class AnimationController {
 
     // Need to check playing state to avoid calling pause/unpause too many times
     // which will disable the digital clock
-    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isPlayingState()) {
+    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isPlaying()) {
       this.pauseSecondaryAnimations();
     }
-    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isPlayingState()) {
+    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isPlaying()) {
       this.unPauseSecondaryAnimations();
     }
   }

@@ -465,6 +465,10 @@ ORYX.Canvas = {
 
   addCommandStackChangeListener: function(callback) {
     this._editor.on('commandStack.changed', callback);
+  },
+
+  addEventBusListener: function(eventCode, callback) {
+    this._editor.get('eventBus').on(eventCode, callback);
   }
 
 };

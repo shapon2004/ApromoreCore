@@ -75,8 +75,6 @@ Ap.la.session = (function() {
     $j("#pause").get(0).disabled = disabled;
     $j("#forward").get(0).disabled = disabled;
     $j("#backward").get(0).disabled = disabled;
-    $j("#nextTrace").get(0).disabled = disabled;
-    $j("#previousTrace").get(0).disabled = disabled;
     $j("#end").get(0).disabled = disabled;
     $j(SPEED_CONTROL).get(0).disabled = disabled;
   }
@@ -132,12 +130,6 @@ Ap.la.session = (function() {
     },
     fastBackward: function() {
       controller.fastBackward();
-    },
-    nextTrace: function() {
-      controller.nextTrace();
-    },
-    previousTrace: function() {
-      controller.previousTrace();
     },
     gotoStart: function(e) {
       controller.gotoStart();

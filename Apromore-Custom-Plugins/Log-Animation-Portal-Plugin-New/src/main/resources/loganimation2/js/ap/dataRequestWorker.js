@@ -19,7 +19,7 @@ onmessage = function(e) {
             console.log('DataRequestWorker - server response received: responseCode=' + httpRequest.status);
             if (httpRequest.status === 200) {
                 //doPointlessComputationsWithBlocking();
-                console.log(httpRequest.responseText)
+                //console.log(httpRequest.responseText)
                 let jsonResponse = JSON.parse(httpRequest.responseText);
                 context.postMessage({success: true, code: httpRequest.status, data: jsonResponse, requestToken: worker.requestToken});
             } else {
