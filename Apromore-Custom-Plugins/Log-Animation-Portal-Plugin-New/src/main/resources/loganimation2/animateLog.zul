@@ -42,9 +42,10 @@
         @import url("/${arg.editor}/libs/ext-2.0.2/resources/css/xtheme-gray.css");
     </style>
 
-    <!-- #editorcanvas .djs-shape .djs-hit {pointer-events: none !important;} -->
     <style type="text/css">
-        .djs-palette {display: none;}
+        .bjs-container .djs-shape .djs-hit {pointer-events: none !important;}
+        .bjs-container .djs-connection .djs-hit {pointer-events: none !important;}
+        .bjs-container .djs-palette {display: none;}
     </style>
 
     <!-- STYLESHEET FOR THE WRAPPER EDITOR -->

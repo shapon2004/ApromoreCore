@@ -152,14 +152,31 @@ class AnimationController {
     this.tokenAnimation.registerListener(this);
 
     let controller = this;
+    let isPlayingBeforeChanging = false;
+    this.canvas.addEventBusListener("canvas.viewbox.changing", function(event) {
+      if (controller.isPlaying()) {
+        controller.pause();
+        isPlayingBeforeChanging = true;
+      }
+      controller.tokenAnimation.clearAnimation();
+    });
+
     this.canvas.addEventBusListener("canvas.viewbox.changed", function(event) {
-      console.log('Token canvas (x,y,width,height): ', event.viewbox.x, event.viewbox.y, event.viewbox.width, event.viewbox.height);
-      controller.pause();
-      controller.tokenAnimation.clearCanvas();
       let canvasContext = controller._setTokenCanvasAttributes();
       controller.tokenAnimation.setTranformMatrix(canvasContext.getTransform());
-      controller.unPause();
+      if (isPlayingBeforeChanging) {
+        controller.unPause();
+        isPlayingBeforeChanging = false;
+      }
     });
+
+    // this.canvas.addEventBusListener("drag.start", function(event) {
+    //   return false;
+    // });
+    //
+    // this.canvas.addEventBusListener("connection.click", function(event) {
+    //   return false;
+    // });
 
     // Create visual controls
     this.createProgressIndicators();

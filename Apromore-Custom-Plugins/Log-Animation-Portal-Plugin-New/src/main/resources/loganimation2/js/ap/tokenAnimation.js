@@ -294,7 +294,7 @@ class TokenAnimation {
      * @private
      */
     _drawFrame(frame) {
-        this.clearCanvas();
+        this.clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
             let elementId = this._getElementId(elementIndex);
@@ -394,7 +394,7 @@ class TokenAnimation {
 
     // Require switching transformation matrix back and forth to clear
     // the canvas properly.
-    clearCanvas() {
+    clearAnimation() {
         this._canvasContext.setTransform(1,0,0,1,0,0);
         this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
         let matrix = this._canvasTransformMatrix;
