@@ -42,6 +42,11 @@
         @import url("/${arg.editor}/libs/ext-2.0.2/resources/css/xtheme-gray.css");
     </style>
 
+    <!-- #editorcanvas .djs-shape .djs-hit {pointer-events: none !important;} -->
+    <style type="text/css">
+        .djs-palette {display: none;}
+    </style>
+
     <!-- STYLESHEET FOR THE WRAPPER EDITOR -->
     <n:link rel="Stylesheet" media="screen" href="/${arg.editor}/editor/css/theme_norm.css" type="text/css"/>
     <n:link rel="Stylesheet" media="screen" href="/${arg.editor}/editor/css/theme_norm_signavio.css" type="text/css"/>
@@ -123,12 +128,12 @@
                 window.pluginExecutionId = '${arg.pluginExecutionId}';
                 Ap.la.session.init('${arg.bpmnXML}', '${arg.url}', '${arg.url}', '${arg.setupData}', '${arg.pluginExecutionId}');
                 zk.afterMount(function() {
-                  // Wait for SVG element ready, so jQuery can refer to it
-                  window.setTimeout(function() {
-                    Ap.la.session.initController();
-                  }, 1000);
+                    // Wait for SVG element ready, so jQuery can refer to it
+                    window.setTimeout(function() {
+                        Ap.la.session.initController();
+                    }, 1000);
                 });
-                
+
 	            ]]>
             </n:script>
         </n:span>
@@ -137,7 +142,7 @@
     <!-- THIS PAGE USE DIV FLOAT FOR LAYOUTING -->
 
     <div id="editorcanvas"></div>
-    <canvas id="canvas" style="top:66px; position:absolute; background:none; z-index:1000;"></canvas>
+    <canvas id="canvas" style="top:66px; position:absolute; background:none; z-index:1000; pointer-events:none"></canvas>
     <n:div id="controls">
         <!-- Relative positioning: relative to its normal position using top, left, right,...-->
         <!-- Its normal position is the top left corner of the containing div -->
