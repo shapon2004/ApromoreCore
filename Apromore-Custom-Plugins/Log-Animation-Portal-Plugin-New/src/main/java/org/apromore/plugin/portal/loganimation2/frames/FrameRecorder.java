@@ -41,16 +41,20 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 public class FrameRecorder {
 	public static Frames record(AnimationLog log, AnimationContext animateContext) throws InvalidFrameParamsException {
 		Map<ReplayTrace,Collection<SequenceFlow>> traceToSequenceFlows = new HashMap<>();
+		Map<ReplayTrace,Collection<TraceNode>> traceToNodes = new HashMap<>();
 		List<ReplayTrace> replayTraces = log.getTracesWithOriginalOrder();
 		Frames frames = new Frames(animateContext);
+		
 		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
-			System.out.println("Collect data for frame index = " + frameIndex);
 			Frame frame = new Frame(frameIndex, log.getNumberOfElements(), log.getNumberOfCases());
 			long frameTimestamp = frame.getTimestamp(animateContext);
 			for (ReplayTrace trace : replayTraces) {
 	            if (trace.getStartDate().getMillis()<=frameTimestamp && frameTimestamp<=trace.getEndDate().getMillis()) {
-	            	if (!traceToSequenceFlows.containsKey(trace)) traceToSequenceFlows.put(trace, trace.getSequenceFlows());
-			        for (SequenceFlow seq : traceToSequenceFlows.get(trace)) {
+	            	if (!traceToSequenceFlows.containsKey(trace)) {
+	            	    traceToSequenceFlows.put(trace, trace.getSequenceFlows());
+	            	}
+			        
+	            	for (SequenceFlow seq : traceToSequenceFlows.get(trace)) {
 			            long seqStart = ((TraceNode)seq.getSourceRef()).getComplete().getMillis();
 			            long seqEnd = ((TraceNode)seq.getTargetRef()).getStart().getMillis();
 			            long seqDuration = seqEnd - seqStart; // only animate if duration > 0
@@ -60,7 +64,23 @@ public class FrameRecorder {
 			                				log.getCaseIndexFromId(trace.getId()),
 			                				distance);
 			            }
-			        }	                
+			        }	
+			        
+	            	if (!traceToNodes.containsKey(trace)) {
+	            	    traceToNodes.put(trace, trace.getNodes());
+                    }
+	            	
+	            	for (TraceNode node : traceToNodes.get(trace)) {
+                        long start = node.getStart().getMillis();
+                        long end = node.getComplete().getMillis();
+                        long duration = end - start; // only animate if duration > 0
+                        if (duration > 0 && start <= frameTimestamp && frameTimestamp <= end) {
+                            double distance = 1.0*(frameTimestamp - start)/duration;
+                            frame.addToken(log.getElementIndexFromId(node.getId()), 
+                                    log.getCaseIndexFromId(trace.getId()),
+                                    distance);
+                        }
+                    }   
 	            }
 			}
 			frames.add(frame); //add all frames, including empty ones.

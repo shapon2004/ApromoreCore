@@ -27,6 +27,7 @@ import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
 
 import de.hpi.bpmn2_0.model.FlowElement;
+import de.hpi.bpmn2_0.model.activity.Activity;
 
 /**
  * Mapping from modelling element IDs to indexes and vice versa.
@@ -34,36 +35,49 @@ import de.hpi.bpmn2_0.model.FlowElement;
  *
  */
 public class ElementMapping {
-	private HashBiMap<String, Integer> mapping = new HashBiMap<>();
+	private HashBiMap<String, Integer> elementIdToIndexMap = new HashBiMap<>();
+	private HashBiMap<String, Integer> elementIdToSkipIndexMap = new HashBiMap<>();
 	
 	public ElementMapping(Collection<FlowElement> elements) {
 		int index=0;
 		for (FlowElement element : elements) {
-			mapping.put(element.getId(), index);
-			index++;
+		    elementIdToIndexMap.put(element.getId(), index);
+            index++;
+            if (element instanceof Activity) {
+                elementIdToSkipIndexMap.put(element.getId(), index);
+                index++;
+            }
 		}
 	}
 	
 	public int getIndex(String elementId) {
-		return mapping.getIfAbsent(elementId, () -> -1);
+		return elementIdToIndexMap.getIfAbsent(elementId, () -> -1);
 	}
 	
+    public int getSkipIndex(String elementId) {
+        return elementIdToSkipIndexMap.getIfAbsent(elementId, () -> -1);
+    }	
+	
 	public String getId(int index) {
-		return mapping.inverse().getIfAbsent(index, () -> "");
+		return elementIdToIndexMap.inverse().getIfAbsent(index, () -> "");
+	}
+	
+	public String getIdFromSkipIndex(int index) {
+	    return elementIdToSkipIndexMap.inverse().getIfAbsent(index, () -> "");
 	}
 	
 	public int size() {
-		return mapping.size();
+		return elementIdToIndexMap.size();
 	}
 	
 	public void clear() {
-		this.mapping.clear();
+		this.elementIdToIndexMap.clear();
 	}
 	
 	public JSONArray getElementJSONArray() {
 		JSONArray elementsJSON = new JSONArray();
-		for (int i=0; i<mapping.size(); i++) {
-			elementsJSON.put(mapping.inverse().get(i));
+		for (int i=0; i<elementIdToIndexMap.size(); i++) {
+			elementsJSON.put(elementIdToIndexMap.inverse().get(i));
 		}
 		return elementsJSON;
 	}
