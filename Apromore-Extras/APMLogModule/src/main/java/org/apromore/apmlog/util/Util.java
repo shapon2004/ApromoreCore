@@ -22,16 +22,14 @@
 package org.apromore.apmlog.util;
 
 import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.in.XesXmlGZIPParser;
-import org.deckfour.xes.in.XesXmlParser;
-import org.deckfour.xes.model.*;
+import org.deckfour.xes.model.XEvent;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
-import java.io.File;
 import java.text.DecimalFormat;
-import java.time.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 /**
  * @author Chii Chang (11/2019)
@@ -41,7 +39,7 @@ import java.util.*;
 public class Util {
 
     private static final double year = 1000.0D * 60 * 60 * 24 * 365;
-    private static final double month = 1000.0D * 60 * 60 * 24 * 30.42;
+    private static final double month = 1000.0D * 60 * 60 * 24 * 31;
     private static final double week = 1000.0D * 60 * 60 * 24 * 7;
     private static final double day = 1000.0D * 60 * 60 * 24;
     private static final double hour = 1000.0D *  60 * 60;
@@ -49,16 +47,20 @@ public class Util {
     private static final double second = 1000.0D;
 
     public static long epochMilliOf(ZonedDateTime zonedDateTime){
+
         long s = zonedDateTime.toInstant().toEpochMilli();
         return s;
     }
 
     public static ZonedDateTime zonedDateTimeOf(XEvent xEvent) {
+
         String timestamp = xEvent.getAttributes().get(XTimeExtension.KEY_TIMESTAMP).toString();
+
         timestamp = validateTimestamp(timestamp);
+
         return ZonedDateTime.parse(timestamp);
     }
-    
+
     private static String validateTimestamp(String timestamp) {
         //0000-00-00T00:00:00.000+00:00
         String charAt10 = timestamp.substring(10, 11);
@@ -67,6 +69,10 @@ public class Util {
             validTimestamp = timestamp.substring(0, 10) + "T" + timestamp.substring(11);
         }
         return validTimestamp;
+    }
+
+    public static long epochMilliOf(String timestampString){
+        return ZonedDateTime.parse(timestampString).toInstant().toEpochMilli();
     }
 
     public static ZonedDateTime millisecondToZonedDateTime(long millisecond){
@@ -89,6 +95,7 @@ public class Util {
         return zdt.format(formatter);
     }
 
+
     public static String durationShortStringOf(long millis) {
         double secs = millis / second;
         double mins = millis / minute;
@@ -98,30 +105,42 @@ public class Util {
         double mths = millis / month;
         double yrs = millis / year;
 
-        if (yrs >= 1.0D) return df2.format(yrs) + " yrs";
-        if (mths >= 1.0D) return df2.format(mths) + " mths";
-        if (wks >= 1.0D) return df2.format(wks) + " wks";
-        if (days >= 1.0D) return df2.format(days) + " d";
-        if (hrs >= 1.0D) return df2.format(hrs) + " hrs";
-        if (mins >= 1.0D) return df2.format(mins) + " mins";
-        if (secs >= 1.0D) return df2.format(secs) + " secs";
-        if (millis >= 1.0D) return df2.format(millis) + " millis";
+        if (yrs > 1.0D) return df2.format(yrs) + " yrs";
+        if (mths > 1.0D) return df2.format(mths) + " mths";
+        if (wks > 1.0D) return df2.format(wks) + " wks";
+        if (days > 1.0D) return df2.format(days) + " d";
+        if (hrs > 1.0D) return df2.format(hrs) + " hrs";
+        if (mins > 1.0D) return df2.format(mins) + " mins";
+        if (secs > 1.0D) return df2.format(secs) + " secs";
+        if (millis > 1.0D) return df2.format(millis) + " millis";
         return "instant";
     }
 
     private static final DecimalFormat df2 = new DecimalFormat("###############.##");
 
     public static boolean isNumeric(String s) {
+
+        if (s.equals("")) return false;
+
         UnifiedSet<Character> validChars = getValidCharactersOfNumbers();
+
+        if (!String.valueOf(s.charAt(0)).equals("-")) {
+            if (!validChars.contains(s.charAt(0))) return false;
+        }
+
 
         boolean allNum = true;
 
-        for (int i = 0; i < s.length(); i++) {
-            Character c = s.charAt(i);
-            if (!validChars.contains(c)) {
-                allNum = false;
-                break;
+        if (s.length() > 1) {
+            for (int i = 0; i < s.length(); i++) {
+                Character c = s.charAt(i);
+                if (!validChars.contains(c)) {
+                    allNum = false;
+                    break;
+                }
             }
+        } else {
+            if (!validChars.contains(s.charAt(0))) allNum = false;
         }
 
         return allNum;
@@ -144,4 +163,6 @@ public class Util {
 
         return validChar;
     }
+
+
 }

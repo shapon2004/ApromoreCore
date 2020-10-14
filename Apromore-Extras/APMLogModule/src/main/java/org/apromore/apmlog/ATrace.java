@@ -8,12 +8,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -41,12 +41,12 @@
 
 package org.apromore.apmlog;
 
+import org.apromore.apmlog.stats.AAttributeGraph;
+
 import org.apromore.apmlog.util.Util;
-import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XTrace;
-import org.deckfour.xes.model.impl.XAttributeTimestampImpl;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
@@ -57,7 +57,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -74,8 +74,10 @@ import java.util.List;
  * Modified: Chii Chang (24/05/2020)
  * Modified: Chii Chang (01/06/2020)
  * Modified: Chii Chang (05/06/2020)
+ * Modified: Chii Chang (07/10/2020) - include "schedule" event to activity
+ * Modified: Chii Chang (13/10/2020)
  */
-public class ATrace implements Serializable, LaTrace {
+public class ATrace extends LaTraceImpl implements Comparable<ATrace>, Serializable, LaTrace {
 
     private String caseId = "";
     public long caseIdDigit = 0;
@@ -104,11 +106,12 @@ public class ATrace implements Serializable, LaTrace {
 
     private List<Integer> activityNameIndexList;
 
-    private IntArrayList markedIndex;
+    private APMLog apmLog;
 
-//    private APMLog apmLog;
+    private int index = -1;
 
-    public ATrace(XTrace xTrace, APMLog apmLog) {
+    public ATrace(int index, XTrace xTrace, APMLog apmLog) {
+        this.index = index;
         setEventList(xTrace);
         setCaseAttributes(xTrace);
         initStats(apmLog);
@@ -128,6 +131,8 @@ public class ATrace implements Serializable, LaTrace {
     }
 
     private void initStats(APMLog apmLog) {
+        this.apmLog = apmLog;
+
         activityNameIndexList = new ArrayList<>();
         activityList = new ArrayList<>();
         eventAttributeValueFreqMap = new UnifiedMap<>();
@@ -189,15 +194,10 @@ public class ATrace implements Serializable, LaTrace {
     private void setEventList(XTrace xTrace) {
         eventList = new ArrayList<>();
 
-//        List<XEvent> xEventList = new ArrayList<>();
-
         for (int i = 0; i < xTrace.size(); i++) {
             XEvent xEvent = xTrace.get(i);
-            eventList.add(new AEvent(xEvent));
-//            xEventList.add(xEvent);
+            eventList.add(new AEvent(i, xEvent));
         }
-
-//        xTrace.removeAll(xEventList); //clean memory
     }
 
 
@@ -252,9 +252,9 @@ public class ATrace implements Serializable, LaTrace {
                 long actEndTime = iAEvent.getTimestampMilli();
                 long actDur = 0;
 
-                if (lifecycle.equals("start") && i < eventList.size()-1) {
+                if ( (lifecycle.equals("start") || lifecycle.equals("schedule") ) && i < eventList.size()-1) {
                     this.hasActivity = true;
-                    IntArrayList followup = getFollowUpIndexList(eventList, i, iAEvent.getName());
+                    IntArrayList followup = getFollowUpIndexList(eventList, i, iAEvent);
 
                     if (followup != null) {
                         for (int j = 0; j < followup.size(); j++) {
@@ -267,18 +267,56 @@ public class ATrace implements Serializable, LaTrace {
                         actEndTime = actEvents.get(actEvents.size() - 1).getTimestampMilli();
                         actDur = actEndTime - actStartTime;
                     }
-                    AActivity aActivity = new AActivity(iAEvent.getName(), actEvents, actStartTime,
-                            actEndTime, actDur);
-                    this.activityList.add(aActivity);
+
+                    addNewActivity(iAEvent.getName(), actEvents, actStartTime, actEndTime, actDur);
                 } else {
                     if (!lifecycle.equals("schedule") &&
                             !lifecycle.equals("assign") &&
                             !lifecycle.equals("reassign")) {
 
-                        AActivity aActivity = new AActivity(iAEvent.getName(), actEvents, actStartTime,
-                                actEndTime, actDur);
-                        this.activityList.add(aActivity);
+                        addNewActivity(iAEvent.getName(), actEvents, actStartTime, actEndTime, actDur);
                     }
+                }
+            }
+        }
+    }
+
+    private void addNewActivity(String name, List<AEvent> eventsList, long startTime, long endTime, long duration) {
+        AActivity aActivity = new AActivity(name, eventsList, startTime, endTime, duration);
+
+        activityList.add(aActivity);
+
+        updateAttributeGraph();
+    }
+
+    private void updateAttributeGraph() {
+        AAttributeGraph aAttributeGraph = apmLog.getAAttributeGraph();
+
+        int lastIndex = activityList.size()-1;
+        int prevIndex = lastIndex - 1;
+        AActivity lastAct = activityList.get(lastIndex);
+        AActivity prevAct = activityList.size() > 1 ? activityList.get(lastIndex-1) : null;
+        UnifiedMap<String, String> lastActAttrMap = lastAct.getAllAttributes();
+        UnifiedMap<String, String> prevActAttrMap = prevAct != null ? prevAct.getAllAttributes() : null;
+
+        String baseTAI = this.index + ":" + lastIndex;
+        String prevTAI = prevActAttrMap!=null ? this.index + ":" + prevIndex : null;
+
+        for (String key : lastActAttrMap.keySet()) {
+            String val = lastActAttrMap.get(key);
+
+            aAttributeGraph.add(key, val, baseTAI, lastAct.getDuration());
+
+            if (prevActAttrMap != null) {
+
+                String indexPair = prevTAI + ">" + baseTAI;
+
+                if (prevActAttrMap.containsKey(key)) {
+                    String prevVal = prevActAttrMap.get(key);
+
+                    aAttributeGraph.addNext(key, prevVal, val, indexPair);
+
+                    aAttributeGraph.addPrevious(key, val, prevVal, indexPair);
                 }
             }
         }
@@ -295,32 +333,6 @@ public class ATrace implements Serializable, LaTrace {
                 }
             }
         }
-    }
-
-
-    private IntArrayList getFollowUpIndexList(List<AEvent> eventList, int fromIndex, String conceptName) {
-        IntArrayList followUpIndex = new IntArrayList();
-
-        if ( (fromIndex + 1) < eventList.size()) {
-            for (int i = (fromIndex + 1); i < eventList.size(); i++) {
-                if (!markedIndex.contains(i)) {
-                    AEvent aEvent = eventList.get(i);
-                    String lifecycle = aEvent.getLifecycle();
-
-                    if (aEvent.getName().equals(conceptName)) {
-                        if (!lifecycle.equals("start")) {
-                            followUpIndex.add(i);
-                            if (lifecycle.equals("complete") ||
-                                    lifecycle.equals("manualskip") ||
-                                    lifecycle.equals("autoskip")) {
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            return followUpIndex;
-        } else return null;
     }
 
     private void fillEventAttributeValueFreqMap(AEvent aEvent) {
@@ -348,6 +360,13 @@ public class ATrace implements Serializable, LaTrace {
         return eventAttributeValueFreqMap;
     }
 
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public int getIndex() {
+        return index;
+    }
 
     public String getCaseId() {
         return caseId;
@@ -446,6 +465,11 @@ public class ATrace implements Serializable, LaTrace {
         return caseUtilization;
     }
 
+    @Override
+    public BitSet getValidEventIndexBitSet() {
+        return null;
+    }
+
     public String getStartTimeString() {
         return startTimeString;
     }
@@ -455,9 +479,7 @@ public class ATrace implements Serializable, LaTrace {
     }
 
     public String getDurationString() {
-//        if(getCaseId().equals("0050554374")) {
-//            System.out.println("PAUSE");
-//        }
+
         return durationString;
     }
 
@@ -504,10 +526,6 @@ public class ATrace implements Serializable, LaTrace {
         this.activityNameList = activityNameList;
         this.eventNameSet = eventNameSet;
 
-
-//        if(getCaseId().equals("0050554374")) {
-//            System.out.println("PAUSE");
-//        }
         this.startTimeString = timestampStringOf(millisecondToZonedDateTime(startTimeMilli));
         this.endTimeString = timestampStringOf(millisecondToZonedDateTime(endTimeMilli));
         this.durationString = Util.durationShortStringOf(duration);
@@ -534,6 +552,7 @@ public class ATrace implements Serializable, LaTrace {
     public int getCaseVariantIdForDisplay() {
         return caseVariantIdForDisplay;
     }
+
 
     public ATrace clone() {
 
@@ -585,7 +604,7 @@ public class ATrace implements Serializable, LaTrace {
         }
 
 
-        return new ATrace(this.caseId, this.caseVariantId,
+        ATrace aTrace = new ATrace(this.caseId, this.caseVariantId,
                 this.startTimeMilli,
                 this.endTimeMilli,
                 this.hasActivity,
@@ -604,5 +623,18 @@ public class ATrace implements Serializable, LaTrace {
                 actNameList,
                 eNameSet,
                 this.activityNameIndexList);
+        aTrace.setIndex(this.index);
+        return aTrace;
+    }
+
+    @Override
+    public int compareTo(ATrace o) {
+        if (Util.isNumeric(this.caseId) && Util.isNumeric(o.getCaseId())) {
+            if (caseIdDigit > o.caseIdDigit) return 1;
+            else if (caseIdDigit < o.caseIdDigit) return -1;
+            else return 0;
+        } else {
+            return getCaseId().compareTo(o.getCaseId());
+        }
     }
 }

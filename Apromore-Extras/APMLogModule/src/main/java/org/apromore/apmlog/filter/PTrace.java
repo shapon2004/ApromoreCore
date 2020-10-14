@@ -1,7 +1,7 @@
 /*-
  * #%L
  * Process Discoverer Logic
- * 
+ *
  * This file is part of "Apromore".
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
@@ -10,12 +10,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Lesser Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Lesser Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
@@ -26,10 +26,8 @@
 package org.apromore.apmlog.filter;
 
 import org.apromore.apmlog.*;
+import org.apromore.apmlog.stats.AAttributeGraph;
 import org.apromore.apmlog.util.Util;
-import org.deckfour.xes.model.XAttributeMap;
-import org.deckfour.xes.model.XEvent;
-import org.deckfour.xes.model.XTrace;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
@@ -49,11 +47,11 @@ import java.util.List;
  * Modified: Chii Chang (12/03/2020)
  * Modified: Chii Chang (24/05/2020)
  * Modified: Chii Chang (26/05/2020)
- * Modified: Chii Chang (01/06/2020)
+ * Modified: Chii Chang (07/10/2020) - include "schedule" event to activity
  */
-public class PTrace implements Comparable<PTrace>, LaTrace {
+public class PTrace extends LaTraceImpl implements Comparable<PTrace>, LaTrace {
 
-//    private ATrace aTrace;
+    private ATrace aTrace;
 
     private String caseId = "";
     public long caseIdDigit = 0;
@@ -126,12 +124,12 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
     private List<String> previousActivityNameList;
     private UnifiedSet<String> previousEventNameSet;
 
-    private IntArrayList markedIndex;
+
 
     private APMLog apmLog;
 
     public PTrace(ATrace aTrace, APMLog apmLog) {
-//        this.aTrace = aTrace;
+        this.aTrace = aTrace;
 
         this.apmLog = apmLog;
 
@@ -276,6 +274,10 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
         this.activityNameIndexList = originalActivityNameIndexList;
     }
 
+    public ATrace getOriginalATrace() {
+        return aTrace;
+    }
+
     public void resetPrevious() {
 
         if(previousValidEventIndexBS != null) {
@@ -387,6 +389,9 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
 
             this.activityList = new ArrayList<>();
 
+            UnifiedMap<Long, List<AActivity>> startTimeActivitiesMap = new UnifiedMap<>();
+
+
             for (int i = 0; i < this.eventList.size(); i++) {
                 allTimestamps.add(this.eventList.get(i).getTimestampMilli());
 
@@ -396,8 +401,7 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
 
                     AEvent iAEvent = this.eventList.get(i);
                     String conceptName = iAEvent.getName();
-
-//                    long eventTime = iAEvent.getTimestampMilli();
+                    String lifecycle = iAEvent.getLifecycle();
 
 
                     this.eventNameSet.put(iAEvent.getName());
@@ -406,11 +410,11 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
 
                     List<AEvent> actEventList = new ArrayList<>();
 
+                    String iLifeCycle = iAEvent.getLifecycle().toLowerCase();
 
-                    if (iAEvent.getLifecycle().toLowerCase().equals("start")) {
+                    if (iLifeCycle.equals("start") || iLifeCycle.equals("schedule")) {
                         actEventList.add(iAEvent);
-                        IntArrayList follows = getFollowUpIndexes(i , conceptName, this.eventList);
-//                        IntArrayList follows = getFollowUpIndexes(this.eventList, i+1, conceptName );
+                        IntArrayList follows = getFollowUpIndexList(this.eventList, i, iAEvent);
                         if (follows != null) {
                             for (int j = 0; j < follows.size(); j++) {
                                 int eventIndex = follows.get(j);
@@ -418,14 +422,20 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
                                 actEventList.add(this.eventList.get(eventIndex));
                             }
                         }
-                    } else if (iAEvent.getLifecycle().toLowerCase().equals("complete")) {
-                        actEventList.add(iAEvent);
+                    } else {
+                        if (!lifecycle.equals("schedule") &&
+                                !lifecycle.equals("assign") &&
+                                !lifecycle.equals("reassign")) {
+                            actEventList.add(iAEvent);
+                        }
                     }
+
 
                     if (actEventList.size() > 0) {
                         AActivity aActivity = new AActivity(actEventList);
 
-                        this.activityList.add(aActivity);
+                        appendActivity(startTimeActivitiesMap, aActivity);
+
                         this.activityNameList.add(aActivity.getName());
                         this.activityNameIndexList.add(
                                 apmLog.getActivityNameMapper().set(aActivity.getName()));
@@ -433,6 +443,10 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
                 }
 
             }
+
+            configActivityList(startTimeActivitiesMap);
+
+
             if (this.totalProcessingTime > 0 && processCount > 0)
                 this.averageProcessingTime = this.totalProcessingTime / processCount;
             if (this.totalWaitingTime > 0 && waitCount > 0) this.averageWaitingTime = this.totalWaitingTime / waitCount;
@@ -467,95 +481,66 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
         }
     }
 
-    private IntArrayList getFollowUpIndexes(int from, String conceptName, List<AEvent> eventList) {
+    public void updateAttributeGraph(int pTraceIndex, PLog pLog) {
+        AAttributeGraph aAttributeGraph = pLog.getAttributeGraph();
 
-        AEvent fromEvent = eventList.get(from);
+        for (int i = activityList.size()-1; i > 0; i--) {
+            int lastIndex = i;
+            int prevIndex = lastIndex - 1;
+            AActivity lastAct = activityList.get(lastIndex);
+            AActivity prevAct = activityList.size() > 1 ? activityList.get(lastIndex-1) : null;
+            UnifiedMap<String, String> lastActAttrMap = lastAct.getAllAttributes();
+            UnifiedMap<String, String> prevActAttrMap = prevAct != null ? prevAct.getAllAttributes() : null;
 
-        IntArrayList follows = new IntArrayList();
-        for (int i = from + 1; i < eventList.size(); i++) {
-            if (!markedIndex.contains(i)) {
-                AEvent aEvent = eventList.get(i);
+            String baseTAI = pTraceIndex + ":" + lastIndex;
+            String prevTAI = prevActAttrMap!=null ? pTraceIndex + ":" + prevIndex : null;
 
-//                if (haveSameAttributeValues(fromEvent, aEvent)) {
-                if (conceptName.equals(aEvent.getName())) {
-                    String lifecycle = aEvent.getLifecycle();
-                    if (lifecycle.toLowerCase().equals("start")) {
-                        //break;
-                    } else if (lifecycle.equals("complete") ||
-                            lifecycle.equals("manualskip") ||
-                            lifecycle.equals("autoskip")) {
-                        follows.add(i);
-                        break;
-                    } else {
-                        follows.add(i);
-                    }
-                }
+            for (String key : lastActAttrMap.keySet()) {
+                String val = lastActAttrMap.get(key);
 
-//                String actName = aEvent.getName();
-//                if (actName.equals(conceptName)) {
-//                    String lifecycle = aEvent.getLifecycle();
-//                    if (lifecycle.toLowerCase().equals("start")) {
-//                        //break;
-//                    } else if (lifecycle.equals("complete") ||
-//                            lifecycle.equals("manualskip") ||
-//                            lifecycle.equals("autoskip")) {
-//                        follows.add(i);
-//                        break;
-//                    } else {
-//                        follows.add(i);
-//                    }
-//                }
-            }
-        }
-        return follows;
-    }
+                aAttributeGraph.add(key, val, baseTAI, lastAct.getDuration());
 
-    private IntArrayList getFollowUpIndexes(List<AEvent> eventList, int fromIndex, String conceptName) {
+                if (prevActAttrMap != null) {
 
-        AEvent startEvent = eventList.get(fromIndex);
+                    String indexPair = prevTAI + ">" + baseTAI;
 
-        IntArrayList followUpIndex = new IntArrayList();
+                    if (prevActAttrMap.containsKey(key)) {
+                        String prevVal = prevActAttrMap.get(key);
 
-        if ( (fromIndex + 1) < eventList.size()) {
-            for (int i = (fromIndex + 1); i < eventList.size(); i++) {
+                        aAttributeGraph.addNext(key, prevVal, val, indexPair);
 
-                if (!markedIndex.contains(i)) {
-                    AEvent aEvent = eventList.get(i);
-
-                    String lifecycle = aEvent.getLifecycle().toLowerCase();
-
-                    if (haveSameAttributeValues(startEvent, aEvent)) {
-                        if (!lifecycle.equals("start")) {
-                            followUpIndex.add(i);
-                            if (lifecycle.equals("complete") ||
-                                    lifecycle.equals("manualskip") ||
-                                    lifecycle.equals("autoskip")) {
-                                break;
-                            }
-                        }
+                        aAttributeGraph.addPrevious(key, val, prevVal, indexPair);
                     }
                 }
             }
-            return followUpIndex;
-        } else return null;
-    }
-
-    private boolean haveSameAttributeValues(AEvent aEvent1, AEvent aEvent2) {
-
-        if (!aEvent1.getName().equals(aEvent2.getName())) return false;
-        if (!aEvent1.getResource().equals(aEvent2.getResource())) return false;
-
-        UnifiedMap<String, String> attrMap1 = aEvent1.getAttributeMap();
-        UnifiedMap<String, String> attrMap2 = aEvent2.getAttributeMap();
-
-        for (String key : attrMap1.keySet()) {
-            if (!attrMap2.containsKey(key)) return false;
-            String val1 = attrMap1.get(key);
-            String val2 = attrMap2.get(key);
-            if (!val1.equals(val2)) return false;
         }
 
-        return true;
+
+    }
+
+    private void appendActivity(UnifiedMap<Long, List<AActivity>> startTimeActivitiesMap, AActivity activity) {
+        long actStartTime = activity.getEventList().get(activity.getEventList().size()-1).getTimestampMilli();
+        if (!startTimeActivitiesMap.containsKey(actStartTime)) {
+            List<AActivity> actList = new ArrayList<>();
+            actList.add(activity);
+            startTimeActivitiesMap.put(actStartTime, actList);
+        } else {
+            startTimeActivitiesMap.get(actStartTime).add(activity);
+        }
+    }
+
+    private void configActivityList(UnifiedMap<Long, List<AActivity>> completeTimeActivitiesMap) {
+        List<Long> keyList = new ArrayList<>(completeTimeActivitiesMap.keySet());
+        Collections.sort(keyList);
+
+        for (int i = 0; i < keyList.size(); i++) {
+            long endTime = keyList.get(i);
+            List<AActivity> actList = completeTimeActivitiesMap.get(endTime);
+            for (int j = 0; j < actList.size(); j++) {
+                AActivity act = actList.get(j);
+                this.activityList.add(act);
+            }
+        }
     }
 
     public List<Integer> getActivityNameIndexList() {
@@ -631,34 +616,18 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
         return hasActivity;
     }
 
+    public List<AActivity> getOriginalActivityList() {
+        return aTrace.getActivityList();
+    }
+
     public List<AActivity> getActivityList() {
         return this.activityList;
-//        UnifiedSet<String> invalidEventSet = new UnifiedSet<>();
-//        for (int i = 0; i < this.originalEventList.size(); i++) {
-//            if (!this.validEventIndexBS.get(i)) {
-//                invalidEventSet.put(this.originalEventList.get(i).getName());
-//            }
-//        }
-//
-//        List<AActivity> aActivityList = new ArrayList<>();
-//
-//        for (int i = 0; i < this.activityList.size(); i++) {
-//            AActivity aActivity = this.activityList.get(i);
-//            if (!invalidEventSet.contains(aActivity.getName())) aActivityList.add(aActivity);
-//        }
-
-//        return aActivityList;
     }
 
     public List<String> getActivityNameList() {
 
         return this.activityNameList;
 
-//        List<String> actNameList = new ArrayList<>();
-//        for (int i = 0; i < activityList.size(); i++) {
-//            actNameList.add(activityList.get(i).getName());
-//        }
-//        return actNameList;
     }
 
     public UnifiedSet<String> getEventNameSet() {
@@ -670,23 +639,10 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
     }
 
     public List<AEvent> getEventList() {
-//        List<AEvent> aEventList = new ArrayList<>();
-//        for (int i = 0; i < this.originalEventList.size(); i++) {
-//            if (this.validEventIndexBS.get(i)) {
-//                aEventList.add(this.originalEventList.get(i));
-//            }
-//        }
-//        return aEventList;
+
         return eventList;
     }
 
-//    public int size() {
-//        return this.eventList.size();
-//    }
-
-//    public AEvent getById(int index) {
-//        return this.eventList.getById(index);
-//    }
 
     public long getTotalProcessingTime() {
         return totalProcessingTime;
@@ -733,9 +689,7 @@ public class PTrace implements Comparable<PTrace>, LaTrace {
     }
 
     public ATrace toATrace() {
-//        if(getCaseId().equals("0050554374")) {
-//            System.out.println("PAUSE");
-//        }
+
         ATrace aTrace = new ATrace(caseId, caseVariantId,
                 startTimeMilli, endTimeMilli,
                 hasActivity, duration,
