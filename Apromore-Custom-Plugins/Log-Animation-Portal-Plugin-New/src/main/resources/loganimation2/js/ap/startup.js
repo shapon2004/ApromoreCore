@@ -61,6 +61,7 @@ Ap.la.session = (function() {
       xml,
       model: {
         id: "editorcanvas",
+        showPlugins: false,
         stencilset: {
           url,
           namespace

@@ -58,6 +58,8 @@ ORYX.Editor = {
             }
         }
 
+        this.showPlugins = !('showPlugins' in model) || model.showPlugins;
+
         var langs = (config.languages || []).sort(function (k, h) {
             return config.position - config.position;
         });
@@ -72,10 +74,12 @@ ORYX.Editor = {
         this._generateGUI();
 
         // LOAD the plugins
-        window.setTimeout(function () {
-            this.loadPlugins();
-            this.activatePlugins();
-        }.bind(this), 100);
+        if (this.showPlugins) {
+            window.setTimeout(function () {
+                this.loadPlugins();
+                this.activatePlugins();
+            }.bind(this), 100);
+        }
 
         // LOAD the content of the current editor instance
         window.setTimeout(function () {
