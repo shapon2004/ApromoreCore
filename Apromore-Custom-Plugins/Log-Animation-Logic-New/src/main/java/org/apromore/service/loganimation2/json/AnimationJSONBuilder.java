@@ -118,15 +118,11 @@ public class AnimationJSONBuilder {
         
         collectionObj.put("logs", logs);
         collectionObj.put("timeline", this.parseTimeline(animations));
-        //collectionObj.put("tracedates", this.parseTraceStartDates());
-        //collectionObj.put("sequenceAnalysis", this.parseSequenceAnalysis());
         return collectionObj;
     }
     
     public JSONObject parseLog(AnimationLog animationLog) throws JSONException {
         JSONObject json = new JSONObject();
-        
-        DecimalFormat df = new DecimalFormat("#.###"); 
         
         json.put("name", animationLog.getName());
         json.put("filename", animationLog.getFileName());
@@ -134,26 +130,6 @@ public class AnimationJSONBuilder {
         json.put("total", animationLog.getTraces().size() + animationLog.getUnplayTraces().size());        
         json.put("play", animationLog.getTraces().size());
         json.put("progress", this.parseLogProgress(animationLog));
-        //json.put("sequenceFlowIds", this.parseSequenceFlowIds(this.sequenceFlows));
-        /*
-        json.put("unplayTraces", animationLog.getUnplayTracesString());
-        json.put("reliable", animationLog.getReliableTraceCount());
-        json.put("unreliableTraces", animationLog.getUnReliableTraceIDs());
-        json.put("moveLogFitness", df.format(animationLog.getCostBasedMoveLogFitness()));
-        json.put("moveModelFitness", df.format(animationLog.getCostBasedMoveModelFitness()));
-        json.put("approxTraceFitness", df.format(animationLog.getApproxTraceFitness()));
-        json.put("approxFitnessFormulaTime", df.format(1.0*animationLog.getApproxTraceFitnessFormulaTime()/1000));
-        if (params.isExactTraceFitnessCalculation()) {
-            json.put("exactTraceFitness", df.format(animationLog.getTraceFitness(animationLog.getMinBoundMoveOnModel())));
-            json.put("exactFitnessFormulaTime", df.format(1.0*animationLog.getExactTraceFitnessFormulaTime()/1000));
-        }
-        else {
-            json.put("exactTraceFitness", 0);
-            json.put("exactFitnessFormulaTime", 0);
-        }
-        json.put("algoTime", df.format(1.0*animationLog.getAlgoRuntime()/1000));
-        json.put("tokenAnimations", this.parseTraces(animationLog));
-        */
         
         return json;
     }
@@ -173,17 +149,6 @@ public class AnimationJSONBuilder {
         for(AnimationLog log : this.animations) {
             logTimelines.put(this.parseLogTimeline(log));
         }
-        
-        //bar labels
-        /*
-        JSONArray barLabels = new JSONArray();
-        Duration dur = new Duration(Double.valueOf(this.getSlotDataUnit()*1000).longValue());
-        DateTime slotTime = totalRealInterval.getStart();
-        for(int i=1;i<=params.getTimelineSlots()+1;i++) {
-            barLabels.put(slotTime.toString());
-            slotTime = slotTime.plus(dur);
-        }
-        */
         
         json.put("logs", logTimelines);
         json.put("startDateLabel", totalRealInterval.getStart().toString());
@@ -222,14 +187,6 @@ public class AnimationJSONBuilder {
         json.put("color", log.getColor());
         return json;
     }
-    
-//    protected JSONArray parseSequenceFlowIds(Collection<SequenceFlow> flows) {
-//        JSONArray flowIds = new JSONArray();
-//        for (SequenceFlow seqFlow : flows) {
-//            flowIds.put(seqFlow.getId());
-//        }
-//        return flowIds;
-//    }
     
     //represent all token flows in the log
     protected JSONObject parseTrace(AnimationLog animationLog, ReplayTrace trace) throws JSONException {
@@ -290,15 +247,6 @@ public class AnimationJSONBuilder {
         DecimalFormat df = new DecimalFormat("#.#####");        
         json.put("begin", df.format(begin));
         json.put("dur", df.format(1.0*duration/1000));
-
-        /*
-        if (((TraceNode)sequenceFlow.getSourceRef()).isVirtual()) {
-            json.put("sourceIsVirtual", "true");
-        } else {
-            json.put("sourceIsVirtual", "false");
-        }
-        */
-            
 
         return json;
     }     

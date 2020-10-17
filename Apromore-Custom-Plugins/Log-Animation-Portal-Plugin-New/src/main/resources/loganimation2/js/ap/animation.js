@@ -85,8 +85,7 @@ class AnimationController {
     };
 
     this.pluginExecutionId = pluginExecutionId;
-    this.pathElementCache = {};
-    this.pathElementLengths = [];
+    this.elementCache = {};
   }
 
   initialize(jsonRaw) {
@@ -94,11 +93,12 @@ class AnimationController {
 
     // Data for animation
     this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, elementIds} = this.jsonServer;
+    let {logs, timeline, elementIndexIDMap} = this.jsonServer;
     this.logs = logs;
     this.logNum = logs.length;
     this.timeline = timeline;
-    this.elementIds = elementIds;
+    this.elementIndexIDMap = elementIndexIDMap[0];
+    this.skipElementIndexIDMap = elementIndexIDMap[1];
 
     // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
@@ -138,17 +138,27 @@ class AnimationController {
 
     // Cache path elements
     for (let log of this.logs) {
-      for (let i=0; i<this.elementIds.length; i++) {
-        let flowId = this.elementIds[i];
-        this.pathElementCache[flowId] = $j('[data-element-id=' + flowId + ']').find('g').find('path').get(0);
-        this.pathElementLengths[i] = this.pathElementCache[flowId].getTotalLength();
+      for (let elementIndex in this.elementIndexIDMap) {
+        let elementId = this.elementIndexIDMap[elementIndex];
+        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+        if (pathElement) { // sequence flow
+          this.elementCache[elementIndex] = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+        }
+        else { // task node without skip
+          //this.elementCache[elementIndex] =
+        }
+      }
+
+      for (let elementIndex in this.skipElementIndexIDMap) {
+        let elementId = this.skipElementIndexIDMap[elementIndex];
+        //this.elementCache[elementIndex] =
       }
     }
 
     // Create token animation
     let canvasContext = this._setTokenCanvasAttributes();
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
-    this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.pathElementCache, this.elementIds);
+    this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.elementCache);
     this.tokenAnimation.registerListener(this);
 
     let controller = this;

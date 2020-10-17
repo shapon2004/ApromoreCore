@@ -42,6 +42,7 @@ import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import de.hpi.bpmn2_0.model.BaseElement;
 import de.hpi.bpmn2_0.model.Definitions;
@@ -118,8 +119,8 @@ public class AnimationLog {
     	return elementMapping != null ? elementMapping.size() : 0;
     }
     
-    public JSONArray getElementJSONArray() {
-    	return this.elementMapping.getElementJSONArray();
+    public JSONArray getElementJSON() throws JSONException {
+    	return this.elementMapping.getElementJSON();
     }
     
     public DateTime getStartDate() {

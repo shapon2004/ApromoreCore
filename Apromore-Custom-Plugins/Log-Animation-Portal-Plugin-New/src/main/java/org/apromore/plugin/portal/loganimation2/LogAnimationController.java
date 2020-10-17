@@ -161,7 +161,7 @@ public class LogAnimationController extends BaseController {
             setupData.put("fps", animateContext.getRecordingFrameRate());
             setupData.put("frameGap", animateContext.getFrameInterval());
             setupData.put("frameChunkSize", animateContext.getChunkSize());
-            setupData.put("elementIds", animationLog.getElementJSONArray());
+            setupData.put("elementIndexIDMap", animationLog.getElementJSON());
             if(setupData == null) {
                 if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
                     //List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");

@@ -25,6 +25,8 @@ import java.util.Collection;
 
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import de.hpi.bpmn2_0.model.FlowElement;
 import de.hpi.bpmn2_0.model.activity.Activity;
@@ -74,11 +76,18 @@ public class ElementMapping {
 		this.elementIdToIndexMap.clear();
 	}
 	
-	public JSONArray getElementJSONArray() {
-		JSONArray elementsJSON = new JSONArray();
-		for (int i=0; i<elementIdToIndexMap.size(); i++) {
-			elementsJSON.put(elementIdToIndexMap.inverse().get(i));
-		}
-		return elementsJSON;
+	public JSONArray getElementJSON() throws JSONException {
+	    JSONArray jsonArray = new JSONArray();
+        jsonArray.put(this.getJSONMap(this.elementIdToIndexMap));
+        jsonArray.put(this.getJSONMap(this.elementIdToSkipIndexMap));
+        return jsonArray;
 	}
+	
+    private JSONObject getJSONMap(HashBiMap<String, Integer> IDToIndexMap) throws JSONException {
+        JSONObject json = new JSONObject();
+        for (String elementId : IDToIndexMap.keySet()) {
+            json.put(IDToIndexMap.get(elementId).toString(), elementId);
+        }
+        return json;
+    }	
 }

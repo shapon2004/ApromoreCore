@@ -114,11 +114,6 @@ class TokenAnimation {
         this._canvasTransformMatrix = this._canvasContext.getTransform();
         this._pathMap = pathMap;
         this._elementIds = elementIds;
-        this._pathElementLengths = [];
-        for (let i=0; i<elementIds.length; i++) {
-            let eleId = elementIds[i];
-            this._pathElementLengths[i] = pathMap[eleId].getTotalLength();
-        }
 
         this._readBufferLoopId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
@@ -403,10 +398,6 @@ class TokenAnimation {
 
     _getPathElement(elementId) {
         return this._pathMap[elementId];
-    }
-
-    _getPathElementLength(elementIndex) {
-        return this._pathElementLengths[elementIndex];
     }
 
     _getElementId(elementIndex) {
