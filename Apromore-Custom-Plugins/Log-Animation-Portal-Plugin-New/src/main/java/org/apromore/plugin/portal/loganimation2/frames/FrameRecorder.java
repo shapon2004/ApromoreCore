@@ -76,9 +76,9 @@ public class FrameRecorder {
                         long duration = end - start; // only animate if duration > 0
                         if (duration > 0 && start <= frameTimestamp && frameTimestamp <= end) {
                             double distance = 1.0*(frameTimestamp - start)/duration;
-                            frame.addToken(log.getElementIndexFromId(node.getId()), 
-                                    log.getCaseIndexFromId(trace.getId()),
-                                    distance);
+                            int elementIndex = !node.isActivitySkipped() ? log.getElementIndexFromId(node.getId()) :
+                                                log.getElementSkipIndexFromId(node.getId());
+                            frame.addToken(elementIndex, log.getCaseIndexFromId(trace.getId()), distance);
                         }
                     }   
 	            }

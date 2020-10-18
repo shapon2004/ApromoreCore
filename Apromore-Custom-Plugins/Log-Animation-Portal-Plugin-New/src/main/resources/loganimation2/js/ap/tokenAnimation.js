@@ -104,16 +104,14 @@ class TokenAnimation {
     /**
      * @param {AnimationContext} animationContext
      * @param {RenderingContext} canvasContext
-     * @param {Object} pathMap
-     * @param {Array} elementIds
+     * @param {Object} pathMap: index to SVG path element
      */
-    constructor(animationContext, canvasContext, pathMap, elementIds) {
+    constructor(animationContext, canvasContext, pathMap) {
         console.log('TokenAnimation - initializing');
         this._animationContext = animationContext;
         this._canvasContext = canvasContext;
         this._canvasTransformMatrix = this._canvasContext.getTransform();
         this._pathMap = pathMap;
-        this._elementIds = elementIds;
 
         this._readBufferLoopId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
@@ -292,8 +290,7 @@ class TokenAnimation {
         this.clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            let elementId = this._getElementId(elementIndex);
-            let pathElement = this._getPathElement(elementId);
+            let pathElement = this._getPathElement(elementIndex);
             let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
@@ -396,12 +393,8 @@ class TokenAnimation {
         this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     }
 
-    _getPathElement(elementId) {
-        return this._pathMap[elementId];
-    }
-
-    _getElementId(elementIndex) {
-        return this._elementIds[elementIndex];
+    _getPathElement(elementIndex) {
+        return this._pathMap[elementIndex];
     }
 
     _clearPendingBufferReads() {

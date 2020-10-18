@@ -141,17 +141,17 @@ class AnimationController {
       for (let elementIndex in this.elementIndexIDMap) {
         let elementId = this.elementIndexIDMap[elementIndex];
         let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-        if (pathElement) { // sequence flow
-          this.elementCache[elementIndex] = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+        if (!pathElement) { // create cross and skip paths as they are not present
+          this.createNodePathElements(elementId);
+          pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
         }
-        else { // task node without skip
-          //this.elementCache[elementIndex] =
-        }
+        this.elementCache[elementIndex] = pathElement;
       }
 
       for (let elementIndex in this.skipElementIndexIDMap) {
         let elementId = this.skipElementIndexIDMap[elementIndex];
-        //this.elementCache[elementIndex] =
+        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+        this.elementCache[elementIndex] = pathElement;
       }
     }
 
@@ -529,7 +529,7 @@ class AnimationController {
   gotoStart() {
     console.log('AnimationController - gotoStart');
     if (this.isAtStart()) return;
-    this.tokenAnimation.clearCanvas();
+    this.tokenAnimation.clearAnimation();
     this.goto(0);
     this.pause();
   }
@@ -537,7 +537,7 @@ class AnimationController {
   gotoEnd() {
     console.log('AnimationController - gotoEnd');
     if (this.isAtEnd()) return;
-    this.tokenAnimation.clearCanvas();
+    this.tokenAnimation.clearAnimation();
     this.goto(this.oriTotalEngineS);
     this.pause();
   }
@@ -601,12 +601,163 @@ class AnimationController {
   }
 
   playPause() {
+    if (this.isAtEnd()) return;
     console.log('AnimationController: toggle play/pause');
     if (this.isPlaying()) {
       this.pause();
     } else {
       this.unPause();
     }
+  }
+
+  /**
+   * Create two paths: one crossing and one skipping a node
+   * @param {String} nodeId
+   */
+  createNodePathElements (nodeId) {
+    let incomingEndPoint = $j(
+        '[data-element-id=' + this.canvas.getIncomingFlowId(nodeId) +
+        ']',
+    )
+    let incomingPathE = incomingEndPoint.find('g').find('path').get(0)
+    incomingEndPoint = incomingPathE.getPointAtLength(
+        incomingPathE.getTotalLength(),
+    )
+    let crossPath, skipPath;
+    let arrayAbove, arrayBelow;
+
+    let outgoingStartPoint = $j(
+        '[data-element-id=' + this.canvas.getOutgoingFlowId(nodeId) +
+        ']',
+    )
+    let outgoingPathE = outgoingStartPoint.find('g').find('path').get(0)
+    outgoingStartPoint = outgoingPathE.getPointAtLength(0)
+
+    let startPoint = incomingEndPoint
+    let endPoint = outgoingStartPoint
+
+    let nodeTransformE = $j('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
+    let nodeRectE = $j('[data-element-id=' + nodeId + ']').
+    find('g').
+    find('rect').
+    get(0)
+    let taskRectPoints = getViewportPoints(
+        this.svgMain,
+        nodeRectE,
+        nodeTransformE,
+    )
+
+    crossPath =
+        'm' + startPoint.x + ',' + startPoint.y +
+        ' L' + taskRectPoints.cc.x + ',' + taskRectPoints.cc.y +
+        ' L' + endPoint.x + ',' + endPoint.y
+
+    // Both points are on a same edge
+    if (
+        (Math.abs(startPoint.x - endPoint.x) < 10 &&
+            Math.abs(endPoint.x - taskRectPoints.se.x) < 10) ||
+        (Math.abs(startPoint.x - endPoint.x) < 10 &&
+            Math.abs(endPoint.x - taskRectPoints.sw.x) < 10) ||
+        (Math.abs(startPoint.y - endPoint.y) < 10 &&
+            Math.abs(endPoint.y - taskRectPoints.nw.y) < 10) ||
+        (Math.abs(startPoint.y - endPoint.y) < 10 &&
+            Math.abs(endPoint.y - taskRectPoints.sw.y) < 10)
+    ) {
+      skipPath =
+          'm' + startPoint.x + ',' + startPoint.y +
+          ' L' + endPoint.x + ',' + endPoint.y
+    } else {
+      arrayAbove = new Array()
+      arrayBelow = new Array()
+
+      if (
+          taskRectPoints.se.y <
+          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.se)
+      ) {
+        arrayAbove.push(taskRectPoints.se)
+      } else {
+        arrayBelow.push(taskRectPoints.se)
+      }
+
+      if (
+          taskRectPoints.sw.y <
+          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.sw)
+      ) {
+        arrayAbove.push(taskRectPoints.sw)
+      } else {
+        arrayBelow.push(taskRectPoints.sw)
+      }
+
+      if (
+          taskRectPoints.ne.y <
+          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.ne)
+      ) {
+        arrayAbove.push(taskRectPoints.ne)
+      } else {
+        arrayBelow.push(taskRectPoints.ne)
+      }
+
+      if (
+          taskRectPoints.nw.y <
+          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.nw)
+      ) {
+        arrayAbove.push(taskRectPoints.nw)
+      } else {
+        arrayBelow.push(taskRectPoints.nw)
+      }
+
+      if (arrayAbove.length == 1) {
+        skipPath =
+            'm' + startPoint.x + ',' + startPoint.y + ' ' +
+            'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
+            'L' + endPoint.x + ',' + endPoint.y
+      } else if (arrayBelow.length == 1) {
+        skipPath =
+            'm' + startPoint.x + ',' + startPoint.y + ' ' +
+            'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
+            'L' + endPoint.x + ',' + endPoint.y
+      } else {
+        if (Math.abs(startPoint.x - taskRectPoints.sw.x) < 10) {
+          skipPath =
+              'm' + startPoint.x + ',' + startPoint.y + ' ' +
+              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+              'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
+              'L' + endPoint.x + ',' + endPoint.y
+        } else if (Math.abs(startPoint.x - taskRectPoints.se.x) < 10) {
+          skipPath =
+              'm' + startPoint.x + ',' + startPoint.y + ' ' +
+              'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
+              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+              'L' + endPoint.x + ',' + endPoint.y
+        } else if (Math.abs(startPoint.y - taskRectPoints.sw.y) < 10) {
+          skipPath =
+              'm' + startPoint.x + ',' + startPoint.y + ' ' +
+              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+              'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
+              'L' + endPoint.x + ',' + endPoint.y
+        } else if (Math.abs(startPoint.y - taskRectPoints.nw.y) < 10) {
+          skipPath =
+              'm' + startPoint.x + ',' + startPoint.y + ' ' +
+              'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
+              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+              'L' + endPoint.x + ',' + endPoint.y
+        }
+      }
+    }
+
+    let crossPathE = document.createElementNS(SVG_NS, 'path');
+    crossPathE.setAttributeNS(null, 'd', crossPath);
+    crossPathE.setAttributeNS(null, 'fill', 'transparent');
+    crossPathE.setAttributeNS(null, 'stroke', 'none');
+
+    let skipPathE = document.createElementNS(SVG_NS, 'path');
+    skipPathE.setAttributeNS(null, 'd', skipPath);
+    skipPathE.setAttributeNS(null, 'fill', 'transparent');
+    skipPathE.setAttributeNS(null, 'stroke', 'none');
+
+    let nodeGroupE = $j('[data-element-id=' + nodeId + ']').find('g').get(0);
+    nodeGroupE.appendChild(crossPathE);
+    nodeGroupE.appendChild(skipPathE);
   }
 
   /*

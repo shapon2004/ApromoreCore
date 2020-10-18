@@ -47,8 +47,8 @@ import org.json.JSONException;
 import de.hpi.bpmn2_0.model.BaseElement;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowElement;
-import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.Process;
+import de.hpi.bpmn2_0.model.activity.Activity;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 public class AnimationLog {
@@ -109,6 +109,10 @@ public class AnimationLog {
     
     public int getElementIndexFromId(String elementId) {
     	return this.elementMapping.getIndex(elementId);
+    }
+    
+    public int getElementSkipIndexFromId(String elementId) {
+        return this.elementMapping.getSkipIndex(elementId);
     }
     
     public int getNumberOfCases() {
@@ -407,7 +411,7 @@ public class AnimationLog {
             if (rootElement instanceof Process) {
                 Process process = (Process)rootElement;
                 for (FlowElement element : process.getFlowElement()) {
-                    if (element instanceof FlowNode || element instanceof SequenceFlow) {
+                    if (element instanceof Activity || element instanceof SequenceFlow) {
                         elements.add(element);
                     }                  
                 }

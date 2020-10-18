@@ -69,13 +69,16 @@ public class ElementMapping {
 	}
 	
 	public int size() {
-		return elementIdToIndexMap.size();
+		return elementIdToIndexMap.size() + elementIdToSkipIndexMap.size();
 	}
 	
 	public void clear() {
 		this.elementIdToIndexMap.clear();
+		this.elementIdToSkipIndexMap.clear();
 	}
 	
+	// two arrays, first is the mapping from id to normal index
+	// second is mapping from id to skip index
 	public JSONArray getElementJSON() throws JSONException {
 	    JSONArray jsonArray = new JSONArray();
         jsonArray.put(this.getJSONMap(this.elementIdToIndexMap));
@@ -83,10 +86,10 @@ public class ElementMapping {
         return jsonArray;
 	}
 	
-    private JSONObject getJSONMap(HashBiMap<String, Integer> IDToIndexMap) throws JSONException {
+    private JSONObject getJSONMap(HashBiMap<String, Integer> idToIndexMap) throws JSONException {
         JSONObject json = new JSONObject();
-        for (String elementId : IDToIndexMap.keySet()) {
-            json.put(IDToIndexMap.get(elementId).toString(), elementId);
+        for (String elementId : idToIndexMap.keySet()) {
+            json.put(idToIndexMap.get(elementId).toString(), elementId);
         }
         return json;
     }	

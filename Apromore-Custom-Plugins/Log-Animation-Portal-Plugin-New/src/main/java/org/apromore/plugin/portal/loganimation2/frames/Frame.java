@@ -33,8 +33,9 @@ import org.json.JSONObject;
 import org.roaringbitmap.RoaringBitmap;
 
 /**
- * Each Frame is a matrix where a row index is the index of a modelling element (node/arc)
- * and a column index is the index of a case. 
+ * Each Frame is a matrix where the row index is the index of a path element  
+ * and the column index is the index of a case. Path elements are SVG path element representing
+ * a sequence flow, a path through the center of a node or a path through the edge of a node.
  * Each token is identified by a pair (elementIndex, caseIndex), so called token coordinate. 
  * As the number of cases can be extremely high, case indexes are stored in a compressed bitmap. 
  * From the token coordinate, it is possible to obtain a single index called token index. 
