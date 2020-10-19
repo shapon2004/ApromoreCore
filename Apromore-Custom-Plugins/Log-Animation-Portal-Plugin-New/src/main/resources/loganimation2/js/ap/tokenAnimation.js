@@ -164,9 +164,10 @@ class TokenAnimation {
     }
 
     _setCanvasStyle() {
-        this._canvasContext.lineWidth = 0.5;
-        this._canvasContext.strokeStyle = '#000';
+        this._canvasContext.lineWidth = 5;
+        this._canvasContext.strokeStyle = 'blue';
         this._canvasContext.fillStyle = "red";
+        this._canvasContext.globalCompositeOperation = 'destination-out';
     }
 
     _initialize() {
@@ -301,14 +302,17 @@ class TokenAnimation {
                 let radius = count;
                 if (radius > 3) radius = 3;
 
+                /*
                 if (count <= 5) {
                     this._canvasContext.lineWidth = 1;
                     this._canvasContext.strokeStyle = 'red';
                     this._canvasContext.lineTo(point.x, point.y);
                 }
+                */
 
                 this._canvasContext.fillStyle = this._selectTokenColor(count);
                 this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
+                this._canvasContext.stroke();
                 this._canvasContext.fill();
             }
         }
