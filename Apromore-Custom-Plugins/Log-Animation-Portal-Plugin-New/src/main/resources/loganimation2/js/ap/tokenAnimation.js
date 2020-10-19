@@ -163,16 +163,16 @@ class TokenAnimation {
         return this._playingFrameRate/this._animationContext.getRecordingFrameRate();
     }
 
-    _setCanvasStyle() {
-        this._canvasContext.lineWidth = 5;
+    setCanvasStyle() {
+        this._canvasContext.lineWidth = 8;
         this._canvasContext.strokeStyle = 'blue';
         this._canvasContext.fillStyle = "red";
-        this._canvasContext.globalCompositeOperation = 'destination-out';
+        this._canvasContext.globalCompositeOperation = "lighter";
     }
 
     _initialize() {
         console.log('TokenAnimation: initialize');
-        this._setCanvasStyle();
+        this.setCanvasStyle();
         this._currentTime = 0;
         this.startSequenceMode();
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
@@ -307,7 +307,6 @@ class TokenAnimation {
                 let distance = token[caseIndex][0];
                 let count = token[caseIndex][1];
                 let point = pathElement.getPointAtLength(totalLength * distance);
-                this._canvasContext.beginPath();
                 let radius = count;
                 if (radius > 3) radius = 3;
 
@@ -318,7 +317,7 @@ class TokenAnimation {
                     this._canvasContext.lineTo(point.x, point.y);
                 }
                 */
-
+                this._canvasContext.beginPath();
                 this._canvasContext.fillStyle = this._selectTokenColor(count);
                 this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.stroke();

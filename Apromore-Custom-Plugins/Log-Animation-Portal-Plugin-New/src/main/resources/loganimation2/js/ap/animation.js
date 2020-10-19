@@ -174,6 +174,7 @@ class AnimationController {
     this.canvas.addEventBusListener("canvas.viewbox.changed", function(event) {
       let canvasContext = controller._setTokenCanvasAttributes();
       controller.tokenAnimation.setTranformMatrix(canvasContext.getTransform());
+      controller.tokenAnimation.setCanvasStyle();
       if (isPlayingBeforeChanging) {
         controller.unPause();
         isPlayingBeforeChanging = false;
@@ -218,7 +219,6 @@ class AnimationController {
     ctx.canvas.x = box.x;
     ctx.canvas.y = box.y;
     ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-    console.log("TokenCanvas: ", matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     return ctx;
   }
 
