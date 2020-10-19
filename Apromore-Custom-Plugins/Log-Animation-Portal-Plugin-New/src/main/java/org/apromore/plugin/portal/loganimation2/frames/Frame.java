@@ -205,7 +205,7 @@ public class Frame {
 		JSONObject json = new JSONObject();
         json.put("index", index);
         JSONArray elements = new JSONArray();
-        for (int elementIndex : this.getElementIndexes()) {;
+        for (int elementIndex : this.getElementIndexes()) {
         	JSONArray cases = new JSONArray();
         	for (int caseIndex : this.getCasesByElementIndex(elementIndex)) {
         		int tokenIndex = getTokenIndex(elementIndex, caseIndex);

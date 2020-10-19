@@ -284,7 +284,16 @@ class TokenAnimation {
 
     /**
      * Draw a frame on the canvas
-     * @param frame
+     * @param {JSON} frame
+     * Frame format:
+     *	{
+     * 	    index: 100,
+     * 	    elements: [
+     * 		    {elementIndex1: [{caseIndex1:[0.1,1]}, {caseIndex2:[0.2,1]}, {caseIndex3:[0.1,2]}]},
+     * 		    {elementIndex2: [{caseIndex1:[0.2,5]}, {caseIndex2:[0.5,3]}]},
+     * 		    {elementIndex3: [{caseIndex4:[0.1,1]}]}
+     * 	    ]
+     * }
      * @private
      */
     _drawFrame(frame) {
