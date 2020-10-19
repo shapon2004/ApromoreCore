@@ -22,7 +22,6 @@
 package org.apromore.dao.jpa.usermanagement;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import org.apromore.config.BaseTestClass;
 import org.apromore.dao.GroupRepository;
 import org.apromore.dao.RoleRepository;
@@ -51,12 +50,13 @@ public class UserManagementUnitTest extends BaseTestClass {
 	@Before
 	public void Setup() {
 		builder = new UserManagementBuilder();
+
 	}
 
 	@Test
 	public void testSaveGroup() {
 		// given
-		Group userGroup = builder.withGroup("testGroup2", "USER").buildGroup();
+		Group userGroup = builder.withGroup("testGroup", "USER").buildGroup();
 
 		// when
 		Group savedUSerGroup = groupRepository.saveAndFlush(userGroup);
@@ -65,7 +65,6 @@ public class UserManagementUnitTest extends BaseTestClass {
 		assertThat(savedUSerGroup.getName()).isEqualTo(userGroup.getName());
 		assertThat(savedUSerGroup.getType()).isEqualTo(userGroup.getType());
 		
-		Group group=groupRepository.findByName("testGroup2");
 			
 	}
 	
@@ -73,7 +72,7 @@ public class UserManagementUnitTest extends BaseTestClass {
 	public void testSaveUser() {
 		// given
 		Group group=groupRepository.saveAndFlush(builder.withGroup("testGroup1", "USER").buildGroup());
-		Role role=roleRepository.saveAndFlush(builder.withRole("testRole1").buildRole());
+		Role role=roleRepository.saveAndFlush(builder.withRole("testRole").buildRole());
 		User user = builder.withGroup(group)
 				.withRole(role)
 				.withMembership("n@t.com")
