@@ -32,6 +32,7 @@ import org.apromore.plugin.portal.loganimation2.frames.AnimationContext;
 import org.apromore.plugin.portal.loganimation2.frames.FrameDecorator;
 import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
 import org.apromore.plugin.portal.loganimation2.frames.Frames;
+import org.apromore.plugin.portal.loganimation2.stats.Stats;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.common.UserSessionManager;
 //import org.apromore.portal.context.EditorPluginResolver;
@@ -162,6 +163,7 @@ public class LogAnimationController extends BaseController {
             setupData.put("frameGap", animateContext.getFrameInterval());
             setupData.put("frameChunkSize", animateContext.getChunkSize());
             setupData.put("elementIndexIDMap", animationLog.getElementJSON());
+            setupData.put("caseCountStats", Stats.computeCaseCountsJSON(animationFrames));
             if(setupData == null) {
                 if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
                     //List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
