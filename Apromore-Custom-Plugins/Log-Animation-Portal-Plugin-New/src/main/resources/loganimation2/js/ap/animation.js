@@ -93,12 +93,13 @@ class AnimationController {
 
     // Data for animation
     this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, elementIndexIDMap} = this.jsonServer;
+    let {logs, timeline, elementIndexIDMap, caseCountsByFrames} = this.jsonServer;
     this.logs = logs;
     this.logNum = logs.length;
     this.timeline = timeline;
     this.elementIndexIDMap = elementIndexIDMap[0];
     this.skipElementIndexIDMap = elementIndexIDMap[1];
+    this.caseCountsByFrames = caseCountsByFrames;
 
     // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
@@ -232,7 +233,7 @@ class AnimationController {
 
     for (let i = 0; i < logNum; i++) {
       let log = timeline.logs[i];
-      let x1 = ox + slotWidth * log.startDatePos; // Magic number 10 is slotWidth / slotEngineS
+      let x1 = ox + slotWidth * log.startDatePos;
       let x2 = ox + slotWidth * log.endDatePos;
       let style = 'stroke: ' + (apPalette[i] || log.color) + '; stroke-width: ' + logIntervalSize;
       let opacity = 0.8;
@@ -839,6 +840,29 @@ class AnimationController {
       }
       x += slotWidth;
       time += slotDataMs;
+    }
+  }
+
+  createTimelineBackground() {
+    // Create a virtual horizontal line
+    let {slotNum, slotWidth, timelineOffset, timelineEl} = this;
+    let x1 = timelineOffset.x;
+    let x2 = x1 + slotNum*slotWidth;
+    let y = timelineOffset.y;
+    let timelinePath = 'm' + x1 + ',' + y + ' L' + x2 + ',' + y;
+    let timelinePathE = new SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).addTo(timelineEl);
+
+    let box = this.svgTimeline.getBoundingClientRect();
+    //let matrix = this.timelineEl.transform.baseVal.consolidate().matrix;
+    let ctx = document.querySelector("#timelineCanvas").getContext('2d');
+    ctx.canvas.width = box.width;
+    ctx.canvas.height = box.height;
+    ctx.canvas.x = box.x;
+    ctx.canvas.y = box.y;
+    //ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+    if (this.caseCountsByFrames) {
+      let totalFrames = this.caseCountsByFrames.length;
+      let point = timelinePathE.getPointAtLength(totalLength * distance);
     }
   }
 

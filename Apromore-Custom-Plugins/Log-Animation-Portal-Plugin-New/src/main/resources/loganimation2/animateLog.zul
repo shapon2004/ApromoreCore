@@ -209,6 +209,7 @@
                 <div id="ap-la-progress"></div>
                 <div sclass="ap-la-timeline">
                     <n:svg id="timeline_svg" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
+                    <canvas id="timelineCanvas" style="position:absolute; background:none; z-index:1000; pointer-events:none"></canvas>
                 </div>
             </div>
         </n:div>
