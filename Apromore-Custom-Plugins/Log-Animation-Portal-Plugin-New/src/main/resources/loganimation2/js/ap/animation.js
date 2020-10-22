@@ -104,7 +104,7 @@ class AnimationController {
     // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
     this.svgViewport = this.canvas.getSVGViewport();
-    this.svgTimeline = $j('div.ap-la-timeline > svg')[0];
+    this.svgTimeline = $j('div.ap-la-timeline > div > svg')[0];
     this.timelineEl = null;
 
     this.svgProgresses = [];
@@ -194,6 +194,7 @@ class AnimationController {
     this.createProgressIndicators();
     this.createLogInfoPopups();
     this.createTimeline();
+    this.createTimelineDistribution();
     this.createLogIntervals();
     this.createTicks();
     this.createCursor();
@@ -843,26 +844,51 @@ class AnimationController {
     }
   }
 
-  createTimelineBackground() {
+  createTimelineDistribution() {
     // Create a virtual horizontal line
     let {slotNum, slotWidth, timelineOffset, timelineEl} = this;
-    let x1 = timelineOffset.x;
-    let x2 = x1 + slotNum*slotWidth;
+    let startX = timelineOffset.x;
+    let endX = startX + slotNum*slotWidth;
     let y = timelineOffset.y;
-    let timelinePath = 'm' + x1 + ',' + y + ' L' + x2 + ',' + y;
-    let timelinePathE = new SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).addTo(timelineEl);
+    let timelinePath = 'm' + startX + ',' + y + ' L' + endX + ',' + y;
+    let timelinePathE = new SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
+    timelineEl.appendChild(timelinePathE);
+    let totalLength = timelinePathE.getTotalLength();
 
+    // Set up canvas
     let box = this.svgTimeline.getBoundingClientRect();
-    //let matrix = this.timelineEl.transform.baseVal.consolidate().matrix;
     let ctx = document.querySelector("#timelineCanvas").getContext('2d');
     ctx.canvas.width = box.width;
     ctx.canvas.height = box.height;
     ctx.canvas.x = box.x;
     ctx.canvas.y = box.y;
-    //ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+    ctx.strokeStyle = '#D3D3D3';
+    ctx.lineWidth = 5;
+
+    // Draw distribution
     if (this.caseCountsByFrames) {
+      const Y_MAX = ctx.canvas.height;
+      const MAX_HEIGHT = ctx.canvas.height/4;
+      let maxCount = 0;
+      for (let count of Object.values(this.caseCountsByFrames)) {
+        if (typeof(count) != 'function' && maxCount < count) {
+          maxCount = count;
+        }
+      }
       let totalFrames = this.caseCountsByFrames.length;
-      let point = timelinePathE.getPointAtLength(totalLength * distance);
+      for (let i=0;i<totalFrames;i++) {
+        let distance = i/totalFrames;
+        let point = timelinePathE.getPointAtLength(totalLength * distance);
+        let height = (this.caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
+        let y2 = Y_MAX/2 - height;
+        ctx.beginPath();
+        ctx.moveTo(point.x, Y_MAX/2);
+        ctx.lineTo(point.x, y2);
+        ctx.stroke();
+        //let y3 = y1 + height;
+        //ctx.moveTo(point.x, y1);
+        //ctx.lineTo(point.x, y3);
+      }
     }
   }
 
