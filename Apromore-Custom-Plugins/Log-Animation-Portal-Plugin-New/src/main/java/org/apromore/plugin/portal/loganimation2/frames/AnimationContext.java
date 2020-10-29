@@ -30,7 +30,7 @@ import org.apromore.service.loganimation2.replay.AnimationLog;
  *
  */
 public class AnimationContext {
-	private int recordingFrameRate = 24; //frames per second
+	private int recordingFrameRate = 60; //frames per second
     private int frameInterval =  (int)(1.0/recordingFrameRate*1000); //milliseconds between two consecutive frames
     private int chunkSize = 4920; //number of frames
     private int totalDuration = 120; //seconds

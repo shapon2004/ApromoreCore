@@ -11,16 +11,15 @@ class AnimationContext {
      * @param {Number} logStartTime: the start timestamp in the log
      * @param {Number} logEndTime: the end timestamp in the log
      * @param {Number} logicalTimelineMax: the maximum logical time in seconds
+     * @param {Number} recordingFrameRate: the frame rate used to record frames
      */
-    constructor(pluginExecutionId, logStartTime, logEndTime, logicalTimelineMax) {
+    constructor(pluginExecutionId, logStartTime, logEndTime, logicalTimelineMax,
+                recordingFrameRate) {
         this._pluginExecutionId = pluginExecutionId;
         this._logStartTime = logStartTime;
         this._logEndTime = logEndTime;
         this._logicalTimelineMax = logicalTimelineMax;
-        this._recordingFrameRate = 24;
-        if (this._logicalTimelineMax > 0) {
-            this._logicalToLogFactor = (logEndTime - logStartTime)/(this._logicalTimelineMax*1000); //convert from logical timeline to log timeline
-        }
+        this._recordingFrameRate = recordingFrameRate
     }
 
     getPluginExecutionId() {
@@ -47,9 +46,6 @@ class AnimationContext {
         this._recordingFrameRate = frameRate;
     }
 
-    getLogicalToLogFactor() {
-        return this._logicalToLogFactor;
-    }
 }
 
 class PlayMode {
@@ -119,6 +115,7 @@ class TokenAnimation {
         this._currentFrameIndex = 0;
         this._playingFrameRate = 0;
         this._playingFrameInterval = 0;
+        this._MIN_BROWSER_REPAINT_INTERVAL = 16; // maximum frame interval for 60fps rate
 
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._paused = false; // pausing flag
@@ -264,6 +261,22 @@ class TokenAnimation {
                 this._notifyAll(new AnimationEvent(EventType.OUT_OF_FRAME, undefined));
             }
         }
+    }
+
+    /**
+     * Use frame skipping to increase the playing speed if need to
+     * 60fps is the common limit of browser repaint rate. If a frame rate is higher than 60fps,
+     * then skipping frames is the only way of increasing the animation speed.
+     * @param {Number} playingFrameInterval
+     * @private
+     */
+    _getNumberOfSkipFrames(playingFrameInterval) {
+        for (let i=10; i>=1; i--) {
+            if (playingFrameInterval < this._MIN_BROWSER_REPAINT_INTERVAL/i) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     /**

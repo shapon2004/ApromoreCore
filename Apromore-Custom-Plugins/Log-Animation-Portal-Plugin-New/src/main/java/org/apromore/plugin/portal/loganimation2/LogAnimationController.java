@@ -159,7 +159,7 @@ public class LogAnimationController extends BaseController {
             System.out.println("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             
             JSONObject setupData = (JSONObject)session.get("setupData");
-            setupData.put("fps", animateContext.getRecordingFrameRate());
+            setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
             setupData.put("frameGap", animateContext.getFrameInterval());
             setupData.put("frameChunkSize", animateContext.getChunkSize());
             setupData.put("elementIndexIDMap", animationLog.getElementJSON());

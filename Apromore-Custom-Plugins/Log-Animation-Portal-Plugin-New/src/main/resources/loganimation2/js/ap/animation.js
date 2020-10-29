@@ -93,10 +93,11 @@ class AnimationController {
 
     // Data for animation
     this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, elementIndexIDMap, caseCountsByFrames} = this.jsonServer;
+    let {logs, timeline, recordingFrameRate, elementIndexIDMap, caseCountsByFrames} = this.jsonServer;
     this.logs = logs;
     this.logNum = logs.length;
     this.timeline = timeline;
+    this.recordingFrameRate = recordingFrameRate;
     this.elementIndexIDMap = elementIndexIDMap[0];
     this.skipElementIndexIDMap = elementIndexIDMap[1];
     this.caseCountsByFrames = caseCountsByFrames;
@@ -158,7 +159,7 @@ class AnimationController {
 
     // Create token animation
     let canvasContext = this._setTokenCanvasAttributes();
-    this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS);
+    this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
     this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.elementCache);
     this.tokenAnimation.registerListener(this);
 
@@ -181,14 +182,6 @@ class AnimationController {
         isPlayingBeforeChanging = false;
       }
     });
-
-    // this.canvas.addEventBusListener("drag.start", function(event) {
-    //   return false;
-    // });
-    //
-    // this.canvas.addEventBusListener("connection.click", function(event) {
-    //   return false;
-    // });
 
     // Create visual controls
     this.createProgressIndicators();

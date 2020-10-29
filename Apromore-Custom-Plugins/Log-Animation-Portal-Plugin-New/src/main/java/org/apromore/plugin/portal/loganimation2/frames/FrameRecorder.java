@@ -60,9 +60,7 @@ public class FrameRecorder {
 			            long seqDuration = seqEnd - seqStart; // only animate if duration > 0
 			            if (seqDuration > 0 && seqStart <= frameTimestamp && frameTimestamp <= seqEnd) {
 			            	double distance = 1.0*(frameTimestamp - seqStart)/seqDuration;
-			                frame.addToken(log.getElementIndexFromId(seq.getId()), 
-			                				log.getCaseIndexFromId(trace.getId()),
-			                				distance);
+			                frame.addToken(log.getElementIndexFromId(seq.getId()), log.getCaseIndexFromId(trace.getId()), distance);
 			            }
 			        }	
 			        
