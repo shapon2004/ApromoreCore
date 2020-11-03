@@ -19,24 +19,36 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.config;
+package org.apromore.commons.security;
 
-import org.apromore.dao.UserRepository;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfig.class)
-@PropertySource("classpath:database/test-config.properties")
-public class BaseTestClass {
+public class CryptoTest {
 
-  static {
-    System.setProperty("secret", "aksX9g9oOL0B");
+  @Test
+  public void testCrypto() {
+    // Given
+    Crypto crypto = new Crypto("aksX9g9oOL0B", true);
+
+    // When
+    // password is MAcri
+    String password = crypto.getPassword("2kAvhKEZkyCSF1VLCLeMWg==");
+
+    // Then
+    assertThat(password).isEqualTo("MAcri");
+  }
+  
+  @Test
+  public void testCryptoRandom() {
+    // Given
+    Crypto crypto = new Crypto("aksX9g9oOL0B", true);
+
+    // When
+    // password is MAcri
+    String password = crypto.getPassword("5+2WGkfWzljNTIPDldDilJSuN9Agaygv"); 
+    // Then
+    assertThat(password).isEqualTo("7fHJV41fpJ");
   }
 
 }

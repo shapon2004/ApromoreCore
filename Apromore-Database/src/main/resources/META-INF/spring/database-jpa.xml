@@ -37,10 +37,21 @@
     <jpa:repositories base-package="org.apromore.dao" repository-impl-postfix="CustomImpl" />
 
     <!-- Setting up the Data Access details -->
-    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" /> 
+    <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+    
+     <bean id="crypto" class="org.apromore.commons.security.Crypto">
+     	<constructor-arg index="0" value="#{systemProperties['secret']?:'dummy'}"/>
+    	<constructor-arg index="1" value="${encryptionEnabled:false}"/>
+     </bean>
+     
+     <bean id="apromorePassword"
+    		factory-bean="crypto"
+    		factory-method="getPassword">
+    		<constructor-arg index="0" value="${jdbc.password}"/>
+     </bean>
 
     <bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource" destroy-method="close"
-          p:driverClass="${jdbc.driver}" p:jdbcUrl="${jdbc.url}" p:username="${jdbc.username}" p:password="${jdbc.password}"
+          p:driverClass="${jdbc.driver}" p:jdbcUrl="${jdbc.url}" p:username="${jdbc.username}" p:password="#{apromorePassword}"
           p:maxConnectionsPerPartition="30" p:minConnectionsPerPartition="10" p:partitionCount="5" p:acquireIncrement="5"
           p:statementsCacheSize="100" p:releaseHelperThreads="3" />
 
@@ -93,6 +104,12 @@
 
     <tx:annotation-driven  />
     
+    <bean id="liquibasePassword"
+    		factory-bean="crypto"
+    		factory-method="getPassword">
+    		<constructor-arg index="0" value="${liquibase.jdbc.password}"/>
+     </bean>
+     
      <bean id="liquibase"
           class="liquibase.integration.spring.SpringLiquibase">
         <property name="changeLog" value="classpath:db/migration/changeLog.yaml"/>
@@ -101,7 +118,7 @@
     		<property name="driverClass" value="${jdbc.driver}" />
     		<property name="url" value="${jdbc.url}" />
     		<property name="username" value="${liquibase.jdbc.username}" />
-    		<property name="password" value="${liquibase.jdbc.password}" />
+    		<property name="password" value="#{liquibasePassword}" />
             </bean>
         </property>
         <property name="contexts" value="${jpa.database}"/>

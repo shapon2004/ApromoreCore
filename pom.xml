@@ -47,6 +47,7 @@
 		<module>Apromore-OSGI-Bundles/hpi-bpt-osgi</module>
 		<module>Apromore-OSGI-Bundles/eclipse-collections-osgi</module>
 		<module>Apromore-OSGI-Bundles/json-osgi</module>
+		<module>Apromore-OSGI-Bundles/jasypt-osgi</module>
 		<module>Apromore-OSGI-Bundles/similaritysearch-osgi</module>
 		<module>Apromore-OSGI-Bundles/xlsx-streamer-osgi</module>
 		<module>Apromore-OSGI-Bundles/zk-osgi</module>
@@ -1449,6 +1450,9 @@
 						<exclude>**/*${integration.test.suffix}</exclude>
 						<exclude>**/*${ignored.test.suffix}</exclude>
 					</excludes>
+			        <systemPropertyVariables>
+			            <secret>aksX9g9oOL0B</secret>
+			        </systemPropertyVariables>
 				</configuration>
 				<executions>
 					<execution>
@@ -1470,6 +1474,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
