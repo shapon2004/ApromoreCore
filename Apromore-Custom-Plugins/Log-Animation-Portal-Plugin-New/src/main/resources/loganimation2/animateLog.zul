@@ -23,6 +23,7 @@
 
 <?link rel="shortcut icon" href="../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?script src="../themes/ap/common/js/index.js"?>
+<?script src="/loganimation2/js/ap/doublyLinkedList.js" ?>
 <?script src="/loganimation2/js/ap/dataRequester.js" ?>
 <?script src="/loganimation2/js/ap/frameBuffer.js" ?>
 <?script src="/loganimation2/js/ap/tokenAnimation.js" ?>
@@ -182,12 +183,6 @@
                             <n:div class="speed-control-tip">Speed control</n:div>
                         </div>
                     </div>
-                    <!--
-                    <div sclass="ap-la-show-case-id">
-                        <input id="toggleCaseLabelVisibility" type="checkbox" onchange="Ap.la.session.toggleCaseLabelVisibility()">Show Case IDs</input>
-                    </div>
-                    -->
-
                 </div>
 
                 <!-- Log Information -->

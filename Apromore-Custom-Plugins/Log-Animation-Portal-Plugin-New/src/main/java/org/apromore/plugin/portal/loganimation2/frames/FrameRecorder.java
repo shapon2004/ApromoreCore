@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apromore.plugin.portal.loganimation2.AnimationContext;
 import org.apromore.service.loganimation2.replay.AnimationLog;
 import org.apromore.service.loganimation2.replay.ReplayTrace;
 import org.apromore.service.loganimation2.replay.TraceNode;

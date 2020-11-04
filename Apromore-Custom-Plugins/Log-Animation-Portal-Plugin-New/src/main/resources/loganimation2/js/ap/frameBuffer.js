@@ -8,7 +8,7 @@
  *
  * House keeping operations:
  * The buffer adds and removes frames via two endless loops: _requestLoop and _cleanLoop.
- *  - Request Loop: connects to the server to get new frames whenever the current stock drops below a minimum threshold
+ *  - Request Loop: connects to the server to get new frames whenever the current stock drops below a safety threshold
  *  and keeps filling up the buffer until the current stock reaches a safety threshold.
  *  - Clean Loop:  the used stock is kept in the buffer as long as it is under a history threshold in case it will be
  *  read again for read efficiency. If the used stock is over a history threshold, old frames are removed out of the buffer
@@ -34,23 +34,18 @@
  */
 class Buffer {
     /**
-     *
      * @param {AnimationContext} animationContext
-     * @param {Number} chunkSize: the number of frames read from the stock in every request
-     * @param {Number} safetyThreshold: the number of remaining frames in the buffer that replenishment must achieve
-     * @param {Number} minimumThreshold: minimum stock level before replenishment
-     * @param {Number} historyThreshold: the number of old frames kept in the buffer
      */
     constructor(animationContext) {
         this._dataRequester = new DataRequester(animationContext.getPluginExecutionId());
-        this._chunkSize = Buffer.DEFAULT_CHUNK_SIZE; //number of frames in every read
+        this._chunkSize = Buffer.DEFAULT_CHUNK_SIZE; //numbr of frames in every read
         this._safetyThreshold = Buffer.DEFAULT_SAFETY_THRES;
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
 
         this._frames = [];
         this._currentIndex = -1;
         this._nextRequestFrameIndex = 0;
-        this._waitingFrameIndex = -1;
+        this._lastRequestedFrameIndex = -1;
         this._serverOutOfFrames = false;
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
@@ -69,6 +64,27 @@ class Buffer {
 
     static get DEFAULT_HISTORY_THRES() {
         return 600;
+    }
+
+    /**
+     * Reset may not reset _nextRequestFrameIndex because it depends on the use case, e.g. to jump
+     * to a new index or remain at the current one.
+     */
+    reset() {
+        this._frames = [];
+        this._currentIndex = -1;
+        this._lastRequestedFrameIndex = -1;
+        this._serverOutOfFrames = false;
+        this._sequentialMode = true;
+        this._requestToken++;
+    }
+
+    /**
+     * @param {Number} frameIndex
+     */
+    resetToFrameIndex(frameIndex) {
+        this.reset();
+        this._nextRequestFrameIndex = frameIndex;
     }
 
     getSafefyThreshold() {
@@ -93,16 +109,6 @@ class Buffer {
 
     setChunkSize(chunkSize) {
         this._chunkSize = chunkSize;
-    }
-
-    _clear() {
-        this._frames = [];
-        this._currentIndex = -1;
-        this._nextRequestFrameIndex = 0;
-        this._waitingFrameIndex = -1;
-        this._serverOutOfFrames = false;
-        this._sequentialMode = true;
-        this._clearServerRequests();
     }
 
     isEmpty() {
@@ -169,7 +175,7 @@ class Buffer {
      * Sequential reading the next chunk from the buffer starting from currentIndex
      * @returns {Array} array of frames, empty if running out of frames.
      */
-    readNext() {
+    readNextChunk() {
         console.log('Buffer - readNext');
         let frames = [];
         if (this.isStockAvailable()) {
@@ -182,6 +188,29 @@ class Buffer {
         }
         this._logStockLevel();
         return frames;
+    }
+
+    readNextOne() {
+        if (this.isStockAvailable()) {
+            let frame = this._frames[this._currentIndex];
+            this._currentIndex += 1;
+            return frame;
+        }
+    }
+
+    /**
+     * Read the next frame
+     * @param {Integer} skipSize: number of frames to be skipped
+     */
+    readNext(skipSize) {
+        if (this.isStockAvailable()) {
+            let newIndex = this._currentIndex + skipSize;
+            if (newIndex <= this.getLastIndex()) {
+                let frame = this._frames[newIndex];
+                this._currentIndex = (skipSize > 0) ? newIndex : newIndex++;
+                return frame;
+            }
+        }
     }
 
     /**
@@ -202,33 +231,32 @@ class Buffer {
             console.log('Buffer - moveTo: moveTo point is within buffer with index=' + bufferIndex);
             this._currentIndex = bufferIndex;
         }
-        else { // the new requested frames are too far outside this buffer
+        else { // the new requested frames are too far outside this buffer: reset buffer
             console.log('Buffer - moveTo: moveTo point is out of buffer, buffer cleared to read new frames');
-            this.setRandomMode();
-            this._clear();
             this._nextRequestFrameIndex = frameIndex;
+            this.setSequentialMode(false);
+            this.reset();
         }
         this._logStockLevel();
     }
 
-    setSequentialMode() {
-        this._sequentialMode = true;
+    /**
+     * @param {Boolean} newMode
+     */
+    setSequentialMode(newMode) {
+        this._sequentialMode = newMode;
     }
 
     isSequentialMode() {
         return this._sequentialMode;
     }
 
-    setRandomMode() {
-        this._sequentialMode = false;
-    }
-
     /**
      * Append a chunk of frames to the end of buffer
      * A request token is used to identify if the coming frames are no longer needed due to
      * local changes while waiting for the server response.
-     * @param {Array} frames
-     * @param {Number} batchNumber
+     * @param {Array} frames: chunk of frames
+     * @param {Number} requestToken: the token id associated with this frame chunk
      */
     write(frames, requestToken) {
         if (requestToken === this._requestToken) { // don't get old results
@@ -278,25 +306,20 @@ class Buffer {
      */
     _loopRequestData() {
         console.log('Buffer - loopRequestData');
-        window.setTimeout(this._loopRequestData.bind(this),2000);
-        if (this.isSequentialMode() && this._nextRequestFrameIndex <= this._waitingFrameIndex) {
+        window.setTimeout(this._loopRequestData.bind(this),1000);
+
+        // Avoid sending request for frames already requested in sequential mode
+        if (this.isSequentialMode() && this._nextRequestFrameIndex <= this._lastRequestedFrameIndex) {
             return;
         }
+
         let frameIndex = this._nextRequestFrameIndex;
-        //console.log('Buffer - replenish: frameIndex=' + frameIndex + ', safetyStockThreshold=' + this.getSafefyThreshold());
         if (!this.isSafetyStock() && !this._serverOutOfFrames) {
             this._dataRequester.requestData(this, this._requestToken, frameIndex, this._chunkSize);
-            this._waitingFrameIndex = frameIndex;
-            if (!this.isSequentialMode()) this.setSequentialMode();
+            this._lastRequestedFrameIndex = frameIndex;
+            if (!this.isSequentialMode()) this.setSequentialMode(true);
             console.log('Buffer - loopRequestData: safety stock not yet reached, send request to DataRequester, frameIndex = ' + frameIndex);
         }
-        else if (this.isSafetyStock()) {
-            //console.log('Buffer - replenish: safety stock REACHED, stop sending request to DataRequester');
-        }
-        else {
-            //console.log('Buffer - replenish: server is out of frames, stop sending request to DataRequester');
-        }
-        //this._logStockLevel();
     }
 
     _loopCleanup() {
@@ -306,12 +329,9 @@ class Buffer {
         //this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
         if (obsoleteSize > 0) {
-            //console.log('Buffer - loopCleanup: remove obsolete frames, number of frames removed: ' + obsoleteSize);
+            console.log('Buffer - loopCleanup: remove obsolete frames, number of frames removed: ' + obsoleteSize);
             this._frames.splice(0, obsoleteSize);
             this._currentIndex -= obsoleteSize;
-        }
-        else {
-            //console.log('Buffer - cleanLoop: no obsolete frames: ' + obsoleteSize);
         }
     }
 
@@ -320,14 +340,5 @@ class Buffer {
         console.log('Buffer - lastIndex=' + this.getLastIndex());
         console.log('Buffer - current stock level: ' + this.getUnusedStockLevel());
         console.log('Buffer - current used level: ' + this.getUsedStockLevel());
-    }
-
-    /**
-     * Reject all pending server requests by setting a new request tokens.
-     * Server responses received from previously prending requests will be rejected
-     * @private
-     */
-    _clearServerRequests() {
-        this._requestToken++;
     }
 }

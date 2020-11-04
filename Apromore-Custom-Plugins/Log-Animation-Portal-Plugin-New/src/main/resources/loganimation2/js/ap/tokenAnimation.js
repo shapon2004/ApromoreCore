@@ -48,16 +48,19 @@ class AnimationContext {
 
 }
 
-class PlayMode {
-    static get SEQUENTIAL() {
+class AnimationState {
+    static get PLAYING() { // playing animation frame by frame
         return 0;
     }
-    static get RANDOM() {
+    static get JUMPING() { // jumping backward or forward to a new frame
         return 1;
+    }
+    static get PAUSING() { // pausing
+        return 2;
     }
 }
 
-class EventType {
+class AnimationEventType {
     static get OUT_OF_FRAME() {
         return 1;
     }
@@ -86,48 +89,107 @@ class AnimationEvent {
     }
 }
 
+class FrameQueue {
+    constructor() {
+        this.itemMap = new Map();
+        this.insertionIndex = 0;
+        this.removalIndex = 0;
+    }
+
+    queue(element) {
+        this.itemMap.set(this.insertionIndex, element);
+        this.insertionIndex++;
+    }
+
+    queueMany(elements) {
+        if (!(elements instanceof Array)) return;
+        for (let element of elements) {
+            this.queue(element);
+        }
+    }
+
+    dequeue() {
+        const el = this.itemMap.get(this.removalIndex);
+        if (typeof el !== 'undefined') {
+            this.itemMap.delete(this.removalIndex);
+            this.removalIndex++;
+        }
+        return el;
+    }
+
+    dequeueMany(count) {
+        for (let i=0;i<count;i++) {
+            if (this.dequeue() === undefined) return;
+        }
+    }
+
+    size() {
+        return this.itemMap.size;
+    }
+
+    clear() {
+        this.itemMap.clear();
+        this.insertionIndex = 0;
+        this.removalIndex = 0;
+    }
+}
+
 /**
- * The engine reads frames from the Buffer into a Frame Queue and draws them on the canvas.
+ * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.
  * It has two endless loops:
- *  _readBuffer: read frames in chunks from the buffer into the frame queue.
- *  _drawLoop: draw frames from the frame queue, one by one.
- *  The other operations (e.g. pause/unpause, fast forward, fast backward) work by
- *  affecting these two main loops.
- *  The main animation configurations are contained in an AnimationContext
- *  The engine informs the outside via events and listeners.
+ *  _loopBufferRead: read frames in chunks from the buffer into the frame queue.
+ *  _loopDraw: draw frames from the frame queue, one by one.
+ *
+ * The animation moves between three states:
+ *  - PLAYING: drawing frames sequentially by frames from Frame Queue
+ *  - PAUSING: pausing
+ *  - JUMPING: an state that jump non-sequentially (backward or forward) to a new frame
+ *  JUMPING is an intermediate state while the animation could be playing or pausing.
+ * The actions that change the state are named doXXX, e.g. doPause, doUnpause, doGoto
+ * Other actions read the properties of the animation (getXXX, isXXX) or change visual styles (setXXX).
+ *
+ *  The animation configurations are contained in an AnimationContext
+ *  The animation informs the outside via events and listeners.
  */
 class TokenAnimation {
     /**
      * @param {AnimationContext} animationContext
      * @param {RenderingContext} canvasContext
-     * @param {Object} pathMap: index to SVG path element
+     * @param {Object} pathMap: map from element index to the corresponding SVG path element
      */
     constructor(animationContext, canvasContext, pathMap) {
-        console.log('TokenAnimation - initializing');
+        console.log('TokenAnimation - constructor');
         this._animationContext = animationContext;
         this._canvasContext = canvasContext;
-        this._canvasTransformMatrix = this._canvasContext.getTransform();
-        this._pathMap = pathMap;
+        this._elementPathMap = pathMap;
 
-        this._readBufferLoopId = undefined;
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
-        this._currentFrameIndex = 0;
+        this._currentFrame = undefined;
+
         this._playingFrameRate = 0;
-        this._playingFrameInterval = 0;
-        this._MIN_BROWSER_REPAINT_INTERVAL = 16; // maximum frame interval for 60fps rate
+        this._MAX_BROWSER_REPAINT_RATE= 60; // maximum frame interval for 60fps rate
+        this._frameSkip = 0; // number of frames to skip for speed increase
+        this._drawingInterval = 0;
 
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
-        this._paused = false; // pausing flag
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
-        this._playMode = PlayMode.SEQUENTIAL;
+        this._state = AnimationState.PLAYING;
 
         this._listeners = [];
-
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
+    }
 
-        this._initialize();
+    // Set visual styles and start the main loops
+    startEngine() {
+        console.log('TokenAnimation: start');
+        this.setTokenStyle();
+        this._currentTime = 0;
+        this._setState(AnimationState.PAUSING);
+        this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**
@@ -148,33 +210,49 @@ class TokenAnimation {
      * @param {Number} playingFrameRate
      */
     setPlayingFrameRate(playingFrameRate) {
+        if (playingFrameRate === this._playingFrameRate) return;
+
+        // frameSkip= 0 if rate = (0,_MAX_BROWSER_REPAINT_RATE]
+        //          = 1 if rate = (_MAX_BROWSER_REPAINT_RATE, 2*_MAX_BROWSER_REPAINT_RATE]
+        //          = 2 if rate = (2*_MAX_BROWSER_REPAINT_RATE, 3*_MAX_BROWSER_REPAINT_RATE]...
+        let compoundRate = playingFrameRate >= this._MAX_BROWSER_REPAINT_RATE && (playingFrameRate%this._MAX_BROWSER_REPAINT_RATE) === 0;
+        let newFrameSkip = Math.floor(playingFrameRate/this._MAX_BROWSER_REPAINT_RATE) - (compoundRate ? 1 : 0);
+
+        // The actual drawing rate is  playingFrameRate/(this._frameSkip + 1): slower than playingFrameRate due to frame skipping
+        this._drawingInterval = 1000 * (newFrameSkip + 1) / playingFrameRate;
         this._playingFrameRate = playingFrameRate;
-        this._playingFrameInterval = 1000/playingFrameRate;
+
+        // Notify the server to do frame skipping and reset the frame buffer to the current frame index
+        if (newFrameSkip !== this._frameSkip) {
+            this._frameSkip = newFrameSkip;
+            zAu.send(new zk.Event(zk.Widget.$('$win'), 'onFrameSkipChanged', newFrameSkip));
+            this._frameBuffer.resetToFrameIndex(this.getCurrentFrameIndex());
+            this._clearData();
+        }
+
+        console.log('TokenAnimation: setPlayingFrameRate: playingFrameRate=' +  playingFrameRate +
+                    ', frameSkip=' + newFrameSkip+
+                    ', drawingInterval=' + this._drawingInterval);
     }
 
     getPlayingFrameRate() {
         return this._playingFrameRate;
     }
 
-    getPlayingFrameRateLevel() {
-        return this._playingFrameRate/this._animationContext.getRecordingFrameRate();
+    setPosition(x, y, width, height, matrix) {
+        this._canvasContext.canvas.width = width;
+        this._canvasContext.canvas.height = height;
+        this._canvasContext.canvas.x = x;
+        this._canvasContext.canvas.y = y;
+        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        this.setTokenStyle();
     }
 
-    setCanvasStyle() {
+    setTokenStyle() {
         this._canvasContext.lineWidth = 8;
         this._canvasContext.strokeStyle = 'blue';
         this._canvasContext.fillStyle = "red";
         this._canvasContext.globalCompositeOperation = "lighter";
-    }
-
-    _initialize() {
-        console.log('TokenAnimation: initialize');
-        this.setCanvasStyle();
-        this._currentTime = 0;
-        this.startSequenceMode();
-        this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        this._loopBufferReading();
-        this._loopDrawingSequentially(0);
     }
 
     isInProgress () {
@@ -182,23 +260,12 @@ class TokenAnimation {
         return (currentLogicalTime > 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
     }
 
-    /**
-     * Pause affects the two main loops by setting a paused flag.
-     */
-    pause() {
-        console.log('TokenAnimation: pause');
-        this._paused = true;
-    }
-
-    unpause() {
-        console.log('TokenAnimation: unpause');
-        this._paused = false;
-        this._now = this._then; //restart counting frame intervals
-        this._loopDrawingSequentially(this._now);
+    isPausing() {
+        return this._state === AnimationState.PAUSING;
     }
 
     getCurrentFrameIndex() {
-        return this._currentFrameIndex;
+        return this._currentFrame ? this._currentFrame.index : 0;
     }
 
     // This is the current actual clock time
@@ -216,23 +283,59 @@ class TokenAnimation {
     }
 
     /**
-     * Read frames from the buffer into the playing store
-     * This operation enters a loop of reading frames from the buffer.
-     * This is to support sequential mode, so it doesn't apply to random play mode
+     * Pause affects the two main loops by setting a paused flag.
      */
-    _loopBufferReading() {
-        //console.log('TokenAnimation - loopBufferReading');
-        //if (this._paused) return;
-        this._readBufferLoopId = setTimeout(this._loopBufferReading.bind(this), 1000);
-        if (this._playMode !== PlayMode.SEQUENTIAL) return;
-        if (this._frameQueue.length >= 2*Buffer.DEFAULT_CHUNK_SIZE) return;
+    doPause() {
+        console.log('TokenAnimation: pause');
+        this._setState(AnimationState.PAUSING);
+    }
 
-        let frames = this._frameBuffer.readNext();
-        if (frames && frames.length > 0) {
-            this._frameQueue.push(...frames);
-            console.log('TokenAnimation - loopBufferReading: readNext returns result, first frame index=' + frames[0].index);
-        } else {
-            console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY result.');
+    doUnpause() {
+        console.log('TokenAnimation: unpause');
+        this._setState(AnimationState.PLAYING);
+    }
+
+    /**
+     * Move to a random logical time mark, e.g. when the timeline tick is dragged to a new position.
+     * Goto affects the two main loops by setting a playing mode from sequential to random.
+     * @param {Number} logicalTimeMark: number of seconds from the start on the timeline
+     */
+    doGoto(logicalTimeMark) {
+        if (logicalTimeMark < 0 || logicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
+            console.log('TokenAnimation - goto: goto time is outside the timeline, do nothing');
+            return;
+        }
+        else if (logicalTimeMark === 0 || logicalTimeMark === this._animationContext.getLogicalTimelineMax()) {
+            this._clearAnimation();
+        }
+
+        let previousState = this._getState();
+        this._setState(AnimationState.JUMPING); //intermediate state
+        let newFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
+        console.log('TokenAnimation - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + newFrameIndex);
+        this._frameBuffer.moveTo(newFrameIndex);
+        this._setState(previousState);
+    }
+
+    registerListener(listener) {
+        this._listeners.push(listener);
+    }
+
+    /**
+     * Continuously read frames from the buffer into the Frame Queue
+     */
+    _loopBufferRead() {
+        setTimeout(this._loopBufferRead.bind(this), 1000);
+        if (this._state === AnimationState.PLAYING || this._state === AnimationState.PAUSING) {
+            if (this._frameQueue.length >= 2*Buffer.DEFAULT_CHUNK_SIZE) return;
+            let frames = this._frameBuffer.readNextChunk();
+            if (frames && frames.length > 0) {
+                //this._frameQueue.addSome(frames);
+                this._frameQueue.push(...frames);
+                console.log('TokenAnimation - loopBufferReading: readNext returns result, first frame index=' + frames[0].index);
+            } else {
+                console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY result.');
+            }
         }
     }
 
@@ -242,56 +345,33 @@ class TokenAnimation {
      * @param {Number} newTime: the passing time (milliseconds) since time origin
      * @private
      */
-    _loopDrawingSequentially(newTime) {
-        if (this._paused) return;
-        window.requestAnimationFrame(this._loopDrawingSequentially.bind(this));
-        if (this._playMode !== PlayMode.SEQUENTIAL) return;
-        this._now = newTime;
-        let elapsed = this._now - this._then;
-        if (elapsed >= this._playingFrameInterval) {
-            this._then = this._now - (elapsed % this._playingFrameInterval);
-            let frame = this._frameQueue.shift();
+    _loopDraw(newTime) {
+        window.requestAnimationFrame(this._loopDraw.bind(this));
+        if (this._state === AnimationState.PLAYING) { // draw frames in the queue sequentially
+            this._now = newTime;
+            let elapsed = this._now - this._then;
+            if (elapsed >= this._drawingInterval) {
+                this._then = this._now - (elapsed % this._drawingInterval);
+                //this._frameQueue.removeAtHead(this._frameSkip);
+                //let frame = this._frameQueue.remove(0);
+                let frame = this._frameQueue.shift();
+                //let frame = this._frameBuffer.readNext(this._frameSkip);
+                if (frame) {
+                    this._currentTime += this._drawingInterval;
+                    this._currentFrame = frame;
+                    this._drawFrame(frame);
+                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE, undefined));
+                } else {
+                    this._notifyAll(new AnimationEvent(AnimationEventType.OUT_OF_FRAME, undefined));
+                }
+            }
+        } else if (this._state === AnimationState.PAUSING) { // only draw the current frame
+            let frame = this._currentFrame || this._frameQueue.shift();
+            //let frame = this._currentFrame || this._frameBuffer.readNext(this._frameSkip);
             if (frame) {
-                this._currentTime += this._playingFrameInterval;
-                this._currentFrameIndex = frame.index;
                 this._drawFrame(frame);
-                this._notifyAll(new AnimationEvent(EventType.FRAMES_AVAILABLE, undefined));
+                this._currentFrame = frame;
             }
-            else {
-                this._notifyAll(new AnimationEvent(EventType.OUT_OF_FRAME, undefined));
-            }
-        }
-    }
-
-    /**
-     * Use frame skipping to increase the playing speed if need to
-     * 60fps is the common limit of browser repaint rate. If a frame rate is higher than 60fps,
-     * then skipping frames is the only way of increasing the animation speed.
-     * @param {Number} playingFrameInterval
-     * @private
-     */
-    _getNumberOfSkipFrames(playingFrameInterval) {
-        for (let i=10; i>=1; i--) {
-            if (playingFrameInterval < this._MIN_BROWSER_REPAINT_INTERVAL/i) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * Only use for drawing the next available frame.
-     * Use case: when the animation is pausing.
-     * @private
-     */
-    _loopDrawingNextFrame() {
-        let frame = this._frameQueue.shift();
-        if (frame) {
-            this._currentFrameIndex = frame.index;
-            this._drawFrame(frame);
-        }
-        else {
-            this._loopDrawingNextFrameId = setTimeout(this._loopDrawingNextFrame.bind(this), 100);
         }
     }
 
@@ -310,7 +390,7 @@ class TokenAnimation {
      * @private
      */
     _drawFrame(frame) {
-        this.clearAnimation();
+        this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
             let pathElement = this._getPathElement(elementIndex);
@@ -322,14 +402,6 @@ class TokenAnimation {
                 let point = pathElement.getPointAtLength(totalLength * distance);
                 let radius = count;
                 if (radius > 3) radius = 3;
-
-                /*
-                if (count <= 5) {
-                    this._canvasContext.lineWidth = 1;
-                    this._canvasContext.strokeStyle = 'red';
-                    this._canvasContext.lineTo(point.x, point.y);
-                }
-                */
                 this._canvasContext.beginPath();
                 this._canvasContext.fillStyle = this._selectTokenColor(count);
                 this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
@@ -358,36 +430,37 @@ class TokenAnimation {
         return this._tokenColors[colorIndex];
     }
 
-    startSequenceMode() {
-        console.log('TokenAnimation: start SEQUENTIAL model');
-        this._playMode = PlayMode.SEQUENTIAL;
-    }
-
-    startRandomMode() {
-        console.log('TokenAnimation: start RANDOM mode');
-        this._playMode = PlayMode.RANDOM;
+    /**
+     * @param {Number} newState
+     */
+    _setState(newState) {
+        this._state = newState;
+        if (newState === AnimationState.PLAYING) {
+            console.log('TokenAnimation: set state PLAYING');
+            this._now = this._then; //restart counting frame intervals
+        }
+        else if (newState === AnimationState.JUMPING) {
+            console.log('TokenAnimation: set state JUMPING');
+            this._clearData();
+        }
+        else if (newState === AnimationState.PAUSING) {
+            console.log('TokenAnimation: set state PAUSING');
+        }
     }
 
     /**
-     * Move to a random logical time mark, e.g. when the timeline tick is dragged to a new position.
-     * Goto affects the two main loops by setting a playing mode from sequential to random.
-     * @param {Number} logicalTimeMark: number of seconds from the start on the timeline
+     * @returns {Number}
      */
-    goto(logicalTimeMark) {
-        if (logicalTimeMark < 0 || logicalTimeMark > this._animationContext.getLogicalTimelineMax()) {
-            console.log('TokenAnimation - goto: goto time is outside the timeline, do nothing');
-            return;
-        }
-        this.startRandomMode();
-        this._clearData();
-        this._currentFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
-        console.log('TokenAnimation - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + this._currentFrameIndex);
-        this._frameBuffer.moveTo(this._currentFrameIndex);
-        this.startSequenceMode();
-        if (this._paused) {
-            if (this._loopDrawingNextFrameId) clearTimeout(this._loopDrawingNextFrameId);
-            this._loopDrawingNextFrame();
-        }
+    _getState() {
+        return this._state;
+    }
+
+    // Require switching transformation matrix back and forth to clear the canvas properly.
+    _clearAnimation() {
+        let matrix = this._canvasContext.getTransform();
+        this._canvasContext.setTransform(1,0,0,1,0,0);
+        this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
+        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
     }
 
     /**
@@ -405,37 +478,16 @@ class TokenAnimation {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
     }
 
-    setTranformMatrix(transformMatrix) {
-        this._canvasTransformMatrix = transformMatrix;
-    }
-
-    // Require switching transformation matrix back and forth to clear
-    // the canvas properly.
-    clearAnimation() {
-        this._canvasContext.setTransform(1,0,0,1,0,0);
-        this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
-        let matrix = this._canvasTransformMatrix;
-        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-    }
-
     _getPathElement(elementIndex) {
-        return this._pathMap[elementIndex];
-    }
-
-    _clearPendingBufferReads() {
-        if (this._readBufferLoopId) window.clearTimeout(this._readBufferLoopId);
+        return this._elementPathMap[elementIndex];
     }
 
     _clearData() {
         this._frameQueue = [];
-    }
-
-    registerListener(listener) {
-        this._listeners.push(listener);
+        this._currentFrame = undefined;
     }
 
     /**
-     *
      * @param {AnimationEvent} event
      */
     _notifyAll(event) {

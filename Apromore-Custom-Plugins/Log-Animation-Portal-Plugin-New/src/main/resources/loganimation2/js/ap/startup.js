@@ -43,7 +43,6 @@ ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
 
 Ap.la.session = (function() {
   const SPEED_CONTROL = "#speed-control";
-  let STEP_VALUES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5];
   let editor, controller, animationData;
 
   function init(xml, url, namespace, data, pluginExecutionId) {
@@ -95,13 +94,15 @@ Ap.la.session = (function() {
       orientation: "horizontal",
       step: 1,
       min: 1,
-      max: 8,
-      value: 4
+      max: 11,
+      value: 5
     });
+
+    let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
     speedControl.slider("float", {
       handle: true,
       pips: true,
-      labels: ['0.25', '0.5', '0.75', '1', '1.25', '1.5', '1.75', '2'],
+      labels: true,
       prefix: "",
       suffix: ""
     });

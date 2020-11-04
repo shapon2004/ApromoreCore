@@ -158,25 +158,33 @@ class AnimationController {
     }
 
     // Create token animation
-    let canvasContext = this._setTokenCanvasAttributes();
+    let canvasContext = document.querySelector("#canvas").getContext('2d');
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
     this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.elementCache);
+
+    // Start token animation
+    let modelBox = this.svgMain.getBoundingClientRect();
+    let modelMatrix = this.svgViewport.transform.baseVal.consolidate().matrix;
+    this.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
     this.tokenAnimation.registerListener(this);
+    this.tokenAnimation.startEngine();
 
     let controller = this;
     let isPlayingBeforeChanging = false;
     this.canvas.addEventBusListener("canvas.viewbox.changing", function(event) {
+      let modelBox = controller.svgMain.getBoundingClientRect();
+      let modelMatrix = controller.svgViewport.transform.baseVal.consolidate().matrix;
+      controller.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
       if (controller.isPlaying()) {
         controller.pause();
         isPlayingBeforeChanging = true;
       }
-      controller.tokenAnimation.clearAnimation();
     });
 
     this.canvas.addEventBusListener("canvas.viewbox.changed", function(event) {
-      let canvasContext = controller._setTokenCanvasAttributes();
-      controller.tokenAnimation.setTranformMatrix(canvasContext.getTransform());
-      controller.tokenAnimation.setCanvasStyle();
+      let modelBox = controller.svgMain.getBoundingClientRect();
+      let modelMatrix = controller.svgViewport.transform.baseVal.consolidate().matrix;
+      controller.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
       if (isPlayingBeforeChanging) {
         controller.unPause();
         isPlayingBeforeChanging = false;
@@ -203,18 +211,6 @@ class AnimationController {
 
     this.updateClockOnce(this.startMs);
     this.pause();
-  }
-
-  _setTokenCanvasAttributes() {
-    let box = this.svgMain.getBoundingClientRect();
-    let matrix = this.svgViewport.transform.baseVal.consolidate().matrix;
-    let ctx = document.querySelector("#canvas").getContext('2d');
-    ctx.canvas.width = box.width;
-    ctx.canvas.height = box.height;
-    ctx.canvas.x = box.x;
-    ctx.canvas.y = box.y;
-    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-    return ctx;
   }
 
   // Add log intervals to timeline
@@ -410,15 +406,16 @@ class AnimationController {
    * The time system in TokenAnimation and SVG animations are different because of different frame rates
    * (we don't know what happens inside the SVG animation engine). However, we can use the current logical time
    * as the shared information to synchronize them.
-   * @param {Number} speedLevel: the level number on the speed control component
+   * @param {Number} frameRate: frames per second
    */
-  changeSpeed(speedLevel) {
+  changeSpeed(frameRate) {
+    let newSpeedLevel = frameRate/this.animationContext.getRecordingFrameRate();
+    console.log('AnimationController - changeSpeed: speedLevel = ' + newSpeedLevel);
     this.pause();
-    console.log('AnimationController - changeSpeed: speedLevel = ' + speedLevel);
-    this.updateSVGAnimations(speedLevel);
-    this.tokenAnimation.setPlayingFrameRate(speedLevel*this.animationContext.getRecordingFrameRate());
+    this.updateSVGAnimations(newSpeedLevel);
+    this.tokenAnimation.setPlayingFrameRate(frameRate);
     this.unPause();
-    this.currentSpeedLevel = speedLevel;
+    this.currentSpeedLevel = newSpeedLevel;
   }
 
   /**
@@ -467,6 +464,9 @@ class AnimationController {
       let curDur = animateEl.getAttribute('dur');
       curDur = curDur.substr(0, curDur.length - 1);
       animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
+      let curBegin = animateEl.getAttribute('begin');
+      curBegin = curBegin.substr(0, curBegin.length - 1);
+      animateEl.setAttributeNS(null, 'begin', curBegin / speedRatio + 's');
     }
 
     // Update the cursor. Must recreate the cursor because setAttributeNS doesn't work
@@ -489,7 +489,7 @@ class AnimationController {
     if (newLogicalTime < 0) { newLogicalTime = 0; }
     if (newLogicalTime > this.oriTotalEngineS) { newLogicalTime = this.oriTotalEngineS; }
     this.setCurrentSVGTime(this.getSVGTimeFromLogicalTime(newLogicalTime));
-    this.tokenAnimation.goto(newLogicalTime);
+    this.tokenAnimation.doGoto(newLogicalTime);
     this.updateClockOnce(this.getLogTimeFromLogicalTime(newLogicalTime));
   }
 
@@ -524,7 +524,6 @@ class AnimationController {
   gotoStart() {
     console.log('AnimationController - gotoStart');
     if (this.isAtStart()) return;
-    this.tokenAnimation.clearAnimation();
     this.goto(0);
     this.pause();
   }
@@ -532,7 +531,6 @@ class AnimationController {
   gotoEnd() {
     console.log('AnimationController - gotoEnd');
     if (this.isAtEnd()) return;
-    this.tokenAnimation.clearAnimation();
     this.goto(this.oriTotalEngineS);
     this.pause();
   }
@@ -561,7 +559,7 @@ class AnimationController {
 
   pause() {
     console.log('AnimationController: pause');
-    this.tokenAnimation.pause();
+    this.tokenAnimation.doPause();
     this.pauseSecondaryAnimations();
     this.setPlayPauseButton(true);
   }
@@ -579,7 +577,7 @@ class AnimationController {
 
   unPause() {
     console.log('AnimationController: unPause');
-    this.tokenAnimation.unpause();
+    this.tokenAnimation.doUnpause();
     this.unPauseSecondaryAnimations();
     this.setPlayPauseButton(false);
   }
@@ -1046,7 +1044,7 @@ class AnimationController {
   }
 
   /**
-   * @param {EventType} event
+   * @param {AnimationEventType} event
    */
   update(event) {
     //console.log('AnimationController: event processing');
@@ -1054,10 +1052,10 @@ class AnimationController {
 
     // Need to check playing state to avoid calling pause/unpause too many times
     // which will disable the digital clock
-    if (event.getEventType() === EventType.OUT_OF_FRAME && this.isPlaying()) {
+    if (event.getEventType() === AnimationEventType.OUT_OF_FRAME && this.isPlaying()) {
       this.pauseSecondaryAnimations();
     }
-    else if (event.getEventType() === EventType.FRAMES_AVAILABLE && !this.isPlaying()) {
+    else if (event.getEventType() === AnimationEventType.FRAMES_AVAILABLE && !this.isPlaying()) {
       this.unPauseSecondaryAnimations();
     }
   }

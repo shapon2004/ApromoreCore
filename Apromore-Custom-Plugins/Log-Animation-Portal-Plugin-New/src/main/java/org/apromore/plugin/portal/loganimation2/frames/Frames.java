@@ -23,6 +23,7 @@ package org.apromore.plugin.portal.loganimation2.frames;
 
 import java.util.ArrayList;
 
+import org.apromore.plugin.portal.loganimation2.AnimationContext;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -48,8 +49,10 @@ public class Frames extends ArrayList<Frame> {
 		if (startFrameIndex < 0 || startFrameIndex >= this.size()) {
 			return json.toString();
 		}
-		int endFrameIndex = (startFrameIndex+chunkSize) >= this.size() ? this.size()-1 : startFrameIndex+chunkSize;
-		for (int i=startFrameIndex; i<endFrameIndex; i++) {
+		
+		int step = animateContext.getFrameSkip() + 1;
+		int endFrameIndex = (startFrameIndex+chunkSize*step) < this.size() ? startFrameIndex+chunkSize*step : this.size();
+		for (int i=startFrameIndex; i<endFrameIndex; i+=step) {
 			json.put(this.get(i).getJSON());
 		}
 		return json.toString();

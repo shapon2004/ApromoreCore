@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apromore.plugin.portal.loganimation2.frames.AnimationContext;
 import org.apromore.plugin.portal.loganimation2.frames.FrameDecorator;
 import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
 import org.apromore.plugin.portal.loganimation2.frames.Frames;
@@ -71,6 +70,7 @@ public class LogAnimationController extends BaseController {
     private VersionSummaryType version;
     private Set<RequestParameterType<?>> params;
     private String pluginExecutionId = "";
+    private AnimationContext animateContext;
     private Frames animationFrames;
     
     /*
@@ -150,7 +150,7 @@ public class LogAnimationController extends BaseController {
             }
 
             AnimationLog animationLog = (AnimationLog)session.get("animationLog");
-            AnimationContext animateContext = new AnimationContext(animationLog);
+            animateContext = new AnimationContext(animationLog);
             
             long timer = System.currentTimeMillis();
             System.out.println("Start recording frames");
@@ -195,30 +195,17 @@ public class LogAnimationController extends BaseController {
             LOGGER.error("",e);
             e.printStackTrace();
         }
-
-        this.addEventListener("onSave", new EventListener<Event>() {
-            @Override
-            public void onEvent(final Event event) throws InterruptedException {
-                try {
-                    //new SaveAsDialogController(process, version, editSession, true, eventToString(event));
-                	//mainC.saveModel(process, version, editSession, true, eventToString(event));
-                } catch (Exception e) {
-                    LOGGER.error("Error saving model.", e);
-                }
-            }
-        });
-        this.addEventListener("onSaveAs", new EventListener<Event>() {
-            @Override
-            public void onEvent(final Event event) throws InterruptedException {
-                try {
-                    //new SaveAsDialogController(process, version, editSession, false, eventToString(event));
-                	//mainC.saveModel(process, version, editSession, false, eventToString(event));
-                } catch (Exception e) {
-                    LOGGER.error("Error saving model.", e);
-                }
-            }
-        });
         
+        this.addEventListener("onFrameSkipChanged", new EventListener<Event>() {
+            @Override
+            public void onEvent(final Event event) throws InterruptedException {
+                try {
+                    animateContext.setFrameSkip(Integer.valueOf((event.getData().toString())));
+                } catch (Exception e) {
+                    LOGGER.error("Error saving model.", e);
+                }
+            }
+        });
 
     }
 
@@ -241,24 +228,6 @@ public class LogAnimationController extends BaseController {
     private String escapeQuotedJavascript(String json) {
         return json.replace("\n", " ").replace("'", "\\u0027").trim();
     }
-
-    /**
-     * YAWL models package their event data as an array of {@link String}s, EPML packages it as a {@link String}; this function
-     * hides the difference.
-     *
-     * @param event ZK event
-     * @throws RuntimeException if the data associated with <var>event</var> is neither a {@link String} nor an array of {@link String}s
-     */
-//    private static String eventToString(final Event event) {
-//        if (event.getData() instanceof String[]) {
-//            return ((String[]) event.getData())[0];
-//        }
-//        if (event.getData() instanceof String) {
-//            return (String) event.getData();
-//        }
-//
-//        throw new RuntimeException("Unsupported class of event data: " + event.getData());
-//    }
     
     @Override
     public String processRequest(Map<String,String[]> parameterMap) {

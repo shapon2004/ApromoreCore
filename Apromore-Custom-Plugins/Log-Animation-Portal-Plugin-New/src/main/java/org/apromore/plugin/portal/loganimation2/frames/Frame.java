@@ -23,6 +23,7 @@ package org.apromore.plugin.portal.loganimation2.frames;
 
 import java.text.DecimalFormat;
 
+import org.apromore.plugin.portal.loganimation2.AnimationContext;
 import org.eclipse.collections.api.list.primitive.MutableIntList;
 import org.eclipse.collections.api.map.primitive.MutableIntDoubleMap;
 import org.eclipse.collections.impl.factory.primitive.IntDoubleMaps;

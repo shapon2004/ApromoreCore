@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.loganimation2.frames;
+package org.apromore.plugin.portal.loganimation2;
 
 import org.apromore.service.loganimation2.replay.AnimationLog;
 
@@ -33,10 +33,11 @@ public class AnimationContext {
 	private int recordingFrameRate = 60; //frames per second
     private int frameInterval =  (int)(1.0/recordingFrameRate*1000); //milliseconds between two consecutive frames
     private int chunkSize = 4920; //number of frames
-    private int totalDuration = 120; //seconds
+    private int totalDuration = 600; //seconds
     private double timelineRatio = 1; //a second on the animation timeline is converted to actual seconds
     private long startTimestamp;
     private long endTimestamp;
+    private int frameSkip = 0;
     
     public AnimationContext(AnimationLog log) {
         this.startTimestamp = log.getStartDate().getMillis();
@@ -99,6 +100,14 @@ public class AnimationContext {
     
     public double getTimelineRatio() {
         return this.timelineRatio;
+    }
+    
+    public void setFrameSkip(int frameSkip) {
+        this.frameSkip = frameSkip;
+    }
+    
+    public int getFrameSkip() {
+        return this.frameSkip;
     }
     
 }
