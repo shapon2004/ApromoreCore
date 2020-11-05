@@ -369,14 +369,13 @@ class AnimationController {
    * Thus, the end() method should NOT create a loopback to this method.
    */
   updateClock() {
-    // Original implementation -- checks for termination, updates clock view
     if (this.getCurrentSVGTime() >= this.totalEngineS) {
-      console.log('AnimationController - updateClock: gotoEnd because out of animation time.');
+      //console.log('AnimationController - updateClock: gotoEnd because out of animation time.');
       // this.updateClockOnce(this.endMs);
       // this.pause();
     } else {
-      //this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
-      this.updateClockOnce(this.startMs + this.tokenAnimation.getCurrentLogTimeFromStart());
+      this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
+      //this.updateClockOnce(this.startMs + this.tokenAnimation.getCurrentLogTimeFromStart());
     }
   }
 
@@ -857,14 +856,13 @@ class AnimationController {
 
     // Set up canvas
     let timelineBox = this.svgTimeline.getBoundingClientRect();
-    let lineBox = timelinePathE.getBoundingClientRect();
     let ctx = document.querySelector("#timelineCanvas").getContext('2d');
     ctx.canvas.width = timelineBox.width;
     ctx.canvas.height = timelineBox.height;
     ctx.canvas.x = timelineBox.x;
     ctx.canvas.y = timelineBox.y;
     ctx.strokeStyle = '#D3D3D3';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 2;
     let matrix = timelinePathE.getCTM();
     ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
 
@@ -1061,11 +1059,15 @@ class AnimationController {
 
     // Need to check playing state to avoid calling pause/unpause too many times
     // which will disable the digital clock
-    if (event.getEventType() === AnimationEventType.OUT_OF_FRAME && this.isPlaying()) {
+    if (event.getEventType() === AnimationEventType.FRAMES_NOT_AVAILABLE && this.isPlaying()) {
       this.pauseSecondaryAnimations();
     }
     else if (event.getEventType() === AnimationEventType.FRAMES_AVAILABLE && !this.isPlaying()) {
       this.unPauseSecondaryAnimations();
+    }
+    else if (event.getEventType() === AnimationEventType.END_OF_ANIMATION) {
+      this.pause();
+      this.updateClockOnce(this.endMs);
     }
   }
 

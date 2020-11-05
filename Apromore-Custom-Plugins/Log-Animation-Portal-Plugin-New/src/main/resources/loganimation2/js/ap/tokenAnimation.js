@@ -46,8 +46,8 @@ class AnimationContext {
         return this._recordingFrameRate;
     }
 
-    setRecordingFrameRate(frameRate) {
-        this._recordingFrameRate = frameRate;
+    getTotalNumberOfFrames() {
+        return this._recordingFrameRate*this._logicalTimelineMax;
     }
 
 }
@@ -65,11 +65,14 @@ class AnimationState {
 }
 
 class AnimationEventType {
-    static get OUT_OF_FRAME() {
+    static get FRAMES_NOT_AVAILABLE() {
         return 1;
     }
     static get FRAMES_AVAILABLE() {
         return 2;
+    }
+    static get END_OF_ANIMATION() {
+        return 3;
     }
 }
 
@@ -370,9 +373,14 @@ class TokenAnimation {
                     this._currentTime += this._drawingInterval;
                     this._currentFrame = frame;
                     this._drawFrame(frame);
-                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE, undefined));
+                    if (frame.index === this._animationContext.getTotalNumberOfFrames()-1) {
+                        this._notifyAll(new AnimationEvent(AnimationEventType.END_OF_ANIMATION));
+                    }
+                    else {
+                        this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE));
+                    }
                 } else {
-                    this._notifyAll(new AnimationEvent(AnimationEventType.OUT_OF_FRAME, undefined));
+                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_NOT_AVAILABLE));
                 }
             }
         } else if (this._state === AnimationState.PAUSING) { // only draw the current frame
