@@ -46,14 +46,17 @@ public class Frames extends ArrayList<Frame> {
 	
 	public String getChunkJSON(int startFrameIndex, int chunkSize) throws JSONException {
 		JSONArray json = new JSONArray();
-		if (startFrameIndex < 0 || startFrameIndex >= this.size()) {
+		if (startFrameIndex < 0 || startFrameIndex >= this.size() || chunkSize <= 0) {
 			return json.toString();
 		}
 		
 		int step = animateContext.getFrameSkip() + 1;
-		int endFrameIndex = (startFrameIndex+chunkSize*step) < this.size() ? startFrameIndex+chunkSize*step : this.size();
-		for (int i=startFrameIndex; i<endFrameIndex; i+=step) {
-			json.put(this.get(i).getJSON());
+		for (int i=0; i < chunkSize; i++) {
+		    int stepIndex = startFrameIndex + i*step;
+		    json.put(this.get(stepIndex < this.size() ? stepIndex : this.size()-1).getJSON());
+		    if (stepIndex >= this.size()-1) {
+		        break;
+		    }
 		}
 		return json.toString();
 	}

@@ -34,6 +34,10 @@ class AnimationContext {
         return this._logEndTime;
     }
 
+    getTimelineRatio() {
+        return (this._logEndTime - this._logStartTime)/(this._logicalTimelineMax*1000);
+    }
+
     getLogicalTimelineMax() {
         return this._logicalTimelineMax;
     }
@@ -156,12 +160,14 @@ class TokenAnimation {
      * @param {AnimationContext} animationContext
      * @param {RenderingContext} canvasContext
      * @param {Object} pathMap: map from element index to the corresponding SVG path element
+     * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animationContext, canvasContext, pathMap) {
+    constructor(animationContext, canvasContext, pathMap, colorPalette) {
         console.log('TokenAnimation - constructor');
         this._animationContext = animationContext;
         this._canvasContext = canvasContext;
         this._elementPathMap = pathMap;
+        this._colorPalette = colorPalette;
 
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
@@ -276,6 +282,10 @@ class TokenAnimation {
 
     getCurrentLogicalTime() {
         return this.getCurrentFrameIndex()/this._animationContext.getRecordingFrameRate();
+    }
+
+    getCurrentLogTimeFromStart() {
+        return this.getCurrentLogicalTime()*this._animationContext.getTimelineRatio()*1000;
     }
 
     getCurrentActualTime() {
@@ -403,12 +413,41 @@ class TokenAnimation {
                 let radius = count;
                 if (radius > 3) radius = 3;
                 this._canvasContext.beginPath();
-                this._canvasContext.fillStyle = this._selectTokenColor(count);
+                this._canvasContext.strokeStyle = this._getTokenBorderColor(0);
+                this._canvasContext.fillStyle = this._getTokenFillColor(0, count);
                 this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.stroke();
                 this._canvasContext.fill();
             }
         }
+    }
+
+    /**
+     * @param {Number} logNo: the ordinal number of the log
+     * @return {String} color code
+     * @private
+     */
+    _getTokenBorderColor(logNo) {
+        return this._colorPalette[logNo][this._colorPalette[logNo].length-1];
+    }
+
+    /**
+     * @param {Number} logNo: the ordinal number of the log
+     * @param {Number} tokenSize: the size of the token
+     * @return {String} color code
+     * @private
+     */
+    _getTokenFillColor(logNo, tokenSize) {
+        let colorIndex = 0;
+        if (tokenSize <= 2) colorIndex = 0;
+        else if (tokenSize <= 4) colorIndex = 1;
+        else if (tokenSize <= 6) colorIndex = 2;
+        else if (tokenSize <= 8) colorIndex = 3;
+        else if (tokenSize <= 10) colorIndex = 4;
+        else {
+            colorIndex = 5;
+        }
+        return this._colorPalette[logNo][colorIndex];
     }
 
     /**

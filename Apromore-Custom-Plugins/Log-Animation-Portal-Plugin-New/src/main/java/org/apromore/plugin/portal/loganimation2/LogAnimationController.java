@@ -160,8 +160,6 @@ public class LogAnimationController extends BaseController {
             
             JSONObject setupData = (JSONObject)session.get("setupData");
             setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
-            setupData.put("frameGap", animateContext.getFrameInterval());
-            setupData.put("frameChunkSize", animateContext.getChunkSize());
             setupData.put("elementIndexIDMap", animationLog.getElementJSON());
             setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationFrames));
             if(setupData == null) {

@@ -205,10 +205,10 @@
                 <div sclass="ap-la-timeline" style="background:none;">
                     <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
                         <canvas id="timelineCanvas" style="background:none; pointer-events:none"></canvas>
-                    </div>
+                    </div>                  
                     <div style="position:absolute; background:none; width:100%">
-                        <n:svg id="timeline_svg" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
-                    </div>
+                        <n:svg id="timeline_svg" style="background:none;" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
+                    </div>                  
                 </div>
             </div>
         </n:div>

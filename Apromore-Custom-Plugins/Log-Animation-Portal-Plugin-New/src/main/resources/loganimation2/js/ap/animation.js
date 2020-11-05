@@ -79,7 +79,11 @@ class AnimationController {
     this.PLAY_CLS = 'ap-mc-icon-play';
     this.PAUSE_CLS = 'ap-mc-icon-pause';
     this.SHOW_OTHER_LOGS_TIMESPAN = false;
-    this.apPalette = ['#84c7e3', '#bb3a50', '#3ac16d', '#f96100', '#FBA525'];
+    //this.apPalette = ['#84c7e3', '#bb3a50', '#3ac16d', '#f96100', '#FBA525'];
+    this.apPalette = [
+        ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
+        ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
+    ]
     this.timelineOffset = {
       x: 20, y: 20,
     };
@@ -160,7 +164,7 @@ class AnimationController {
     // Create token animation
     let canvasContext = document.querySelector("#canvas").getContext('2d');
     this.animationContext = new AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
-    this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.elementCache);
+    this.tokenAnimation = new TokenAnimation(this.animationContext, canvasContext, this.elementCache, this.apPalette);
 
     // Start token animation
     let modelBox = this.svgMain.getBoundingClientRect();
@@ -225,7 +229,7 @@ class AnimationController {
       let log = timeline.logs[i];
       let x1 = ox + slotWidth * log.startDatePos;
       let x2 = ox + slotWidth * log.endDatePos;
-      let style = 'stroke: ' + (apPalette[i] || log.color) + '; stroke-width: ' + logIntervalSize;
+      let style = 'stroke: ' + this.getLogColor(i+1, log.color) + '; stroke-width: ' + logIntervalSize;
       let opacity = 0.8;
       new SVG.Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(timelineEl);
 
@@ -368,9 +372,11 @@ class AnimationController {
     // Original implementation -- checks for termination, updates clock view
     if (this.getCurrentSVGTime() >= this.totalEngineS) {
       console.log('AnimationController - updateClock: gotoEnd because out of animation time.');
-      this.gotoEnd();
+      // this.updateClockOnce(this.endMs);
+      // this.pause();
     } else {
-      this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
+      //this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
+      this.updateClockOnce(this.startMs + this.tokenAnimation.getCurrentLogTimeFromStart());
     }
   }
 
@@ -753,6 +759,10 @@ class AnimationController {
     nodeGroupE.appendChild(skipPathE);
   }
 
+  getLogColor(logNo, logColor) {
+    return this.apPalette[logNo - 1][0] || logColor;
+  }
+
   /*
    * Create progress indicator for one log
    * log: the log object (name, color, traceCount, progress, tokenAnimations)
@@ -761,7 +771,7 @@ class AnimationController {
   createProgressIndicatorsForLog(logNo, log, timeline, x, y, speedRatio) {
     speedRatio = speedRatio || 1;
     let {values, keyTimes, begin, dur} = log.progress;
-    let color = this.apPalette[logNo - 1] || log.color;
+    let color = this.getLogColor(logNo, log.color);
     let progress = new SVG.G().attr({
       id: 'ap-la-progress-' + logNo,
     }).node;
@@ -800,7 +810,6 @@ class AnimationController {
 
   createTicks() {
     // Add text and line for the bar
-
     let {
       slotNum, logNum, slotEngineS, slotWidth, slotDataMs, timelineEl, timelineOffset,
       logIntervalHeight, logIntervalMargin,
@@ -837,24 +846,27 @@ class AnimationController {
 
   createTimelineDistribution() {
     // Create a virtual horizontal line
-    let {slotNum, slotWidth, timelineOffset, timelineEl} = this;
+    let {slotNum, slotWidth, logIntervalMargin, timelineOffset, timelineEl} = this;
     let startX = timelineOffset.x;
     let endX = startX + slotNum*slotWidth;
-    let y = timelineOffset.y;
-    let timelinePath = 'm' + startX + ',' + y + ' L' + endX + ',' + y;
+    let timelinePathY = timelineOffset.y + logIntervalMargin;
+    let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
     let timelinePathE = new SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
     timelineEl.appendChild(timelinePathE);
     let totalLength = timelinePathE.getTotalLength();
 
     // Set up canvas
-    let box = this.svgTimeline.getBoundingClientRect();
+    let timelineBox = this.svgTimeline.getBoundingClientRect();
+    let lineBox = timelinePathE.getBoundingClientRect();
     let ctx = document.querySelector("#timelineCanvas").getContext('2d');
-    ctx.canvas.width = box.width;
-    ctx.canvas.height = box.height;
-    ctx.canvas.x = box.x;
-    ctx.canvas.y = box.y;
+    ctx.canvas.width = timelineBox.width;
+    ctx.canvas.height = timelineBox.height;
+    ctx.canvas.x = timelineBox.x;
+    ctx.canvas.y = timelineBox.y;
     ctx.strokeStyle = '#D3D3D3';
     ctx.lineWidth = 5;
+    let matrix = timelinePathE.getCTM();
+    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
 
     // Draw distribution
     if (this.caseCountsByFrames) {
@@ -871,14 +883,11 @@ class AnimationController {
         let distance = i/totalFrames;
         let point = timelinePathE.getPointAtLength(totalLength * distance);
         let height = (this.caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
-        let y2 = Y_MAX/2 - height;
+        let y2 = ctx.canvas.height - height;
         ctx.beginPath();
-        ctx.moveTo(point.x, Y_MAX/2);
-        ctx.lineTo(point.x, y2);
+        ctx.moveTo(point.x, timelinePathY);
+        ctx.lineTo(point.x, timelinePathY - height);
         ctx.stroke();
-        //let y3 = y1 + height;
-        //ctx.moveTo(point.x, y1);
-        //ctx.lineTo(point.x, y3);
       }
     }
   }

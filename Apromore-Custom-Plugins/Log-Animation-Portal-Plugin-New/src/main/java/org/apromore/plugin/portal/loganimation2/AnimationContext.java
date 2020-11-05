@@ -31,8 +31,7 @@ import org.apromore.service.loganimation2.replay.AnimationLog;
  */
 public class AnimationContext {
 	private int recordingFrameRate = 60; //frames per second
-    private int frameInterval =  (int)(1.0/recordingFrameRate*1000); //milliseconds between two consecutive frames
-    private int chunkSize = 4920; //number of frames
+    private double frameInterval =  1.0/recordingFrameRate*1000; //milliseconds between two consecutive frames
     private int totalDuration = 600; //seconds
     private double timelineRatio = 1; //a second on the animation timeline is converted to actual seconds
     private long startTimestamp;
@@ -58,7 +57,7 @@ public class AnimationContext {
     public void setFrameRate(int fps) {
         if (fps > 0) {
             this.recordingFrameRate = fps;
-            this.frameInterval = (int)(1.0/fps*1000);    
+            this.frameInterval = 1.0/fps*1000;    
         }
     }
     
@@ -66,7 +65,7 @@ public class AnimationContext {
     	return this.recordingFrameRate*this.totalDuration;
     }
     
-    public int getFrameInterval() {
+    public double getFrameInterval() {
         return this.frameInterval;
     }
     
@@ -76,14 +75,6 @@ public class AnimationContext {
     
     public long getEndTimestamp() {
         return this.endTimestamp;
-    }
-    
-    public int getChunkSize() {
-        return this.chunkSize;
-    }
-    
-    public void setChunkSize(int chunkSize) {
-        this.chunkSize = chunkSize;
     }
     
     public int getTotalDuration() {
