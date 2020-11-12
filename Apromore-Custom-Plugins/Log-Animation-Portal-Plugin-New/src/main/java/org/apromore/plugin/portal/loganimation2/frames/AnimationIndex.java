@@ -42,17 +42,19 @@ import com.lodborg.intervaltree.Interval;
 import com.lodborg.intervaltree.Interval.Bounded;
 import com.lodborg.intervaltree.IntervalTree;
 
+import de.hpi.bpmn2_0.model.activity.Activity;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 /**
- * This class is the underlying data used for the animation.<br>
- * A number of key notions:<br>
+ * An <b>AnimationIndex</b> contains key indexes to be used for the generation of animation frames.<br>
+ * A number of important notions:<br>
  * <ol>
- *  <li>Element: the modeling elements on a model such as sequence flow and activities.  
- *  <li>ReplayElement: represent an Element where a Trace has been replayed over. Multiple ReplayElement objects
- *      can correspond to one Element if the element is replayed multiple times for a trace.  
- *  <li>Frame: a frame contains many tokens at a point in time, each token is on a ReplayElement. 
- *  <li>Frame Token: a token is identified by (i,j) where i is the frame index and j is the replay element index.
+ *  <li>Element: the modeling elements on a model such as sequence flow and activities.
+ *  <li>Case(or Trace): a case in the original log
+ *  <li>ReplayTrace: a case that has been replayed on the model
+ *  <li>ReplayElement: represent a modeling element where a Trace has been replayed over.<br> 
+ *      Multiple ReplayElement can correspond to one Element if the element is replayed multiple times for a trace.  
+ *  <li>Frame: a frame contains many tokens at a point in time, each token is on a ReplayElement.
  * <ol>
  * @author Bruce Nguyen
  *
@@ -65,8 +67,8 @@ public class AnimationIndex {
     private MutableIntIntMap replayElementToTrace = IntIntMaps.mutable.empty(); // replay element index => trace index
     private MutableIntObjectMap<IntIntPair> replayElementToFrames = IntObjectMaps.mutable.empty(); //replayElement index => start/end Frame index
     
-    // As each replay element is a frame index interval, use interval tree
-    // to query all replay elements that contain a frame index
+    // As each replay element is an interval of two frame indexes, interval tree is used to
+    // as an efficient data structure to query, e.g. retrieve all replay elements contain a frame index
     private IntervalTree<Integer> intervalTree = new IntervalTree<>();
     private MutableObjectIntMap<IntegerInterval> intervalToReplayElement = ObjectIntMaps.mutable.empty();
     
@@ -82,6 +84,7 @@ public class AnimationIndex {
                 replayElementIndex++;
             }   
             for (TraceNode node : trace.getNodes()) {
+                if (!(node.getModelNode() instanceof Activity)) continue;
                 long start = node.getStart().getMillis();
                 long end = node.getComplete().getMillis();
                 int nodeIndex = !node.isActivitySkipped() ? log.getElementIndexFromId(node.getId()) : log.getElementSkipIndexFromId(node.getId());

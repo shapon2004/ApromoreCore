@@ -33,13 +33,13 @@ import org.json.JSONException;
  * @author Bruce Nguyen
  *
  */
-public class Frames extends ArrayList<Frame3> {
+public class Frames extends ArrayList<Frame> {
 	private AnimationContext animateContext;
 	
 	public Frames(AnimationContext animateContext, AnimationIndex animationIndex) {
 		this.animateContext = animateContext;
 		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
-            add(new Frame3(frameIndex, animationIndex));
+            add(new Frame(frameIndex, animationIndex));
         }
 	}
 	

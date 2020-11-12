@@ -24,19 +24,28 @@
 
 package org.apromore.service.loganimation2.replay;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.deckfour.xes.factory.XFactory;
+import org.deckfour.xes.factory.XFactoryNaiveImpl;
+import org.deckfour.xes.model.XAttribute;
+import org.deckfour.xes.model.XAttributeBoolean;
+import org.deckfour.xes.model.XAttributeContinuous;
+import org.deckfour.xes.model.XAttributeDiscrete;
+import org.deckfour.xes.model.XAttributeLiteral;
+import org.deckfour.xes.model.XAttributeTimestamp;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
+
 import de.hpi.bpmn2_0.model.BaseElement;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowElement;
 import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.Process;
-import org.deckfour.xes.factory.XFactory;
-import org.deckfour.xes.factory.XFactoryNaiveImpl;
-import org.deckfour.xes.model.*;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
 * Created by Raffaele Conforti on 21/10/14.
@@ -53,10 +62,12 @@ public class Optimizer {
 
         for(Map.Entry<String, XAttribute> entry : log.getAttributes().entrySet()) {
             String key = (String) getObject(entry.getKey());
-            Object value = getObject(getAttributeValue(entry.getValue()));
-            XAttribute attribute = createXAttribute(key, value, entry.getValue());
-
-            result.getAttributes().put(key, attribute);
+            Object att = getAttributeValue(entry.getValue());
+            if (att != null) {
+                Object value = getObject(att);
+                XAttribute attribute = createXAttribute(key, value, entry.getValue());
+                result.getAttributes().put(key, attribute);
+            }
         }
 
         for(XTrace trace : log) {
@@ -64,10 +75,12 @@ public class Optimizer {
 
             for(Map.Entry<String, XAttribute> entry : trace.getAttributes().entrySet()) {
                 String key = (String) getObject(entry.getKey());
-                Object value = getObject(getAttributeValue(entry.getValue()));
-                XAttribute attribute = createXAttribute(key, value, entry.getValue());
-
-                newTrace.getAttributes().put(key, attribute);
+                Object att = getAttributeValue(entry.getValue());
+                if (att != null) {
+                    Object value = getObject(att);
+                    XAttribute attribute = createXAttribute(key, value, entry.getValue());
+                    newTrace.getAttributes().put(key, attribute);
+                }
             }
 
             for(XEvent event : trace) {
@@ -75,10 +88,12 @@ public class Optimizer {
 
                 for(Map.Entry<String, XAttribute> entry : event.getAttributes().entrySet()) {
                     String key = (String) getObject(entry.getKey());
-                    Object value = getObject(getAttributeValue(entry.getValue()));
-                    XAttribute attribute = createXAttribute(key, value, entry.getValue());
-
-                    newEvent.getAttributes().put(key, attribute);
+                    Object att = getAttributeValue(entry.getValue());
+                    if (att != null) {
+                        Object value = getObject(att);
+                        XAttribute attribute = createXAttribute(key, value, entry.getValue());
+                        newEvent.getAttributes().put(key, attribute);
+                    }
                 }
                 
                 newTrace.insertOrdered(newEvent); //Bruce

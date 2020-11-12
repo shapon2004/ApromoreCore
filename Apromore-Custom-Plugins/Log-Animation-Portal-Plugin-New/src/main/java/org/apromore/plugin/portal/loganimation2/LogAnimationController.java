@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apromore.plugin.portal.loganimation2.frames.AnimationIndex;
-import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder2;
+import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
 import org.apromore.plugin.portal.loganimation2.frames.Frames;
 import org.apromore.plugin.portal.loganimation2.stats.Stats;
 import org.apromore.plugin.property.RequestParameterType;
@@ -148,17 +148,13 @@ public class LogAnimationController extends BaseController {
             animateContext = new AnimationContext(animationLog);
             
             long timer = System.currentTimeMillis();
-            
             AnimationIndex animationIndex = new AnimationIndex(animationLog, animateContext);
             System.out.println("Create animation index: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             
             System.out.println("Start recording frames");
             timer = System.currentTimeMillis();
-            animationFrames = FrameRecorder2.record(animationLog, animationIndex, animateContext);
-            //animationData = new AnimationData(animationLog, animateContext);
+            animationFrames = FrameRecorder.record(animationLog, animationIndex, animateContext);
             System.out.println("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
-            //this.animationFrames = FrameDecorator.decorate(frames);
-            //System.out.println("Finished decorating frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             
             JSONObject setupData = (JSONObject)session.get("setupData");
             setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());

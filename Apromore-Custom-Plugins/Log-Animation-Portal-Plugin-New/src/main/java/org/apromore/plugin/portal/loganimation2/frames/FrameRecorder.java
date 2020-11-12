@@ -21,50 +21,28 @@
  */
 package org.apromore.plugin.portal.loganimation2.frames;
 
+import org.apromore.plugin.portal.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.replay.AnimationLog;
+
 /**
  * Used to create a frame collection as source data for animation.
  * 
  * @author Bruce Nguyen
  *
  */
-//public class FrameRecorder {
-//	public static Frames record(AnimationLog log, AnimationContext animateContext) throws InvalidFrameParamsException {
-//		Frames frames = new Frames(animateContext);
-//		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
-//			frames.add(new Frame2(frameIndex, log.getNumberOfElements(), log.getNumberOfCases()));
-//        }
-//		
-//		for (ReplayTrace trace : log.getTracesWithOriginalOrder()) {
-//		    int caseIndex = log.getCaseIndexFromId(trace.getId());
-//            for (SequenceFlow flow : trace.getSequenceFlows()) {
-//                int flowIndex = log.getElementIndexFromId(flow.getId());
-//                long start = ((TraceNode)flow.getSourceRef()).getComplete().getMillis();
-//                long end = ((TraceNode)flow.getTargetRef()).getStart().getMillis();                
-//                addTokensToFrames(frames, caseIndex, flowIndex, start, end, animateContext);
-//            }   
-//            for (TraceNode node : trace.getNodes()) {
-//                int nodeIndex = !node.isActivitySkipped() ? log.getElementIndexFromId(node.getId()) : log.getElementSkipIndexFromId(node.getId());
-//                long start = node.getStart().getMillis();
-//                long end = node.getComplete().getMillis();
-//                addTokensToFrames(frames, caseIndex, nodeIndex, start, end, animateContext);
-//            }
-//        }
-//		
-//		return frames;
-//	}
-//	
-//	private static void addTokensToFrames(Frames frames, int caseIndex, int elementIndex, long elementStart, long elementEnd, 
-//	                                        AnimationContext animateContext) {
-//	    int startFrameIndex = animateContext.getFrameIndexFromLogTimestamp(elementStart);
-//        int endFrameIndex = animateContext.getFrameIndexFromLogTimestamp(elementEnd); 
-//        int numberOfFrames = endFrameIndex - startFrameIndex + 1;
-//        double frameIntervalPercent = (numberOfFrames > 2) ? 1.0/(numberOfFrames-1) : 1.0; // the first and last frames are at 0 and 1 position.
-//        double distance = 0;
-//        for (int i=startFrameIndex; i<=endFrameIndex; i++) {
-//            frames.get(i).addToken(elementIndex, caseIndex, distance);
-//            distance += frameIntervalPercent;
-//        }
-//	}
-//
-//
-//}
+public class FrameRecorder {
+	public static Frames record(AnimationLog log, AnimationIndex animationIndex, AnimationContext animationContext) {
+		Frames frames = new Frames(animationContext, animationIndex);
+		frames.parallelStream().forEach(frame -> {
+		    int[] tokenIndexes = animationIndex.getReplayElementIndexesByFrame(frame.getIndex());
+		    frame.addTokens(tokenIndexes);
+		});
+		
+		long timer = System.currentTimeMillis();
+		frames.parallelStream().forEach(frame -> frame.clusterTokens());
+		System.out.println("Clustering tokens: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
+		
+		return frames;
+	}
+
+}

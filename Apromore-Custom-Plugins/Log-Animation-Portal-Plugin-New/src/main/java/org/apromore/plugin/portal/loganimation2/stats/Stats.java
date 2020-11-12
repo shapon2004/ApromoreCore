@@ -21,23 +21,16 @@
  */
 package org.apromore.plugin.portal.loganimation2.stats;
 
-import org.apromore.plugin.portal.loganimation2.frames.Frame3;
+import org.apromore.plugin.portal.loganimation2.frames.Frame;
 import org.apromore.plugin.portal.loganimation2.frames.Frames;
 import org.json.JSONArray;
 
 public class Stats {
     public static JSONArray computeCaseCountsJSON(Frames frames) {
         JSONArray json = new JSONArray();
-        for (Frame3 frame : frames) {
+        for (Frame frame : frames) {
             json.put(frame.getCaseIndexes().length);
         }
         return json;
     }
-//    public static JSONArray computeCaseCountsJSON(AnimationData data) {
-//        JSONArray json = new JSONArray();
-//        for (int frameIndex : data.getFrameIndexes()) {
-//            json.put(data.getFrameCases(frameIndex).length);
-//        }
-//        return json;
-//    }
 }

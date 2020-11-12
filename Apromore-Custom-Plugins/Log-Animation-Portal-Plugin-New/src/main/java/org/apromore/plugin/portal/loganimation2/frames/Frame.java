@@ -22,206 +22,163 @@
 package org.apromore.plugin.portal.loganimation2.frames;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apromore.plugin.portal.loganimation2.AnimationContext;
+import org.eclipse.collections.api.list.MutableList;
+import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.api.list.primitive.MutableIntList;
-import org.eclipse.collections.api.map.primitive.MutableIntDoubleMap;
-import org.eclipse.collections.impl.factory.primitive.IntDoubleMaps;
+import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
+import org.eclipse.collections.api.tuple.primitive.IntDoublePair;
+import org.eclipse.collections.impl.factory.Lists;
+import org.eclipse.collections.impl.factory.primitive.IntIntMaps;
 import org.eclipse.collections.impl.factory.primitive.IntLists;
+import org.eclipse.collections.impl.tuple.primitive.PrimitiveTuples;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.roaringbitmap.RoaringBitmap;
 
 /**
- * Each Frame is a matrix where the row index is the index of a path element  
- * and the column index is the index of a case. Path elements are SVG path element representing
- * a sequence flow, a path through the center of a node or a path through the edge of a node.
- * Each token is identified by a pair (elementIndex, caseIndex), so called token coordinate. 
- * As the number of cases can be extremely high, case indexes are stored in a compressed bitmap. 
- * From the token coordinate, it is possible to obtain a single index called token index. 
- * Token index = elementIndex*numberOfCases + caseIndex. 
- * The token index is used to point to token's attributes such as the distance of the dot from the element start.
+ * Within a frame, a replay element is also a token of this frame.
  * 
  * @author Bruce Nguyen
  *
  */
 public class Frame {
-	protected int index;
-	protected int numberOfElements;
-	protected int numberOfCases;
-	// Each array item represents a modelling element, the item index is the element index
-	// Each bit in a bitmap represents a case, the bit index is the case index
-	protected RoaringBitmap[] tokenBitmap;
-	// Key = token's position index = elementIndex*numberOfTraces + caseIndex, 
-	// Value = distance from the element start
-	protected MutableIntDoubleMap distances = IntDoubleMaps.mutable.empty();
-	
-	public Frame(int index, int numberOfElements, int numberOfCases) throws InvalidFrameParamsException {
-		if (index < 0 || numberOfElements <= 0 || numberOfCases <= 0) {
-			throw new InvalidFrameParamsException();
-		}
-		this.numberOfElements = numberOfElements;
-		this.numberOfCases = numberOfCases;
-		tokenBitmap = new RoaringBitmap[numberOfElements];
-		this.index = index;
-		for (int i=0; i<numberOfElements; i++) {
-			tokenBitmap[i] = new RoaringBitmap();
-		}
-	}
-	
-	public int getIndex() {
-		return this.index;
-	}
-	
-	public int getNumberOfCases() {
-		return this.numberOfCases;
-	}
-	
-	public int getNumberOfElements() {
-		return this.numberOfElements;
-	}
-	
-	public void addToken(int elementIndex, int caseIndex, double distance) {
-		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
-			tokenBitmap[elementIndex].add(caseIndex);
-			distances.put(getTokenIndex(elementIndex, caseIndex), distance);
-		}
-	}
-	
-	public void removeToken(int elementIndex, int caseIndex) {
-		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
-			if (containsElement(elementIndex)) tokenBitmap[elementIndex].checkedRemove(caseIndex);
-			distances.remove(getTokenIndex(elementIndex, caseIndex));
-		}
-	}
-	
-	protected boolean validElementIndex(int elementIndex) {
-		return (elementIndex >=0 && elementIndex < numberOfElements);
-	}
-	
-	protected boolean validCaseIndex(int caseIndex) {
-		return (caseIndex >=0 && caseIndex < numberOfCases);
-	}
-	
-	protected int getTokenIndex(int elementIndex, int caseIndex) {
-		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
-			return elementIndex*numberOfCases + caseIndex;
-		}
-		else {
-			return -1;
-		}
-	}
-	
-	protected int getElementIndex(int tokenIndex) {
-		return tokenIndex/numberOfCases;
-	}
-	
-	
-	protected int getCaseIndex(int tokenIndex) {
-		return tokenIndex%numberOfCases;
-	}
-	
-	public boolean containsElement(int elementIndex) {
-		return validElementIndex(elementIndex) && !tokenBitmap[elementIndex].isEmpty();
-	}
-	
-	public boolean containsCase(int caseIndex) {
-		for (int i=0; i<numberOfElements; i++) {
-			if (tokenBitmap[i].contains(caseIndex)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public int[] getElementIndexes() {
-		MutableIntList indexes = IntLists.mutable.empty();
-		for (int i=0; i<numberOfElements; i++) {
-			if (!tokenBitmap[i].isEmpty()) indexes.add(i);
-		}
-		return indexes.toArray();
-	}
-	
-	public int[] getCaseIndexes() {
-		RoaringBitmap scanElement = new RoaringBitmap();
-		for (RoaringBitmap b : tokenBitmap) {
-			scanElement.or(b);
-		}
-		return scanElement.toArray();
-	}
-	
-	// Return case indexes from an element index
-	public int[] getCasesByElementIndex(int elementIndex) {
-		return validElementIndex(elementIndex) ? tokenBitmap[elementIndex].toArray() : new int[]{};
-	}
-	
-	// Return element indexes from a case index
-	public int[] getElementsByCaseIndex(int caseIndex) {
-		MutableIntList elementIndexes = IntLists.mutable.empty();
-		for (int i=0; i<numberOfElements; i++) {
-			if (tokenBitmap[i].contains(caseIndex)) {
-				elementIndexes.add(i);
-			}
-		}
-		return elementIndexes.toArray();
-	}
-	
-	public int[] getTokensByElementIndex(int elementIndex) {
-		MutableIntList tokenIndexes = IntLists.mutable.empty();
-		for (int caseIndex : this.getCasesByElementIndex(elementIndex)) {
-			tokenIndexes.add(getTokenIndex(elementIndex, caseIndex));
-		}
-		return tokenIndexes.toArray();
-	}
-	
-	public double getTokenDistance(int tokenIndex) {
-		return distances.get(tokenIndex);
-	}
-	
-	public long getTimestamp(AnimationContext context) {
-        double frameMillis = this.index*context.getFrameInterval()*context.getTimelineRatio();
-        return context.getStartTimestamp() + (long)frameMillis;
+    private int frameIndex;
+    private AnimationIndex animationIndex;
+    
+    // A true value at index ith is a replay element on this frame, also called a token index
+    private RoaringBitmap replayElementMap = new RoaringBitmap();
+    
+    // Map from a token index to the number of tokens in a cluster that it represents
+    private MutableIntIntMap tokenCountMap = IntIntMaps.mutable.empty(); 
+    
+    public Frame(int frameIndex, AnimationIndex animationIndex) {
+        this.frameIndex = frameIndex;
+        this.animationIndex = animationIndex;
     }
-	
-	public boolean isEmpty() {
-		for (int i=0; i<numberOfElements; i++) {
-			if (!tokenBitmap[i].isEmpty()) return false;
-		}
-		return true;
-	}
-	
-	/**
-	 * A sample of frame JSON:
-	 * {
-	 * 	index: 100,
-	 * 	elements: [
-	 * 		{elementIndex1: [{caseIndex1:[0.1]}, {caseIndex2:[0.2]}, {caseIndex3:[0.1]}]},
-	 * 		{elementIndex2: [{caseIndex1:[0.2]}, {caseIndex2:[0.5]}]},
-	 * 		{elementIndex3: [{caseIndex4:[0.1]}]}
-	 * 	]
-	 * }
-	 */
-	public JSONObject getJSON() throws JSONException {
-		JSONObject json = new JSONObject();
-        json.put("index", index);
-        JSONArray elements = new JSONArray();
-        for (int elementIndex : this.getElementIndexes()) {
-        	JSONArray cases = new JSONArray();
-        	for (int caseIndex : this.getCasesByElementIndex(elementIndex)) {
-        		int tokenIndex = getTokenIndex(elementIndex, caseIndex);
-        		cases.put((new JSONObject()).put(caseIndex+"", getAttributesJSON(tokenIndex)));
-        	}
-        	elements.put((new JSONObject()).put(elementIndex+"", cases));
+    
+    public int getIndex() {
+        return this.frameIndex;
+    }
+    
+    public void addToken(int tokenIndex) {
+        replayElementMap.add(tokenIndex);
+    }
+    
+    public void addTokens(int[] tokenIndexes) {
+        replayElementMap.add(tokenIndexes);
+    }
+    
+    public void removeToken(int tokenIndex) {
+        replayElementMap.remove(tokenIndex);
+        if (tokenCountMap.containsKey(tokenIndex)) tokenCountMap.remove(tokenIndex);
+    }
+    
+    public int[] getElementIndexes() {
+        return Arrays.stream(getTokenIndexes())
+                .map(tokenIndex -> animationIndex.getElementIndex(tokenIndex))
+                .distinct().toArray();
+    }
+    
+    public int[] getCaseIndexes() {
+        return Arrays.stream(getTokenIndexes())
+                .map(tokenIndex -> animationIndex.getTraceIndex(tokenIndex))
+                .distinct().toArray();
+    }
+    
+    public int[] getTokenIndexes() {
+        return replayElementMap.toArray();
+    }
+    
+    public int[] getTokenIndexesByElement(int elementIndex) {
+        return Arrays.stream(getTokenIndexes())
+                .filter(tokenIndex -> animationIndex.getElementIndex(tokenIndex) == elementIndex)
+                .toArray();
+    }
+    
+    private double getTokenDistance(int tokenIndex) {
+        int startFrameIndex = animationIndex.getStartFrameIndex(tokenIndex);
+        int numberOfFrames = animationIndex.getEndFrameIndex(tokenIndex) - startFrameIndex;
+        return (numberOfFrames == 0) ? 0 : (double)(frameIndex - startFrameIndex)/numberOfFrames;
+    }
+    
+    private void clusterTokensOnElement(int elementIndex) {
+        // Collect tokens and their distances
+        MutableList<IntDoublePair> tokenDistances = Lists.mutable.empty();
+        for (int token : getTokenIndexesByElement(elementIndex)) {
+            tokenDistances.add(PrimitiveTuples.pair(token, getTokenDistance(token)));
         }
-        json.put("elements", elements);
-        return json;
-	}
-	
-	protected JSONArray getAttributesJSON(int tokenIndex) throws JSONException {
-		JSONArray attJSON = new JSONArray();
-		DecimalFormat df = new DecimalFormat("#.###");
-		attJSON.put(df.format(distances.get(tokenIndex)));
-		return attJSON;
-	}
+        tokenDistances.sortThisBy(pair -> pair.getTwo()); // sort by distance
+        
+        // Group tokens with close distances
+        Set<MutableIntList> tokenGroups = new HashSet<>();
+        MutableIntList tokenGroup = IntLists.mutable.empty();
+        double tokenGroupTotalDist = 0;
+        for (IntDoublePair tokenPair : tokenDistances) {
+            double tokenDistance = tokenPair.getTwo();
+            double diff = tokenGroup.isEmpty() ? 0 : Math.abs(tokenDistance - tokenGroupTotalDist/tokenGroup.size());
+            if (diff <= 0.01) {
+                tokenGroup.add(tokenPair.getOne());
+                tokenGroupTotalDist += tokenDistance;
+                if (tokenPair == tokenDistances.getLast()) tokenGroups.add(tokenGroup);
+            }
+            else {
+                tokenGroups.add(tokenGroup);
+                tokenGroup = IntLists.mutable.empty();
+                tokenGroupTotalDist = 0;
+            }
+        }
+        
+        // Collect representative token for each group
+        for (IntList group : tokenGroups) {
+            if (group.size() > 1) {
+                tokenCountMap.put(group.get(0), group.size());
+                group.forEach(token -> {if (token != group.get(0)) removeToken(token);});
+            }
+        }
+    }
+    
+    public void clusterTokens() {
+        for (int elementIndex : getElementIndexes()) {
+            clusterTokensOnElement(elementIndex);
+        }
+    }
+    
+    /**
+     * A sample of frame JSON:
+     * {
+     *  index: 100,
+     *  elements: [
+     *      {elementIndex1: [{caseIndex1:[0.1]}, {caseIndex2:[0.2]}, {caseIndex3:[0.1]}]},
+     *      {elementIndex2: [{caseIndex1:[0.2]}, {caseIndex2:[0.5]}]},
+     *      {elementIndex3: [{caseIndex4:[0.1]}]}
+     *  ]
+     * }
+     */
+    public JSONObject getJSON() throws JSONException {
+        JSONObject frameJSON = new JSONObject();
+        frameJSON.put("index", frameIndex);
+        JSONArray elementsJSON = new JSONArray();
+        for (int elementIndex : getElementIndexes()) {
+            JSONArray casesJSON = new JSONArray();
+            for (int tokenIndex : getTokenIndexesByElement(elementIndex)) {
+                casesJSON.put((new JSONObject()).put(animationIndex.getTraceIndex(tokenIndex)+"", getTokenJSON(tokenIndex)));
+            }
+            elementsJSON.put((new JSONObject()).put(elementIndex+"", casesJSON));
+        }
+        frameJSON.put("elements", elementsJSON);
+        return frameJSON;
+    }
+    
+    private JSONArray getTokenJSON(int tokenIndex) throws JSONException {
+        JSONArray attJSON = new JSONArray();
+        DecimalFormat df = new DecimalFormat("#.###");
+        attJSON.put(df.format(getTokenDistance(tokenIndex)));
+        attJSON.put(tokenCountMap.containsKey(tokenIndex) ? tokenCountMap.get(tokenIndex) : 1);
+        return attJSON;
+    }
 }
