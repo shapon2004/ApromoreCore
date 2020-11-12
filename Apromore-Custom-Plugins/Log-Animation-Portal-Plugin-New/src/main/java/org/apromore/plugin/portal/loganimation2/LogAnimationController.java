@@ -28,8 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apromore.plugin.portal.loganimation2.frames.FrameDecorator;
-import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
+import org.apromore.plugin.portal.loganimation2.frames.AnimationIndex;
+import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder2;
 import org.apromore.plugin.portal.loganimation2.frames.Frames;
 import org.apromore.plugin.portal.loganimation2.stats.Stats;
 import org.apromore.plugin.property.RequestParameterType;
@@ -42,10 +42,8 @@ import org.apromore.portal.model.EditSessionType;
 import org.apromore.portal.model.ExportFormatResultType;
 import org.apromore.portal.model.PluginMessages;
 import org.apromore.portal.model.ProcessSummaryType;
-import org.apromore.portal.model.VersionSummaryType;
 import org.apromore.portal.plugin.PluginExecution;
 import org.apromore.portal.util.StreamUtil;
-import org.apromore.service.loganimation2.LogAnimationService;
 import org.apromore.service.loganimation2.replay.AnimationLog;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,11 +65,11 @@ public class LogAnimationController extends BaseController {
     private String pluginSessionId;
     private EditSessionType editSession;
     private ProcessSummaryType process;
-    private VersionSummaryType version;
     private Set<RequestParameterType<?>> params;
     private String pluginExecutionId = "";
     private AnimationContext animateContext;
     private Frames animationFrames;
+    //private AnimationData animationData;
     
     /*
      * The initialization must be put inside the constructor as
@@ -96,10 +94,7 @@ public class LogAnimationController extends BaseController {
         editSession = session.getEditSession();
         mainC = session.getMainC();
         process = session.getProcess();
-        version = session.getVersion();
         params =  session.getParams();
-
-        LogAnimationService logAnimationService = (LogAnimationService) session.get("logAnimationService");
 
         Map<String, Object> param = new HashMap<>();
         try {
@@ -153,24 +148,23 @@ public class LogAnimationController extends BaseController {
             animateContext = new AnimationContext(animationLog);
             
             long timer = System.currentTimeMillis();
+            
+            AnimationIndex animationIndex = new AnimationIndex(animationLog, animateContext);
+            System.out.println("Create animation index: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
+            
             System.out.println("Start recording frames");
-            Frames frames = FrameRecorder.record(animationLog, animateContext);
-            this.animationFrames = FrameDecorator.decorate(frames);
+            timer = System.currentTimeMillis();
+            animationFrames = FrameRecorder2.record(animationLog, animationIndex, animateContext);
+            //animationData = new AnimationData(animationLog, animateContext);
             System.out.println("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
+            //this.animationFrames = FrameDecorator.decorate(frames);
+            //System.out.println("Finished decorating frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             
             JSONObject setupData = (JSONObject)session.get("setupData");
             setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
             setupData.put("elementIndexIDMap", animationLog.getElementJSON());
             setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationFrames));
-            if(setupData == null) {
-                if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                    //List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
-                    //animationData = logAnimationService.createAnimation(bpmnXML, logs);
-                    param.put("setupData", "No animationData was created.");
-                }
-            }else {
-                param.put("setupData", escapeQuotedJavascript(setupData.toString()));
-            }
+            param.put("setupData", escapeQuotedJavascript(setupData.toString()));
 
             this.setTitle(title);
             if (mainC != null) {

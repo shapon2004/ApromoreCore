@@ -28,16 +28,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 /**
- * AnimationFrames contains a list of ({@link Frame} recorded at a certain frame rate.
+ * AnimationFrames contains a list of ({@link Frame2} recorded at a certain frame rate.
  * 
  * @author Bruce Nguyen
  *
  */
-public class Frames extends ArrayList<Frame> {
+public class Frames extends ArrayList<Frame3> {
 	private AnimationContext animateContext;
 	
-	public Frames(AnimationContext animateContext) {
+	public Frames(AnimationContext animateContext, AnimationIndex animationIndex) {
 		this.animateContext = animateContext;
+		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
+            add(new Frame3(frameIndex, animationIndex));
+        }
 	}
 	
 	public AnimationContext getAnimationContext() {

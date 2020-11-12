@@ -21,12 +21,12 @@
  */
 package org.apromore.plugin.portal.loganimation2.frames;
 
-public class FrameDecorator {
-	public static Frames decorate(Frames frames) throws Exception {
-		Frames decoratedFrames = new Frames(frames.getAnimationContext());
-		for (Frame frame : frames) {
-			decoratedFrames.add(new DecoratedFrame(frame));
-		}
-		return decoratedFrames;
-	}
-}
+//public class FrameDecorator {
+//	public static Frames decorate(Frames frames) throws Exception {
+//		Frames decoratedFrames = new Frames(frames.getAnimationContext());
+//		for (Frame2 frame : frames) {
+//			decoratedFrames.add(new DecoratedFrame(frame));
+//		}
+//		return decoratedFrames;
+//	}
+//}

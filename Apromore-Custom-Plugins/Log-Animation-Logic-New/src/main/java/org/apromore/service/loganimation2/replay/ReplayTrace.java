@@ -191,6 +191,7 @@ public class ReplayTrace {
         
         curNode.getOutgoing().add(traceFlow);
         newNode.getIncoming().add(traceFlow);
+        this.sequenceFlows.add(traceFlow);
         
         this.markingsMap.put(newNode.getModelNode(), newNode);
     }   

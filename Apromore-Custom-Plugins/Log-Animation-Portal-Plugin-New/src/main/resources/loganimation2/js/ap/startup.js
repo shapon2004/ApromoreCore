@@ -99,6 +99,7 @@ Ap.la.session = (function() {
     });
 
     let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
+    //let STEP_VALUES = [10, 15, 20, 24, 40, 60, 80, 120];
     speedControl.slider("float", {
       handle: true,
       pips: true,

@@ -258,10 +258,10 @@ class TokenAnimation {
     }
 
     setTokenStyle() {
-        this._canvasContext.lineWidth = 8;
+        this._canvasContext.lineWidth = 6;
         this._canvasContext.strokeStyle = 'blue';
         this._canvasContext.fillStyle = "red";
-        this._canvasContext.globalCompositeOperation = "lighter";
+        this._canvasContext.globalCompositeOperation = "lighten";
     }
 
     isInProgress () {
@@ -447,13 +447,23 @@ class TokenAnimation {
      */
     _getTokenFillColor(logNo, tokenSize) {
         let colorIndex = 0;
-        if (tokenSize <= 2) colorIndex = 0;
-        else if (tokenSize <= 4) colorIndex = 1;
-        else if (tokenSize <= 6) colorIndex = 2;
-        else if (tokenSize <= 8) colorIndex = 3;
-        else if (tokenSize <= 10) colorIndex = 4;
-        else {
+        if (tokenSize <= 2) {
+            colorIndex = 0;
+        }
+        else if (tokenSize <= 4) {
+            colorIndex = 2;
+        }
+        else if (tokenSize <= 6) {
+            colorIndex = 4;
+        }
+        else if (tokenSize <= 8) {
             colorIndex = 5;
+        }
+        else if (tokenSize <= 10) {
+            colorIndex = 6;
+        }
+        else {
+            colorIndex = 7;
         }
         return this._colorPalette[logNo][colorIndex];
     }

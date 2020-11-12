@@ -31,23 +31,27 @@ import org.apromore.service.loganimation2.replay.AnimationLog;
  */
 public class AnimationContext {
 	private int recordingFrameRate = 60; //frames per second
-    private double frameInterval =  1.0/recordingFrameRate*1000; //milliseconds between two consecutive frames
-    private int totalDuration = 600; //seconds
-    private double timelineRatio = 1; //a second on the animation timeline is converted to actual seconds
-    private long startTimestamp;
-    private long endTimestamp;
+    private double recordingFrameInterval =  1.0/recordingFrameRate*1000; //milliseconds between two consecutive frames
+    private int recordingDuration = 600; //seconds
+    
+    private long logStartTimestamp;
+    private long logEndTimestamp;
+    private double logToRecordingTimeRatio = 1; //a second on the animation timeline is converted to actual seconds
+    private double logTimeFrameInterval; // frame interval in terms of log time (milliseconds)
+    
     private int frameSkip = 0;
     
     public AnimationContext(AnimationLog log) {
-        this.startTimestamp = log.getStartDate().getMillis();
-        this.endTimestamp = log.getEndDate().getMillis();
-        if (totalDuration > 0) {
-            this.timelineRatio = (endTimestamp - startTimestamp)/(totalDuration*1000);
+        this.logStartTimestamp = log.getStartDate().getMillis();
+        this.logEndTimestamp = log.getEndDate().getMillis();
+        if (recordingDuration > 0) {
+            this.logToRecordingTimeRatio = (logEndTimestamp - logStartTimestamp)/(recordingDuration*1000);
+            this.logTimeFrameInterval = logToRecordingTimeRatio*recordingFrameInterval;
         }
     }
     
     public boolean isValid() {
-        return (totalDuration > 0 && endTimestamp > startTimestamp && recordingFrameRate > 0);
+        return (recordingDuration > 0 && logEndTimestamp > logStartTimestamp && recordingFrameRate > 0);
     }
     
     public int getRecordingFrameRate() {
@@ -57,40 +61,58 @@ public class AnimationContext {
     public void setFrameRate(int fps) {
         if (fps > 0) {
             this.recordingFrameRate = fps;
-            this.frameInterval = 1.0/fps*1000;    
+            this.recordingFrameInterval = 1.0/fps*1000;    
+            this.logTimeFrameInterval = logToRecordingTimeRatio*recordingFrameInterval;
         }
     }
     
     public int getMaxNumberOfFrames() {
-    	return this.recordingFrameRate*this.totalDuration;
+    	return this.recordingFrameRate*this.recordingDuration;
     }
     
     public double getFrameInterval() {
-        return this.frameInterval;
+        return this.recordingFrameInterval;
     }
     
     public long getStartTimestamp() {
-        return this.startTimestamp;
+        return this.logStartTimestamp;
     }
     
     public long getEndTimestamp() {
-        return this.endTimestamp;
+        return this.logEndTimestamp;
     }
     
     public int getTotalDuration() {
-        return this.totalDuration;
+        return this.recordingDuration;
     }
     
     //Unit: seconds
-    public void setTotalDuration(int totalDuration) {
-        if (totalDuration > 0) {
-            this.totalDuration = totalDuration;
-            this.timelineRatio = (endTimestamp - startTimestamp)/(totalDuration*1000);
+    public void setTotalDuration(int recordingDuration) {
+        if (recordingDuration > 0) {
+            this.recordingDuration = recordingDuration;
+            this.logToRecordingTimeRatio = (logEndTimestamp - logStartTimestamp)/(recordingDuration*1000);
+            this.logTimeFrameInterval = logToRecordingTimeRatio*recordingFrameInterval;
         }
     }
     
     public double getTimelineRatio() {
-        return this.timelineRatio;
+        return this.logToRecordingTimeRatio;
+    }
+    
+    /**
+     * 
+     * @param timestamp: milliseconds since 1/1/1970
+     */
+    public int getFrameIndexFromLogTimestamp(long timestamp) {
+        if (timestamp <= logStartTimestamp) {
+            return 0; 
+        }
+        else if (timestamp >= logEndTimestamp) {
+            return getMaxNumberOfFrames() - 1;
+        }
+        else {
+            return (int)Math.floor(1.0*(timestamp - logStartTimestamp)/logTimeFrameInterval);
+        }
     }
     
     public void setFrameSkip(int frameSkip) {

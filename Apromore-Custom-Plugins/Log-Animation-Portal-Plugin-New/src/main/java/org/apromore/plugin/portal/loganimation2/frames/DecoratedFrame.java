@@ -37,19 +37,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 /**
- * DecoratedFrame is derived from a {@link Frame} with added attributes for visualization of the token.
- * The token in a DecoratedFrame can be combined from multiple tokens in the corresponding Frame.
+ * DecoratedFrame is derived from a {@link Frame2} with added attributes for visualization of the token.
+ * The token in a DecoratedFrame can be combined from multiple tokens in the corresponding Frame2.
  * The visual attributes can be token size, color, shape.
  * 
  * @author Bruce Nguyen
  *
  */
-public class DecoratedFrame extends Frame {
+public class DecoratedFrame extends Frame2 {
 	private MutableIntIntMap counts = IntIntMaps.mutable.empty();
 	
-	public DecoratedFrame(Frame frame) throws InvalidFrameParamsException {
-		super(frame.getIndex(), frame.getNumberOfElements(), frame.getNumberOfCases());
-		for (int elementIndex : frame.getElementIndexes()) {
+	public DecoratedFrame(Frame2 frame) throws InvalidFrameParamsException {
+	    super(frame.index, frame.getNumberOfElements(), frame.getNumberOfCases());
+	    for (int elementIndex : frame.getElementIndexes()) {
 			Map<Integer,Double> tokenDistanceMap = new HashMap<>();
 			for (int tokenIndex : frame.getTokensByElementIndex(elementIndex)) {
 				tokenDistanceMap.put(tokenIndex, frame.getTokenDistance(tokenIndex));
@@ -97,9 +97,8 @@ public class DecoratedFrame extends Frame {
 	
 	public void addToken(int elementIndex, int caseIndex, double distance, int size) {
 		if (validElementIndex(elementIndex) && validCaseIndex(caseIndex)) {
+		    super.addToken(elementIndex, caseIndex, distance);
 			int tokenIndex = getTokenIndex(elementIndex, caseIndex);
-			tokenBitmap[elementIndex].add(caseIndex);
-			distances.put(tokenIndex, distance);
 			counts.put(tokenIndex, size);
 		}
 	}
@@ -108,7 +107,7 @@ public class DecoratedFrame extends Frame {
 	protected JSONArray getAttributesJSON(int tokenIndex) throws JSONException {
 		JSONArray attJSON = new JSONArray();
 		DecimalFormat df = new DecimalFormat("#.###");
-		attJSON.put(df.format(distances.get(tokenIndex)));
+		attJSON.put(df.format(tokenDistances.get(tokenIndex)));
 		attJSON.put(counts.get(tokenIndex));
 		return attJSON;
 	}

@@ -21,70 +21,50 @@
  */
 package org.apromore.plugin.portal.loganimation2.frames;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apromore.plugin.portal.loganimation2.AnimationContext;
-import org.apromore.service.loganimation2.replay.AnimationLog;
-import org.apromore.service.loganimation2.replay.ReplayTrace;
-import org.apromore.service.loganimation2.replay.TraceNode;
-
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-
 /**
  * Used to create a frame collection as source data for animation.
  * 
  * @author Bruce Nguyen
  *
  */
-public class FrameRecorder {
-	public static Frames record(AnimationLog log, AnimationContext animateContext) throws InvalidFrameParamsException {
-		Map<ReplayTrace,Collection<SequenceFlow>> traceToSequenceFlows = new HashMap<>();
-		Map<ReplayTrace,Collection<TraceNode>> traceToNodes = new HashMap<>();
-		List<ReplayTrace> replayTraces = log.getTracesWithOriginalOrder();
-		Frames frames = new Frames(animateContext);
-		
-		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
-			Frame frame = new Frame(frameIndex, log.getNumberOfElements(), log.getNumberOfCases());
-			long frameTimestamp = frame.getTimestamp(animateContext);
-			for (ReplayTrace trace : replayTraces) {
-	            if (trace.getStartDate().getMillis()<=frameTimestamp && frameTimestamp<=trace.getEndDate().getMillis()) {
-	            	if (!traceToSequenceFlows.containsKey(trace)) {
-	            	    traceToSequenceFlows.put(trace, trace.getSequenceFlows());
-	            	}
-			        
-	            	for (SequenceFlow seq : traceToSequenceFlows.get(trace)) {
-			            long seqStart = ((TraceNode)seq.getSourceRef()).getComplete().getMillis();
-			            long seqEnd = ((TraceNode)seq.getTargetRef()).getStart().getMillis();
-			            long seqDuration = seqEnd - seqStart; // only animate if duration > 0
-			            if (seqDuration > 0 && seqStart <= frameTimestamp && frameTimestamp <= seqEnd) {
-			            	double distance = 1.0*(frameTimestamp - seqStart)/seqDuration;
-			                frame.addToken(log.getElementIndexFromId(seq.getId()), log.getCaseIndexFromId(trace.getId()), distance);
-			            }
-			        }	
-			        
-	            	if (!traceToNodes.containsKey(trace)) {
-	            	    traceToNodes.put(trace, trace.getNodes());
-                    }
-	            	
-	            	for (TraceNode node : traceToNodes.get(trace)) {
-                        long start = node.getStart().getMillis();
-                        long end = node.getComplete().getMillis();
-                        long duration = end - start; // only animate if duration > 0
-                        if (duration > 0 && start <= frameTimestamp && frameTimestamp <= end) {
-                            double distance = 1.0*(frameTimestamp - start)/duration;
-                            int elementIndex = !node.isActivitySkipped() ? log.getElementIndexFromId(node.getId()) :
-                                                log.getElementSkipIndexFromId(node.getId());
-                            frame.addToken(elementIndex, log.getCaseIndexFromId(trace.getId()), distance);
-                        }
-                    }   
-	            }
-			}
-			frames.add(frame); //add all frames, including empty ones.
-        }
-		return frames;
-	}
-
-}
+//public class FrameRecorder {
+//	public static Frames record(AnimationLog log, AnimationContext animateContext) throws InvalidFrameParamsException {
+//		Frames frames = new Frames(animateContext);
+//		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
+//			frames.add(new Frame2(frameIndex, log.getNumberOfElements(), log.getNumberOfCases()));
+//        }
+//		
+//		for (ReplayTrace trace : log.getTracesWithOriginalOrder()) {
+//		    int caseIndex = log.getCaseIndexFromId(trace.getId());
+//            for (SequenceFlow flow : trace.getSequenceFlows()) {
+//                int flowIndex = log.getElementIndexFromId(flow.getId());
+//                long start = ((TraceNode)flow.getSourceRef()).getComplete().getMillis();
+//                long end = ((TraceNode)flow.getTargetRef()).getStart().getMillis();                
+//                addTokensToFrames(frames, caseIndex, flowIndex, start, end, animateContext);
+//            }   
+//            for (TraceNode node : trace.getNodes()) {
+//                int nodeIndex = !node.isActivitySkipped() ? log.getElementIndexFromId(node.getId()) : log.getElementSkipIndexFromId(node.getId());
+//                long start = node.getStart().getMillis();
+//                long end = node.getComplete().getMillis();
+//                addTokensToFrames(frames, caseIndex, nodeIndex, start, end, animateContext);
+//            }
+//        }
+//		
+//		return frames;
+//	}
+//	
+//	private static void addTokensToFrames(Frames frames, int caseIndex, int elementIndex, long elementStart, long elementEnd, 
+//	                                        AnimationContext animateContext) {
+//	    int startFrameIndex = animateContext.getFrameIndexFromLogTimestamp(elementStart);
+//        int endFrameIndex = animateContext.getFrameIndexFromLogTimestamp(elementEnd); 
+//        int numberOfFrames = endFrameIndex - startFrameIndex + 1;
+//        double frameIntervalPercent = (numberOfFrames > 2) ? 1.0/(numberOfFrames-1) : 1.0; // the first and last frames are at 0 and 1 position.
+//        double distance = 0;
+//        for (int i=startFrameIndex; i<=endFrameIndex; i++) {
+//            frames.get(i).addToken(elementIndex, caseIndex, distance);
+//            distance += frameIntervalPercent;
+//        }
+//	}
+//
+//
+//}
