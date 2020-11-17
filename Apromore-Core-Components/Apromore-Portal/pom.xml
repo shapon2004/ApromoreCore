@@ -22,6 +22,10 @@
         <developerConnection>scm:svn:https://apromore.googlecode.com/svn/trunk/Apromore-Portal</developerConnection>
     </scm>
 
+    <properties>
+        <junit.jupiter.version>5.7.0</junit.jupiter.version>
+    </properties>
+
     <build>
         <finalName>portal</finalName>
         <plugins>
@@ -63,10 +67,12 @@
                         <Embed-Directory>WEB-INF/lib</Embed-Directory>
                         <Bundle-ClassPath>.,{maven-dependencies},WEB-INF/classes</Bundle-ClassPath>
                         <Import-Package>
-                            org.eclipse.virgo.web.dm,
+                            javax.xml.soap,
+                            org.eclipse.virgo.web.dm;resolution:=optional,
                             org.aopalliance.aop,                            
                             org.apromore.security.filter,
                             org.apromore.security.provider,
+                            org.apromore.service,
                             com.google.common.base,
                             org.deckfour.xes.classification,
                             org.deckfour.xes.extension,
@@ -87,6 +93,10 @@
                             org.deckfour.xes.xstream,
                             org.springframework.aop,
                             org.springframework.aop.framework,
+                            org.springframework.context.config,
+                            org.springframework.osgi.compendium.config;resolution:=optional,
+                            org.springframework.osgi.config;resolution:=optional,
+                            org.springframework.osgi.web.context.support;resolution:=optional,
                             org.springframework.remoting.httpinvoker,
                             org.springframework.security.authentication,
                             org.springframework.security.config,
@@ -96,6 +106,8 @@
                             org.springframework.security.web.session,
                             org.springframework.web.context.request,
                             org.springframework.web.filter,
+                            org.springframework.ws.soap.saaj,
+                            org.springframework.ws.transport.http,
                             org.zkoss.zel.impl,
                             org.zkoss.zk.au.http,
                             *;resolution:=optional
@@ -103,6 +115,7 @@
                         <Export-Package>
                             org.apromore.portal,
                             org.apromore.portal.common,
+                            org.apromore.portal.common.zk,
                             org.apromore.portal.common.notification,
                             org.apromore.portal.context,
                             org.apromore.portal.dialogController.workspaceOptions,
@@ -384,6 +397,30 @@
         </dependency>
 
         <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.4.2</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -93,6 +93,7 @@
     <servlet-class>org.apromore.portal.servlet.DataChannelServlet</servlet-class>
   </servlet>  
   
+<!--  
   <servlet>
     <servlet-name>ws</servlet-name>
     <servlet-class>org.springframework.ws.transport.http.MessageDispatcherServlet</servlet-class>
@@ -102,7 +103,7 @@
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
-  
+-->
   <servlet>
     <servlet-name>newUserRegistration</servlet-name>
     <servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>
@@ -141,8 +142,8 @@
   <servlet-mapping>
     <servlet-name>resource</servlet-name>
     <url-pattern>/</url-pattern>  <!-- override the "default" servlet -->
-  </servlet-mapping> 
-  
+  </servlet-mapping>
+<!--
   <servlet-mapping>
     <servlet-name>ws</servlet-name>
     <url-pattern>/services/*</url-pattern>
@@ -157,7 +158,7 @@
     <servlet-name>ws</servlet-name>
     <url-pattern>*.xsd</url-pattern>
   </servlet-mapping>
-  
+-->
   <servlet-mapping>
     <servlet-name>newUserRegistration</servlet-name>
     <url-pattern>/register/newUserRegister/*</url-pattern>
