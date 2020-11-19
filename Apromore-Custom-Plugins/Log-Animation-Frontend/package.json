@@ -1,0 +1,35 @@
+{
+  "name": "loganimation",
+  "version": "2.0.0",
+  "description": "Log Animation",
+  "main": "dist/log.animation.bundle.js",
+  "module": "src/loganimation/index.js",
+  "scripts": {
+    "dev": "webpack",
+    "test": "karma start karma.conf.js",
+    "build": "webpack",
+    "start": "webpack-dev-server --mode development --open"
+  },
+  "author": "brucenguyen",
+  "license": "ApromoreEE",
+  "dependencies": {
+    "@metahub/karma-jasmine-jquery": "^4.0.1",
+    "jquery": "^1.11.0",
+    "svgjs": "^2.6.2",
+    "webpack": "^5.5.0"
+  },
+  "devDependencies": {
+    "css-loader": "^5.0.1",
+    "html-webpack-plugin": "^4.5.0",
+    "jasmine-core": "^3.6.0",
+    "karma": "^5.2.3",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-jasmine": "^4.0.1",
+    "karma-jasmine-html-reporter": "^1.5.4",
+    "karma-spec-reporter": "0.0.32",
+    "style-loader": "^2.0.0",
+    "terser-webpack-plugin": "^5.0.3",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.7.1"
+  }
+}
