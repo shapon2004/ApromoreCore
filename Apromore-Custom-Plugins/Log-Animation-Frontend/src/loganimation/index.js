@@ -56,7 +56,6 @@ export class LogAnimation {
     this.animationData = data;
     this.editor = this.initEditor(xml, url, namespace);
     this.controller = new AnimationController(this.editor.getCanvas(), pluginExecutionId);
-    this.initSpeedControl();
   }
 
   /*

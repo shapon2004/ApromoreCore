@@ -7,8 +7,7 @@ module.exports = function(config) {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    plugins: ['@metahub/karma-jasmine-jquery', 'karma-*'],
     frameworks: ['jasmine-jquery'],
 
 
@@ -27,11 +26,11 @@ module.exports = function(config) {
         'test/loganimation/*.spec.js',
         //'test/example/*.spec.js'
         {
-            pattern: '*.html',
+            pattern: 'test/loganimation/fixtures/*.html',
             watched: true,
-            included: false,
-            served: true
-        },
+            served: true,
+            included: false
+        }
     ],
 
 
@@ -45,13 +44,16 @@ module.exports = function(config) {
     preprocessors: {
     },
 
+      /*
     plugins: [
-        require('@metahub/karma-jasmine-jquery'),
-        require('karma-jasmine'),
-        require('karma-chrome-launcher'),
-        require('karma-spec-reporter'),
-        require('karma-jasmine-html-reporter')
+        'karma-jasmine-jquery-2',
+        'karma-jasmine',
+        'karma-chrome-launcher',
+        'karma-spec-reporter',
+        'karma-jasmine-html-reporter'
     ],
+    */
+
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

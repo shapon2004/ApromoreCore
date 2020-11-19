@@ -19017,6 +19017,7 @@ class AnimationController {
     });
 
     // Create visual controls
+    this.createSpeedControl();
     this.createProgressIndicators();
     this.createLogInfoPopups();
     this.createTimeline();
@@ -19036,6 +19037,36 @@ class AnimationController {
 
     this.updateClockOnce(this.startMs);
     this.pause();
+  }
+
+  createSpeedControl() {
+    const SPEED_CONTROL = "#speed-control";
+    let speedControl = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(SPEED_CONTROL)
+
+    speedControl.slider({
+      orientation: "horizontal",
+      step: 1,
+      min: 1,
+      max: 11,
+      value: 5
+    });
+
+    let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
+    //let STEP_VALUES = [10, 15, 20, 24, 40, 60, 80, 120];
+    speedControl.slider("float", {
+      handle: true,
+      pips: true,
+      labels: true,
+      prefix: "",
+      suffix: ""
+    });
+
+    let lastSliderValue = speedControl.slider("value");
+    speedControl.on("slidechange", function(event, ui) {
+      let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
+      this.changeSpeed(STEP_VALUES[ui.value - 1]);
+      lastSliderValue = ui.value;
+    });
   }
 
   // Add log intervals to timeline
@@ -19145,6 +19176,294 @@ class AnimationController {
             logInfo.hide();
           },
       );
+    }
+  }
+
+  /*
+   * Create progress indicator for one log
+   * log: the log object (name, color, traceCount, progress, tokenAnimations)
+   * x,y: the coordinates to draw the progress bar
+   */
+  createProgressIndicatorsForLog(logNo, log, timeline, x, y, speedRatio) {
+    speedRatio = speedRatio || 1;
+    let {values, keyTimes, begin, dur} = log.progress;
+    let color = this.getLogColor(logNo, log.color);
+    let progress = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
+      id: 'ap-la-progress-' + logNo,
+    }).node;
+
+    let path = 'M ' + x + ',' + y + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
+    let pie = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
+      fill: color,
+      'fill-opacity': 0.5,
+      stroke: color,
+      'stroke-width': '5',
+      'stroke-dasharray': '0 126 126 0',
+      'stroke-dashoffset': '1',
+    }).node;
+
+    let pieAnim = document.createElementNS(SVG_NS, 'animate');
+    pieAnim.setAttributeNS(null, 'class', 'progress-animation');
+    pieAnim.setAttributeNS(null, 'attributeName', 'stroke-dashoffset');
+    pieAnim.setAttributeNS(null, 'values', values);
+    pieAnim.setAttributeNS(null, 'keyTimes', keyTimes);
+    pieAnim.setAttributeNS(null, 'begin', begin / speedRatio + 's');
+    pieAnim.setAttributeNS(null, 'dur', dur / speedRatio + 's');
+    pieAnim.setAttributeNS(null, 'fill', 'freeze');
+    pieAnim.setAttributeNS(null, 'repeatCount', '1');
+    pie.appendChild(pieAnim);
+    progress.appendChild(pie);
+    return progress;
+  }
+
+  createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl) {
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Line().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(timelineEl);
+    y -= textToTickGap;
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
+    y -= this.textFont.size * 1.5; // lineHeight
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
+  }
+
+  createTicks() {
+    // Add text and line for the bar
+    let {
+      slotNum, logNum, slotEngineS, slotWidth, slotDataMs, timelineEl, timelineOffset,
+      logIntervalHeight, logIntervalMargin,
+    } = this;
+    let tickSize = logIntervalHeight * (logNum - 1) + 2 * logIntervalMargin;
+    let textToTickGap = 5;
+    let x = timelineOffset.x;
+    let y = timelineOffset.y;
+    let time = this.startMs;
+    let color;
+    let date, dateTxt, timeTxt;
+    let skip;
+
+    for (let i = 0; i <= slotNum; i++) {
+      if (i % 10 == 0) {
+        date = moment(time);
+        dateTxt = date.format('D MMM YY');
+        timeTxt = date.format('H:mm:ss');
+        color = 'grey';
+        skip = false;
+      } else {
+        dateTxt = '';
+        timeTxt = '';
+        color = '#e0e0e0';
+        skip = true;
+      }
+      if (!skip) {
+        this.createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl);
+      }
+      x += slotWidth;
+      time += slotDataMs;
+    }
+  }
+
+  createTimelineDistribution() {
+    // Create a virtual horizontal line
+    let {slotNum, slotWidth, logIntervalMargin, timelineOffset, timelineEl} = this;
+    let startX = timelineOffset.x;
+    let endX = startX + slotNum*slotWidth;
+    let timelinePathY = timelineOffset.y + logIntervalMargin;
+    let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
+    let timelinePathE = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
+    timelineEl.appendChild(timelinePathE);
+    let totalLength = timelinePathE.getTotalLength();
+
+    // Set up canvas
+    let timelineBox = this.svgTimeline.getBoundingClientRect();
+    let ctx = document.querySelector("#timelineCanvas").getContext('2d');
+    ctx.canvas.width = timelineBox.width;
+    ctx.canvas.height = timelineBox.height;
+    ctx.canvas.x = timelineBox.x;
+    ctx.canvas.y = timelineBox.y;
+    ctx.strokeStyle = '#D3D3D3';
+    ctx.lineWidth = 2;
+    let matrix = timelinePathE.getCTM();
+    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+
+    // Draw distribution
+    if (this.caseCountsByFrames) {
+      const Y_MAX = ctx.canvas.height;
+      const MAX_HEIGHT = ctx.canvas.height/4;
+      let maxCount = 0;
+      for (let count of Object.values(this.caseCountsByFrames)) {
+        if (typeof(count) != 'function' && maxCount < count) {
+          maxCount = count;
+        }
+      }
+      let totalFrames = this.caseCountsByFrames.length;
+      for (let i=0;i<totalFrames;i++) {
+        let distance = i/totalFrames;
+        let point = timelinePathE.getPointAtLength(totalLength * distance);
+        let height = (this.caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
+        let y2 = ctx.canvas.height - height;
+        ctx.beginPath();
+        ctx.moveTo(point.x, timelinePathY);
+        ctx.lineTo(point.x, timelinePathY - height);
+        ctx.stroke();
+      }
+    }
+  }
+
+  createCursor() {
+    let {
+      logNum,
+      totalEngineS,
+      svgTimeline,
+      slotNum,
+      slotWidth,
+      slotEngineS,
+      timelineWidth,
+      timelineEl,
+      timelineOffset,
+    } = this;
+    let x = timelineOffset.x;
+    let y = timelineOffset.y + 5;
+    let cursorEl;
+    let me = this;
+
+    let path = 'M0 0 L8 8 L8 25 L-8 25 L-8 8 Z';
+    cursorEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
+      fill: '#FAF0E6',
+      stroke: 'grey',
+      style: 'cursor: move',
+      transform: `translate(${x},${y})`,
+    }).node;
+
+    let cursorAnim = document.createElementNS(SVG_NS, 'animateTransform');
+    cursorAnim.setAttributeNS(null, 'attributeName', 'transform');
+    cursorAnim.setAttributeNS(null, 'type', 'translate');
+    cursorAnim.setAttributeNS(null, 'id', 'cursor-animation');
+    cursorAnim.setAttributeNS(null, 'begin', '0s');
+    //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
+    cursorAnim.setAttributeNS(null, 'dur', slotNum*slotEngineS + 's');
+    cursorAnim.setAttributeNS(null, 'by', 1);
+    cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
+    cursorAnim.setAttributeNS(null, 'to', x + slotNum * slotWidth + ',' + y);
+    cursorAnim.setAttributeNS(null, 'fill', 'freeze');
+
+    cursorEl.appendChild(cursorAnim);
+    timelineEl.appendChild(cursorEl);
+
+    this.cursorEl = cursorEl;
+    this.cursorAnim = cursorAnim;
+
+    // Control dragging of the timeline cursor
+    let dragging = false;
+    let isPlayingBeforeDrag = false;
+
+    cursorEl.addEventListener('mousedown', startDragging.bind(this));
+    svgTimeline.addEventListener('mouseup', stopDragging.bind(this));
+    svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
+
+    function startDragging(evt) {
+      isPlayingBeforeDrag = me.isPlaying();
+      evt.preventDefault();
+      dragging = true;
+      me.pause();
+    }
+
+    function stopDragging(evt) {
+      if (!dragging) return; // Avoid doing the below two times
+      if (evt.type == 'mouseleave' && dragging) {
+        return;
+      }
+      dragging = false;
+      let logicalTime = getLogicalTimeFromMouseX(evt);
+      me.goto(logicalTime);
+      if (isPlayingBeforeDrag) {
+        me.unPause();
+      }
+    }
+
+    function getLogicalTimeFromMouseX(evt) {
+      let x = getSVGMousePosition(evt).x;
+      let dx = x - me.timelineOffset.x;
+      return (dx / me.timelineWidth) * me.oriTotalEngineS;
+    }
+
+    // Convert from screen coordinates to SVG document coordinates
+    function getSVGMousePosition(evt) {
+      let svg = me.svgTimeline;
+      let matrix = svg.getScreenCTM().inverse();
+      let point = svg.createSVGPoint();
+      point.x = evt.clientX;
+      point.y = evt.clientY;
+      return point.matrixTransform(matrix);
+    }
+
+  }
+  /*
+   * <g id="timeline">
+   *   <-- timeline bar -->
+   *   <line>
+   *     <text>
+   *     ...
+   *   <line>
+
+   *   <text>
+   *     <!-- timeline cursor -->
+   *     <rect>
+   *       <animationMotion>
+   *
+   * Use: this.slotNum, this.slotEngineMs
+   */
+  createTimeline() {
+    // Create the main timeline container group
+    let timelineEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
+      id: 'timeline',
+      style: '-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none',
+    }).node;
+    this.timelineEl = timelineEl;
+    this.svgTimeline.append(timelineEl);
+    return timelineEl;
+  }
+
+  createMetricTables() {
+    let logs = this.logs;
+    // Show metrics for every log
+    let metricsTable = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#metrics_table')[0];
+    for (let i = 0; i < logs.length; i++) {
+      let row = metricsTable.insertRow(i + 1);
+      let cellLogNo = row.insertCell(0);
+      let cellLogName = row.insertCell(1);
+      let cellTotalCount = row.insertCell(2);
+      let cellPlayCount = row.insertCell(3);
+      let cellReliableCount = row.insertCell(4);
+      let cellExactFitness = row.insertCell(5);
+
+      cellLogNo.innerHTML = i + 1;
+      cellLogNo.style.backgroundColor = logs[i].color;
+      cellLogNo.style.textAlign = 'center';
+
+      if (logs[i].filename.length > 50) {
+        cellLogName.innerHTML = logs[i].filename.substr(0, 50) + '...';
+      } else {
+        cellLogName.innerHTML = logs[i].filename;
+      }
+      cellLogName.title = logs[i].filename;
+      cellLogName.style.font = '1em monospace';
+      //cellLogName.style.backgroundColor = logs[i].color;
+
+      cellTotalCount.innerHTML = logs[i].total;
+      cellTotalCount.style.textAlign = 'center';
+      cellTotalCount.style.font = '1em monospace';
+
+      cellPlayCount.innerHTML = logs[i].play;
+      cellPlayCount.title = logs[i].unplayTraces;
+      cellPlayCount.style.textAlign = 'center';
+      cellPlayCount.style.font = '1em monospace';
+
+      cellReliableCount.innerHTML = logs[i].reliable;
+      cellReliableCount.title = logs[i].unreliableTraces;
+      cellReliableCount.style.textAlign = 'center';
+      cellReliableCount.style.font = '1em monospace';
+
+      cellExactFitness.innerHTML = logs[i].exactTraceFitness;
+      cellExactFitness.style.textAlign = 'center';
+      cellExactFitness.style.font = '1em monospace';
     }
   }
 
@@ -19581,294 +19900,6 @@ class AnimationController {
 
   getLogColor(logNo, logColor) {
     return this.apPalette[logNo - 1][0] || logColor;
-  }
-
-  /*
-   * Create progress indicator for one log
-   * log: the log object (name, color, traceCount, progress, tokenAnimations)
-   * x,y: the coordinates to draw the progress bar
-   */
-  createProgressIndicatorsForLog(logNo, log, timeline, x, y, speedRatio) {
-    speedRatio = speedRatio || 1;
-    let {values, keyTimes, begin, dur} = log.progress;
-    let color = this.getLogColor(logNo, log.color);
-    let progress = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
-      id: 'ap-la-progress-' + logNo,
-    }).node;
-
-    let path = 'M ' + x + ',' + y + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
-    let pie = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
-      fill: color,
-      'fill-opacity': 0.5,
-      stroke: color,
-      'stroke-width': '5',
-      'stroke-dasharray': '0 126 126 0',
-      'stroke-dashoffset': '1',
-    }).node;
-
-    let pieAnim = document.createElementNS(SVG_NS, 'animate');
-    pieAnim.setAttributeNS(null, 'class', 'progress-animation');
-    pieAnim.setAttributeNS(null, 'attributeName', 'stroke-dashoffset');
-    pieAnim.setAttributeNS(null, 'values', values);
-    pieAnim.setAttributeNS(null, 'keyTimes', keyTimes);
-    pieAnim.setAttributeNS(null, 'begin', begin / speedRatio + 's');
-    pieAnim.setAttributeNS(null, 'dur', dur / speedRatio + 's');
-    pieAnim.setAttributeNS(null, 'fill', 'freeze');
-    pieAnim.setAttributeNS(null, 'repeatCount', '1');
-    pie.appendChild(pieAnim);
-    progress.appendChild(pie);
-    return progress;
-  }
-
-  createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl) {
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Line().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(timelineEl);
-    y -= textToTickGap;
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
-    y -= this.textFont.size * 1.5; // lineHeight
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
-  }
-
-  createTicks() {
-    // Add text and line for the bar
-    let {
-      slotNum, logNum, slotEngineS, slotWidth, slotDataMs, timelineEl, timelineOffset,
-      logIntervalHeight, logIntervalMargin,
-    } = this;
-    let tickSize = logIntervalHeight * (logNum - 1) + 2 * logIntervalMargin;
-    let textToTickGap = 5;
-    let x = timelineOffset.x;
-    let y = timelineOffset.y;
-    let time = this.startMs;
-    let color;
-    let date, dateTxt, timeTxt;
-    let skip;
-
-    for (let i = 0; i <= slotNum; i++) {
-      if (i % 10 == 0) {
-        date = moment(time);
-        dateTxt = date.format('D MMM YY');
-        timeTxt = date.format('H:mm:ss');
-        color = 'grey';
-        skip = false;
-      } else {
-        dateTxt = '';
-        timeTxt = '';
-        color = '#e0e0e0';
-        skip = true;
-      }
-      if (!skip) {
-        this.createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl);
-      }
-      x += slotWidth;
-      time += slotDataMs;
-    }
-  }
-
-  createTimelineDistribution() {
-    // Create a virtual horizontal line
-    let {slotNum, slotWidth, logIntervalMargin, timelineOffset, timelineEl} = this;
-    let startX = timelineOffset.x;
-    let endX = startX + slotNum*slotWidth;
-    let timelinePathY = timelineOffset.y + logIntervalMargin;
-    let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
-    let timelinePathE = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
-    timelineEl.appendChild(timelinePathE);
-    let totalLength = timelinePathE.getTotalLength();
-
-    // Set up canvas
-    let timelineBox = this.svgTimeline.getBoundingClientRect();
-    let ctx = document.querySelector("#timelineCanvas").getContext('2d');
-    ctx.canvas.width = timelineBox.width;
-    ctx.canvas.height = timelineBox.height;
-    ctx.canvas.x = timelineBox.x;
-    ctx.canvas.y = timelineBox.y;
-    ctx.strokeStyle = '#D3D3D3';
-    ctx.lineWidth = 2;
-    let matrix = timelinePathE.getCTM();
-    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-
-    // Draw distribution
-    if (this.caseCountsByFrames) {
-      const Y_MAX = ctx.canvas.height;
-      const MAX_HEIGHT = ctx.canvas.height/4;
-      let maxCount = 0;
-      for (let count of Object.values(this.caseCountsByFrames)) {
-        if (typeof(count) != 'function' && maxCount < count) {
-          maxCount = count;
-        }
-      }
-      let totalFrames = this.caseCountsByFrames.length;
-      for (let i=0;i<totalFrames;i++) {
-        let distance = i/totalFrames;
-        let point = timelinePathE.getPointAtLength(totalLength * distance);
-        let height = (this.caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
-        let y2 = ctx.canvas.height - height;
-        ctx.beginPath();
-        ctx.moveTo(point.x, timelinePathY);
-        ctx.lineTo(point.x, timelinePathY - height);
-        ctx.stroke();
-      }
-    }
-  }
-
-  createCursor() {
-    let {
-      logNum,
-      totalEngineS,
-      svgTimeline,
-      slotNum,
-      slotWidth,
-      slotEngineS,
-      timelineWidth,
-      timelineEl,
-      timelineOffset,
-    } = this;
-    let x = timelineOffset.x;
-    let y = timelineOffset.y + 5;
-    let cursorEl;
-    let me = this;
-
-    let path = 'M0 0 L8 8 L8 25 L-8 25 L-8 8 Z';
-    cursorEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
-      fill: '#FAF0E6',
-      stroke: 'grey',
-      style: 'cursor: move',
-      transform: `translate(${x},${y})`,
-    }).node;
-
-    let cursorAnim = document.createElementNS(SVG_NS, 'animateTransform');
-    cursorAnim.setAttributeNS(null, 'attributeName', 'transform');
-    cursorAnim.setAttributeNS(null, 'type', 'translate');
-    cursorAnim.setAttributeNS(null, 'id', 'cursor-animation');
-    cursorAnim.setAttributeNS(null, 'begin', '0s');
-    //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
-    cursorAnim.setAttributeNS(null, 'dur', slotNum*slotEngineS + 's');
-    cursorAnim.setAttributeNS(null, 'by', 1);
-    cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
-    cursorAnim.setAttributeNS(null, 'to', x + slotNum * slotWidth + ',' + y);
-    cursorAnim.setAttributeNS(null, 'fill', 'freeze');
-
-    cursorEl.appendChild(cursorAnim);
-    timelineEl.appendChild(cursorEl);
-
-    this.cursorEl = cursorEl;
-    this.cursorAnim = cursorAnim;
-
-    // Control dragging of the timeline cursor
-    let dragging = false;
-    let isPlayingBeforeDrag = false;
-
-    cursorEl.addEventListener('mousedown', startDragging.bind(this));
-    svgTimeline.addEventListener('mouseup', stopDragging.bind(this));
-    svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
-
-    function startDragging(evt) {
-      isPlayingBeforeDrag = me.isPlaying();
-      evt.preventDefault();
-      dragging = true;
-      me.pause();
-    }
-
-    function stopDragging(evt) {
-      if (!dragging) return; // Avoid doing the below two times
-      if (evt.type == 'mouseleave' && dragging) {
-        return;
-      }
-      dragging = false;
-      let logicalTime = getLogicalTimeFromMouseX(evt);
-      me.goto(logicalTime);
-      if (isPlayingBeforeDrag) {
-        me.unPause();
-      }
-    }
-
-    function getLogicalTimeFromMouseX(evt) {
-      let x = getSVGMousePosition(evt).x;
-      let dx = x - me.timelineOffset.x;
-      return (dx / me.timelineWidth) * me.oriTotalEngineS;
-    }
-
-    // Convert from screen coordinates to SVG document coordinates
-    function getSVGMousePosition(evt) {
-      let svg = me.svgTimeline;
-      let matrix = svg.getScreenCTM().inverse();
-      let point = svg.createSVGPoint();
-      point.x = evt.clientX;
-      point.y = evt.clientY;
-      return point.matrixTransform(matrix);
-    }
-
-  }
-  /*
-   * <g id="timeline">
-   *   <-- timeline bar -->
-   *   <line>
-   *     <text>
-   *     ...
-   *   <line>
-
-   *   <text>
-   *     <!-- timeline cursor -->
-   *     <rect>
-   *       <animationMotion>
-   *
-   * Use: this.slotNum, this.slotEngineMs
-   */
-  createTimeline() {
-    // Create the main timeline container group
-    let timelineEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
-      id: 'timeline',
-      style: '-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none',
-    }).node;
-    this.timelineEl = timelineEl;
-    this.svgTimeline.append(timelineEl);
-    return timelineEl;
-  }
-
-  createMetricTables() {
-    let logs = this.logs;
-    // Show metrics for every log
-    let metricsTable = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#metrics_table')[0];
-    for (let i = 0; i < logs.length; i++) {
-      let row = metricsTable.insertRow(i + 1);
-      let cellLogNo = row.insertCell(0);
-      let cellLogName = row.insertCell(1);
-      let cellTotalCount = row.insertCell(2);
-      let cellPlayCount = row.insertCell(3);
-      let cellReliableCount = row.insertCell(4);
-      let cellExactFitness = row.insertCell(5);
-
-      cellLogNo.innerHTML = i + 1;
-      cellLogNo.style.backgroundColor = logs[i].color;
-      cellLogNo.style.textAlign = 'center';
-
-      if (logs[i].filename.length > 50) {
-        cellLogName.innerHTML = logs[i].filename.substr(0, 50) + '...';
-      } else {
-        cellLogName.innerHTML = logs[i].filename;
-      }
-      cellLogName.title = logs[i].filename;
-      cellLogName.style.font = '1em monospace';
-      //cellLogName.style.backgroundColor = logs[i].color;
-
-      cellTotalCount.innerHTML = logs[i].total;
-      cellTotalCount.style.textAlign = 'center';
-      cellTotalCount.style.font = '1em monospace';
-
-      cellPlayCount.innerHTML = logs[i].play;
-      cellPlayCount.title = logs[i].unplayTraces;
-      cellPlayCount.style.textAlign = 'center';
-      cellPlayCount.style.font = '1em monospace';
-
-      cellReliableCount.innerHTML = logs[i].reliable;
-      cellReliableCount.title = logs[i].unreliableTraces;
-      cellReliableCount.style.textAlign = 'center';
-      cellReliableCount.style.font = '1em monospace';
-
-      cellExactFitness.innerHTML = logs[i].exactTraceFitness;
-      cellExactFitness.style.textAlign = 'center';
-      cellExactFitness.style.font = '1em monospace';
-    }
   }
 
   /**
@@ -20418,11 +20449,9 @@ ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
 
 class LogAnimation {
   constructor(xml, url, namespace, data, pluginExecutionId) {
-    this.SPEED_CONTROL = "#speed-control";
     this.animationData = data;
     this.editor = this.initEditor(xml, url, namespace);
     this.controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__.default(this.editor.getCanvas(), pluginExecutionId);
-    this.initSpeedControl();
   }
 
   /*
@@ -20471,35 +20500,6 @@ class LogAnimation {
 
   getController() {
     return this.controller;
-  }
-
-  initSpeedControl() {
-    let speedControl = (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)(this.SPEED_CONTROL)
-
-    speedControl.slider({
-      orientation: "horizontal",
-      step: 1,
-      min: 1,
-      max: 11,
-      value: 5
-    });
-
-    let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
-    //let STEP_VALUES = [10, 15, 20, 24, 40, 60, 80, 120];
-    speedControl.slider("float", {
-      handle: true,
-      pips: true,
-      labels: true,
-      prefix: "",
-      suffix: ""
-    });
-
-    let lastSliderValue = speedControl.slider("value");
-    speedControl.on("slidechange", function(event, ui) {
-      let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
-      this.controller.changeSpeed(STEP_VALUES[ui.value - 1]);
-      lastSliderValue = ui.value;
-    });
   }
 
   playPause(e) {
