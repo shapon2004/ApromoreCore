@@ -3,7 +3,7 @@ const path = require('path');
 
 //const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 //const TerserPlugin = require("terser-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
+//const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
     entry: './src/loganimation/index.js',
@@ -18,12 +18,22 @@ module.exports = {
     devtool: false,
     module: {
         rules: [
-            { test: /\.css$/, use: ["style-loader", "css-loader"] }
+            {test: /\.css|\.bpmn$/, use: 'raw-loader'}
         ]
     },
+    resolve: {
+        mainFields: [
+            'dev:module',
+            'browser',
+            'module',
+            'main'
+        ]
+    }
+    /*
     plugins: [
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "src", "index.html")
         })
-    ]
+    ],
+     */
 };

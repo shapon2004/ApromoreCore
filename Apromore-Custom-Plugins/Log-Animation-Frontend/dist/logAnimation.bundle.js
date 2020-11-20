@@ -7,20 +7,101 @@
 		exports["logAnimation"] = factory();
 	else
 		root["logAnimation"] = factory();
-})(self, function() {
-return /******/ (() => { // webpackBootstrap
-/******/ 	var __webpack_modules__ = ({
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/loganimation/index.js");
+/******/ })
+/************************************************************************/
+/******/ ({
 
 /***/ "./node_modules/jquery/dist/jquery.js":
 /*!********************************************!*\
   !*** ./node_modules/jquery/dist/jquery.js ***!
   \********************************************/
-/*! unknown exports (runtime-defined) */
-/*! runtime requirements: module, top-level-this-exports, __webpack_exports__ */
-/*! CommonJS bailout: this is used directly at 38:43-47 */
-/*! CommonJS bailout: module.exports is used directly at 17:43-57 */
-/*! CommonJS bailout: module.exports is used directly at 25:2-16 */
-/***/ (function(module, exports) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * jQuery JavaScript Library v1.11.0
@@ -10322,7 +10403,7 @@ if ( true ) {
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
 	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
 
@@ -10368,9 +10449,7 @@ return jQuery;
 /*!****************************************!*\
   !*** ./node_modules/svgjs/dist/svg.js ***!
   \****************************************/
-/*! unknown exports (runtime-defined) */
-/*! runtime requirements: top-level-this-exports, __webpack_require__, __webpack_exports__, module */
-/*! CommonJS bailout: this is used directly at 22:43-47 */
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10389,7 +10468,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/*!
     !(__WEBPACK_AMD_DEFINE_RESULT__ = (function(){
       return factory(root, root.document)
     }).call(exports, __webpack_require__, exports, module),
-		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
   } else {}
 }(typeof window !== "undefined" ? window : this, function(window, document) {
 
@@ -15926,17 +16005,12 @@ return SVG
 /*!******************************************!*\
   !*** ./src/bpmneditor/apromoreEditor.js ***!
   \******************************************/
-/*! namespace exports */
-/*! export ORYX [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: ORYX */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "ORYX": () => /* binding */ ORYX
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ORYX", function() { return ORYX; });
 /* Previously copied from the top-level site.properties file at compile time (which is bad idea since site.properties can change at runtime); now a constant */
 if(!ORYX) var ORYX = {};
 if(!ORYX.CONFIG) ORYX.CONFIG = {};
@@ -18676,23 +18750,15 @@ ORYX.Plugins.View = Clazz.extend({
 /*!***************************************!*\
   !*** ./src/loganimation/animation.js ***!
   \***************************************/
-/*! namespace exports */
-/*! export AnimationContext [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export AnimationEvent [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export AnimationEventType [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export AnimationState [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: AnimationContext, AnimationState, AnimationEventType, AnimationEvent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "AnimationContext": () => /* binding */ AnimationContext,
-/* harmony export */   "AnimationState": () => /* binding */ AnimationState,
-/* harmony export */   "AnimationEventType": () => /* binding */ AnimationEventType,
-/* harmony export */   "AnimationEvent": () => /* binding */ AnimationEvent
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationContext", function() { return AnimationContext; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationState", function() { return AnimationState; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEventType", function() { return AnimationEventType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEvent", function() { return AnimationEvent; });
 
 
 class AnimationContext {
@@ -18793,17 +18859,12 @@ class AnimationEvent {
 /*!*************************************************!*\
   !*** ./src/loganimation/animationController.js ***!
   \*************************************************/
-/*! namespace exports */
-/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ AnimationController
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AnimationController; });
 /* harmony import */ var svgjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! svgjs */ "./node_modules/svgjs/dist/svg.js");
 /* harmony import */ var svgjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(svgjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
@@ -18930,7 +18991,7 @@ class AnimationController {
     // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
     this.svgViewport = this.canvas.getSVGViewport();
-    this.svgTimeline = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('div.ap-la-timeline > div > svg')[0];
+    this.svgTimeline = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('div.ap-la-timeline > div > svg')[0];
     this.timelineEl = null;
 
     this.svgProgresses = [];
@@ -18967,25 +19028,25 @@ class AnimationController {
     for (let log of this.logs) {
       for (let elementIndex in this.elementIndexIDMap) {
         let elementId = this.elementIndexIDMap[elementIndex];
-        let pathElement = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+        let pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
         if (!pathElement) { // create cross and skip paths as they are not present
           this.createNodePathElements(elementId);
-          pathElement = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+          pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
         }
         this.elementCache[elementIndex] = pathElement;
       }
 
       for (let elementIndex in this.skipElementIndexIDMap) {
         let elementId = this.skipElementIndexIDMap[elementIndex];
-        let pathElement = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+        let pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
         this.elementCache[elementIndex] = pathElement;
       }
     }
 
     // Create token animation
     let canvasContext = document.querySelector("#canvas").getContext('2d');
-    this.animationContext = new _animation__WEBPACK_IMPORTED_MODULE_2__.AnimationContext(this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
-    this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_3__.TokenAnimation(this.animationContext, canvasContext, this.elementCache, this.apPalette);
+    this.animationContext = new _animation__WEBPACK_IMPORTED_MODULE_2__["AnimationContext"](this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
+    this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_3__["TokenAnimation"](this.animationContext, canvasContext, this.elementCache, this.apPalette);
 
     // Start token animation
     let modelBox = this.svgMain.getBoundingClientRect();
@@ -19041,7 +19102,7 @@ class AnimationController {
 
   createSpeedControl() {
     const SPEED_CONTROL = "#speed-control";
-    let speedControl = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(SPEED_CONTROL)
+    let speedControl = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(SPEED_CONTROL)
 
     speedControl.slider({
       orientation: "horizontal",
@@ -19083,14 +19144,14 @@ class AnimationController {
       let x2 = ox + slotWidth * log.endDatePos;
       let style = 'stroke: ' + this.getLogColor(i+1, log.color) + '; stroke-width: ' + logIntervalSize;
       let opacity = 0.8;
-      new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(timelineEl);
+      new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(timelineEl);
 
       // Display date label at the two ends
       if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 != 0) {
         let txt = log.startDateLabel.substr(0, 19);
         let x = ox + slotWidth * log.startDatePos - 50;
         y += 5;
-        new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(txt).font(this.textFont).attr({x, y}).addTo(timelineEl);
+        new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Text().plain(txt).font(this.textFont).attr({x, y}).addTo(timelineEl);
       }
       y += logIntervalHeight;
     }
@@ -19100,16 +19161,16 @@ class AnimationController {
     let {logs, logNum} = this;
     let log, progressContainer, svgProgressEl, label;
     let svgProgress, svgProgresses = [];
-    let progressWrapper = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#ap-la-progress');
+    let progressWrapper = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#ap-la-progress');
 
     progressWrapper.empty();
     for (let i = 0; i < logNum; i++) {
       log = logs[i];
-      svgProgress = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(`<svg id="progressbar-${i}  xmlns="${SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
+      svgProgress = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<svg id="progressbar-${i}  xmlns="${SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
       progressWrapper.append(
-          (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(`<div id="progress-c-${i}"></div>`).append(
+          Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<div id="progress-c-${i}"></div>`).append(
               svgProgress.append(this.createProgressIndicatorsForLog(i + 1, log, this.timeline, 0, 0, speedRatio)),
-          ).append((0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(`<div class="label">${log.filename}</div>`)),
+          ).append(Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<div class="label">${log.filename}</div>`)),
       );
       svgProgress = svgProgress[0];
       svgProgresses.push(svgProgress);
@@ -19121,7 +19182,7 @@ class AnimationController {
 
   createLogInfoPopups() {
     let {logs, logNum} = this;
-    let logInfo = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#ap-la-info-tip');
+    let logInfo = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#ap-la-info-tip');
     let props = [
       {
         id: 'info-no',
@@ -19153,18 +19214,18 @@ class AnimationController {
 
     function getProps(log) {
       props.forEach(function(prop) {
-        (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
+        Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
       });
     }
 
     for (let i = 0; i < logNum; i++) {
       let pId = '#ap-la-progress-' + (i + 1);
-      (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(pId).hover(
+      Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(pId).hover(
           (function(idx) {
             let log = logs[idx - 1];
             return function() {
               getProps(log);
-              let {top, left} = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(pId).offset();
+              let {top, left} = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(pId).offset();
               let bottom = `calc(100vh - ${top - 10}px)`;
               left += 20;
               logInfo.attr('data-log-idx', idx);
@@ -19188,12 +19249,12 @@ class AnimationController {
     speedRatio = speedRatio || 1;
     let {values, keyTimes, begin, dur} = log.progress;
     let color = this.getLogColor(logNo, log.color);
-    let progress = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
+    let progress = new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].G().attr({
       id: 'ap-la-progress-' + logNo,
     }).node;
 
     let path = 'M ' + x + ',' + y + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
-    let pie = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
+    let pie = new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Path().plot(path).attr({
       fill: color,
       'fill-opacity': 0.5,
       stroke: color,
@@ -19217,11 +19278,11 @@ class AnimationController {
   }
 
   createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl) {
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Line().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(timelineEl);
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Line().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(timelineEl);
     y -= textToTickGap;
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Text().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
     y -= this.textFont.size * 1.5; // lineHeight
-    new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Text().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
+    new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Text().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
   }
 
   createTicks() {
@@ -19267,7 +19328,7 @@ class AnimationController {
     let endX = startX + slotNum*slotWidth;
     let timelinePathY = timelineOffset.y + logIntervalMargin;
     let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
-    let timelinePathE = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
+    let timelinePathE = new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Path().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
     timelineEl.appendChild(timelinePathE);
     let totalLength = timelinePathE.getTotalLength();
 
@@ -19325,7 +19386,7 @@ class AnimationController {
     let me = this;
 
     let path = 'M0 0 L8 8 L8 25 L-8 25 L-8 8 Z';
-    cursorEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.Path().plot(path).attr({
+    cursorEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].Path().plot(path).attr({
       fill: '#FAF0E6',
       stroke: 'grey',
       style: 'cursor: move',
@@ -19412,7 +19473,7 @@ class AnimationController {
    */
   createTimeline() {
     // Create the main timeline container group
-    let timelineEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__.SVG.G().attr({
+    let timelineEl = new svgjs__WEBPACK_IMPORTED_MODULE_0__["SVG"].G().attr({
       id: 'timeline',
       style: '-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none',
     }).node;
@@ -19424,7 +19485,7 @@ class AnimationController {
   createMetricTables() {
     let logs = this.logs;
     // Show metrics for every log
-    let metricsTable = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#metrics_table')[0];
+    let metricsTable = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#metrics_table')[0];
     for (let i = 0; i < logs.length; i++) {
       let row = metricsTable.insertRow(i + 1);
       let cellLogNo = row.insertCell(0);
@@ -19603,7 +19664,7 @@ class AnimationController {
     this.timeCoef = this.slotDataMs / (this.slotEngineS*1000);
 
     // Update the speed of circle progress bar
-    let animations = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('.progress-animation');
+    let animations = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('.progress-animation');
     for (let i = 0; i < animations.length; i++) {
       let animateEl = animations[i];
       let curDur = animateEl.getAttribute('dur');
@@ -19690,7 +19751,7 @@ class AnimationController {
    */
   setPlayPauseButton(changeToPlay) {
     const {PAUSE_CLS, PLAY_CLS} = this;
-    const button = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('#pause');
+    const button = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#pause');
 
     if (typeof changeToPlay === 'undefined') {
       changeToPlay = !this.isPlaying();
@@ -19753,7 +19814,7 @@ class AnimationController {
    * @param {String} nodeId
    */
   createNodePathElements (nodeId) {
-    let incomingEndPoint = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(
+    let incomingEndPoint = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(
         '[data-element-id=' + this.canvas.getIncomingFlowId(nodeId) +
         ']',
     )
@@ -19764,7 +19825,7 @@ class AnimationController {
     let crossPath, skipPath;
     let arrayAbove, arrayBelow;
 
-    let outgoingStartPoint = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)(
+    let outgoingStartPoint = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(
         '[data-element-id=' + this.canvas.getOutgoingFlowId(nodeId) +
         ']',
     )
@@ -19774,12 +19835,12 @@ class AnimationController {
     let startPoint = incomingEndPoint
     let endPoint = outgoingStartPoint
 
-    let nodeTransformE = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
-    let nodeRectE = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + nodeId + ']').
+    let nodeTransformE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
+    let nodeRectE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').
     find('g').
     find('rect').
     get(0)
-    let taskRectPoints = (0,_utils__WEBPACK_IMPORTED_MODULE_4__.getViewportPoints)(
+    let taskRectPoints = Object(_utils__WEBPACK_IMPORTED_MODULE_4__["getViewportPoints"])(
         this.svgMain,
         nodeRectE,
         nodeTransformE,
@@ -19893,7 +19954,7 @@ class AnimationController {
     skipPathE.setAttributeNS(null, 'fill', 'transparent');
     skipPathE.setAttributeNS(null, 'stroke', 'none');
 
-    let nodeGroupE = (0,jquery__WEBPACK_IMPORTED_MODULE_1__.$)('[data-element-id=' + nodeId + ']').find('g').get(0);
+    let nodeGroupE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').find('g').get(0);
     nodeGroupE.appendChild(crossPathE);
     nodeGroupE.appendChild(skipPathE);
   }
@@ -19907,7 +19968,7 @@ class AnimationController {
    */
   update(event) {
     //console.log('AnimationController: event processing');
-    if (!(event instanceof _animation__WEBPACK_IMPORTED_MODULE_2__.AnimationEvent)) return;
+    if (!(event instanceof _animation__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"])) return;
 
     // Need to check playing state to avoid calling pause/unpause too many times
     // which will disable the digital clock
@@ -19932,17 +19993,12 @@ class AnimationController {
 /*!*******************************************!*\
   !*** ./src/loganimation/dataRequester.js ***!
   \*******************************************/
-/*! namespace exports */
-/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ DataRequester
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DataRequester; });
 
 
 /**
@@ -20029,17 +20085,12 @@ class DataRequester {
 /*!*****************************************!*\
   !*** ./src/loganimation/frameBuffer.js ***!
   \*****************************************/
-/*! namespace exports */
-/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__, __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => /* binding */ Buffer
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Buffer; });
 /* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
 /* harmony import */ var _dataRequester__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dataRequester */ "./src/loganimation/dataRequester.js");
 
@@ -20087,7 +20138,7 @@ class Buffer {
      * @param {AnimationContext} animationContext
      */
     constructor(animationContext) {
-        this._dataRequester = new _dataRequester__WEBPACK_IMPORTED_MODULE_1__.default(animationContext.getPluginExecutionId());
+        this._dataRequester = new _dataRequester__WEBPACK_IMPORTED_MODULE_1__["default"](animationContext.getPluginExecutionId());
         this._chunkSize = Buffer.DEFAULT_CHUNK_SIZE; //numbr of frames in every read
         this._safetyThreshold = Buffer.DEFAULT_SAFETY_THRES;
         this._historyThreshold = Buffer.DEFAULT_HISTORY_THRES;
@@ -20379,17 +20430,12 @@ class Buffer {
 /*!***********************************!*\
   !*** ./src/loganimation/index.js ***!
   \***********************************/
-/*! namespace exports */
-/*! export LogAnimation [provided] [maybe used in main (runtime-defined)] [usage prevents renaming] */
-/*! other exports [not provided] [maybe used in main (runtime-defined)] */
-/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: LogAnimation */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "LogAnimation": () => /* binding */ LogAnimation
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LogAnimation", function() { return LogAnimation; });
 /* harmony import */ var _animationController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationController */ "./src/loganimation/animationController.js");
 /* harmony import */ var _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../bpmneditor/apromoreEditor */ "./src/bpmneditor/apromoreEditor.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
@@ -20451,7 +20497,7 @@ class LogAnimation {
   constructor(xml, url, namespace, data, pluginExecutionId) {
     this.animationData = data;
     this.editor = this.initEditor(xml, url, namespace);
-    this.controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__.default(this.editor.getCanvas(), pluginExecutionId);
+    this.controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__["default"](this.editor.getCanvas(), pluginExecutionId);
   }
 
   /*
@@ -20464,7 +20510,7 @@ class LogAnimation {
   */
 
   initEditor(xml, url, namespace) {
-    return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__.ORYX.Editor({
+    return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__["ORYX"].Editor({
       xml,
       model: {
         id: "editorcanvas",
@@ -20479,12 +20525,12 @@ class LogAnimation {
   }
 
   setPlayControls(disabled) {
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("#start").get(0).disabled = disabled;
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("#pause").get(0).disabled = disabled;
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("#forward").get(0).disabled = disabled;
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("#backward").get(0).disabled = disabled;
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("#end").get(0).disabled = disabled;
-    (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)(this.SPEED_CONTROL).get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#start").get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#pause").get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#forward").get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#backward").get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#end").get(0).disabled = disabled;
+    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])(this.SPEED_CONTROL).get(0).disabled = disabled;
   }
 
   initController() {
@@ -20523,7 +20569,7 @@ class LogAnimation {
   }
 
   toggleCaseLabelVisibility() {
-    let input = (0,jquery__WEBPACK_IMPORTED_MODULE_2__.$)("input#toggleCaseLabelVisibility")[0];
+    let input = Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("input#toggleCaseLabelVisibility")[0];
     this.controller.setCaseLabelsVisible(input.checked);
   }
 
@@ -20535,17 +20581,12 @@ class LogAnimation {
 /*!********************************************!*\
   !*** ./src/loganimation/tokenAnimation.js ***!
   \********************************************/
-/*! namespace exports */
-/*! export TokenAnimation [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__, __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: TokenAnimation */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "TokenAnimation": () => /* binding */ TokenAnimation
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TokenAnimation", function() { return TokenAnimation; });
 /* harmony import */ var _frameBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./frameBuffer */ "./src/loganimation/frameBuffer.js");
 /* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
 /**
@@ -20591,7 +20632,7 @@ class TokenAnimation {
         this._elementPathMap = pathMap;
         this._colorPalette = colorPalette;
 
-        this._frameBuffer = new _frameBuffer__WEBPACK_IMPORTED_MODULE_0__.default(animationContext); //the buffer start filling immediately based on the animation context.
+        this._frameBuffer = new _frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"](animationContext); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrame = undefined;
 
@@ -20759,7 +20800,7 @@ class TokenAnimation {
     _loopBufferRead() {
         setTimeout(this._loopBufferRead.bind(this), 1000);
         if (this._state === AnimationState.PLAYING || this._state === AnimationState.PAUSING) {
-            if (this._frameQueue.length >= 2*_frameBuffer__WEBPACK_IMPORTED_MODULE_0__.default.DEFAULT_CHUNK_SIZE) return;
+            if (this._frameQueue.length >= 2*_frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"].DEFAULT_CHUNK_SIZE) return;
             let frames = this._frameBuffer.readNextChunk();
             if (frames && frames.length > 0) {
                 //this._frameQueue.addSome(frames);
@@ -20979,29 +21020,18 @@ class TokenAnimation {
 /*!***********************************!*\
   !*** ./src/loganimation/utils.js ***!
   \***********************************/
-/*! namespace exports */
-/*! export drawCoordinateOrigin [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export drawProcessModelOrigin [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export findModelNode [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export getRandomInt [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export getStraighLineFunctionValue [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export getViewportPoints [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export toViewportCoords [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__.r, __webpack_exports__, __webpack_require__.d, __webpack_require__.* */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getRandomInt, getViewportPoints, toViewportCoords, drawCoordinateOrigin, drawProcessModelOrigin, findModelNode, getStraighLineFunctionValue */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getRandomInt": () => /* binding */ getRandomInt,
-/* harmony export */   "getViewportPoints": () => /* binding */ getViewportPoints,
-/* harmony export */   "toViewportCoords": () => /* binding */ toViewportCoords,
-/* harmony export */   "drawCoordinateOrigin": () => /* binding */ drawCoordinateOrigin,
-/* harmony export */   "drawProcessModelOrigin": () => /* binding */ drawProcessModelOrigin,
-/* harmony export */   "findModelNode": () => /* binding */ findModelNode,
-/* harmony export */   "getStraighLineFunctionValue": () => /* binding */ getStraighLineFunctionValue
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRandomInt", function() { return getRandomInt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getViewportPoints", function() { return getViewportPoints; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toViewportCoords", function() { return toViewportCoords; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "drawCoordinateOrigin", function() { return drawCoordinateOrigin; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "drawProcessModelOrigin", function() { return drawProcessModelOrigin; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "findModelNode", function() { return findModelNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStraighLineFunctionValue", function() { return getStraighLineFunctionValue; });
 /*-
  * #%L
  * This file is part of "Apromore Core".
@@ -21214,77 +21244,5 @@ function getStraighLineFunctionValue(p1, p2, pi) {
 
 /***/ })
 
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		if(__webpack_module_cache__[moduleId]) {
-/******/ 			return __webpack_module_cache__[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__webpack_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => module['default'] :
-/******/ 				() => module;
-/******/ 			__webpack_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop)
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/************************************************************************/
-/******/ 	// module exports must be returned from runtime so entry inlining is disabled
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__("./src/loganimation/index.js");
-/******/ })()
-;
+/******/ });
 });
