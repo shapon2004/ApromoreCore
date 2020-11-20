@@ -1,98 +1,46 @@
-// Karma configuration
-// Generated on Sat Oct 06 2018 10:51:29 GMT-0500 (Central Daylight Time)
+let webpackConfig = require('./webpack.config.js');
+//webpackConfig.entry = {};
 
-module.exports = function(config) {
-  config.set({
+module.exports = function (config) {
+    config.set({
+        // base path that will be used to resolve all patterns (eg. files, exclude)
+        basePath: '',
 
-    // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+        plugins: ['@metahub/karma-jasmine-jquery', 'karma-*'],
+        frameworks: ['jasmine-jquery'],
 
-    plugins: ['@metahub/karma-jasmine-jquery', 'karma-*'],
-    frameworks: ['jasmine-jquery'],
+        // list of files / patterns to load in the browser
+        files: [
+            'src/bpmneditor/editor/bpmnio/bpmn-modeler.development.js',
+            'src/bpmneditor/libs/prototype-1.7.3.js',
+            'src/bpmneditor/libs/iscroll.js',
+            'src/bpmneditor/libs/ext-2.0.2/adapter/ext/ext-base.js',
+            'src/bpmneditor/libs/ext-2.0.2/ext-all.js',
+            'src/bpmneditor/libs/ext-2.0.2/ext-core.js',
+            'src/bpmneditor/libs/ext-2.0.2/color-field.js',
+            'src/bpmneditor/editor/i18n/translation_en_us.js',
+            'src/bpmneditor/editor/i18n/translation_signavio_en_us.js',
 
+            {pattern: 'test/loganimation/*.spec.js', watched: false },
+            {pattern: 'test/loganimation/fixtures/*.html', watched: true, served: true, included: false}
+        ],
 
-    // list of files / patterns to load in the browser
-    files: [
-        'src/bpmneditor/editor/bpmnio/bpmn-modeler.development.js',
-        'src/bpmneditor/libs/prototype-1.7.3.js',
-        'src/bpmneditor/libs/iscroll.js',
-        'src/bpmneditor/libs/ext-2.0.2/adapter/ext/ext-base.js',
-        'src/bpmneditor/libs/ext-2.0.2/ext-all.js',
-        'src/bpmneditor/libs/ext-2.0.2/ext-core.js',
-        'src/bpmneditor/libs/ext-2.0.2/color-field.js',
-        'src/bpmneditor/editor/i18n/translation_en_us.js',
-        'src/bpmneditor/editor/i18n/translation_signavio_en_us.js',
-        'dist/logAnimation.bundle.js',
-        'test/loganimation/*.spec.js',
-        //'test/example/*.spec.js'
-        {
-            pattern: 'test/loganimation/fixtures/*.html',
-            watched: true,
-            served: true,
-            included: false
-        }
-    ],
+        preprocessors: {
+            //'./src/loganimation/index.js': ['webpack'],
+            './test/loganimation/*.spec.js': ['webpack'],
+        },
+        webpack: webpackConfig,
+        webpackMiddleware: {
+            noInfo: true
+        },
 
-
-    // list of files / patterns to exclude
-    exclude: [
-    ],
-
-
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-    },
-
-      /*
-    plugins: [
-        'karma-jasmine-jquery-2',
-        'karma-jasmine',
-        'karma-chrome-launcher',
-        'karma-spec-reporter',
-        'karma-jasmine-html-reporter'
-    ],
-    */
-
-
-    // test results reporter to use
-    // possible values: 'dots', 'progress'
-    // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['spec','kjhtml'],
-
-
-    // web server port
-    port: 9876,
-
-
-    // enable / disable colors in the output (reporters and logs)
-    colors: true,
-
-
-    // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DISABLE,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
-
-
-    // start these browsers
-    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
-
-    client: {
-       clearContext: false
-    },
-
-
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
-    singleRun: true,
-
-    // Concurrency level
-    // how many browser should be started simultaneous
-    concurrency: Infinity
-  })
-}
+        exclude: [],
+        reporters: ['spec', 'kjhtml'],
+        port: 9876,
+        colors: true,
+        logLevel: config.LOG_DISABLE,
+        autoWatch: true,
+        browsers: ['ChromeHeadless'],
+        singleRun: true,
+    });
+};
