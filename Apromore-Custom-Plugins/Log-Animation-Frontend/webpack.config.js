@@ -10,12 +10,13 @@ module.exports = {
     output: {
         filename: 'logAnimation.bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        library: "logAnimation",   // Important
+        //library: "LogAnimation",   // Important
         libraryTarget: 'umd',   // Important
-        umdNamedDefine: true   // Important
+        libraryExport: 'default'
+        //umdNamedDefine: true   // Important
     },
     mode: 'development',
-    devtool: false,
+    devtool: 'source-map',
     module: {
         rules: [
             {test: /\.css|\.bpmn$/, use: 'raw-loader'}
@@ -23,7 +24,6 @@ module.exports = {
     },
     resolve: {
         mainFields: [
-            'dev:module',
             'browser',
             'module',
             'main'

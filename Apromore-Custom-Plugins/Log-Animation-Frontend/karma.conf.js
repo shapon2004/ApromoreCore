@@ -19,7 +19,7 @@ module.exports = function (config) {
             'src/bpmneditor/libs/ext-2.0.2/color-field.js',
             'src/bpmneditor/editor/i18n/translation_en_us.js',
             'src/bpmneditor/editor/i18n/translation_signavio_en_us.js',
-
+            //'dist/logAnimation.bundle.js',
             //{pattern: 'test/example/*.spec.js', watched: false, included: false},
             {pattern: 'test/loganimation/*.spec.js', watched: false},
             {pattern: 'test/loganimation/fixtures/*.html', watched: false, served: true, included: false},

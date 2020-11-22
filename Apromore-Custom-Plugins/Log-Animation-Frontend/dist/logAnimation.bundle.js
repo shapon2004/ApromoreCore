@@ -2,11 +2,11 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("logAnimation", [], factory);
-	else if(typeof exports === 'object')
-		exports["logAnimation"] = factory();
-	else
-		root["logAnimation"] = factory();
+		define([], factory);
+	else {
+		var a = factory();
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
 })(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -20430,12 +20430,28 @@ class Buffer {
 /*!***********************************!*\
   !*** ./src/loganimation/index.js ***!
   \***********************************/
-/*! exports provided: LogAnimation */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LogAnimation", function() { return LogAnimation; });
+/* harmony import */ var _logAnimation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logAnimation */ "./src/loganimation/logAnimation.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _logAnimation__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+
+
+/***/ }),
+
+/***/ "./src/loganimation/logAnimation.js":
+/*!******************************************!*\
+  !*** ./src/loganimation/logAnimation.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LogAnimation; });
 /* harmony import */ var _animationController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationController */ "./src/loganimation/animationController.js");
 /* harmony import */ var _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../bpmneditor/apromoreEditor */ "./src/bpmneditor/apromoreEditor.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
@@ -21244,5 +21260,6 @@ function getStraighLineFunctionValue(p1, p2, pi) {
 
 /***/ })
 
-/******/ });
+/******/ })["default"];
 });
+//# sourceMappingURL=logAnimation.bundle.js.map
