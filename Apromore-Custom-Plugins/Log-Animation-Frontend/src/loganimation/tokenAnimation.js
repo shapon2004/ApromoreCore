@@ -7,7 +7,7 @@
 'use strict';
 
 import Buffer from "./frameBuffer";
-import AnimationContext from "./animation";
+import {AnimationContext, AnimationState, AnimationEventType} from "./animation";
 
 /**
  * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.

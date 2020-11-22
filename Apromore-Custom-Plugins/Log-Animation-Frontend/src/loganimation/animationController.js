@@ -56,10 +56,11 @@
 'use strict';
 
 import {SVG} from 'svgjs';
-import {$ as $j} from 'jquery';
-import {AnimationContext, AnimationEvent} from './animation';
+import {AnimationContext, AnimationEvent, AnimationEventType} from './animation';
 import {TokenAnimation} from './tokenAnimation';
-import {getViewportPoints} from './utils';
+import * as utils from './utils';
+import jQuery from "jquery";
+window.$ = window.$j = window.jQuery = jQuery;
 
 export default class AnimationController {
   constructor(canvas, pluginExecutionId) {
@@ -121,7 +122,7 @@ export default class AnimationController {
     this.timelineEl = null;
 
     this.svgProgresses = [];
-    this.svgDocs.clear();
+    this.svgDocs = [];
     this.svgDocs.push(this.svgMain);
     this.svgDocs.push(this.svgTimeline);
 
@@ -966,7 +967,7 @@ export default class AnimationController {
     find('g').
     find('rect').
     get(0)
-    let taskRectPoints = getViewportPoints(
+    let taskRectPoints = utils.getViewportPoints(
         this.svgMain,
         nodeRectE,
         nodeTransformE,
@@ -997,7 +998,7 @@ export default class AnimationController {
 
       if (
           taskRectPoints.se.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.se)
+          utils.getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.se)
       ) {
         arrayAbove.push(taskRectPoints.se)
       } else {
@@ -1006,7 +1007,7 @@ export default class AnimationController {
 
       if (
           taskRectPoints.sw.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.sw)
+          utils.getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.sw)
       ) {
         arrayAbove.push(taskRectPoints.sw)
       } else {
@@ -1015,7 +1016,7 @@ export default class AnimationController {
 
       if (
           taskRectPoints.ne.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.ne)
+          utils.getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.ne)
       ) {
         arrayAbove.push(taskRectPoints.ne)
       } else {
@@ -1024,7 +1025,7 @@ export default class AnimationController {
 
       if (
           taskRectPoints.nw.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.nw)
+          utils.getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.nw)
       ) {
         arrayAbove.push(taskRectPoints.nw)
       } else {

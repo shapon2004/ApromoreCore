@@ -68,7 +68,7 @@ export function getViewportPoints(svg, rect, container) {
 export function toViewportCoords(svg, groupE) {
   let pt = svg.createSVGPoint();
   let matrix = groupE.getScreenCTM();
-  rect = groupE.getBBox();
+  let rect = groupE.getBBox();
   pt.x = rect.x;
   pt.y = rect.y;
   return pt.matrixTransform(matrix);

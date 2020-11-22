@@ -16661,7 +16661,7 @@ ORYX.Editor = {
         }
 
         // LOAD the content of the current editor instance
-        window.setTimeout(function () {
+        //window.setTimeout(function () {
             // Attach the editor must be the LAST THING AFTER ALL HAS BEEN LOADED
             this.getCanvas().attachEditor(new BpmnJS({
                 container: '#' + this.getCanvas().rootNode.id,
@@ -16685,7 +16685,7 @@ ORYX.Editor = {
             if (ORYX.CONFIG.PANEL_LEFT_COLLAPSED === true) {
                 this.layout_regions.west.collapse();
             }
-        }.bind(this), 200);
+        //}.bind(this), 200);
 
 
     },
@@ -17195,15 +17195,15 @@ ORYX.Editor = {
         ORYX.Log.debug("Oryx begins loading procedure.");
 
         // check for prototype
-        if( (typeof Prototype=='undefined') ||
-            (typeof Element == 'undefined') ||
-            (typeof Element.Methods=='undefined') ||
-            parseFloat(Prototype.Version.split(".")[0] + "." +
-                Prototype.Version.split(".")[1]) < 1.5)
-
-            throw("Application requires the Prototype JavaScript framework >= 1.5.3");
-
-        ORYX.Log.debug("Prototype > 1.5 found.");
+        // if( (typeof Prototype=='undefined') ||
+        //     (typeof Element == 'undefined') ||
+        //     (typeof Element.Methods=='undefined') ||
+        //     parseFloat(Prototype.Version.split(".")[0] + "." +
+        //         Prototype.Version.split(".")[1]) < 1.5)
+        //
+        //     throw("Application requires the Prototype JavaScript framework >= 1.5.3");
+        //
+        // ORYX.Log.debug("Prototype > 1.5 found.");
 
         // continue loading.
         this.loadPlugins();
@@ -17445,7 +17445,8 @@ ORYX.Canvas = {
         this.rootNode = ORYX.Utils.graft("http://www.w3.org/1999/xhtml", options.parentNode,
             ['div', {id: options.id, width: options.width, height: options.height}
             ]);
-        this.rootNode.addClassName(this.className);
+        //this.rootNode.addClassName(this.className);
+        this.rootNode.classList.add(this.className);
 
     },
 
@@ -17460,11 +17461,11 @@ ORYX.Canvas = {
     },
 
     getSVGContainer: function() {
-        return $$("div.ORYX_Editor div.bjs-container div.djs-container svg")[0];
+        return $("div.ORYX_Editor div.bjs-container div.djs-container svg")[0];
     },
 
     getSVGViewport: function() {
-        return $$("div.ORYX_Editor div.bjs-container div.djs-container svg g.viewport")[0];
+        return $("div.ORYX_Editor div.bjs-container div.djs-container svg g.viewport")[0];
     },
 
     getSourceNodeId: function (sequenceFlowId) {
@@ -18867,11 +18868,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AnimationController; });
 /* harmony import */ var svgjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! svgjs */ "./node_modules/svgjs/dist/svg.js");
 /* harmony import */ var svgjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(svgjs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
-/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
-/* harmony import */ var _tokenAnimation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./tokenAnimation */ "./src/loganimation/tokenAnimation.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils */ "./src/loganimation/utils.js");
+/* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
+/* harmony import */ var _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tokenAnimation */ "./src/loganimation/tokenAnimation.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./src/loganimation/utils.js");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
+/* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_4__);
 /*-
  * #%L
  * This file is part of "Apromore Core".
@@ -18934,6 +18935,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+window.$ = window.$j = window.jQuery = jquery__WEBPACK_IMPORTED_MODULE_4___default.a;
 
 class AnimationController {
   constructor(canvas, pluginExecutionId) {
@@ -18991,11 +18993,11 @@ class AnimationController {
     // Elements for other animations: timeline, progresses, clock
     this.svgMain = this.canvas.getSVGContainer();
     this.svgViewport = this.canvas.getSVGViewport();
-    this.svgTimeline = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('div.ap-la-timeline > div > svg')[0];
+    this.svgTimeline = $j('div.ap-la-timeline > div > svg')[0];
     this.timelineEl = null;
 
     this.svgProgresses = [];
-    this.svgDocs.clear();
+    this.svgDocs = [];
     this.svgDocs.push(this.svgMain);
     this.svgDocs.push(this.svgTimeline);
 
@@ -19028,25 +19030,25 @@ class AnimationController {
     for (let log of this.logs) {
       for (let elementIndex in this.elementIndexIDMap) {
         let elementId = this.elementIndexIDMap[elementIndex];
-        let pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
         if (!pathElement) { // create cross and skip paths as they are not present
           this.createNodePathElements(elementId);
-          pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+          pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
         }
         this.elementCache[elementIndex] = pathElement;
       }
 
       for (let elementIndex in this.skipElementIndexIDMap) {
         let elementId = this.skipElementIndexIDMap[elementIndex];
-        let pathElement = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
         this.elementCache[elementIndex] = pathElement;
       }
     }
 
     // Create token animation
     let canvasContext = document.querySelector("#canvas").getContext('2d');
-    this.animationContext = new _animation__WEBPACK_IMPORTED_MODULE_2__["AnimationContext"](this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
-    this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_3__["TokenAnimation"](this.animationContext, canvasContext, this.elementCache, this.apPalette);
+    this.animationContext = new _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationContext"](this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
+    this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["TokenAnimation"](this.animationContext, canvasContext, this.elementCache, this.apPalette);
 
     // Start token animation
     let modelBox = this.svgMain.getBoundingClientRect();
@@ -19102,7 +19104,7 @@ class AnimationController {
 
   createSpeedControl() {
     const SPEED_CONTROL = "#speed-control";
-    let speedControl = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(SPEED_CONTROL)
+    let speedControl = $j(SPEED_CONTROL)
 
     speedControl.slider({
       orientation: "horizontal",
@@ -19161,16 +19163,16 @@ class AnimationController {
     let {logs, logNum} = this;
     let log, progressContainer, svgProgressEl, label;
     let svgProgress, svgProgresses = [];
-    let progressWrapper = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#ap-la-progress');
+    let progressWrapper = $j('#ap-la-progress');
 
     progressWrapper.empty();
     for (let i = 0; i < logNum; i++) {
       log = logs[i];
-      svgProgress = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<svg id="progressbar-${i}  xmlns="${SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
+      svgProgress = $j(`<svg id="progressbar-${i}  xmlns="${SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
       progressWrapper.append(
-          Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<div id="progress-c-${i}"></div>`).append(
+          $j(`<div id="progress-c-${i}"></div>`).append(
               svgProgress.append(this.createProgressIndicatorsForLog(i + 1, log, this.timeline, 0, 0, speedRatio)),
-          ).append(Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(`<div class="label">${log.filename}</div>`)),
+          ).append($j(`<div class="label">${log.filename}</div>`)),
       );
       svgProgress = svgProgress[0];
       svgProgresses.push(svgProgress);
@@ -19182,7 +19184,7 @@ class AnimationController {
 
   createLogInfoPopups() {
     let {logs, logNum} = this;
-    let logInfo = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#ap-la-info-tip');
+    let logInfo = $j('#ap-la-info-tip');
     let props = [
       {
         id: 'info-no',
@@ -19214,18 +19216,18 @@ class AnimationController {
 
     function getProps(log) {
       props.forEach(function(prop) {
-        Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
+        $j('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
       });
     }
 
     for (let i = 0; i < logNum; i++) {
       let pId = '#ap-la-progress-' + (i + 1);
-      Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(pId).hover(
+      $j(pId).hover(
           (function(idx) {
             let log = logs[idx - 1];
             return function() {
               getProps(log);
-              let {top, left} = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(pId).offset();
+              let {top, left} = $j(pId).offset();
               let bottom = `calc(100vh - ${top - 10}px)`;
               left += 20;
               logInfo.attr('data-log-idx', idx);
@@ -19485,7 +19487,7 @@ class AnimationController {
   createMetricTables() {
     let logs = this.logs;
     // Show metrics for every log
-    let metricsTable = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#metrics_table')[0];
+    let metricsTable = $j('#metrics_table')[0];
     for (let i = 0; i < logs.length; i++) {
       let row = metricsTable.insertRow(i + 1);
       let cellLogNo = row.insertCell(0);
@@ -19664,7 +19666,7 @@ class AnimationController {
     this.timeCoef = this.slotDataMs / (this.slotEngineS*1000);
 
     // Update the speed of circle progress bar
-    let animations = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('.progress-animation');
+    let animations = $j('.progress-animation');
     for (let i = 0; i < animations.length; i++) {
       let animateEl = animations[i];
       let curDur = animateEl.getAttribute('dur');
@@ -19751,7 +19753,7 @@ class AnimationController {
    */
   setPlayPauseButton(changeToPlay) {
     const {PAUSE_CLS, PLAY_CLS} = this;
-    const button = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('#pause');
+    const button = $j('#pause');
 
     if (typeof changeToPlay === 'undefined') {
       changeToPlay = !this.isPlaying();
@@ -19814,7 +19816,7 @@ class AnimationController {
    * @param {String} nodeId
    */
   createNodePathElements (nodeId) {
-    let incomingEndPoint = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(
+    let incomingEndPoint = $j(
         '[data-element-id=' + this.canvas.getIncomingFlowId(nodeId) +
         ']',
     )
@@ -19825,7 +19827,7 @@ class AnimationController {
     let crossPath, skipPath;
     let arrayAbove, arrayBelow;
 
-    let outgoingStartPoint = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])(
+    let outgoingStartPoint = $j(
         '[data-element-id=' + this.canvas.getOutgoingFlowId(nodeId) +
         ']',
     )
@@ -19835,12 +19837,12 @@ class AnimationController {
     let startPoint = incomingEndPoint
     let endPoint = outgoingStartPoint
 
-    let nodeTransformE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
-    let nodeRectE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').
+    let nodeTransformE = $j('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
+    let nodeRectE = $j('[data-element-id=' + nodeId + ']').
     find('g').
     find('rect').
     get(0)
-    let taskRectPoints = Object(_utils__WEBPACK_IMPORTED_MODULE_4__["getViewportPoints"])(
+    let taskRectPoints = _utils__WEBPACK_IMPORTED_MODULE_3__["getViewportPoints"](
         this.svgMain,
         nodeRectE,
         nodeTransformE,
@@ -19871,7 +19873,7 @@ class AnimationController {
 
       if (
           taskRectPoints.se.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.se)
+          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.se)
       ) {
         arrayAbove.push(taskRectPoints.se)
       } else {
@@ -19880,7 +19882,7 @@ class AnimationController {
 
       if (
           taskRectPoints.sw.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.sw)
+          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.sw)
       ) {
         arrayAbove.push(taskRectPoints.sw)
       } else {
@@ -19889,7 +19891,7 @@ class AnimationController {
 
       if (
           taskRectPoints.ne.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.ne)
+          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.ne)
       ) {
         arrayAbove.push(taskRectPoints.ne)
       } else {
@@ -19898,7 +19900,7 @@ class AnimationController {
 
       if (
           taskRectPoints.nw.y <
-          getStraighLineFunctionValue(startPoint, endPoint, taskRectPoints.nw)
+          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.nw)
       ) {
         arrayAbove.push(taskRectPoints.nw)
       } else {
@@ -19954,7 +19956,7 @@ class AnimationController {
     skipPathE.setAttributeNS(null, 'fill', 'transparent');
     skipPathE.setAttributeNS(null, 'stroke', 'none');
 
-    let nodeGroupE = Object(jquery__WEBPACK_IMPORTED_MODULE_1__["$"])('[data-element-id=' + nodeId + ']').find('g').get(0);
+    let nodeGroupE = $j('[data-element-id=' + nodeId + ']').find('g').get(0);
     nodeGroupE.appendChild(crossPathE);
     nodeGroupE.appendChild(skipPathE);
   }
@@ -19968,17 +19970,17 @@ class AnimationController {
    */
   update(event) {
     //console.log('AnimationController: event processing');
-    if (!(event instanceof _animation__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"])) return;
+    if (!(event instanceof _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEvent"])) return;
 
     // Need to check playing state to avoid calling pause/unpause too many times
     // which will disable the digital clock
-    if (event.getEventType() === AnimationEventType.FRAMES_NOT_AVAILABLE && this.isPlaying()) {
+    if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_NOT_AVAILABLE && this.isPlaying()) {
       this.pauseSecondaryAnimations();
     }
-    else if (event.getEventType() === AnimationEventType.FRAMES_AVAILABLE && !this.isPlaying()) {
+    else if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_AVAILABLE && !this.isPlaying()) {
       this.unPauseSecondaryAnimations();
     }
-    else if (event.getEventType() === AnimationEventType.END_OF_ANIMATION) {
+    else if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION) {
       this.pause();
       this.updateClockOnce(this.endMs);
     }
@@ -20486,7 +20488,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
+window.$ = window.$j = window.jQuery = jquery__WEBPACK_IMPORTED_MODULE_2___default.a;
 /*
 // $.noConflict();
 window.$j = jQuery.noConflict();
@@ -20541,12 +20543,12 @@ class LogAnimation {
   }
 
   setPlayControls(disabled) {
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#start").get(0).disabled = disabled;
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#pause").get(0).disabled = disabled;
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#forward").get(0).disabled = disabled;
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#backward").get(0).disabled = disabled;
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("#end").get(0).disabled = disabled;
-    Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])(this.SPEED_CONTROL).get(0).disabled = disabled;
+    $j("#start").get(0).disabled = disabled;
+    $j("#pause").get(0).disabled = disabled;
+    $j("#forward").get(0).disabled = disabled;
+    $j("#backward").get(0).disabled = disabled;
+    $j("#end").get(0).disabled = disabled;
+    $j("#speed-control").get(0).disabled = disabled;
   }
 
   initController() {
@@ -20582,11 +20584,6 @@ class LogAnimation {
 
   gotoEnd(e) {
     this.controller.gotoEnd();
-  }
-
-  toggleCaseLabelVisibility() {
-    let input = Object(jquery__WEBPACK_IMPORTED_MODULE_2__["$"])("input#toggleCaseLabelVisibility")[0];
-    this.controller.setCaseLabelsVisible(input.checked);
   }
 
 };
@@ -20660,7 +20657,7 @@ class TokenAnimation {
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
-        this._state = AnimationState.PLAYING;
+        this._state = _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING;
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
@@ -20671,7 +20668,7 @@ class TokenAnimation {
         console.log('TokenAnimation: start');
         this.setTokenStyle();
         this._currentTime = 0;
-        this._setState(AnimationState.PAUSING);
+        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
         this._loopBufferRead();
         this._loopDraw(0);
@@ -20746,7 +20743,7 @@ class TokenAnimation {
     }
 
     isPausing() {
-        return this._state === AnimationState.PAUSING;
+        return this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING;
     }
 
     getCurrentFrameIndex() {
@@ -20776,12 +20773,12 @@ class TokenAnimation {
      */
     doPause() {
         console.log('TokenAnimation: pause');
-        this._setState(AnimationState.PAUSING);
+        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
     }
 
     doUnpause() {
         console.log('TokenAnimation: unpause');
-        this._setState(AnimationState.PLAYING);
+        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING);
     }
 
     /**
@@ -20799,7 +20796,7 @@ class TokenAnimation {
         }
 
         let previousState = this._getState();
-        this._setState(AnimationState.JUMPING); //intermediate state
+        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING); //intermediate state
         let newFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
         console.log('TokenAnimation - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + newFrameIndex);
         this._frameBuffer.moveTo(newFrameIndex);
@@ -20815,7 +20812,7 @@ class TokenAnimation {
      */
     _loopBufferRead() {
         setTimeout(this._loopBufferRead.bind(this), 1000);
-        if (this._state === AnimationState.PLAYING || this._state === AnimationState.PAUSING) {
+        if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING || this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
             if (this._frameQueue.length >= 2*_frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"].DEFAULT_CHUNK_SIZE) return;
             let frames = this._frameBuffer.readNextChunk();
             if (frames && frames.length > 0) {
@@ -20836,7 +20833,7 @@ class TokenAnimation {
      */
     _loopDraw(newTime) {
         window.requestAnimationFrame(this._loopDraw.bind(this));
-        if (this._state === AnimationState.PLAYING) { // draw frames in the queue sequentially
+        if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) { // draw frames in the queue sequentially
             this._now = newTime;
             let elapsed = this._now - this._then;
             if (elapsed >= this._drawingInterval) {
@@ -20849,16 +20846,16 @@ class TokenAnimation {
                     if (frame.index >= this._animationContext.getTotalNumberOfFrames()-1) {
                         console.log('Frame index = ' + frame.index + ' reached max frame index. Notify end of animation');
                         console.log('Frame queue size = ' + this._frameQueue.length);
-                        this._notifyAll(new AnimationEvent(AnimationEventType.END_OF_ANIMATION));
+                        this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION));
                     }
                     else {
-                        this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE));
+                        this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_AVAILABLE));
                     }
                 } else {
-                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_NOT_AVAILABLE));
+                    this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_NOT_AVAILABLE));
                 }
             }
-        } else if (this._state === AnimationState.PAUSING) { // only draw the current frame
+        } else if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) { // only draw the current frame
             let frame = this._currentFrame || this._frameQueue.shift();
             if (frame) {
                 this._drawFrame(frame);
@@ -20966,15 +20963,15 @@ class TokenAnimation {
      */
     _setState(newState) {
         this._state = newState;
-        if (newState === AnimationState.PLAYING) {
+        if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) {
             console.log('TokenAnimation: set state PLAYING');
             this._now = this._then; //restart counting frame intervals
         }
-        else if (newState === AnimationState.JUMPING) {
+        else if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING) {
             console.log('TokenAnimation: set state JUMPING');
             this._clearData();
         }
-        else if (newState === AnimationState.PAUSING) {
+        else if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
             console.log('TokenAnimation: set state PAUSING');
         }
     }
@@ -21118,7 +21115,7 @@ function getViewportPoints(svg, rect, container) {
 function toViewportCoords(svg, groupE) {
   let pt = svg.createSVGPoint();
   let matrix = groupE.getScreenCTM();
-  rect = groupE.getBBox();
+  let rect = groupE.getBBox();
   pt.x = rect.x;
   pt.y = rect.y;
   return pt.matrixTransform(matrix);

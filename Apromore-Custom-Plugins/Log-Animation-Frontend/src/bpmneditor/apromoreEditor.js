@@ -648,7 +648,7 @@ ORYX.Editor = {
         }
 
         // LOAD the content of the current editor instance
-        window.setTimeout(function () {
+        //window.setTimeout(function () {
             // Attach the editor must be the LAST THING AFTER ALL HAS BEEN LOADED
             this.getCanvas().attachEditor(new BpmnJS({
                 container: '#' + this.getCanvas().rootNode.id,
@@ -672,7 +672,7 @@ ORYX.Editor = {
             if (ORYX.CONFIG.PANEL_LEFT_COLLAPSED === true) {
                 this.layout_regions.west.collapse();
             }
-        }.bind(this), 200);
+        //}.bind(this), 200);
 
 
     },
@@ -1182,15 +1182,15 @@ ORYX.Editor = {
         ORYX.Log.debug("Oryx begins loading procedure.");
 
         // check for prototype
-        if( (typeof Prototype=='undefined') ||
-            (typeof Element == 'undefined') ||
-            (typeof Element.Methods=='undefined') ||
-            parseFloat(Prototype.Version.split(".")[0] + "." +
-                Prototype.Version.split(".")[1]) < 1.5)
-
-            throw("Application requires the Prototype JavaScript framework >= 1.5.3");
-
-        ORYX.Log.debug("Prototype > 1.5 found.");
+        // if( (typeof Prototype=='undefined') ||
+        //     (typeof Element == 'undefined') ||
+        //     (typeof Element.Methods=='undefined') ||
+        //     parseFloat(Prototype.Version.split(".")[0] + "." +
+        //         Prototype.Version.split(".")[1]) < 1.5)
+        //
+        //     throw("Application requires the Prototype JavaScript framework >= 1.5.3");
+        //
+        // ORYX.Log.debug("Prototype > 1.5 found.");
 
         // continue loading.
         this.loadPlugins();
@@ -1432,7 +1432,8 @@ ORYX.Canvas = {
         this.rootNode = ORYX.Utils.graft("http://www.w3.org/1999/xhtml", options.parentNode,
             ['div', {id: options.id, width: options.width, height: options.height}
             ]);
-        this.rootNode.addClassName(this.className);
+        //this.rootNode.addClassName(this.className);
+        this.rootNode.classList.add(this.className);
 
     },
 
@@ -1447,11 +1448,11 @@ ORYX.Canvas = {
     },
 
     getSVGContainer: function() {
-        return $$("div.ORYX_Editor div.bjs-container div.djs-container svg")[0];
+        return $("div.ORYX_Editor div.bjs-container div.djs-container svg")[0];
     },
 
     getSVGViewport: function() {
-        return $$("div.ORYX_Editor div.bjs-container div.djs-container svg g.viewport")[0];
+        return $("div.ORYX_Editor div.bjs-container div.djs-container svg g.viewport")[0];
     },
 
     getSourceNodeId: function (sequenceFlowId) {
