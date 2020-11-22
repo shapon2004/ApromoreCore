@@ -416,10 +416,10 @@ class AnimationController {
   changeSpeed(frameRate) {
     let newSpeedLevel = frameRate/this.animationContext.getRecordingFrameRate();
     console.log('AnimationController - changeSpeed: speedLevel = ' + newSpeedLevel);
-    this.pause();
+    this.pauseSecondaryAnimations();
     this.updateSVGAnimations(newSpeedLevel);
     this.tokenAnimation.setPlayingFrameRate(frameRate);
-    this.unPause();
+    //this.unPause();
     this.currentSpeedLevel = newSpeedLevel;
   }
 

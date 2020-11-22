@@ -361,7 +361,6 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         ArrayList<AnimationLog> replayedLogs = new ArrayList();
         if (replayer.isValidProcess()) {
 //            LOGGER.info("Process " + bpmnDefinition.getId() + " is valid");
-//            EncodeTraces.getEncodeTraces().read(xlogs); //build a mapping from traceId to charstream
             for (Log log: logs) {
 
                 AnimationLog animationLog = replayer.replay(log.xlog, log.color);
@@ -401,9 +400,6 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
             AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, bpmnDefNoGateways, params);
             JSONObject json = jsonBuilder.parseLogCollection();
             json.put("success", true);  // Ext2JS's file upload requires this flag
-            //String string = json.toString();
-            //LOGGER.info(string);
-            //jsonBuilder.clear();
 
             //return string;
             LOGGER.info("Finish generating JSON and start sending to the browser");
