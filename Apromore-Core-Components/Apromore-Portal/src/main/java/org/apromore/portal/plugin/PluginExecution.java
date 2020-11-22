@@ -48,14 +48,20 @@ public class PluginExecution {
     
     public void processRequest(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         String result = pluginController.processRequest(request.getParameterMap());
-        OutputStream os;
+        OutputStream os = null;
         try {
             os = response.getOutputStream();
             byte[] data = result.getBytes();
             os.write(data);
             response.flushBuffer();
+            
+//            PrintWriter out = response.getWriter();
+//            response.setContentType("application/json");
+//            response.setCharacterEncoding("UTF-8");
+//            out.print(result);
+//            out.flush(); 
         } catch (IOException e) {
-            response.getWriter().write(e.getMessage());
+            System.err.println(e.getStackTrace());
         }
     }
 }

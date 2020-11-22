@@ -27,8 +27,8 @@
 
 import AnimationController from "./animationController";
 import {ORYX} from "../bpmneditor/apromoreEditor";
-import {$ as $j} from 'jquery';
-
+import jQuery from "jquery";
+window.$ = window.$j = window.jQuery = jQuery;
 /*
 // $.noConflict();
 window.$j = jQuery.noConflict();
@@ -88,7 +88,7 @@ export default class LogAnimation {
     $j("#forward").get(0).disabled = disabled;
     $j("#backward").get(0).disabled = disabled;
     $j("#end").get(0).disabled = disabled;
-    $j(this.SPEED_CONTROL).get(0).disabled = disabled;
+    $j("#speed-control").get(0).disabled = disabled;
   }
 
   initController() {
@@ -124,11 +124,6 @@ export default class LogAnimation {
 
   gotoEnd(e) {
     this.controller.gotoEnd();
-  }
-
-  toggleCaseLabelVisibility() {
-    let input = $j("input#toggleCaseLabelVisibility")[0];
-    this.controller.setCaseLabelsVisible(input.checked);
   }
 
 };

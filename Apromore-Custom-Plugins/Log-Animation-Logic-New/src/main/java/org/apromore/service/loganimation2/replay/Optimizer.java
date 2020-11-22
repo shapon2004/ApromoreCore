@@ -26,11 +26,13 @@ package org.apromore.service.loganimation2.replay;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.deckfour.xes.extension.std.XConceptExtension;
+import org.deckfour.xes.extension.std.XTimeExtension;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryNaiveImpl;
+import org.deckfour.xes.model.XAttributable;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeBoolean;
 import org.deckfour.xes.model.XAttributeContinuous;
@@ -50,59 +52,49 @@ import de.hpi.bpmn2_0.model.Process;
 /**
 * Created by Raffaele Conforti on 21/10/14.
 * Modified by Bruce 10/11/2014: added optimizeProcessModel
+* Modified by Bruce Nguyen 26/11/2020: simplified optimizeLog for concept:name attribute only.
 */
 public class Optimizer {
 
     private ConcurrentHashMap<Object, Object> map = new ConcurrentHashMap<Object, Object>();
     private XFactory factory = new XFactoryNaiveImpl();
 
+    /**
+     * Replace all concept:name values with reference to the same String instance value.
+     * @param log
+     * @return new XLog object
+     */
     public XLog optimizeLog(XLog log) {
-
-        XLog result = factory.createLog();
-
-        for(Map.Entry<String, XAttribute> entry : log.getAttributes().entrySet()) {
-            String key = (String) getObject(entry.getKey());
-            Object att = getAttributeValue(entry.getValue());
-            if (att != null) {
-                Object value = getObject(att);
-                XAttribute attribute = createXAttribute(key, value, entry.getValue());
-                result.getAttributes().put(key, attribute);
-            }
-        }
-
+        XLog newLog = factory.createLog();
+        copyCachedAttribute(log.getAttributes().get(XConceptExtension.KEY_NAME), newLog);
         for(XTrace trace : log) {
             XTrace newTrace = factory.createTrace();
-
-            for(Map.Entry<String, XAttribute> entry : trace.getAttributes().entrySet()) {
-                String key = (String) getObject(entry.getKey());
-                Object att = getAttributeValue(entry.getValue());
-                if (att != null) {
-                    Object value = getObject(att);
-                    XAttribute attribute = createXAttribute(key, value, entry.getValue());
-                    newTrace.getAttributes().put(key, attribute);
-                }
-            }
-
+            copyCachedAttribute(trace.getAttributes().get(XConceptExtension.KEY_NAME), newTrace);
             for(XEvent event : trace) {
-                XEvent newEvent = factory.createEvent();
-
-                for(Map.Entry<String, XAttribute> entry : event.getAttributes().entrySet()) {
-                    String key = (String) getObject(entry.getKey());
-                    Object att = getAttributeValue(entry.getValue());
-                    if (att != null) {
-                        Object value = getObject(att);
-                        XAttribute attribute = createXAttribute(key, value, entry.getValue());
-                        newEvent.getAttributes().put(key, attribute);
-                    }
+                XAttribute activityAtt = event.getAttributes().get(XConceptExtension.KEY_NAME);
+                XAttribute timestampAtt = event.getAttributes().get(XTimeExtension.KEY_TIMESTAMP);
+                if (activityAtt != null && timestampAtt != null) {
+                    XEvent newEvent = factory.createEvent();
+                    copyCachedAttribute(activityAtt, newEvent);
+                    copyCachedAttribute(timestampAtt, newEvent);
+                    newTrace.insertOrdered(newEvent);
                 }
-                
-                newTrace.insertOrdered(newEvent); //Bruce
             }
-
-            result.add(newTrace);
+            if (!newTrace.isEmpty()) newLog.add(newTrace);
         }
-
-        return result;
+        return newLog;
+    }
+    
+    private boolean copyCachedAttribute(XAttribute attribute, XAttributable newElement) {
+        Object currentAttValue = getAttributeValue(attribute);
+        String cachedKey = (String) cacheObject(attribute.getKey()); // cache key
+        if (currentAttValue != null) {
+            Object cachedValue = cacheObject(currentAttValue); // cache value
+            XAttribute newAtt = createXAttribute(cachedKey, cachedValue, attribute);
+            newElement.getAttributes().put(cachedKey, newAtt);
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -124,37 +116,8 @@ public class Optimizer {
         Process process = (Process)rootElements.get(0);        
         for (FlowElement element : process.getFlowElement()) {
             if (element instanceof FlowNode) {
-                ((FlowNode)element).setNameRef(getObject(element.getName()));
+                ((FlowNode)element).setNameRef(cacheObject(element.getName()));
             }
-            /*
-            if (element instanceof SequenceFlow) {
-                //------------------------------------
-                // Copy source and target node of every sequence flow
-                //------------------------------------
-                source = (FlowNode)((SequenceFlow)element).getSourceRef();
-                if (nodeMap.containsKey(source)) {
-                    source2 = nodeMap.get(source);
-                } else {
-                    source2 = new FlowNode2(source);
-                    source2.setNameRef(getObject(source2.getName()));
-                    nodeMap.put(source, source2);
-                }
-                target = (FlowNode)((SequenceFlow)element).getTargetRef();
-                if (nodeMap.containsKey(target)) {
-                    target2 = nodeMap.get(target);
-                } else {
-                    target2 = new FlowNode2(target);
-                    target2.setNameRef(getObject(target2.getName()));
-                    nodeMap.put(target, target2);
-                }
-
-                //---------------------------------------
-                // Adjust sequence flow source and target
-                //---------------------------------------
-                ((SequenceFlow)element).setSourceRef(source2);
-                ((SequenceFlow)element).setTargetRef(target2);
-            } 
-            */
         }
         
         return definitions;
@@ -164,7 +127,7 @@ public class Optimizer {
         return map;
     }
 
-    private Object getObject(Object o) {
+    private Object cacheObject(Object o) {
         Object result = null;
         if(o instanceof Date) return o;
         if((result = map.get(o)) == null) {

@@ -235,7 +235,7 @@ class TokenAnimation {
         if (newFrameSkip !== this._frameSkip) {
             this._frameSkip = newFrameSkip;
             zAu.send(new zk.Event(zk.Widget.$('$win'), 'onFrameSkipChanged', newFrameSkip));
-            this._frameBuffer.resetToFrameIndex(this.getCurrentFrameIndex());
+            this._frameBuffer.resetWithFrameSkip(this.getCurrentFrameIndex(), newFrameSkip);
             this._clearData();
         }
 
@@ -347,7 +347,7 @@ class TokenAnimation {
                 this._frameQueue.push(...frames);
                 console.log('TokenAnimation - loopBufferReading: readNext returns result, first frame index=' + frames[0].index);
             } else {
-                console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY result.');
+                console.log('TokenAnimation - loopBufferReading: readNext returns EMPTY. FrameQueue size=' + this._frameQueue.length);
             }
         }
     }
@@ -365,15 +365,14 @@ class TokenAnimation {
             let elapsed = this._now - this._then;
             if (elapsed >= this._drawingInterval) {
                 this._then = this._now - (elapsed % this._drawingInterval);
-                //this._frameQueue.removeAtHead(this._frameSkip);
-                //let frame = this._frameQueue.remove(0);
                 let frame = this._frameQueue.shift();
-                //let frame = this._frameBuffer.readNext(this._frameSkip);
                 if (frame) {
                     this._currentTime += this._drawingInterval;
                     this._currentFrame = frame;
                     this._drawFrame(frame);
-                    if (frame.index === this._animationContext.getTotalNumberOfFrames()-1) {
+                    if (frame.index >= this._animationContext.getTotalNumberOfFrames()-1) {
+                        console.log('Frame index = ' + frame.index + ' reached max frame index. Notify end of animation');
+                        console.log('Frame queue size = ' + this._frameQueue.length);
                         this._notifyAll(new AnimationEvent(AnimationEventType.END_OF_ANIMATION));
                     }
                     else {
@@ -385,7 +384,6 @@ class TokenAnimation {
             }
         } else if (this._state === AnimationState.PAUSING) { // only draw the current frame
             let frame = this._currentFrame || this._frameQueue.shift();
-            //let frame = this._currentFrame || this._frameBuffer.readNext(this._frameSkip);
             if (frame) {
                 this._drawFrame(frame);
                 this._currentFrame = frame;

@@ -158,6 +158,11 @@
             <artifactId>bcprov-jdk15to18</artifactId>
             <version>1.66</version>
         </dependency>
+		<dependency>
+		    <groupId>org.everit.osgi.bundles</groupId>
+		    <artifactId>org.everit.osgi.bundles.com.lodborg.interval-tree</artifactId>
+		    <version>1.0.0</version>
+		</dependency>         
 
         <!-- Contains the RemoveNonOSGIJars Maven plugin -->
         <dependency>

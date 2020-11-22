@@ -46,6 +46,7 @@ class Buffer {
         this._currentIndex = -1;
         this._nextRequestFrameIndex = 0;
         this._lastRequestedFrameIndex = -1;
+        this._frameSkip = 0;
         this._serverOutOfFrames = false;
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
@@ -80,11 +81,13 @@ class Buffer {
     }
 
     /**
-     * @param {Number} frameIndex
+     * @param {Number} nextFrameIndex
+     * @param {Number} newFrameSkip
      */
-    resetToFrameIndex(frameIndex) {
+    resetWithFrameSkip(nextFrameIndex, newFrameSkip) {
         this.reset();
-        this._nextRequestFrameIndex = frameIndex;
+        this._nextRequestFrameIndex = nextFrameIndex;
+        this._frameSkip = newFrameSkip;
     }
 
     getSafefyThreshold() {
@@ -132,7 +135,7 @@ class Buffer {
     }
 
     getNextRequestFrameIndex() {
-        return (this.isEmpty() ? 0 : this._frames[this.getLastIndex()].index + 1);
+        return this.isEmpty() ? 0 : (this._frames[this.getLastIndex()].index + this._frameSkip + 1);
     }
 
     /**
@@ -188,29 +191,6 @@ class Buffer {
         }
         this._logStockLevel();
         return frames;
-    }
-
-    readNextOne() {
-        if (this.isStockAvailable()) {
-            let frame = this._frames[this._currentIndex];
-            this._currentIndex += 1;
-            return frame;
-        }
-    }
-
-    /**
-     * Read the next frame
-     * @param {Integer} skipSize: number of frames to be skipped
-     */
-    readNext(skipSize) {
-        if (this.isStockAvailable()) {
-            let newIndex = this._currentIndex + skipSize;
-            if (newIndex <= this.getLastIndex()) {
-                let frame = this._frames[newIndex];
-                this._currentIndex = (skipSize > 0) ? newIndex : newIndex++;
-                return frame;
-            }
-        }
     }
 
     /**

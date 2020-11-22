@@ -55,11 +55,10 @@ public class Frames extends ArrayList<Frame> {
 		
 		int step = animateContext.getFrameSkip() + 1;
 		for (int i=0; i < chunkSize; i++) {
-		    int stepIndex = startFrameIndex + i*step;
-		    json.put(this.get(stepIndex < this.size() ? stepIndex : this.size()-1).getJSON());
-		    if (stepIndex >= this.size()-1) {
-		        break;
-		    }
+		    int frameIndex = startFrameIndex + i*step;
+		    frameIndex = frameIndex < this.size() ? frameIndex : this.size()-1;
+		    json.put(this.get(frameIndex).getJSON());
+		    if (frameIndex >= this.size()-1) break;
 		}
 		return json.toString();
 	}
