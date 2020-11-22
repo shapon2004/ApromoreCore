@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!--
+  #%L
+  This file is part of "Apromore Core".
+  %%
+  Copyright (C) 2018 - 2020 Apromore Pty Ltd.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Lesser Public License for more details.
+  
+  You should have received a copy of the GNU General Lesser Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/lgpl-3.0.html>.
+  #L%
+  -->
+
+<html>
+<head>
+<style>
+    body {
+      margin: 0;
+    }
+
+    path {
+      fill: #eee;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+}
+</style>
+
+</head>
+<body>
+    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+        <path id="path1" d="M209.5,160.134c18-2.905,33.225-12.634,42.771-26.634H208h-13 h-48.63c9.419,14,24.13,23.463,41.13,26.515v14.44c-38-5.712-67.083-38.587-67.083-78.288c0-43.723,35.569-79.167,79.292-79.167 s78.979,35.444,78.979,79.167c0,40.278-30.188,73.53-69.188,78.52V160.134z">
+        </path>
+        <g id="duplicate"></g>
+    </svg>
+    <canvas width="400" height="200"></canvas>
+
+    <script>
+        var distancePerPoint = 2;
+        var drawFPS = 20;
+
+        var orig = document.querySelector('path');
+        var points;
+        var timer;
+        var canvas = document.querySelector('canvas');
+        var ctx = canvas.getContext('2d');
+
+        function startDrawingPath() {
+            clearCanvas();
+            points = [];
+            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = '#000000';
+            ctx.fillStyle = "red";
+            timer = setInterval(buildPath, 1000 / drawFPS);
+        }
+
+        function redrawCanvas() {
+            clearCanvas();
+            ctx.beginPath();
+            //ctx.moveTo(points[0].x, points[0].y);
+            ctx.beginPath();
+            ctx.arc(points[points.length-1].x, points[points.length-1].y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            /*
+            for (var i = 1; i < points.length; i++) {
+                //ctx.lineTo(points[i].x, points[i].y);
+                //ctx.moveTo(points[i].x, points[i].y);
+                ctx.beginPath();
+                ctx.arc(points[i].x, points[i].y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+             */
+            ctx.stroke();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+
+        function stopDrawingPath() {
+            clearInterval(timer);
+            clearCanvas();
+            points = [];
+            ctx.strokeStyle = '#000';
+            ctx.fillStyle = "red";
+        }
+
+        /** Assumes that 'orig' is an SVG path */
+        function buildPath() {
+            var nextPoint = points.length * distancePerPoint;
+            var pathLength = orig.getTotalLength();
+
+            if (nextPoint <= pathLength) {
+                points.push(orig.getPointAtLength(nextPoint));
+                redrawCanvas();
+            }
+        }
+
+        canvas.addEventListener('mouseover', startDrawingPath, false);
+        canvas.addEventListener('mouseout', stopDrawingPath, false);    
+    </script>
+</body> 
+</html>

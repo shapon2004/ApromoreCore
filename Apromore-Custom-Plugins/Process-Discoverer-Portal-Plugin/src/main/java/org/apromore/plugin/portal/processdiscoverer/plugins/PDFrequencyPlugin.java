@@ -23,7 +23,9 @@
 package org.apromore.plugin.portal.processdiscoverer.plugins;
 
 import java.util.Locale;
+
 import javax.inject.Inject;
+
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.loganimation.LogAnimationPluginInterface;
@@ -48,6 +50,7 @@ public class PDFrequencyPlugin extends PDAbstractPlugin {
     @Inject EventLogService eventLogService;
     @Inject ProcessService processService;
     @Inject LogAnimationPluginInterface logAnimationPlugin;
+    @Inject org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface logAnimationPlugin2;
     @Inject LogFilterPlugin logFilterPlugin;
 
     @Override
@@ -81,6 +84,7 @@ public class PDFrequencyPlugin extends PDAbstractPlugin {
                 Sessions.getCurrent().setAttribute("eventLogService", eventLogService);
                 Sessions.getCurrent().setAttribute("processService", processService);
                 Sessions.getCurrent().setAttribute("logAnimationPlugin", logAnimationPlugin);
+                Sessions.getCurrent().setAttribute("logAnimationPlugin2", logAnimationPlugin2);
                 Sessions.getCurrent().setAttribute("logFilterPlugin", logFilterPlugin);
 
         	if (!prepare) return;

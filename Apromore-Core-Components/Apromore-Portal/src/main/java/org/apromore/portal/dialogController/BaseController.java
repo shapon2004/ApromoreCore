@@ -25,12 +25,17 @@
 
 package org.apromore.portal.dialogController;
 
+import java.io.IOException;
 // Java 2 Standard Edition packages
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
+// Local classes
+import org.apromore.manager.client.ManagerService;
+import org.apromore.portal.ConfigBean;
+import org.apromore.service.EventLogService;
 // Third party packages
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -216,10 +221,15 @@ public class BaseController extends Window {
     private void setEventLogService(final EventLogService eventLogService) {
         this.eventLogService = eventLogService;
     }
+
+    public String processRequest(Map<String,String[]> parameterMap) {
+        return "";
+    }
     private void setSecurityService(final SecurityService securityService) {
         this.securityService = securityService;
     }
     private void setAuthorizationService(final AuthorizationService authorizationService) {
         this.authorizationService = authorizationService;
     }
+
 }

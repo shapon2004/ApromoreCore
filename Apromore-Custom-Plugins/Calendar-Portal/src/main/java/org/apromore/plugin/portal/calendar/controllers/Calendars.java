@@ -30,7 +30,6 @@ import java.util.UUID;
 import org.apromore.calendar.exception.CalendarAlreadyExistsException;
 import org.apromore.calendar.model.CalendarModel;
 import org.apromore.calendar.service.CalendarService;
-import org.apromore.plugin.portal.calendar.CalendarItemRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;

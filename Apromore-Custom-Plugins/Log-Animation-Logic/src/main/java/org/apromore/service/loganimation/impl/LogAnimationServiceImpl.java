@@ -383,7 +383,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         for (AnimationLog animationLog : replayedLogs) {
             transformToNonGateways(animationLog, diagramMapping);
         }
-        
+        LOGGER.info("Finish replaying log over model");
 
         /*
         * ------------------------------------------
@@ -400,7 +400,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
             String string = json.toString();
             //LOGGER.info(string);
             jsonBuilder.clear();
-
+            LOGGER.info("Finish generating JSON and start sending to the browser");
             return string;
         }
         else {
