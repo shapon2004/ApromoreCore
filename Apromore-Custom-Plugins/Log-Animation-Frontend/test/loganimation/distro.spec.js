@@ -1,6 +1,6 @@
 import LogAnimation from "../../src/loganimation";
 
-xdescribe('test library distribution', function () {
+describe('test library distribution', function () {
     beforeEach(function() {
         jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
         loadFixtures('test.html');

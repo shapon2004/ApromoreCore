@@ -24,12 +24,12 @@ describe('after starting the Log Animator', function () {
     // });
 
     it('then check result', (done) => {
-        expect($j("#start").get(0).disabled).toBeTrue();
-        expect($j("#pause").get(0).disabled).toBeTrue();
-        expect($j("#forward").get(0).disabled).toBeTrue();
-        expect($j("#backward").get(0).disabled).toBeTrue();
-        expect($j("#end").get(0).disabled).toBeTrue();
-        expect($j("#speed-control").get(0).disabled).toBeTrue();
+        expect($j("#start").get(0).disabled).toBeFalse();
+        expect($j("#pause").get(0).disabled).toBeFalse();
+        expect($j("#forward").get(0).disabled).toBeFalse();
+        expect($j("#backward").get(0).disabled).toBeFalse();
+        expect($j("#end").get(0).disabled).toBeFalse();
+        expect($j("#speed-control").get(0).disabled).toBeFalse();
         done();
     });
 });
