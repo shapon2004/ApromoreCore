@@ -1,6 +1,4 @@
 import LogAnimation from "../../src/loganimation";
-import jQuery from "jquery";
-window.$ = window.$j = window.jQuery = jQuery;
 
 describe('after starting the Log Animator', function () {
     var logAnim;

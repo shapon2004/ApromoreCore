@@ -27,8 +27,6 @@
 
 import AnimationController from "./animationController";
 import {ORYX} from "../bpmneditor/apromoreEditor";
-import jQuery from "jquery";
-window.$ = window.$j = window.jQuery = jQuery;
 /*
 // $.noConflict();
 window.$j = jQuery.noConflict();

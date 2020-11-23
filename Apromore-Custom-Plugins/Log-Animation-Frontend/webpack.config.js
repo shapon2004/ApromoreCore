@@ -28,12 +28,15 @@ module.exports = {
             'module',
             'main'
         ]
-    }
-    /*
+    },
+
     plugins: [
-        new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, "src", "index.html")
-        })
+        new webpack.ProvidePlugin({
+            "$":"jquery",
+            "$j":"jquery",
+            "jQuery":"jquery",
+            "window.jQuery":"jquery"
+        }),
     ],
-     */
+
 };

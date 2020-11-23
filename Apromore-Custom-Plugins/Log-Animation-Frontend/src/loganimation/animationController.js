@@ -55,12 +55,12 @@
 
 'use strict';
 
-import {SVG} from 'svgjs';
+import * as SVG from 'svgjs';
 import {AnimationContext, AnimationEvent, AnimationEventType} from './animation';
 import {TokenAnimation} from './tokenAnimation';
 import * as utils from './utils';
-import jQuery from "jquery";
-window.$ = window.$j = window.jQuery = jQuery;
+import 'jquery-ui-bundle';
+import 'jquery-ui-slider-pips-npm'
 
 export default class AnimationController {
   constructor(canvas, pluginExecutionId) {
