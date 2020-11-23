@@ -6,3 +6,9 @@ Project folder structure:
 - config: config files
 - scripts: NPM script files, if any.
 - dist: distribution bundles
+
+Commands
+
+npm install: to install all dependencies
+npm run build: to build distribution bundle in the 'dist' folder.
+npm test: to run unit tests.
