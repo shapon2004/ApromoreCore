@@ -1,12 +1,12 @@
 import LogAnimation from "../../src/loganimation";
 
-describe('test library distribution', function () {
+describe('After loading library distribution', function () {
     beforeEach(function() {
         jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
         loadFixtures('logAnimationUI.html');
     });
 
-    it('should expose global entry class', function() {
+    it('It should expose the global entry class (LogAnimation)', function() {
         const URL = "http://b3mn.org/stencilset/bpmn2.0#";
         let bpmn = require('./fixtures/simpleMap.bpmn');
         let setupData = require('./fixtures/setupData.txt');
