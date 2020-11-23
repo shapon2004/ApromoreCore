@@ -86,7 +86,7 @@ public class Calendars extends SelectorComposer<Window> {
       
 //      create
     	try {    		
-			calendarService.createBusinessCalendar("Austrailia 2020", true, ZoneId.systemDefault().toString());
+			calendarService.createBusinessCalendar("Australia 2020", true, ZoneId.systemDefault().toString());
 		} catch (CalendarAlreadyExistsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
