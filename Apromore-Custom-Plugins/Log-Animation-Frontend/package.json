@@ -13,10 +13,11 @@
   "author": "brucenguyen",
   "license": "ApromoreEE",
   "dependencies": {
+    "moment": "^2.29.1",
+    "@svgdotjs/svg.js": "^3.0.16",
     "jquery": "^1.11.0",
     "jquery-ui-bundle": "^1.11.4",
-    "jquery-ui-slider-pips-npm": "^1.11.4",
-    "svgjs": "^2.6.2"
+    "jquery-ui-slider-pips-npm": "^1.11.4"
   },
   "devDependencies": {
     "css-loader": "^5.0.1",
