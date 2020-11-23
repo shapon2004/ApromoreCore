@@ -1,13 +1,13 @@
 import LogAnimation from "../../src/loganimation";
 
-describe('after starting the Log Animator', function () {
+describe('After initializing the Log Animator', function () {
     var logAnim;
     beforeEach((done) => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999;
         jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
-        loadFixtures('test.html');
+        loadFixtures('logAnimationUI.html');
         const URL = "http://b3mn.org/stencilset/bpmn2.0#";
-        let bpmn = require('./fixtures/simple2.bpmn');
+        let bpmn = require('./fixtures/simpleMap.bpmn');
         let setupData = require('./fixtures/setupData.txt');
         //jasmine.clock().install();
         logAnim = new LogAnimation(bpmn.default, URL, URL, setupData.default, '111');
@@ -23,7 +23,7 @@ describe('after starting the Log Animator', function () {
     //
     // });
 
-    it('then check result', (done) => {
+    it('It loads all data successfully and button controls are in ready state', (done) => {
         expect($j("#start").get(0).disabled).toBeFalse();
         expect($j("#pause").get(0).disabled).toBeFalse();
         expect($j("#forward").get(0).disabled).toBeFalse();
