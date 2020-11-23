@@ -41,7 +41,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-<<<<<<< HEAD
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
