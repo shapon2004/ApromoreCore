@@ -13,6 +13,8 @@ describe('After loading library distribution', function () {
         let logAnim = new LogAnimation(bpmn.default, URL, URL, setupData.default, '111');
         expect(logAnim).not.toEqual(null);
         expect(logAnim).not.toEqual({});
+        expect(logAnim.getController()).not.toEqual(null);
+        expect(logAnim.getEditor()).not.toEqual(null);
     });
 
 });

@@ -104,6 +104,10 @@ export default class LogAnimation {
     return this.controller;
   }
 
+  getEditor() {
+    return this.editor;
+  }
+
   playPause(e) {
     this.controller.playPause(e);
   }

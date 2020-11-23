@@ -51,6 +51,7 @@ export default class DataRequester {
                                         'chunkSize': chunkSize});
     }
 
+    // This is for testing performance
     calculatePrimes(iterations, multiplier) {
         var primes = [];
         for (var i = 0; i < iterations; i++) {
@@ -70,6 +71,7 @@ export default class DataRequester {
         return primes;
     }
 
+    // This is for testing performance
     doPointlessComputationsWithBlocking() {
         var primes = calculatePrimes(iterations, multiplier);
         console.log(primes);
