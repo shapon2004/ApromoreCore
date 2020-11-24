@@ -50,26 +50,39 @@ ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
 */
 
 export default class LogAnimation {
-  constructor(xml, url, namespace, data, pluginExecutionId) {
-    this.animationData = data;
-    this.editor = this.initEditor(xml, url, namespace);
-    this.controller = new AnimationController(this.editor.getCanvas(), pluginExecutionId);
+  constructor(editorParentId, xml, url, namespace, animationData, pluginExecutionId) {
+    let editor = this._initEditor(editorParentId, xml, url, namespace);
+    window.setTimeout((function() {
+      this.controller = this._initAnimationController(editor.getCanvas(), animationData, pluginExecutionId);
+    }).bind(this), 1000);
   }
 
-  /*
-  init(xml, url, namespace, data, pluginExecutionId) {
-    this.animationData = data;
-    this.editor = initEditor(xml, url, namespace);
-    this.controller = new AnimationController(editor.getCanvas(), pluginExecutionId);
-    initSpeedControl();
+  getAnimationController() {
+    return this.controller;
   }
-  */
 
-  initEditor(xml, url, namespace) {
+  _initAnimationController(editorCanvas, animationData, pluginExecutionId) {
+    let controller = new AnimationController(editorCanvas, pluginExecutionId);
+    this.setPlayControls(true); // Disable play controls as the controller init. may take time
+    controller.initialize(animationData);
+    this.setPlayControls(false);
+    document.title = "Apromore - Log Animator";
+    return controller;
+  }
+
+  /**
+   *
+   * @param {String} editorParentId: id of the div element hosting the editor
+   * @param {String} xml: XML content of the BPMN map/model
+   * @param {String} url:
+   * @param namespace
+   * @returns {*}
+   */
+  _initEditor(editorParentId, xml, url, namespace) {
     return new ORYX.Editor({
       xml,
       model: {
-        id: "editorcanvas",
+        id: editorParentId,
         showPlugins: false,
         stencilset: {
           url,
@@ -87,25 +100,6 @@ export default class LogAnimation {
     $j("#backward").get(0).disabled = disabled;
     $j("#end").get(0).disabled = disabled;
     $j("#speed-control").get(0).disabled = disabled;
-  }
-
-  initController() {
-    if (!this.animationData) {
-      // No data
-      return;
-    }
-    this.setPlayControls(true); // Disable play controls as the controller init. may take time
-    this.controller.initialize(this.animationData);
-    this.setPlayControls(false);
-    document.title = "Apromore - Log Animator";
-  }
-
-  getController() {
-    return this.controller;
-  }
-
-  getEditor() {
-    return this.editor;
   }
 
   playPause(e) {
