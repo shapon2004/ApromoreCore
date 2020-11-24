@@ -30,7 +30,6 @@ module.exports = function (config) {
         ],
 
         preprocessors: {
-            //'./src/loganimation/index.js': ['webpack'],
             './test/loganimation/*.spec.js': ['webpack'],
         },
         webpack: webpackConfig,
