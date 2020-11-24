@@ -64804,6 +64804,7 @@ class DataRequester {
                                         'chunkSize': chunkSize});
     }
 
+    // This is for testing performance
     calculatePrimes(iterations, multiplier) {
         var primes = [];
         for (var i = 0; i < iterations; i++) {
@@ -64823,6 +64824,7 @@ class DataRequester {
         return primes;
     }
 
+    // This is for testing performance
     doPointlessComputationsWithBlocking() {
         var primes = calculatePrimes(iterations, multiplier);
         console.log(primes);
@@ -65258,26 +65260,39 @@ ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
 */
 
 class LogAnimation {
-  constructor(xml, url, namespace, data, pluginExecutionId) {
-    this.animationData = data;
-    this.editor = this.initEditor(xml, url, namespace);
-    this.controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__["default"](this.editor.getCanvas(), pluginExecutionId);
+  constructor(editorParentId, xml, url, namespace, animationData, pluginExecutionId) {
+    let editor = this._initEditor(editorParentId, xml, url, namespace);
+    window.setTimeout((function() {
+      this.controller = this._initAnimationController(editor.getCanvas(), animationData, pluginExecutionId);
+    }).bind(this), 1000);
   }
 
-  /*
-  init(xml, url, namespace, data, pluginExecutionId) {
-    this.animationData = data;
-    this.editor = initEditor(xml, url, namespace);
-    this.controller = new AnimationController(editor.getCanvas(), pluginExecutionId);
-    initSpeedControl();
+  getAnimationController() {
+    return this.controller;
   }
-  */
 
-  initEditor(xml, url, namespace) {
+  _initAnimationController(editorCanvas, animationData, pluginExecutionId) {
+    let controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__["default"](editorCanvas, pluginExecutionId);
+    this.setPlayControls(true); // Disable play controls as the controller init. may take time
+    controller.initialize(animationData);
+    this.setPlayControls(false);
+    document.title = "Apromore - Log Animator";
+    return controller;
+  }
+
+  /**
+   *
+   * @param {String} editorParentId: id of the div element hosting the editor
+   * @param {String} xml: XML content of the BPMN map/model
+   * @param {String} url:
+   * @param namespace
+   * @returns {*}
+   */
+  _initEditor(editorParentId, xml, url, namespace) {
     return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__["ORYX"].Editor({
       xml,
       model: {
-        id: "editorcanvas",
+        id: editorParentId,
         showPlugins: false,
         stencilset: {
           url,
@@ -65295,21 +65310,6 @@ class LogAnimation {
     $j("#backward").get(0).disabled = disabled;
     $j("#end").get(0).disabled = disabled;
     $j("#speed-control").get(0).disabled = disabled;
-  }
-
-  initController() {
-    if (!this.animationData) {
-      // No data
-      return;
-    }
-    this.setPlayControls(true); // Disable play controls as the controller init. may take time
-    this.controller.initialize(this.animationData);
-    this.setPlayControls(false);
-    document.title = "Apromore - Log Animator";
-  }
-
-  getController() {
-    return this.controller;
   }
 
   playPause(e) {

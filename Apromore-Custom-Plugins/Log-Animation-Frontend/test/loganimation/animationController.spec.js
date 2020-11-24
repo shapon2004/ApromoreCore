@@ -1,9 +1,17 @@
 import * as testHelper from "./helper";
 
 describe('Test Simple Animation Controller', function () {
-    var animController;
+    let animController;
     beforeEach(function() {
         animController = testHelper.createSimpleAnimationController();
+    });
+
+    it('It establishes the right animation context', function() {
+        let animContext = animController.getAnimationContext();
+        expect(animContext.getTotalNumberOfFrames()).toEqual(36000);
+        expect(animContext.getRecordingFrameRate()).toEqual(60);
+        expect(animContext.getLogicalTimelineMax()).toEqual(600);
+        expect(animContext.getPluginExecutionId()).toEqual('101');
     });
 
     it('It is paused after creation', function() {

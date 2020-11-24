@@ -133,11 +133,13 @@ export class TokenAnimation {
         this._canvasContext.globalCompositeOperation = "lighten";
     }
 
+    // Whether out of playing time
     isInProgress () {
         let currentLogicalTime = this.getCurrentLogicalTime();
-        return (currentLogicalTime > 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
+        return (currentLogicalTime >= 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
     }
 
+    // Is in pausing state?
     isPausing() {
         return this._state === AnimationState.PAUSING;
     }

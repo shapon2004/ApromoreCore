@@ -258,6 +258,20 @@ export default class AnimationController {
     });
   }
 
+  /**
+   * @returns {AnimationContext}
+   */
+  getAnimationContext() {
+    return this.animationContext;
+  }
+
+  /**
+   * @returns {TokenAnimation}
+   */
+  getTokenAnimation() {
+    return this.tokenAnimation;
+  }
+
   // Add log intervals to timeline
   createLogIntervals() {
     let {
