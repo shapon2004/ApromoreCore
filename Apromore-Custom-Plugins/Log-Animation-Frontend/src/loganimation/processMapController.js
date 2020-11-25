@@ -1,5 +1,6 @@
 import {ORYX} from "../bpmneditor/apromoreEditor";
 import * as utils from "./utils";
+import {AnimationEvent, AnimationEventType} from "./animationEvents";
 
 /**
  * ProcessMapController encapsulates the process map editor and provides
@@ -9,18 +10,33 @@ import * as utils from "./utils";
 export default class ProcessMapController {
     /**
      * @param {AnimationController} animationController
-     * @param {String} uiElementId: id of the div element used for the editor
+     * @param {String} uiContainerId: id of the parent div element for containing the editor
      * @param {String }processMapXML: BPMN XML of the process map
      * @param {Object} elementMapping: map from element index to element id
      */
-    constructor(animationController, uiElementId, processMapXML, elementMapping) {
+    constructor(animationController, uiContainerId, processMapXML, elementMapping) {
         this._animationController = animationController;
         const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
-        this._editor = this._init(uiElementId, processMapXML, BPMN_NS, BPMN_NS);
+        this._editor = this._init(uiContainerId, processMapXML, BPMN_NS, BPMN_NS);
         this._svgMain = this._editor.getCanvas().getSVGContainer();
         this._svgViewport = this._editor.getCanvas().getSVGViewport();
         this._initIndexToElementMapping(elementMapping);
-        this._registerEvents();
+        this._listeners = [];
+
+        let me = this;
+        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function(event) {
+            let modelBox = this.getBoundingClientRect();
+            let modelMatrix = this.getTransformMatrix();
+            me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVING,
+                                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+        });
+
+        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function(event) {
+            let modelBox = this.getBoundingClientRect();
+            let modelMatrix = this.getTransformMatrix();
+            me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVED,
+                                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+        });
     }
 
     /**
@@ -38,38 +54,24 @@ export default class ProcessMapController {
     }
 
     /**
-     * @param {Number} elementIndex: element index
+     * @param {Number} elementIndex: index of the modelling element.
      * @returns {SVGElement} SVG element
      */
     getPathElement(elementIndex) {
         return this._indexToElement[elementIndex];
     }
 
-    setPosition(x, y) {
-
+    registerListener(listener) {
+        this._listeners.push(listener);
     }
 
-    _registerEvents() {
-        let isPlayingBeforeChanging = false;
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function(event) {
-            let modelBox = this._svgMain.getBoundingClientRect();
-            let modelMatrix = this._svgViewport.transform.baseVal.consolidate().matrix;
-            this._animationController.getTokenAnimation().setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
-            if (this._animationController.isPlaying()) {
-                this._animationController.pause();
-                isPlayingBeforeChanging = true;
-            }
-        });
-
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function(event) {
-            let modelBox = this._svgMain.getBoundingClientRect();
-            let modelMatrix = this._svgViewport.transform.baseVal.consolidate().matrix;
-            this._animationController.getTokenAnimation().setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
-            if (isPlayingBeforeChanging) {
-                this._animationController.unPause();
-                isPlayingBeforeChanging = false;
-            }
-        });
+    /**
+     * @param {AnimationEvent} event
+     */
+    _notifyAll(event) {
+        this._listeners.forEach(function(listener){
+            listener.update(event);
+        })
     }
 
 
@@ -101,11 +103,13 @@ export default class ProcessMapController {
 
     /**
      * Create two paths: one crossing and one skipping a node
+     * The paths are added as children to the node element
      * @param {String} nodeId
      */
     _createNodePathElements (nodeId) {
+        let editorCanvas = this._editor.getCanvas();
         let incomingEndPoint = $j(
-            '[data-element-id=' + this.canvas.getIncomingFlowId(nodeId) +
+            '[data-element-id=' + editorCanvas.getIncomingFlowId(nodeId) +
             ']',
         )
         let incomingPathE = incomingEndPoint.find('g').find('path').get(0)
@@ -116,7 +120,7 @@ export default class ProcessMapController {
         let arrayAbove, arrayBelow;
 
         let outgoingStartPoint = $j(
-            '[data-element-id=' + this.canvas.getOutgoingFlowId(nodeId) +
+            '[data-element-id=' + editorCanvas.getOutgoingFlowId(nodeId) +
             ']',
         )
         let outgoingPathE = outgoingStartPoint.find('g').find('path').get(0)
@@ -126,12 +130,12 @@ export default class ProcessMapController {
         let endPoint = outgoingStartPoint
 
         let nodeTransformE = $j('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
-        let nodeRectE = $j('[data-element-id=' + nodeId + ']').
-        find('g').
-        find('rect').
-        get(0)
+        let nodeRectE = $j('[data-element-id=' + nodeId + ']')
+                                    .find('g')
+                                    .find('rect')
+                                    .get(0)
         let taskRectPoints = utils.getViewportPoints(
-            this.svgMain,
+            this._svgMain,
             nodeRectE,
             nodeTransformE,
         )

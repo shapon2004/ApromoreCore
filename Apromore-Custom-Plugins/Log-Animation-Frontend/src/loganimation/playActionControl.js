@@ -34,14 +34,6 @@ export default class PlayActionControl{
         this.PAUSE_CLS = pauseClassName;
     }
 
-    setControlsDisabled(disabled) {
-        this.gotoStartButton.disabled = disabled;
-        this.gotoEndButton.disabled = disabled;
-        this.pauseButton.disabled = disabled;
-        this.forwardButton.disabled = disabled;
-        this.backwardButton.disabled = disabled;
-    }
-
     /**
      * @param {Boolean} changeToPlay: true means setting the button to a Play shape, false: set it to a Pause shape.
      */
