@@ -1,5 +1,7 @@
 /**
  * PlayActionControl groups buttons controlling the animation such as start, pause, fast foward, etc.
+ *
+ * @author Bruce Nguyen
  */
 export default class PlayActionControl{
     /**

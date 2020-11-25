@@ -2,6 +2,8 @@ import * as SVG from "@svgdotjs/svg.js";
 
 /**
  * ProgressAnimation manages the progress indicator of the animation.
+ *
+ * @author Bruce Nguyen
  */
 export default class ProgressAnimation {
     /**
@@ -37,7 +39,7 @@ export default class ProgressAnimation {
     }
     /**
      * @see TimelineAnimation.setSpeedLevel()
-     * @param {Number} speedLevel: the level number on the speed control component
+     * @param {Number} newSpeedLevel: the level number on the speed control component
      */
     setSpeedLevel(newSpeedLevel) {
         let speedRatio = newSpeedLevel/this._currentSpeedLevel;
@@ -58,13 +60,13 @@ export default class ProgressAnimation {
     /**
      *
      * @param {Array} logSummaries
-     * @param {HTMLDivElement} uiContainer
+     * @param {HTMLDivElement} uiTopContainer
      * @param {Number} speedRatio
      * @return {SVGElement[]}
      * @private
      */
     _createProgressIndicators(logSummaries, uiTopContainer, speedRatio) {
-        let log, progressContainer, svgProgressEl, label;
+        let log;
         let svgProgress, svgProgresses = [];
         let progressTopContainer = uiTopContainer;
 
@@ -93,8 +95,6 @@ export default class ProgressAnimation {
      * Create progress indicator for one log
      * @param logNo: ordinal number of one log
      * @param log: log summary data
-     * @param x:
-     * @param y
      * @param speedRatio
      * @returns {*}
      * @private
@@ -132,7 +132,10 @@ export default class ProgressAnimation {
     }
 
     /**
+     * Create a popup window when hovering the mouse over the progress indicator.
      * @param {Array} logSummaries
+     * @param {HTMLDivElement} uiTopContainer
+     * @param {HTMLDivElement} uiPopupContainer
      * @private
      */
     _createLogInfoPopups(logSummaries, uiTopContainer, uiPopupContainer) {

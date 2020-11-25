@@ -8,8 +8,7 @@
  */
 export default class DataRequester {
     /**
-     * @param {Buffer} buffer
-     * @param {String} pluginExecutionId
+     * @param {String} pluginExecutionId: plugin running instance id
      */
     constructor(pluginExecutionId) {
         this._buffer = undefined;
@@ -41,6 +40,7 @@ export default class DataRequester {
      * @param {Number} frameIndex
      * @param {Buffer} buffer
      * @param {Number} requestToken
+     * @param {Number} chunkSize
      */
     requestData(buffer, requestToken, frameIndex, chunkSize) {
         console.log('DataRequester - requestData: frameIndex=' + frameIndex + ", requestToken=" + requestToken);
@@ -51,30 +51,5 @@ export default class DataRequester {
                                         'chunkSize': chunkSize});
     }
 
-    // This is for testing performance
-    calculatePrimes(iterations, multiplier) {
-        var primes = [];
-        for (var i = 0; i < iterations; i++) {
-            var candidate = i * (multiplier * Math.random());
-            var isPrime = true;
-            for (var c = 2; c <= Math.sqrt(candidate); ++c) {
-                if (candidate % c === 0) {
-                    // not prime
-                    isPrime = false;
-                    break;
-                }
-            }
-            if (isPrime) {
-                primes.push(candidate);
-            }
-        }
-        return primes;
-    }
-
-    // This is for testing performance
-    doPointlessComputationsWithBlocking() {
-        var primes = calculatePrimes(iterations, multiplier);
-        console.log(primes);
-    }
 }
 

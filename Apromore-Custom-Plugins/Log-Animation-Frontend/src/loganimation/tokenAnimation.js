@@ -7,7 +7,7 @@
 'use strict';
 
 import Buffer from "./frameBuffer";
-import {AnimationContext, AnimationState} from "./animationContextState";
+import {AnimationState} from "./animationContextState";
 import {AnimationEvent, AnimationEventType} from "./animationEvents";
 import ProcessMapController from './processMapController';
 
@@ -27,6 +27,8 @@ import ProcessMapController from './processMapController';
  *
  *  The animation configurations are contained in an AnimationContext
  *  The animation informs the outside via events and listeners.
+ *
+ *  @author Bruce Nguyen
  */
 
 export default class TokenAnimation {
@@ -49,7 +51,7 @@ export default class TokenAnimation {
         this._colorPalette = colorPalette;
 
 
-        this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
+        this._frameBuffer = new Buffer(animationController.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrame = undefined;
 
@@ -74,8 +76,8 @@ export default class TokenAnimation {
         this._currentTime = 0;
         this._setState(AnimationState.PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        //this._loopBufferRead();
-        //this._loopDraw(0);
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**
@@ -323,7 +325,7 @@ export default class TokenAnimation {
      * @private
      */
     _getTokenFillColor(logNo, tokenSize) {
-        let colorIndex = 0;
+        let colorIndex;
         if (tokenSize <= 2) {
             colorIndex = 0;
         }
@@ -352,7 +354,7 @@ export default class TokenAnimation {
      * @private
      */
     _selectTokenColor(numberOfTokens) {
-        let colorIndex = 0;
+        let colorIndex;
         if (numberOfTokens <= 2) colorIndex = 0;
         else if (numberOfTokens <= 4) colorIndex = 1;
         else if (numberOfTokens <= 6) colorIndex = 2;
@@ -422,7 +424,7 @@ export default class TokenAnimation {
      */
     _notifyAll(event) {
         this._listeners.forEach(function(listener){
-            listener.update(event);
+            listener.handleEvent(event);
         })
     }
 }

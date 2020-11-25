@@ -35,7 +35,7 @@
 
 'use strict';
 
-import {AnimationContext} from "./animation";
+import {AnimationContext} from "./animationContextState";
 import DataRequester from "./dataRequester";
 
 export default class Buffer {

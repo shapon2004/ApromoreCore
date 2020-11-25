@@ -6,6 +6,8 @@ import {AnimationEvent, AnimationEventType} from "./animationEvents";
  * ProcessMapController encapsulates the process map editor and provides
  * interfaces into the editor needed by the token animation. The token animation
  * shows animation on the editor.
+ *
+ * @author Bruce Nguyen
  */
 export default class ProcessMapController {
     /**
@@ -25,15 +27,15 @@ export default class ProcessMapController {
 
         let me = this;
         this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function(event) {
-            let modelBox = this.getBoundingClientRect();
-            let modelMatrix = this.getTransformMatrix();
+            let modelBox = me.getBoundingClientRect();
+            let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVING,
                                     {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
 
         this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function(event) {
-            let modelBox = this.getBoundingClientRect();
-            let modelMatrix = this.getTransformMatrix();
+            let modelBox = me.getBoundingClientRect();
+            let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVED,
                                     {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
@@ -54,7 +56,7 @@ export default class ProcessMapController {
     }
 
     /**
-     * @param {Number} elementIndex: index of the modelling element.
+     * @param {String} elementIndex: index of the modelling element.
      * @returns {SVGElement} SVG element
      */
     getPathElement(elementIndex) {
@@ -70,7 +72,7 @@ export default class ProcessMapController {
      */
     _notifyAll(event) {
         this._listeners.forEach(function(listener){
-            listener.update(event);
+            listener.handleEvent(event);
         })
     }
 
@@ -160,8 +162,8 @@ export default class ProcessMapController {
                 'm' + startPoint.x + ',' + startPoint.y +
                 ' L' + endPoint.x + ',' + endPoint.y
         } else {
-            arrayAbove = new Array()
-            arrayBelow = new Array()
+            arrayAbove = []
+            arrayBelow = []
 
             if (
                 taskRectPoints.se.y <

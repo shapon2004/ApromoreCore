@@ -24,8 +24,6 @@
  */
 'use strict';
 
-import 'jquery-ui-bundle';
-import 'jquery-ui-slider-pips-npm';
 import {AnimationContext} from './animationContextState';
 import {AnimationEvent, AnimationEventType} from './animationEvents';
 import TokenAnimation from './tokenAnimation';
@@ -37,25 +35,36 @@ import ClockAnimation from "./clockAnimation";
 import PlayActionControl from "./playActionControl";
 
 /**
- * AnimationController manages the animation page. It coordinates work with  other components,
- * including main animation, the timeline, clock, log info table, progress indicator.
- * This controller represents the main starting point for the animation front-end.
+ * AnimationController is a Front Controller to manage the animation page.
+ * It coordinates other components, including token animation, timeline, clock, log info table, progress indicator.
+ * Each component is represented by a Controller.
+ * The View and Controller of MVC are bundled as Controller. View is accessed via jQuery.
+ * The Model of MVC is not explicitly managed as the data is read-only. Data include JSON and XML read from the server.
+ * As the business gets more complex, a more complete MVC model would be considered.
+ *
+ * @author Bruce Nguyen
  */
 export default class AnimationController {
+    /**
+     * @param {String} processMapXML: the BPMN XML text encoding the process model
+     * @param {String} setupData: the JSON raw text containg initial setup data
+     * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
+     */
     constructor(processMapXML, setupData, pluginExecutionId) {
         this.pluginExecutionId = pluginExecutionId;
-        let jsonServer = JSON.parse(setupData);
-        this.logs = jsonServer.logs;
+        let jsonSetup = JSON.parse(setupData);
+        this.logSummaries = jsonSetup.logs;
         this.isPlayingBeforeMovingModel = false;
-
         this.apPalette = [
             ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
             ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
         ];
 
         // Add token animation
-        let {logs, recordingFrameRate, elementMapping, caseCountsByFrames, startMs, endMs, totalEngineS} = jsonServer;
-        this.animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, totalEngineS, recordingFrameRate);
+        let {recordingFrameRate, elementMapping, startMs, endMs, totalEngineS,
+            timelineSlots, slotEngineUnit, caseCountsByFrames} = jsonSetup;
+        this.animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, timelineSlots,
+                                                    totalEngineS, slotEngineUnit, recordingFrameRate);
         this.processMapController = new ProcessMapController(this, 'editorcanvas', processMapXML, elementMapping);
         this.tokenAnimation = new TokenAnimation(this, $j("#canvas"), this.processMapController, this.apPalette);
 
@@ -64,8 +73,9 @@ export default class AnimationController {
         this.speedControl = new SpeedControl(this, $j("#speed-control"));
         this.progress = new ProgressAnimation(this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
         this.clock = new ClockAnimation(this, $j('#date'), $j('#time'));
-        this.buttonControls = new PlayActionControl(this, $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'),
-            $j('#end'), 'ap-mc-icon-play', 'ap-mc-icon-pause');
+        this.buttonControls = new PlayActionControl(this,
+                                $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+                                'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events
         this.processMapController.registerListener(this);
@@ -95,11 +105,11 @@ export default class AnimationController {
     }
 
     getNumberOfLogs() {
-        return this.logs.length;
+        return this.logSummaries.length;
     }
 
     getLogSummaries() {
-        return this.logs;
+        return this.logSummaries;
     }
 
     getLogColor(logNo, logColor) {
@@ -139,6 +149,38 @@ export default class AnimationController {
         this.tokenAnimation.setPlayingFrameRate(frameRate);
     }
 
+    // Move forward 1 slot
+    fastForward() {
+        console.log('AnimationController - fastForward');
+        if (this.timeline.isAtEnd()) return;
+        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
+        let newLogicalTime = currentLogicalTime + this.animationContext.getLogicalSlotTime();
+        this.goto(newLogicalTime);
+    }
+
+    // Move backward 1 slot
+    fastBackward() {
+        console.log('AnimationController - fastBackward');
+        if (this.timeline.isAtStart()) return;
+        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
+        let newLogicalTime = currentLogicalTime - this.animationContext.getLogicalSlotTime();
+        this.goto(newLogicalTime);
+    }
+
+    gotoStart() {
+        console.log('AnimationController - gotoStart');
+        if (this.timeline.isAtStart()) return;
+        this.goto(0);
+        this.pause();
+    }
+
+    gotoEnd() {
+        console.log('AnimationController - gotoEnd');
+        if (this.timeline.isAtEnd()) return;
+        this.goto(this.animationContext.getLogicalTimelineMax());
+        this.pause();
+    }
+
     /**
      *
      * @param {Number} logicalTime: the time when speed level = 1.
@@ -156,40 +198,8 @@ export default class AnimationController {
         let logTime = this._getLogTimeFromLogicalTime(newLogicalTime);
         this.timeline.setCurrentTime(svgTime);
         this.progress.setCurrentTime(svgTime);
-        this.clock.setTime(logTime);
+        this.clock.setCurrentTime(logTime);
         this.tokenAnimation.doGoto(newLogicalTime);
-    }
-
-    // Move forward 1 slot
-    fastForward() {
-        console.log('AnimationController - fastForward');
-        if (this.timeline.isAtEnd()) return;
-        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
-        let newLogicalTime = currentLogicalTime + this.animationContext.getLogicalTimelineMax();
-        this.goto(newLogicalTime);
-    }
-
-    // Move backward 1 slot
-    fastBackward() {
-        console.log('AnimationController - fastBackward');
-        if (this.timeline.isAtStart()) return;
-        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
-        let newLogicalTime = currentLogicalTime - this.animationContext.getLogicalTimelineMax();
-        this.goto(newLogicalTime);
-    }
-
-    gotoStart() {
-        console.log('AnimationController - gotoStart');
-        if (this.timeline.isAtStart()) return;
-        this.goto(0);
-        this.pause();
-    }
-
-    gotoEnd() {
-        console.log('AnimationController - gotoEnd');
-        if (this.timeline.isAtEnd()) return;
-        this.goto(this.oriTotalEngineS);
-        this.pause();
     }
 
     isPlaying() {
@@ -242,7 +252,7 @@ export default class AnimationController {
      * @param {AnimationEventType} event
      * @param {Object} eventData
      */
-    update(event, eventData) {
+    handleEvent(event, eventData) {
         //console.log('AnimationController: event processing');
         if (!(event instanceof AnimationEvent)) return;
 

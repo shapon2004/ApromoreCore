@@ -8,22 +8,22 @@ export default class TimelineAnimation {
     /**
      * @param {AnimationController} animationController
      * @param {SVGElement} uiContainer
-     * @param {JSON} caseCountsByFrames
+     * @param {Array} caseCountsByFrames
      */
     constructor(animationController, uiContainer, caseCountsByFrames) {
         this.animationController = animationController;
         this.animationContext = animationController.getAnimationContext();
 
         // Parameters
+        this.slotNum = this.animationContext.getTimelineSlots();
+        this.endPos = this.slotNum;
+        this.slotEngineS = this.animationContext.getLogicalSlotTime(); // in seconds
         this.logMillis = animationController.getAnimationContext().getLogEndTime() -
             animationController.getAnimationContext().getLogStartTime();
         this.slotDataMs = this.logMillis / this.slotNum;
-        this.slotEngineS = this.animationContext.getLogicalTimelineMax(); // in seconds
         this.timeCoef = this.animationContext.getTimelineRatio();
 
         // Visual settings
-        this.endPos = 120;
-        this.slotNum = 120;
         this.slotWidth = 9;
         this.timelineWidth = this.slotNum * this.slotWidth;
         this.logIntervalSize = 5;
@@ -68,7 +68,7 @@ export default class TimelineAnimation {
 
     isAtEnd() {
         let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
-        return (currentLogicalTime === this.oriTotalEngineS);
+        return (currentLogicalTime === this.animationContext.getLogicalTimelineMax());
     }
 
     pause() {
@@ -82,8 +82,8 @@ export default class TimelineAnimation {
     /**
      * Logical time: the time as shown on the timeline when the cursor speed level is 1.
      * Actual time: the actual time of the timeline cursor when its speed is less than or greater than 1.
-     * @param logicalTime
-     * @returns {number}
+     * @param logicalTime: in seconds
+     * @returns {Number}: in seconds
      */
     getSVGTimeFromLogicalTime(logicalTime) {
         if (logicalTime <= 0) return 0;
@@ -91,14 +91,24 @@ export default class TimelineAnimation {
         return logicalTime/this.currentSpeedLevel;
     }
 
+    /**
+     * @param svgTime: in seconds
+     * @returns {Number} in seconds
+     */
     getLogicalTimeFromSVGTime(svgTime) {
         if (svgTime <= 0) return 0;
-        if (svgTime >= this.animationContext.getLogicalTimelineMax()) return this.oriTotalEngineS;
+        if (svgTime >= this.animationContext.getLogicalTimelineMax()) {
+            return this.animationContext.getLogicalTimelineMax();
+        }
         return svgTime*this.currentSpeedLevel;
     }
 
+    /**
+     * @param logicalTime: in seconds
+     * @returns {Number}: in milliseconds
+     */
     getLogTimeFromLogicalTime(logicalTime) {
-        return logicalTime * this.oriTimeCoef * 1000 + this.animationContext.getLogStartTime();
+        return this.animationContext.getLogStartTime() + logicalTime * this.animationContext.getTimelineRatio() * 1000;
     }
 
     /**
@@ -185,7 +195,7 @@ export default class TimelineAnimation {
         let skip;
 
         for (let i = 0; i <= this.slotNum; i++) {
-            if (i % 10 == 0) {
+            if (i % 10 === 0) {
                 date = moment(time);
                 dateTxt = date.format('D MMM YY');
                 timeTxt = date.format('H:mm:ss');
@@ -233,7 +243,6 @@ export default class TimelineAnimation {
 
         // Draw distribution
         if (caseCountsByFrames) {
-            const Y_MAX = ctx.canvas.height;
             const MAX_HEIGHT = ctx.canvas.height/4;
             let maxCount = 0;
             for (let count of Object.values(caseCountsByFrames)) {
@@ -246,7 +255,6 @@ export default class TimelineAnimation {
                 let distance = i/totalFrames;
                 let point = timelinePathE.getPointAtLength(totalLength * distance);
                 let height = (caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
-                let y2 = ctx.canvas.height - height;
                 ctx.beginPath();
                 ctx.moveTo(point.x, timelinePathY);
                 ctx.lineTo(point.x, timelinePathY - height);
@@ -278,7 +286,7 @@ export default class TimelineAnimation {
         cursorAnim.setAttributeNS(null, 'begin', '0s');
         //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
         cursorAnim.setAttributeNS(null, 'dur', this.slotNum * this.slotEngineS + 's');
-        cursorAnim.setAttributeNS(null, 'by', 1);
+        cursorAnim.setAttributeNS(null, 'by', '1');
         cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
         cursorAnim.setAttributeNS(null, 'to', x + this.slotNum * this.slotWidth + ',' + y);
         cursorAnim.setAttributeNS(null, 'fill', 'freeze');
@@ -306,7 +314,7 @@ export default class TimelineAnimation {
 
         function stopDragging(evt) {
             if (!dragging) return; // Avoid doing the below two times
-            if (evt.type == 'mouseleave' && dragging) {
+            if (evt.type === 'mouseleave' && dragging) {
                 return;
             }
             dragging = false;
@@ -320,7 +328,7 @@ export default class TimelineAnimation {
         function getLogicalTimeFromMouseX(evt) {
             let x = getSVGMousePosition(evt).x;
             let dx = x - me.timelineOffset.x;
-            return (dx / me.timelineWidth) * me.oriTotalEngineS;
+            return (dx / me.timelineWidth) * me.animationContext.getLogicalTimelineMax();
         }
 
         // Convert from screen coordinates to SVG document coordinates
@@ -347,7 +355,7 @@ export default class TimelineAnimation {
             new SVG.Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(this.timelineEl);
 
             // Display date label at the two ends
-            if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 != 0) {
+            if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 !== 0) {
                 let txt = log.startDateLabel.substr(0, 19);
                 let x = ox + this.slotWidth * log.startDatePos - 50;
                 y += 5;

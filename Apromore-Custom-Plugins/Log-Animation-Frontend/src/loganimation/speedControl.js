@@ -1,3 +1,6 @@
+import 'jquery-ui-bundle';
+import 'jquery-ui-slider-pips-npm';
+
 /**
  * SpeedControl controls the speed with a slider.
  */
@@ -28,7 +31,6 @@ export default class SpeedControl{
 
         let lastSliderValue = speedControl.slider("value");
         speedControl.on("slidechange", function(event, ui) {
-            let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
             this._animationController.setSpeedLevel(STEP_VALUES[ui.value - 1]);
             lastSliderValue = ui.value;
         });

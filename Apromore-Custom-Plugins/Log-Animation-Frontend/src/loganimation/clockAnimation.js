@@ -2,6 +2,7 @@
  * ClockAnimation manages the clock on the animation page.
  * It uses setInterval and javascript to create a clock and sync
  * with the main token animation.
+ *
  */
 export default class ClockAnimation {
     /**
@@ -26,7 +27,7 @@ export default class ClockAnimation {
         if (!this.clockTimer) clearInterval(this.clockTimer);
     }
 
-    setTime(dateTime) {
+    setCurrentTime(dateTime) {
         this._updateClockOnce(dateTime);
     }
 

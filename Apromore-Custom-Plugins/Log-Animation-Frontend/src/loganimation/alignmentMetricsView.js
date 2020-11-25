@@ -1,4 +1,6 @@
-
+/**
+ * @Deprecated
+ */
 export default class AlignmentMetricsView {
     /**
      *
