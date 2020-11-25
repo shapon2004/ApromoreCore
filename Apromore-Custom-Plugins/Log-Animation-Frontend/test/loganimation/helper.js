@@ -1,5 +1,8 @@
-import LogAnimation from "../../src/loganimation";
+import AnimationMain from "../../src/loganimation";
 
+/**
+ * @returns {AnimationMain}
+ */
 export function createSimpleLogAnimator() {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999;
     jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
@@ -9,7 +12,7 @@ export function createSimpleLogAnimator() {
     let bpmn = require('./fixtures/simpleMap.bpmn');
     let setupData = require('./fixtures/setupData.txt');
     jasmine.clock().install();
-    let logAnimator = new LogAnimation('editorcanvas', bpmn.default, URL, URL, setupData.default, '101');
+    let logAnimator = new AnimationMain('editorcanvas', bpmn.default, URL, URL, setupData.default, '101');
     jasmine.clock().tick(1000);
     jasmine.clock().uninstall();
 

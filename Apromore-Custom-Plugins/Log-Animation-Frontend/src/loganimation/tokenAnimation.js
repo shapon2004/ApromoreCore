@@ -8,6 +8,7 @@
 
 import Buffer from "./frameBuffer";
 import {AnimationContext, AnimationState, AnimationEventType} from "./animation";
+import ProcessMapController from './processMapController';
 
 /**
  * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.
@@ -27,19 +28,25 @@ import {AnimationContext, AnimationState, AnimationEventType} from "./animation"
  *  The animation informs the outside via events and listeners.
  */
 
-export class TokenAnimation {
+export default class TokenAnimation {
     /**
-     * @param {AnimationContext} animationContext
-     * @param {RenderingContext} canvasContext
-     * @param {Object} pathMap: map from element index to the corresponding SVG path element
+     * @param {AnimationController} animationController
+     * @param {HTMLCanvasElement} canvasElement
+     * @param {ProcessMapController} processMapWrapper
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animationContext, canvasContext, pathMap, colorPalette) {
+    constructor(animationController, canvasElement, processMapWrapper, colorPalette) {
         console.log('TokenAnimation - constructor');
-        this._animationContext = animationContext;
-        this._canvasContext = canvasContext;
-        this._elementPathMap = pathMap;
+        this._animationController = animationController;
+        this._animationContext = animationController.getAnimationContext();
+
+        this._processMapWrapper = processMapWrapper;
+        let mapBox = processMapWrapper.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapWrapper.getTransformMatrix());
+
+        this._canvasContext = canvasElement.getContext('2d');
         this._colorPalette = colorPalette;
+
 
         this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
@@ -280,7 +287,7 @@ export class TokenAnimation {
         this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            let pathElement = this._getPathElement(elementIndex);
+            let pathElement = this._processMapWrapper.getPathElement(elementIndex);
             let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
@@ -402,10 +409,6 @@ export class TokenAnimation {
 
     _getLogicalTimeFromFrameIndex(frameIndex) {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
-    }
-
-    _getPathElement(elementIndex) {
-        return this._elementPathMap[elementIndex];
     }
 
     _clearData() {

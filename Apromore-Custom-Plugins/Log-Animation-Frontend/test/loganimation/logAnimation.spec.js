@@ -1,4 +1,4 @@
-import LogAnimation from "../../src/loganimation";
+import AnimationMain from "../../src/loganimation";
 import * as testHelper from './helper';
 
 describe('After initializing the Log Animator', function () {

@@ -49,7 +49,7 @@ ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
 };
 */
 
-export default class LogAnimation {
+export default class AnimationMain {
   constructor(editorParentId, xml, url, namespace, animationData, pluginExecutionId) {
     let editor = this._initEditor(editorParentId, xml, url, namespace);
     window.setTimeout((function() {
