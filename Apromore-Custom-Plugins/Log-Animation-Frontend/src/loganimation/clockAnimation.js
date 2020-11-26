@@ -6,11 +6,7 @@
  */
 export default class ClockAnimation {
     /**
-<<<<<<< HEAD
      * @param {LogAnimation} animationController
-=======
-     * @param {AnimationController} animationController
->>>>>>> 2791775f869062606402bfdea765a3e517946d0e
      * @param {HTMLElement} dateElement
      * @param {HTMLElement} timeElement
      */
