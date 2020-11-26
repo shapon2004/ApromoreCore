@@ -29,7 +29,7 @@ window.SVG_NS = "http://www.w3.org/2000/svg";
 window.XLINK_NS = "http://www.w3.org/1999/xlink";
 
 export function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /* ******************************************************************
@@ -41,24 +41,24 @@ export function getRandomInt(min, max) {
  * Return object has four points: nw, ne, se, sw, cc (center) (each with x,y attribute)
  * ******************************************************************/
 export function getViewportPoints(svg, rect, container) {
-  let matrix = container.transform.baseVal.getItem(0).matrix;
-  let corners = {
-    nw: svg.createSVGPoint().matrixTransform(matrix),
-    ne: svg.createSVGPoint().matrixTransform(matrix),
-    sw: svg.createSVGPoint().matrixTransform(matrix),
-    se: svg.createSVGPoint().matrixTransform(matrix),
-    cc: svg.createSVGPoint().matrixTransform(matrix)
-  };
+    let matrix = container.transform.baseVal.getItem(0).matrix;
+    let corners = {
+        nw: svg.createSVGPoint().matrixTransform(matrix),
+        ne: svg.createSVGPoint().matrixTransform(matrix),
+        sw: svg.createSVGPoint().matrixTransform(matrix),
+        se: svg.createSVGPoint().matrixTransform(matrix),
+        cc: svg.createSVGPoint().matrixTransform(matrix)
+    };
 
-  let bbox = rect.getBBox();
-  corners.ne.x += bbox.width;
-  corners.se.x += bbox.width;
-  corners.se.y += bbox.height;
-  corners.sw.y += bbox.height;
-  corners.cc.x += bbox.width / 2;
-  corners.cc.y += bbox.height / 2;
+    let bbox = rect.getBBox();
+    corners.ne.x += bbox.width;
+    corners.se.x += bbox.width;
+    corners.se.y += bbox.height;
+    corners.sw.y += bbox.height;
+    corners.cc.x += bbox.width / 2;
+    corners.cc.y += bbox.height / 2;
 
-  return corners;
+    return corners;
 }
 
 /*
@@ -66,77 +66,81 @@ export function getViewportPoints(svg, rect, container) {
  * output: SVGPoint
  */
 export function toViewportCoords(svg, groupE) {
-  let pt = svg.createSVGPoint();
-  let matrix = groupE.getScreenCTM();
-  let rect = groupE.getBBox();
-  pt.x = rect.x;
-  pt.y = rect.y;
-  return pt.matrixTransform(matrix);
+    let pt = svg.createSVGPoint();
+    let matrix = groupE.getScreenCTM();
+    let rect = groupE.getBBox();
+    pt.x = rect.x;
+    pt.y = rect.y;
+    return pt.matrixTransform(matrix);
 }
 
 export function drawCoordinateOrigin(svg) {
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  let pt = svg.createSVGPoint();
-  //let matrix  = groupE.getCTM();
-  //let rect = groupE.getBBox();
-  pt.x = svg.x.animVal.value;
-  pt.y = svg.y.animVal.value;
-  //console.log("SVG Document Origin: x="+ pt.x + " y=" + pt.y);
-  //pt = pt.matrixTransform(matrix);
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    let pt = svg.createSVGPoint();
+    //let matrix  = groupE.getCTM();
+    //let rect = groupE.getBBox();
+    pt.x = svg.x.animVal.value;
+    pt.y = svg.y.animVal.value;
+    //console.log("SVG Document Origin: x="+ pt.x + " y=" + pt.y);
+    //pt = pt.matrixTransform(matrix);
 
-  let lineX = document.createElementNS(SVG_NS, "line");
-  lineX.setAttributeNS(null, "x1", pt.x);
-  lineX.setAttributeNS(null, "y1", pt.y);
-  lineX.setAttributeNS(null, "x2", pt.x + 50);
-  lineX.setAttributeNS(null, "y2", pt.y);
-  lineX.setAttributeNS(null, "stroke", "red");
-  lineX.setAttributeNS(null, "stroke-width", "5");
+    let lineX = document.createElementNS(SVG_NS, "line");
+    lineX.setAttributeNS(null, "x1", pt.x);
+    lineX.setAttributeNS(null, "y1", pt.y);
+    lineX.setAttributeNS(null, "x2", pt.x + 50);
+    lineX.setAttributeNS(null, "y2", pt.y);
+    lineX.setAttributeNS(null, "stroke", "red");
+    lineX.setAttributeNS(null, "stroke-width", "5");
 
-  let lineY = document.createElementNS(SVG_NS, "line");
-  lineY.setAttributeNS(null, "x1", pt.x);
-  lineY.setAttributeNS(null, "y1", pt.y);
-  lineY.setAttributeNS(null, "x2", pt.x);
-  lineY.setAttributeNS(null, "y2", pt.y + 50);
-  lineY.setAttributeNS(null, "stroke", "red");
-  lineY.setAttributeNS(null, "stroke-width", "5");
+    let lineY = document.createElementNS(SVG_NS, "line");
+    lineY.setAttributeNS(null, "x1", pt.x);
+    lineY.setAttributeNS(null, "y1", pt.y);
+    lineY.setAttributeNS(null, "x2", pt.x);
+    lineY.setAttributeNS(null, "y2", pt.y + 50);
+    lineY.setAttributeNS(null, "stroke", "red");
+    lineY.setAttributeNS(null, "stroke-width", "5");
 
-  //alert(rect.x + " " + rect.y);
+    //alert(rect.x + " " + rect.y);
 
-  svg.appendChild(lineX);
-  svg.appendChild(lineY);
+    svg.appendChild(lineX);
+    svg.appendChild(lineY);
 }
 
+/**
+ * @deprecated
+ * @param svg
+ */
 export function drawProcessModelOrigin(svg) {
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  let pt = svg.createSVGPoint();
-  let matrix = groupE.getCTM();
-  let rect = groupE.getBBox();
-  pt.x = rect.x;
-  pt.y = rect.y;
-  //alert(pt.x + " " + pt.y);
-  pt = pt.matrixTransform(matrix);
-  //console.log("Process Model Origin: x="+ pt.x + " y=" + pt.y);
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    let pt = svg.createSVGPoint();
+    let matrix = groupE.getCTM();
+    let rect = groupE.getBBox();
+    pt.x = rect.x;
+    pt.y = rect.y;
+    //alert(pt.x + " " + pt.y);
+    pt = pt.matrixTransform(matrix);
+    //console.log("Process Model Origin: x="+ pt.x + " y=" + pt.y);
 
-  let lineX = document.createElementNS(SVG_NS, "line");
-  lineX.setAttributeNS(null, "x1", pt.x);
-  lineX.setAttributeNS(null, "y1", pt.y);
-  lineX.setAttributeNS(null, "x2", pt.x + 50);
-  lineX.setAttributeNS(null, "y2", pt.y);
-  lineX.setAttributeNS(null, "stroke", "blue");
-  lineX.setAttributeNS(null, "stroke-width", "5");
+    let lineX = document.createElementNS(SVG_NS, "line");
+    lineX.setAttributeNS(null, "x1", pt.x);
+    lineX.setAttributeNS(null, "y1", pt.y);
+    lineX.setAttributeNS(null, "x2", pt.x + 50);
+    lineX.setAttributeNS(null, "y2", pt.y);
+    lineX.setAttributeNS(null, "stroke", "blue");
+    lineX.setAttributeNS(null, "stroke-width", "5");
 
-  let lineY = document.createElementNS(SVG_NS, "line");
-  lineY.setAttributeNS(null, "x1", pt.x);
-  lineY.setAttributeNS(null, "y1", pt.y);
-  lineY.setAttributeNS(null, "x2", pt.x);
-  lineY.setAttributeNS(null, "y2", pt.y + 50);
-  lineY.setAttributeNS(null, "stroke", "blue");
-  lineY.setAttributeNS(null, "stroke-width", "5");
+    let lineY = document.createElementNS(SVG_NS, "line");
+    lineY.setAttributeNS(null, "x1", pt.x);
+    lineY.setAttributeNS(null, "y1", pt.y);
+    lineY.setAttributeNS(null, "x2", pt.x);
+    lineY.setAttributeNS(null, "y2", pt.y + 50);
+    lineY.setAttributeNS(null, "stroke", "blue");
+    lineY.setAttributeNS(null, "stroke-width", "5");
 
-  //alert(rect.x + " " + rect.y);
+    //alert(rect.x + " " + rect.y);
 
-  groupE.appendChild(lineX);
-  groupE.appendChild(lineY);
+    groupE.appendChild(lineX);
+    groupE.appendChild(lineY);
 }
 
 /* ********************************************************************
@@ -153,47 +157,49 @@ export function drawProcessModelOrigin(svg) {
  *  - incomingFlow: id of incoming flow
  * ********************************************************************/
 export function findModelNode(jsonModel, id) {
-  let nodes = jsonModel.childShapes;
+    let nodes = jsonModel.childShapes;
 
-  //Find the node (with outgoing already)
-  let node = null;
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].resourceId == id) {
-      node = nodes[i];
-      break;
-    }
-  }
-
-  //Check and select the sequence flow (task can have association flow as outgoing)
-  if (node != null) {
-    if (node.outgoing.length > 2) {
-      for (let i = 0; i < nodes.outgoing.length; ++i) {
-        for (let j = 0; j < nodes.length; ++j) {
-          if (
-            nodes[j].resourceId == node.outgoing[i].resourceId &&
-            nodes[i].stencil.id == "SequenceFlow"
-          ) {
-            node.outgoingFlow = nodes[j].resourceId;
+    //Find the node (with outgoing already)
+    let node = null;
+    for (let i = 0; i < nodes.length; ++i) {
+        if (nodes[i].resourceId === id) {
+            node = nodes[i];
             break;
-          }
         }
-      }
-    } else {
-      node.outgoingFlow = node.outgoing[0].resourceId;
     }
-  }
 
-  //Find and assign the incoming flow
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].stencil.id == "SequenceFlow") {
-      if (nodes[i].target.resourceId == id) {
-        node.incomingFlow = nodes[i].resourceId;
-        break;
-      }
+    //Check and select the sequence flow (task can have association flow as outgoing)
+    if (node != null) {
+        if (node.outgoing.length > 2) {
+            for (let i = 0; i < nodes.outgoing.length; ++i) {
+                for (let j = 0; j < nodes.length; ++j) {
+                    if (
+                        nodes[j].resourceId === node.outgoing[i].resourceId &&
+                        nodes[i].stencil.id === "SequenceFlow"
+                    ) {
+                        node.outgoingFlow = nodes[j].resourceId;
+                        break;
+                    }
+                }
+            }
+        } else {
+            node.outgoingFlow = node.outgoing[0].resourceId;
+        }
     }
-  }
 
-  return node;
+    //Find and assign the incoming flow
+    for (let i = 0; i < nodes.length; ++i) {
+        if (nodes[i].stencil.id === "SequenceFlow") {
+            if (nodes[i].target.resourceId === id) {
+                if (node != null) {
+                    node.incomingFlow = nodes[i].resourceId;
+                    break;
+                }
+            }
+        }
+    }
+
+    return node;
 }
 
 /* *******************************************************
@@ -202,7 +208,7 @@ export function findModelNode(jsonModel, id) {
  * Return value of y.
  *********************************************************/
 export function getStraighLineFunctionValue(p1, p2, pi) {
-  let a = (p1.y - p2.y) / (p1.x - p2.x);
-  let b = p1.y - (p1.x * (p1.y - p2.y)) / (p1.x - p2.x);
-  return a * pi.x + b;
+    let a = (p1.y - p2.y) / (p1.x - p2.x);
+    let b = p1.y - (p1.x * (p1.y - p2.y)) / (p1.x - p2.x);
+    return a * pi.x + b;
 }

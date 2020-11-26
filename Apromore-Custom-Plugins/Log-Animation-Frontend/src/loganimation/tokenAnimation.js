@@ -7,7 +7,9 @@
 'use strict';
 
 import Buffer from "./frameBuffer";
-import {AnimationContext, AnimationState, AnimationEventType} from "./animation";
+import {AnimationState} from "./animationContextState";
+import {AnimationEvent, AnimationEventType} from "./animationEvents";
+import ProcessModelController from './processModelController';
 
 /**
  * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.
@@ -25,23 +27,31 @@ import {AnimationContext, AnimationState, AnimationEventType} from "./animation"
  *
  *  The animation configurations are contained in an AnimationContext
  *  The animation informs the outside via events and listeners.
+ *
+ *  @author Bruce Nguyen
  */
 
-export class TokenAnimation {
+export default class TokenAnimation {
     /**
-     * @param {AnimationContext} animationContext
-     * @param {RenderingContext} canvasContext
-     * @param {Object} pathMap: map from element index to the corresponding SVG path element
+     * @param {LogAnimation} animation
+     * @param {HTMLCanvasElement} canvasElement
+     * @param {ProcessModelController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animationContext, canvasContext, pathMap, colorPalette) {
+    constructor(animation, canvasElement, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
-        this._animationContext = animationContext;
-        this._canvasContext = canvasContext;
-        this._elementPathMap = pathMap;
+        this._animationController = animation;
+        this._animationContext = animation.getAnimationContext();
+
+        this._processMapController = processMapController;
+        let mapBox = processMapController.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+
+        this._canvasContext = canvasElement.getContext('2d');
         this._colorPalette = colorPalette;
 
-        this._frameBuffer = new Buffer(animationContext); //the buffer start filling immediately based on the animation context.
+
+        this._frameBuffer = new Buffer(animation.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrame = undefined;
 
@@ -66,8 +76,8 @@ export class TokenAnimation {
         this._currentTime = 0;
         this._setState(AnimationState.PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        //this._loopBufferRead();
-        //this._loopDraw(0);
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**
@@ -244,13 +254,13 @@ export class TokenAnimation {
                     if (frame.index >= this._animationContext.getTotalNumberOfFrames()-1) {
                         console.log('Frame index = ' + frame.index + ' reached max frame index. Notify end of animation');
                         console.log('Frame queue size = ' + this._frameQueue.length);
-                        this._notifyAll(new AnimationEvent(AnimationEventType.END_OF_ANIMATION));
+                        this._notifyAll(new AnimationEvent(AnimationEventType.END_OF_ANIMATION, {}));
                     }
                     else {
-                        this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE));
+                        this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_AVAILABLE, {}));
                     }
                 } else {
-                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_NOT_AVAILABLE));
+                    this._notifyAll(new AnimationEvent(AnimationEventType.FRAMES_NOT_AVAILABLE, {}));
                 }
             }
         } else if (this._state === AnimationState.PAUSING) { // only draw the current frame
@@ -280,7 +290,7 @@ export class TokenAnimation {
         this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            let pathElement = this._getPathElement(elementIndex);
+            let pathElement = this._processMapController.getPathElement(elementIndex);
             let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
@@ -315,7 +325,7 @@ export class TokenAnimation {
      * @private
      */
     _getTokenFillColor(logNo, tokenSize) {
-        let colorIndex = 0;
+        let colorIndex;
         if (tokenSize <= 2) {
             colorIndex = 0;
         }
@@ -344,7 +354,7 @@ export class TokenAnimation {
      * @private
      */
     _selectTokenColor(numberOfTokens) {
-        let colorIndex = 0;
+        let colorIndex;
         if (numberOfTokens <= 2) colorIndex = 0;
         else if (numberOfTokens <= 4) colorIndex = 1;
         else if (numberOfTokens <= 6) colorIndex = 2;
@@ -404,10 +414,6 @@ export class TokenAnimation {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
     }
 
-    _getPathElement(elementIndex) {
-        return this._elementPathMap[elementIndex];
-    }
-
     _clearData() {
         this._frameQueue = [];
         this._currentFrame = undefined;
@@ -417,9 +423,8 @@ export class TokenAnimation {
      * @param {AnimationEvent} event
      */
     _notifyAll(event) {
-        let engine = this;
         this._listeners.forEach(function(listener){
-            listener.update(event);
+            listener.handleEvent(event);
         })
     }
 }

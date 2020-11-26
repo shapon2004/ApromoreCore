@@ -18,11 +18,6 @@ module.exports = function (config) {
             'src/bpmneditor/libs/ext-2.0.2/color-field.js',
             'src/bpmneditor/editor/i18n/translation_en_us.js',
             'src/bpmneditor/editor/i18n/translation_signavio_en_us.js',
-            //'src/loganimation/libs/jquery-1.10.2.min.js',
-            //'src/loganimation/libs/jquery-ui.min.js',
-            //'src/loganimation/libs/jquery-ui-slider-pips.js',
-            //'src/loganimation/libs/lodash.min.js',
-            //'src/loganimation/libs/moment.min.js',
 
             {pattern: 'test/loganimation/*.spec.js', watched: false},
             {pattern: 'test/loganimation/fixtures/*.html', watched: false, served: true, included: false},
