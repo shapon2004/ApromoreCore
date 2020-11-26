@@ -7,16 +7,16 @@ import * as SVG from "@svgdotjs/svg.js";
  */
 export default class ProgressAnimation {
     /**
-     * @param {AnimationController}animationController
+     * @param {LogAnimation}animation
      * @param {HTMLDivElement} uiTopContainer
      * @param {HTMLDivElement} uiPopupContainer
      */
-    constructor(animationController, uiTopContainer, uiPopupContainer) {
+    constructor(animation, uiTopContainer, uiPopupContainer) {
         this._ANIMATION_CLASS = 'progress-animation';
         this._SVG_NS = "http://www.w3.org/2000/svg";
-        this._animationController = animationController;
-        this._svgProgresses = this._createProgressIndicators(animationController.getLogSummaries(), uiTopContainer, 1.0);
-        this._createLogInfoPopups(animationController.getLogSummaries(), uiTopContainer, uiPopupContainer);
+        this._animationController = animation;
+        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainer, 1.0);
+        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainer, uiPopupContainer);
         this._currentSpeedLevel = 1.0;
     }
 

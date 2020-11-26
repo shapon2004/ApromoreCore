@@ -5,7 +5,7 @@
  */
 export default class PlayActionControl{
     /**
-     * @param {AnimationController} animationController
+     * @param {LogAnimation} animation
      * @param {HTMLButtonElement} gotoStartButton
      * @param {HTMLButtonElement} pauseButton
      * @param {HTMLButtonElement} forwardButton
@@ -14,23 +14,23 @@ export default class PlayActionControl{
      * @param {String} playClassName: CSS class name of the play state
      * @param {String} pauseClassName: CSS class name of the pause state
      */
-    constructor(animationController,
+    constructor(animation,
                 gotoStartButton, pauseButton, forwardButton,
                 backwardButton, gotoEndButton,
                 playClassName,
                 pauseClassName) {
-        this.animationController = animationController;
+        this.animation = animation;
         this.gotoStartButton = gotoStartButton;
         this.gotoEndButton = gotoEndButton;
         this.pauseButton = pauseButton;
         this.forwardButton = forwardButton;
         this.backwardButton = backwardButton;
 
-        gotoStartButton.addEventListener('click', animationController.gotoStart);
-        gotoEndButton.addEventListener('click', animationController.gotoEnd);
-        pauseButton.addEventListener('click', animationController.playPause);
-        forwardButton.addEventListener('click', animationController.fastForward);
-        backwardButton.addEventListener('click', animationController.fastBackward);
+        gotoStartButton.addEventListener('click', animation.gotoStart);
+        gotoEndButton.addEventListener('click', animation.gotoEnd);
+        pauseButton.addEventListener('click', animation.playPause);
+        forwardButton.addEventListener('click', animation.fastForward);
+        backwardButton.addEventListener('click', animation.fastBackward);
 
         this.PLAY_CLS = playClassName;
         this.PAUSE_CLS = pauseClassName;
@@ -41,7 +41,7 @@ export default class PlayActionControl{
      */
     setPlayPauseButton(changeToPlay) {
         if (typeof changeToPlay === 'undefined') {
-            changeToPlay = !this.animationController.isPlaying();
+            changeToPlay = !this.animation.isPlaying();
         }
         if (changeToPlay) {
             this.pauseButton.removeClass(this.PAUSE_CLS).addClass(this.PLAY_CLS);

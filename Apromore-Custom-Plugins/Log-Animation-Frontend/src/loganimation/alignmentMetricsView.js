@@ -4,11 +4,11 @@
 export default class AlignmentMetricsView {
     /**
      *
-     * @param {AnimationController} animationController
+     * @param {LogAnimation} animation
      * @param {HTMLTableElement} uiContainer: the div container
      */
-    constructor(animationController, uiContainer) {
-        this._animationController = animationController;
+    constructor(animation, uiContainer) {
+        this._animationController = animation;
         this._createMetricTables(this._animationController.getLogSummaries(), uiContainer);
     }
 
@@ -32,7 +32,7 @@ export default class AlignmentMetricsView {
             cellLogNo.style.backgroundColor = logSummaries[i].color;
             cellLogNo.style.textAlign = 'center';
 
-            if (logs[i].filename.length > 50) {
+            if (logSummaries[i].filename.length > 50) {
                 cellLogName.innerHTML = logSummaries[i].filename.substr(0, 50) + '...';
             } else {
                 cellLogName.innerHTML = logSummaries[i].filename;

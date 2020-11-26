@@ -6,20 +6,20 @@ import * as moment from "moment";
  */
 export default class TimelineAnimation {
     /**
-     * @param {AnimationController} animationController
+     * @param {LogAnimation} animation
      * @param {SVGElement} uiContainer
      * @param {Array} caseCountsByFrames
      */
-    constructor(animationController, uiContainer, caseCountsByFrames) {
-        this.animationController = animationController;
-        this.animationContext = animationController.getAnimationContext();
+    constructor(animation, uiContainer, caseCountsByFrames) {
+        this.animation = animation;
+        this.animationContext = animation.getAnimationContext();
 
         // Parameters
         this.slotNum = this.animationContext.getTimelineSlots();
         this.endPos = this.slotNum;
         this.slotEngineS = this.animationContext.getLogicalSlotTime(); // in seconds
-        this.logMillis = animationController.getAnimationContext().getLogEndTime() -
-            animationController.getAnimationContext().getLogStartTime();
+        this.logMillis = animation.getAnimationContext().getLogEndTime() -
+            animation.getAnimationContext().getLogStartTime();
         this.slotDataMs = this.logMillis / this.slotNum;
         this.timeCoef = this.animationContext.getTimelineRatio();
 
@@ -185,7 +185,7 @@ export default class TimelineAnimation {
 
     _addTicks() {
         // Add text and line for the bar
-        let tickSize = this.logIntervalHeight * (this.animationController.getNumberOfLogs() - 1) + 2 * this.logIntervalMargin;
+        let tickSize = this.logIntervalHeight * (this.animation.getNumberOfLogs() - 1) + 2 * this.logIntervalMargin;
         let textToTickGap = 5;
         let x = this.timelineOffset.x;
         let y = this.timelineOffset.y;
@@ -306,7 +306,7 @@ export default class TimelineAnimation {
         this.svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
 
         function startDragging(evt) {
-            isPlayingBeforeDrag = me.animationController.isPlaying();
+            isPlayingBeforeDrag = me.animation.isPlaying();
             evt.preventDefault();
             dragging = true;
             me.pause();
@@ -319,9 +319,9 @@ export default class TimelineAnimation {
             }
             dragging = false;
             let logicalTime = getLogicalTimeFromMouseX(evt);
-            me.animationController.goto(logicalTime);
+            me.animation.goto(logicalTime);
             if (isPlayingBeforeDrag) {
-                me.animationController.unPause();
+                me.animation.unPause();
             }
         }
 
@@ -345,12 +345,12 @@ export default class TimelineAnimation {
     // Add log intervals to timeline
     _addLogIntervals() {
         let ox = this.timelineOffset.x, y = this.timelineOffset.y + this.logIntervalMargin; // Start offset
-        let logSummaries = this.animationController.getLogSummaries();
+        let logSummaries = this.animation.getLogSummaries();
         for (let i = 0; i < logSummaries.length; i++) {
             let log = logSummaries[i];
             let x1 = ox + this.slotWidth * log.startDatePos;
             let x2 = ox + this.slotWidth * log.endDatePos;
-            let style = 'stroke: ' + this.animationController.getLogColor(i+1, log.color) + '; stroke-width: ' + this.logIntervalSize;
+            let style = 'stroke: ' + this.animation.getLogColor(i+1, log.color) + '; stroke-width: ' + this.logIntervalSize;
             let opacity = 0.8;
             new SVG.Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(this.timelineEl);
 

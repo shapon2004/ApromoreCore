@@ -28,61 +28,82 @@ import {AnimationContext} from './animationContextState';
 import {AnimationEvent, AnimationEventType} from './animationEvents';
 import TokenAnimation from './tokenAnimation';
 import TimelineAnimation from "./timelineAnimation";
-import ProcessMapController from "./processMapController";
+import ProcessModelController from "./processModelController";
 import SpeedControl from "./speedControl";
 import ProgressAnimation from "./progressAnimation";
 import ClockAnimation from "./clockAnimation";
 import PlayActionControl from "./playActionControl";
 
 /**
- * AnimationController is a Front Controller to manage the animation page.
+ * LogAnimation is a Front Controller to manage the animation page.
  * It coordinates other components, including token animation, timeline, clock, log info table, progress indicator.
  * Each component is represented by a Controller.
  * The View and Controller of MVC are bundled as Controller. View is accessed via jQuery.
  * The Model of MVC is not explicitly managed as the data is read-only. Data include JSON and XML read from the server.
  * As the business gets more complex, a more complete MVC model would be considered.
+ * Caller of LogAnimation must execute in steps: loadProcessModel, initAnimationComponents, and then start().
  *
  * @author Bruce Nguyen
  */
-export default class AnimationController {
-    /**
-     * @param {String} processMapXML: the BPMN XML text encoding the process model
-     * @param {String} setupData: the JSON raw text containg initial setup data
+export default class LogAnimation {
+    /** The creation of LogAnimation is divided into two stages: loading the model into the editor and then
+     * initializing animation components. The first stage takes time and so the second stage must wait until the
+     * first stage can finish.
      * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
+     * @param {String} setupDataJSON: the JSON raw text containg initial setup data
+     * @param {String} modelXML: BPMN XML of the model
      */
-    constructor(processMapXML, setupData, pluginExecutionId) {
+    constructor(pluginExecutionId, setupDataJSON, modelXML) {
         this.pluginExecutionId = pluginExecutionId;
-        let jsonSetup = JSON.parse(setupData);
-        this.logSummaries = jsonSetup.logs;
+        let setupData = JSON.parse(setupDataJSON);
+        this.logSummaries = setupData.logs;
         this.isPlayingBeforeMovingModel = false;
-        this.apPalette = [
+        this.colorPalette = [
             ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
             ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
         ];
+        this.processMapController = new ProcessModelController(this);
 
-        // Add token animation
-        let {recordingFrameRate, elementMapping, startMs, endMs, totalEngineS,
-            timelineSlots, slotEngineUnit, caseCountsByFrames} = jsonSetup;
+        this._loadProcessModel(modelXML);
+
+        setTimeout((function() {
+            this._initialize(setupData)
+        }).bind(this), 1000);
+    }
+
+    /**
+     * Load process model component. This could take time for loading XML data into the editor.
+     * @param modelXML: the model content
+     */
+    _loadProcessModel(modelXML) {
+        this.processMapController.loadProcessModel('editorcanvas', modelXML);
+    }
+
+    _initialize(setupData) {
+        if (!this.processMapController) {
+            console.error('Stop. The process model is not loaded yet!');
+            return;
+        }
+        let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
+            caseCountsByFrames} = setupData;
         this.animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, timelineSlots,
-                                                    totalEngineS, slotEngineUnit, recordingFrameRate);
-        this.processMapController = new ProcessMapController(this, 'editorcanvas', processMapXML, elementMapping);
-        this.tokenAnimation = new TokenAnimation(this, $j("#canvas"), this.processMapController, this.apPalette);
+            totalEngineS, slotEngineUnit, recordingFrameRate);
 
-        // Add other animation components
+        this.processMapController.initialize(elementIndexIDMap);
+        this.tokenAnimation = new TokenAnimation(this, $j("#canvas"), this.processMapController, this.colorPalette);
         this.timeline = new TimelineAnimation(this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
         this.speedControl = new SpeedControl(this, $j("#speed-control"));
         this.progress = new ProgressAnimation(this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
         this.clock = new ClockAnimation(this, $j('#date'), $j('#time'));
         this.buttonControls = new PlayActionControl(this,
-                                $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
-                                'ap-mc-icon-play', 'ap-mc-icon-pause');
+            $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+            'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events
         this.processMapController.registerListener(this);
         this.tokenAnimation.registerListener(this);
         this._setKeyboardEvents();
 
-        // Start
         this.tokenAnimation.startEngine();
         this.pause();
     }
@@ -113,7 +134,7 @@ export default class AnimationController {
     }
 
     getLogColor(logNo, logColor) {
-        return this.apPalette[logNo - 1][0] || logColor;
+        return this.colorPalette[logNo - 1][0] || logColor;
     }
 
     _getCurrentSVGTime() {

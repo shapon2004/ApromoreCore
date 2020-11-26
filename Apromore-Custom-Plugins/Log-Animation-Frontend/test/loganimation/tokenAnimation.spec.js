@@ -1,9 +1,9 @@
-import * as testHelper from "./helper";
+import * as testFactory from "./testFactory";
 
-describe('Test Simple Token Animation', function () {
+xdescribe('Test Simple Token Animation', function () {
     let tokenAnimation;
     beforeEach(function() {
-        tokenAnimation = testHelper.createSimpleTokenAnimation();
+        tokenAnimation = testFactory.createSimpleTokenAnimation();
     });
 
     it('It is paused after creation', function() {

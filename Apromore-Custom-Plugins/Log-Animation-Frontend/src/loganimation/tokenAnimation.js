@@ -9,7 +9,7 @@
 import Buffer from "./frameBuffer";
 import {AnimationState} from "./animationContextState";
 import {AnimationEvent, AnimationEventType} from "./animationEvents";
-import ProcessMapController from './processMapController';
+import ProcessModelController from './processModelController';
 
 /**
  * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.
@@ -33,15 +33,15 @@ import ProcessMapController from './processMapController';
 
 export default class TokenAnimation {
     /**
-     * @param {AnimationController} animationController
+     * @param {LogAnimation} animation
      * @param {HTMLCanvasElement} canvasElement
-     * @param {ProcessMapController} processMapController
+     * @param {ProcessModelController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animationController, canvasElement, processMapController, colorPalette) {
+    constructor(animation, canvasElement, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
-        this._animationController = animationController;
-        this._animationContext = animationController.getAnimationContext();
+        this._animationController = animation;
+        this._animationContext = animation.getAnimationContext();
 
         this._processMapController = processMapController;
         let mapBox = processMapController.getBoundingClientRect();
@@ -51,7 +51,7 @@ export default class TokenAnimation {
         this._colorPalette = colorPalette;
 
 
-        this._frameBuffer = new Buffer(animationController.getAnimationContext()); //the buffer start filling immediately based on the animation context.
+        this._frameBuffer = new Buffer(animation.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrame = undefined;
 

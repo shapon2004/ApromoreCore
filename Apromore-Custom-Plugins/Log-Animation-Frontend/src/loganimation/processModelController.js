@@ -3,42 +3,100 @@ import * as utils from "./utils";
 import {AnimationEvent, AnimationEventType} from "./animationEvents";
 
 /**
- * ProcessMapController encapsulates the process map editor and provides
+ * ProcessModelController encapsulates the process map editor and provides
  * interfaces into the editor needed by the token animation. The token animation
  * shows animation on the editor.
  *
  * @author Bruce Nguyen
  */
-export default class ProcessMapController {
+export default class ProcessModelController {
     /**
-     * @param {AnimationController} animationController
-     * @param {String} uiContainerId: id of the parent div element for containing the editor
-     * @param {String }processMapXML: BPMN XML of the process map
+     * @param {LogAnimation} animation
+     */
+    constructor(animation) {
+        this._logAnimation = animation;
+        this._listeners = [];
+        this._editor;
+        this._svgMain;
+        this._svgViewport;
+    }
+
+    /**
+     * Note that loadEditor takes time for the XML to be loaded and BPMN data model to be created.
+     * Caller of this method must take this loading time into account, otherwise the other methods
+     * will fail because the BPMN data model has not been created in the memory yet.
+     * @param {String} editorContainerId: id of the div element hosting the editor
+     * @param {String} modelXML: XML content of the BPMN map/model
+     */
+    loadProcessModel(editorContainerId, modelXML) {
+        const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
+        this._editor = new ORYX.Editor({
+            modelXML,
+            model: {
+                id: editorContainerId,
+                showPlugins: false,
+                stencilset: {
+                    url:BPMN_NS,
+                    namespace:BPMN_NS
+                }
+            },
+            fullscreen: true // false
+        });
+    }
+
+    /**
      * @param {Object} elementMapping: map from element index to element id
      */
-    constructor(animationController, uiContainerId, processMapXML, elementMapping) {
-        this._animationController = animationController;
-        const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
-        this._editor = this._init(uiContainerId, processMapXML, BPMN_NS, BPMN_NS);
+    initialize(elementMapping) {
+        if (!this._editor) {
+            console.error('Stop. The editor has not loaded data yet');
+            return;
+        }
+
         this._svgMain = this._editor.getCanvas().getSVGContainer();
         this._svgViewport = this._editor.getCanvas().getSVGViewport();
-        this._initIndexToElementMapping(elementMapping);
-        this._listeners = [];
 
         let me = this;
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function(event) {
+        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function() {
             let modelBox = me.getBoundingClientRect();
             let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVING,
-                                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+                {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
-
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function(event) {
+        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function() {
             let modelBox = me.getBoundingClientRect();
             let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVED,
-                                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+                {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
+
+        this._createIndexToElementCache(elementMapping);
+    }
+
+    /**
+     * @param {Object} elementMapping: map from element index to element id
+     * @return {Object} mapping from element index to SVG Path Element having the element id
+     * @private
+     */
+    _createIndexToElementCache(elementMapping) {
+        this._indexToElement = {};
+        let elementIndexIDMap = elementMapping[0];
+        let skipElementIndexIDMap = elementMapping[1];
+        for (let elementIndex in elementIndexIDMap) {
+            let elementId = elementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            if (!pathElement) { // create cross and skip paths as they are not present
+                this._createNodePathElements(elementId);
+                pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            }
+            this._indexToElement[elementIndex] = pathElement;
+        }
+
+        for (let elementIndex in skipElementIndexIDMap) {
+            let elementId = skipElementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+            this._indexToElement[elementIndex] = pathElement;
+        }
     }
 
     /**
@@ -49,7 +107,7 @@ export default class ProcessMapController {
     }
 
     /**
-     * @returns {SVGMatrix}
+     * @returns {DOMMatrix}
      */
     getTransformMatrix() {
         return this._svgViewport.transform.baseVal.consolidate().matrix;
@@ -74,33 +132,6 @@ export default class ProcessMapController {
         this._listeners.forEach(function(listener){
             listener.handleEvent(event);
         })
-    }
-
-
-    /**
-     * @param {Object} elementMapping: map from element index to element id
-     * @return {Object} mapping from element index to SVG Path Element having the element id
-     * @private
-     */
-    _initIndexToElementMapping(elementMapping) {
-        this._indexToElement = {};
-        let elementIndexIDMap = elementMapping[0];
-        let skipElementIndexIDMap = elementMapping[1];
-        for (let elementIndex in elementIndexIDMap) {
-            let elementId = elementIndexIDMap[elementIndex];
-            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-            if (!pathElement) { // create cross and skip paths as they are not present
-                this._createNodePathElements(elementId);
-                pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-            }
-            this._indexToElement[elementIndex] = pathElement;
-        }
-
-        for (let elementIndex in skipElementIndexIDMap) {
-            let elementId = skipElementIndexIDMap[elementIndex];
-            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
-            this._indexToElement[elementIndex] = pathElement;
-        }
     }
 
     /**
@@ -201,12 +232,12 @@ export default class ProcessMapController {
                 arrayBelow.push(taskRectPoints.nw)
             }
 
-            if (arrayAbove.length == 1) {
+            if (arrayAbove.length === 1) {
                 skipPath =
                     'm' + startPoint.x + ',' + startPoint.y + ' ' +
                     'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
                     'L' + endPoint.x + ',' + endPoint.y
-            } else if (arrayBelow.length == 1) {
+            } else if (arrayBelow.length === 1) {
                 skipPath =
                     'm' + startPoint.x + ',' + startPoint.y + ' ' +
                     'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
@@ -255,26 +286,5 @@ export default class ProcessMapController {
         nodeGroupE.appendChild(skipPathE);
     }
 
-    /**
-     *
-     * @param {String} editorParentId: id of the div element hosting the editor
-     * @param {String} xml: XML content of the BPMN map/model
-     * @param {String} url:
-     * @param namespace
-     * @returns {*}
-     */
-    _init(editorParentId, xml, url, namespace) {
-        return new ORYX.Editor({
-            xml,
-            model: {
-                id: editorParentId,
-                showPlugins: false,
-                stencilset: {
-                    url,
-                    namespace
-                }
-            },
-            fullscreen: true // false
-        });
-    }
+
 }

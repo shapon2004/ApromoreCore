@@ -63492,19 +63492,17 @@ ORYX.Plugins.View = Clazz.extend({
 
 /***/ }),
 
-/***/ "./src/loganimation/animation.js":
-/*!***************************************!*\
-  !*** ./src/loganimation/animation.js ***!
-  \***************************************/
-/*! exports provided: AnimationContext, AnimationState, AnimationEventType, AnimationEvent */
+/***/ "./src/loganimation/animationContextState.js":
+/*!***************************************************!*\
+  !*** ./src/loganimation/animationContextState.js ***!
+  \***************************************************/
+/*! exports provided: AnimationContext, AnimationState */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationContext", function() { return AnimationContext; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationState", function() { return AnimationState; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEventType", function() { return AnimationEventType; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEvent", function() { return AnimationEvent; });
 
 
 class AnimationContext {
@@ -63513,15 +63511,20 @@ class AnimationContext {
      * @param {String} pluginExecutionId
      * @param {Number} logStartTime: the start timestamp in the log
      * @param {Number} logEndTime: the end timestamp in the log
-     * @param {Number} logicalTimelineMax: the maximum logical time in seconds
+     * @param {Number} timelineSlots: the number of slots on the timeline
+     * @param {Number} togalTimelineTime: the maximum logical time on the timeline in seconds
+     * @param {Number} logicalSlotTime: the logical time in seconds of one timeline slot
      * @param {Number} recordingFrameRate: the frame rate used to record frames
      */
-    constructor(pluginExecutionId, logStartTime, logEndTime, logicalTimelineMax,
+    constructor(pluginExecutionId, logStartTime, logEndTime,
+                timelineSlots, togalTimelineTime, logicalSlotTime,
                 recordingFrameRate) {
         this._pluginExecutionId = pluginExecutionId;
         this._logStartTime = logStartTime;
         this._logEndTime = logEndTime;
-        this._logicalTimelineMax = logicalTimelineMax;
+        this._timelineSlots = timelineSlots;
+        this._logicalTimelineMax = togalTimelineTime;
+        this._logicalSlotTime = logicalSlotTime;
         this._recordingFrameRate = recordingFrameRate
     }
 
@@ -63529,20 +63532,39 @@ class AnimationContext {
         return this._pluginExecutionId;
     }
 
+    // in milliseconds
     getLogStartTime() {
         return this._logStartTime;
     }
 
+    // in milliseconds
     getLogEndTime() {
         return this._logEndTime;
     }
 
-    getTimelineRatio() {
-        return (this._logEndTime - this._logStartTime)/(this._logicalTimelineMax*1000);
+    // in milliseconds
+    getTotalLogTime() {
+        return this._logEndTime - this._logStartTime;
     }
 
+    // the ratio between log time and logical time: 1 logical time unit = x log time unit
+    getTimelineRatio() {
+        return this.getTotalLogTime()/(this._logicalTimelineMax*1000);
+    }
+
+    // Number of slots
+    getTimelineSlots() {
+        return this._timelineSlots;
+    }
+
+    // in seconds
     getLogicalTimelineMax() {
         return this._logicalTimelineMax;
+    }
+
+    // in seconds
+    getLogicalSlotTime() {
+        return this._logicalSlotTime;
     }
 
     getRecordingFrameRate() {
@@ -63567,6 +63589,27 @@ class AnimationState {
     }
 }
 
+
+
+/***/ }),
+
+/***/ "./src/loganimation/animationEvents.js":
+/*!*********************************************!*\
+  !*** ./src/loganimation/animationEvents.js ***!
+  \*********************************************/
+/*! exports provided: AnimationEventType, AnimationEvent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEventType", function() { return AnimationEventType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AnimationEvent", function() { return AnimationEvent; });
+/**
+ * All events used in the log animation
+ *
+ * @author Bruce Nguyen
+ */
+
 class AnimationEventType {
     static get FRAMES_NOT_AVAILABLE() {
         return 1;
@@ -63576,6 +63619,12 @@ class AnimationEventType {
     }
     static get END_OF_ANIMATION() {
         return 3;
+    }
+    static get MODEL_CANVAS_MOVING() {
+        return 4;
+    }
+    static get MODEL_CANVAS_MOVED() {
+        return 5;
     }
 }
 
@@ -63601,26 +63650,25 @@ class AnimationEvent {
 
 /***/ }),
 
-/***/ "./src/loganimation/animationController.js":
-/*!*************************************************!*\
-  !*** ./src/loganimation/animationController.js ***!
-  \*************************************************/
+/***/ "./src/loganimation/animationMain.js":
+/*!*******************************************!*\
+  !*** ./src/loganimation/animationMain.js ***!
+  \*******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AnimationController; });
-/* harmony import */ var _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @svgdotjs/svg.js */ "./node_modules/@svgdotjs/svg.js/dist/svg.esm.js");
-/* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LogAnimation; });
+/* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
+/* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
 /* harmony import */ var _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tokenAnimation */ "./src/loganimation/tokenAnimation.js");
-/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils */ "./src/loganimation/utils.js");
-/* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! jquery-ui-bundle */ "./node_modules/jquery-ui-bundle/jquery-ui.js");
-/* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! jquery-ui-slider-pips-npm */ "./node_modules/jquery-ui-slider-pips-npm/dist/jquery-ui-slider-pips.js");
-/* harmony import */ var jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./timelineAnimation */ "./src/loganimation/timelineAnimation.js");
+/* harmony import */ var _processMapController__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./processMapController */ "./src/loganimation/processMapController.js");
+/* harmony import */ var _speedControl__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./speedControl */ "./src/loganimation/speedControl.js");
+/* harmony import */ var _progressAnimation__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./progressAnimation */ "./src/loganimation/progressAnimation.js");
+/* harmony import */ var _clockAnimation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clockAnimation */ "./src/loganimation/clockAnimation.js");
+/* harmony import */ var _playActionControl__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./playActionControl */ "./src/loganimation/playActionControl.js");
 /*-
  * #%L
  * This file is part of "Apromore Core".
@@ -63645,1099 +63693,357 @@ __webpack_require__.r(__webpack_exports__);
  * If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
+
+
+
+
+
+
+
+
+
+
+
 /**
- * Browser compatibility notes
+ * LogAnimation is a Front Controller to manage the animation page.
+ * It coordinates other components, including token animation, timeline, clock, log info table, progress indicator.
+ * Each component is represented by a Controller.
+ * The View and Controller of MVC are bundled as Controller. View is accessed via jQuery.
+ * The Model of MVC is not explicitly managed as the data is read-only. Data include JSON and XML read from the server.
+ * As the business gets more complex, a more complete MVC model would be considered.
  *
- * Chrome:
- * - Does not support reference variable to point DOM elements, must use selectors (getElementsBy)
- *   otherwise the innerHTML and element attributes are not updated
- * - svg.setCurrentTime is not processed properly, must call svg to reload via innerHTML
- *
- * Dependencies:
- * utils.js (for Clazz)
- *
- * The animation page has four animation components:
- *
- * 1. The process model with tokens moving along the nodes and edges: Canvas animation (TokenAnimation)
- * 2. The timeline bar with a cursor moving along: SVG animation
- * 3. The circular progress bar showing the completion percentage for the log: SVG animation
- * 4. The digital clock running and showing the passing time: animation with setTimeInterval
- * Four animations above have different internal state, but they share the same logical time which is
- * the timeline when speed level is 1.
- *
- * The timeline bar has a number of equal slots configured in the configuration file, e.g. TimelineSlots = 120.
- * Each slot represents a duration of time in the event log, called SlotDataUnit, i.e. how many seconds per slot
- * Each slot also represents a duration of time in the animation engine, called SlotEngineUnit
- * For example, if the log spans a long period of time, SlotDataUnit will have a large value.
- * SlotEngineUnit is used to calculate the speed of the cursor movement on the timeline bar
- * SlotDataUnit is used to calculate the location of a specific event date on the timeline bar
- * timeCoef: the ratio of SlotDataUnit to SlotEngineUnit, i.e. 1 second in the engine = how many seconds in the data.
- * The starting point of time in all logs is set in json data sent from the server: startMs.
- *
+ * @author Bruce Nguyen
  */
+class LogAnimation {
+    /**
+     * @param {String} processMapXML: the BPMN XML text encoding the process model
+     * @param {String} setupData: the JSON raw text containg initial setup data
+     * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
+     */
+    constructor(processMapXML, setupData, pluginExecutionId) {
+        this.pluginExecutionId = pluginExecutionId;
+        let jsonSetup = JSON.parse(setupData);
+        this.logSummaries = jsonSetup.logs;
+        this.isPlayingBeforeMovingModel = false;
+        this.apPalette = [
+            ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
+            ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
+        ];
 
+        // Add token animation
+        let {recordingFrameRate, elementMapping, startMs, endMs, totalEngineS,
+            timelineSlots, slotEngineUnit, caseCountsByFrames} = jsonSetup;
+        this.animationContext = new _animationContextState__WEBPACK_IMPORTED_MODULE_0__["AnimationContext"](this.pluginExecutionId, startMs, endMs, timelineSlots,
+                                                    totalEngineS, slotEngineUnit, recordingFrameRate);
+        this.processMapController = new _processMapController__WEBPACK_IMPORTED_MODULE_4__["default"](this, 'editorcanvas', processMapXML, elementMapping);
+        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, $j("#canvas"), this.processMapController, this.apPalette);
 
+        // Add other animation components
+        this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
+        this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_5__["default"](this, $j("#speed-control"));
+        this.progress = new _progressAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
+        this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_7__["default"](this, $j('#date'), $j('#time'));
+        this.buttonControls = new _playActionControl__WEBPACK_IMPORTED_MODULE_8__["default"](this,
+                                $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+                                'ap-mc-icon-play', 'ap-mc-icon-pause');
 
+        // Register events
+        this.processMapController.registerListener(this);
+        this.tokenAnimation.registerListener(this);
+        this._setKeyboardEvents();
 
+        // Start
+        this.tokenAnimation.startEngine();
+        this.pause();
+    }
 
+    _setKeyboardEvents() {
+        let me = this;
+        window.onkeydown = function (event) {
+            if (event.keyCode === 32 || event.key === " ") {
+                event.preventDefault();
+                me.playPause();
+            }
+        };
+    }
 
+    /**
+     * @returns {AnimationContext}
+     */
+    getAnimationContext() {
+        return this.animationContext;
+    }
 
+    getNumberOfLogs() {
+        return this.logSummaries.length;
+    }
 
+    getLogSummaries() {
+        return this.logSummaries;
+    }
 
+    getLogColor(logNo, logColor) {
+        return this.apPalette[logNo - 1][0] || logColor;
+    }
 
+    _getCurrentSVGTime() {
+        return this.timeline.getCurrentTime();
+    }
 
-class AnimationController {
-  constructor(canvas, pluginExecutionId) {
-    this.jsonModel = null; // Parsed objects of the process model
-    this.jsonServer = null; // Parsed objects returned from the server
-    this.timeline = null;
-    this.logs = null;
-    this.logNum = 0;
+    _getSVGTimeFromLogicalTime(logicalTime) {
+        return this.timeline.getSVGTimeFromLogicalTime(logicalTime);
+    }
 
-    // Animation environments: canvas, SVG documents and the clock
-    this.canvas = canvas; // the editor canvas object
-    this.svgViewport = null; // initialized in Controller.reset
-    this.svgDocs = [];
-    this.svgMain = null; // initialized in Controller.reset
-    this.svgTimeline = undefined;
-    this.svgProgresses = [];
-    this.clockTimer = null;
+    _getLogicalTimeFromSVGTime(svgTime) {
+        return this.timeline.getLogicalTimeFromSVGTime(svgTime);
+    }
 
-    this.startMs = 0;
-    this.endMs = 120;
-    this.slotNum = 120;
-    this.slotDataMs = 1000;
+    _getLogTimeFromLogicalTime(logicalTime) {
+        return this.timeline.getLogTimeFromLogicalTime(logicalTime);
+    }
 
-    this.textFont = {size: '11', anchor: 'middle'};
-    this.PLAY_CLS = 'ap-mc-icon-play';
-    this.PAUSE_CLS = 'ap-mc-icon-pause';
-    this.SHOW_OTHER_LOGS_TIMESPAN = false;
-    //this.apPalette = ['#84c7e3', '#bb3a50', '#3ac16d', '#f96100', '#FBA525'];
-    this.apPalette = [
-        ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
-        ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
-    ]
-    this.timelineOffset = {
-      x: 20, y: 20,
-    };
+    /**
+     * SVG animation controls speed on a fixed path via time duration and determines the current position via
+     * the current engine time. However, TokenAnimation (canvas based) controls speed via frame rates.
+     * The time system in TokenAnimation and SVG animations are different because of different frame rates
+     * (we don't know what happens inside the SVG animation engine). However, we can use the current logical time
+     * as the shared information to synchronize them.
+     * @param {Number} frameRate: frames per second
+     */
+    setSpeedLevel(frameRate) {
+        let newSpeedLevel = frameRate / this.animationContext.getRecordingFrameRate();
+        console.log('AnimationController - changeSpeed: speedLevel = ' + newSpeedLevel);
+        this._pauseSecondaryAnimations();
+        this.progress.setSpeedLevel(newSpeedLevel);
+        this.timeline.setSpeedLevel(newSpeedLevel);
+        this.tokenAnimation.setPlayingFrameRate(frameRate);
+    }
 
-    this.pluginExecutionId = pluginExecutionId;
-    this.elementCache = {};
-  }
+    // Move forward 1 slot
+    fastForward() {
+        console.log('AnimationController - fastForward');
+        if (this.timeline.isAtEnd()) return;
+        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
+        let newLogicalTime = currentLogicalTime + this.animationContext.getLogicalSlotTime();
+        this.goto(newLogicalTime);
+    }
 
-  initialize(jsonRaw) {
-    console.log('AnimationController: reset/start');
+    // Move backward 1 slot
+    fastBackward() {
+        console.log('AnimationController - fastBackward');
+        if (this.timeline.isAtStart()) return;
+        let currentLogicalTime = this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
+        let newLogicalTime = currentLogicalTime - this.animationContext.getLogicalSlotTime();
+        this.goto(newLogicalTime);
+    }
 
-    // Data for animation
-    this.jsonServer = JSON.parse(jsonRaw);
-    let {logs, timeline, recordingFrameRate, elementIndexIDMap, caseCountsByFrames} = this.jsonServer;
-    this.logs = logs;
-    this.logNum = logs.length;
-    this.timeline = timeline;
-    this.recordingFrameRate = recordingFrameRate;
-    this.elementIndexIDMap = elementIndexIDMap[0];
-    this.skipElementIndexIDMap = elementIndexIDMap[1];
-    this.caseCountsByFrames = caseCountsByFrames;
+    gotoStart() {
+        console.log('AnimationController - gotoStart');
+        if (this.timeline.isAtStart()) return;
+        this.goto(0);
+        this.pause();
+    }
 
-    // Elements for other animations: timeline, progresses, clock
-    this.svgMain = this.canvas.getSVGContainer();
-    this.svgViewport = this.canvas.getSVGViewport();
-    this.svgTimeline = $j('div.ap-la-timeline > div > svg')[0];
-    this.timelineEl = null;
+    gotoEnd() {
+        console.log('AnimationController - gotoEnd');
+        if (this.timeline.isAtEnd()) return;
+        this.goto(this.animationContext.getLogicalTimelineMax());
+        this.pause();
+    }
 
-    this.svgProgresses = [];
-    this.svgDocs = [];
-    this.svgDocs.push(this.svgMain);
-    this.svgDocs.push(this.svgTimeline);
-
-    // Time configuration for the animation
-    this.startMs = new Date(timeline.startDateLabel).getTime(); // Start date in milliseconds
-    this.endMs = new Date(timeline.endDateLabel).getTime(); // End date in milliseconds
-    this.totalMs = this.endMs - this.startMs;
-    this.endPos = timeline.endDateSlot; // End slot, currently set at 120
-    this.slotNum = timeline.timelineSlots; // The number of timeline vertical bars or (timeline.endDateSlot - timeline.startDateSlot)
-    this.slotDataMs = this.totalMs / this.slotNum; // Data milliseconds per slot
-
-    this.totalEngineS = timeline.totalEngineSeconds; // Total engine seconds (may change according to the speed)
-    this.slotEngineS = timeline.slotEngineUnit; // in seconds
-    this.timeCoef = this.slotDataMs / this.slotEngineS / 1000; // Ratio for data ms / animation ms
-
-    // Values for speed level = 1
-    this.currentSpeedLevel = 1;
-    this.oriTotalEngineS = this.totalEngineS;
-    this.oriSlotEngineS = this.slotEngineS;
-    this.oriTimeCoef = this.timeCoef;
-
-    // Visual drawing for timeline
-    this.slotWidth = 9;
-    this.timelineWidth = this.slotNum * this.slotWidth;
-    this.logIntervalSize = 5;
-    this.logIntervalHeight = 7;
-    this.logIntervalMargin = 8;
-
-    // Cache path elements
-    for (let log of this.logs) {
-      for (let elementIndex in this.elementIndexIDMap) {
-        let elementId = this.elementIndexIDMap[elementIndex];
-        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-        if (!pathElement) { // create cross and skip paths as they are not present
-          this.createNodePathElements(elementId);
-          pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+    /**
+     *
+     * @param {Number} logicalTime: the time when speed level = 1.
+     */
+    goto(logicalTime) {
+        let newLogicalTime = logicalTime;
+        if (newLogicalTime < 0) {
+            newLogicalTime = 0;
         }
-        this.elementCache[elementIndex] = pathElement;
-      }
-
-      for (let elementIndex in this.skipElementIndexIDMap) {
-        let elementId = this.skipElementIndexIDMap[elementIndex];
-        let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
-        this.elementCache[elementIndex] = pathElement;
-      }
-    }
-
-    // Create token animation
-    let canvasContext = document.querySelector("#canvas").getContext('2d');
-    this.animationContext = new _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationContext"](this.pluginExecutionId, this.startMs, this.endMs, this.totalEngineS, this.recordingFrameRate);
-    this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["TokenAnimation"](this.animationContext, canvasContext, this.elementCache, this.apPalette);
-
-    // Start token animation
-    let modelBox = this.svgMain.getBoundingClientRect();
-    let modelMatrix = this.svgViewport.transform.baseVal.consolidate().matrix;
-    this.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
-    this.tokenAnimation.registerListener(this);
-    this.tokenAnimation.startEngine();
-
-    let controller = this;
-    let isPlayingBeforeChanging = false;
-    this.canvas.addEventBusListener("canvas.viewbox.changing", function(event) {
-      let modelBox = controller.svgMain.getBoundingClientRect();
-      let modelMatrix = controller.svgViewport.transform.baseVal.consolidate().matrix;
-      controller.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
-      if (controller.isPlaying()) {
-        controller.pause();
-        isPlayingBeforeChanging = true;
-      }
-    });
-
-    this.canvas.addEventBusListener("canvas.viewbox.changed", function(event) {
-      let modelBox = controller.svgMain.getBoundingClientRect();
-      let modelMatrix = controller.svgViewport.transform.baseVal.consolidate().matrix;
-      controller.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
-      if (isPlayingBeforeChanging) {
-        controller.unPause();
-        isPlayingBeforeChanging = false;
-      }
-    });
-
-    // Create visual controls
-    this.createSpeedControl();
-    this.createProgressIndicators();
-    this.createLogInfoPopups();
-    this.createTimeline();
-    this.createTimelineDistribution();
-    this.createLogIntervals();
-    this.createTicks();
-    this.createCursor();
-    this.createMetricTables();
-
-    let me = this;
-    window.onkeydown = function(event) {
-      if(event.keyCode === 32 || event.key === " ") {
-        event.preventDefault();
-        me.playPause();
-      }
-    };
-
-    this.updateClockOnce(this.startMs);
-    this.pause();
-  }
-
-  createSpeedControl() {
-    const SPEED_CONTROL = "#speed-control";
-    let speedControl = $j(SPEED_CONTROL)
-
-    speedControl.slider({
-      orientation: "horizontal",
-      step: 1,
-      min: 1,
-      max: 11,
-      value: 5
-    });
-
-    let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
-    //let STEP_VALUES = [10, 15, 20, 24, 40, 60, 80, 120];
-    speedControl.slider("float", {
-      handle: true,
-      pips: true,
-      labels: true,
-      prefix: "",
-      suffix: ""
-    });
-
-    let lastSliderValue = speedControl.slider("value");
-    speedControl.on("slidechange", function(event, ui) {
-      let speedRatio = STEP_VALUES[ui.value - 1] / STEP_VALUES[lastSliderValue - 1];
-      this.changeSpeed(STEP_VALUES[ui.value - 1]);
-      lastSliderValue = ui.value;
-    });
-  }
-
-  // Add log intervals to timeline
-  createLogIntervals() {
-    let {
-      timeline, logNum, slotWidth, timelineOffset, timelineEl, apPalette,
-      logIntervalHeight, logIntervalMargin, logIntervalSize,
-    } = this;
-    let ox = timelineOffset.x, y = timelineOffset.y + logIntervalMargin; // Start offset
-
-    for (let i = 0; i < logNum; i++) {
-      let log = timeline.logs[i];
-      let x1 = ox + slotWidth * log.startDatePos;
-      let x2 = ox + slotWidth * log.endDatePos;
-      let style = 'stroke: ' + this.getLogColor(i+1, log.color) + '; stroke-width: ' + logIntervalSize;
-      let opacity = 0.8;
-      new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Line"]().plot(x1, y, x2, y).attr({style, opacity}).addTo(timelineEl);
-
-      // Display date label at the two ends
-      if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 != 0) {
-        let txt = log.startDateLabel.substr(0, 19);
-        let x = ox + slotWidth * log.startDatePos - 50;
-        y += 5;
-        new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(txt).font(this.textFont).attr({x, y}).addTo(timelineEl);
-      }
-      y += logIntervalHeight;
-    }
-  }
-
-  createProgressIndicators(speedRatio) {
-    let {logs, logNum} = this;
-    let log, progressContainer, svgProgressEl, label;
-    let svgProgress, svgProgresses = [];
-    let progressWrapper = $j('#ap-la-progress');
-
-    progressWrapper.empty();
-    for (let i = 0; i < logNum; i++) {
-      log = logs[i];
-      svgProgress = $j(`<svg id="progressbar-${i}  xmlns="${SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
-      progressWrapper.append(
-          $j(`<div id="progress-c-${i}"></div>`).append(
-              svgProgress.append(this.createProgressIndicatorsForLog(i + 1, log, this.timeline, 0, 0, speedRatio)),
-          ).append($j(`<div class="label">${log.filename}</div>`)),
-      );
-      svgProgress = svgProgress[0];
-      svgProgresses.push(svgProgress);
-      this.svgDocs.push(svgProgress);
-    }
-
-    this.svgProgresses = svgProgresses;
-  }
-
-  createLogInfoPopups() {
-    let {logs, logNum} = this;
-    let logInfo = $j('#ap-la-info-tip');
-    let props = [
-      {
-        id: 'info-no',
-        key: 'index',
-      },
-      {
-        id: 'info-log',
-        key: 'filename',
-      },
-      {
-        id: 'info-traces',
-        key: 'total',
-      },
-      {
-        id: 'info-replayed',
-        key: 'play',
-        title: 'unplayTraces',
-      },
-      {
-        id: 'info-reliable',
-        key: 'reliable',
-        title: 'unreliableTraces',
-      },
-      {
-        id: 'info-fitness',
-        key: 'exactTraceFitness',
-      },
-    ];
-
-    function getProps(log) {
-      props.forEach(function(prop) {
-        $j('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
-      });
-    }
-
-    for (let i = 0; i < logNum; i++) {
-      let pId = '#ap-la-progress-' + (i + 1);
-      $j(pId).hover(
-          (function(idx) {
-            let log = logs[idx - 1];
-            return function() {
-              getProps(log);
-              let {top, left} = $j(pId).offset();
-              let bottom = `calc(100vh - ${top - 10}px)`;
-              left += 20;
-              logInfo.attr('data-log-idx', idx);
-              logInfo.css({bottom, left});
-              logInfo.show();
-            };
-          })(i + 1),
-          function() {
-            logInfo.hide();
-          },
-      );
-    }
-  }
-
-  /*
-   * Create progress indicator for one log
-   * log: the log object (name, color, traceCount, progress, tokenAnimations)
-   * x,y: the coordinates to draw the progress bar
-   */
-  createProgressIndicatorsForLog(logNo, log, timeline, x, y, speedRatio) {
-    speedRatio = speedRatio || 1;
-    let {values, keyTimes, begin, dur} = log.progress;
-    let color = this.getLogColor(logNo, log.color);
-    let progress = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["G"]().attr({
-      id: 'ap-la-progress-' + logNo,
-    }).node;
-
-    let path = 'M ' + x + ',' + y + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
-    let pie = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(path).attr({
-      fill: color,
-      'fill-opacity': 0.5,
-      stroke: color,
-      'stroke-width': '5',
-      'stroke-dasharray': '0 126 126 0',
-      'stroke-dashoffset': '1',
-    }).node;
-
-    let pieAnim = document.createElementNS(SVG_NS, 'animate');
-    pieAnim.setAttributeNS(null, 'class', 'progress-animation');
-    pieAnim.setAttributeNS(null, 'attributeName', 'stroke-dashoffset');
-    pieAnim.setAttributeNS(null, 'values', values);
-    pieAnim.setAttributeNS(null, 'keyTimes', keyTimes);
-    pieAnim.setAttributeNS(null, 'begin', begin / speedRatio + 's');
-    pieAnim.setAttributeNS(null, 'dur', dur / speedRatio + 's');
-    pieAnim.setAttributeNS(null, 'fill', 'freeze');
-    pieAnim.setAttributeNS(null, 'repeatCount', '1');
-    pie.appendChild(pieAnim);
-    progress.appendChild(pie);
-    return progress;
-  }
-
-  createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl) {
-    new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Line"]().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(timelineEl);
-    y -= textToTickGap;
-    new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
-    y -= this.textFont.size * 1.5; // lineHeight
-    new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(timelineEl);
-  }
-
-  createTicks() {
-    // Add text and line for the bar
-    let {
-      slotNum, logNum, slotEngineS, slotWidth, slotDataMs, timelineEl, timelineOffset,
-      logIntervalHeight, logIntervalMargin,
-    } = this;
-    let tickSize = logIntervalHeight * (logNum - 1) + 2 * logIntervalMargin;
-    let textToTickGap = 5;
-    let x = timelineOffset.x;
-    let y = timelineOffset.y;
-    let time = this.startMs;
-    let color;
-    let date, dateTxt, timeTxt;
-    let skip;
-
-    for (let i = 0; i <= slotNum; i++) {
-      if (i % 10 == 0) {
-        date = moment__WEBPACK_IMPORTED_MODULE_6__(time);
-        dateTxt = date.format('D MMM YY');
-        timeTxt = date.format('H:mm:ss');
-        color = 'grey';
-        skip = false;
-      } else {
-        dateTxt = '';
-        timeTxt = '';
-        color = '#e0e0e0';
-        skip = true;
-      }
-      if (!skip) {
-        this.createTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, timelineEl);
-      }
-      x += slotWidth;
-      time += slotDataMs;
-    }
-  }
-
-  createTimelineDistribution() {
-    // Create a virtual horizontal line
-    let {slotNum, slotWidth, logIntervalMargin, timelineOffset, timelineEl} = this;
-    let startX = timelineOffset.x;
-    let endX = startX + slotNum*slotWidth;
-    let timelinePathY = timelineOffset.y + logIntervalMargin;
-    let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
-    let timelinePathE = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
-    timelineEl.appendChild(timelinePathE);
-    let totalLength = timelinePathE.getTotalLength();
-
-    // Set up canvas
-    let timelineBox = this.svgTimeline.getBoundingClientRect();
-    let ctx = document.querySelector("#timelineCanvas").getContext('2d');
-    ctx.canvas.width = timelineBox.width;
-    ctx.canvas.height = timelineBox.height;
-    ctx.canvas.x = timelineBox.x;
-    ctx.canvas.y = timelineBox.y;
-    ctx.strokeStyle = '#D3D3D3';
-    ctx.lineWidth = 2;
-    let matrix = timelinePathE.getCTM();
-    ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-
-    // Draw distribution
-    if (this.caseCountsByFrames) {
-      const Y_MAX = ctx.canvas.height;
-      const MAX_HEIGHT = ctx.canvas.height/4;
-      let maxCount = 0;
-      for (let count of Object.values(this.caseCountsByFrames)) {
-        if (typeof(count) != 'function' && maxCount < count) {
-          maxCount = count;
+        if (newLogicalTime > this.animationContext.getLogicalTimelineMax()) {
+            newLogicalTime = this.animationContext.getLogicalTimelineMax();
         }
-      }
-      let totalFrames = this.caseCountsByFrames.length;
-      for (let i=0;i<totalFrames;i++) {
-        let distance = i/totalFrames;
-        let point = timelinePathE.getPointAtLength(totalLength * distance);
-        let height = (this.caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
-        let y2 = ctx.canvas.height - height;
-        ctx.beginPath();
-        ctx.moveTo(point.x, timelinePathY);
-        ctx.lineTo(point.x, timelinePathY - height);
-        ctx.stroke();
-      }
-    }
-  }
 
-  createCursor() {
-    let {
-      logNum,
-      totalEngineS,
-      svgTimeline,
-      slotNum,
-      slotWidth,
-      slotEngineS,
-      timelineWidth,
-      timelineEl,
-      timelineOffset,
-    } = this;
-    let x = timelineOffset.x;
-    let y = timelineOffset.y + 5;
-    let cursorEl;
-    let me = this;
-
-    let path = 'M0 0 L8 8 L8 25 L-8 25 L-8 8 Z';
-    cursorEl = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(path).attr({
-      fill: '#FAF0E6',
-      stroke: 'grey',
-      style: 'cursor: move',
-      transform: `translate(${x},${y})`,
-    }).node;
-
-    let cursorAnim = document.createElementNS(SVG_NS, 'animateTransform');
-    cursorAnim.setAttributeNS(null, 'attributeName', 'transform');
-    cursorAnim.setAttributeNS(null, 'type', 'translate');
-    cursorAnim.setAttributeNS(null, 'id', 'cursor-animation');
-    cursorAnim.setAttributeNS(null, 'begin', '0s');
-    //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
-    cursorAnim.setAttributeNS(null, 'dur', slotNum*slotEngineS + 's');
-    cursorAnim.setAttributeNS(null, 'by', 1);
-    cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
-    cursorAnim.setAttributeNS(null, 'to', x + slotNum * slotWidth + ',' + y);
-    cursorAnim.setAttributeNS(null, 'fill', 'freeze');
-
-    cursorEl.appendChild(cursorAnim);
-    timelineEl.appendChild(cursorEl);
-
-    this.cursorEl = cursorEl;
-    this.cursorAnim = cursorAnim;
-
-    // Control dragging of the timeline cursor
-    let dragging = false;
-    let isPlayingBeforeDrag = false;
-
-    cursorEl.addEventListener('mousedown', startDragging.bind(this));
-    svgTimeline.addEventListener('mouseup', stopDragging.bind(this));
-    svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
-
-    function startDragging(evt) {
-      isPlayingBeforeDrag = me.isPlaying();
-      evt.preventDefault();
-      dragging = true;
-      me.pause();
+        let svgTime = this._getSVGTimeFromLogicalTime(newLogicalTime);
+        let logTime = this._getLogTimeFromLogicalTime(newLogicalTime);
+        this.timeline.setCurrentTime(svgTime);
+        this.progress.setCurrentTime(svgTime);
+        this.clock.setCurrentTime(logTime);
+        this.tokenAnimation.doGoto(newLogicalTime);
     }
 
-    function stopDragging(evt) {
-      if (!dragging) return; // Avoid doing the below two times
-      if (evt.type == 'mouseleave' && dragging) {
-        return;
-      }
-      dragging = false;
-      let logicalTime = getLogicalTimeFromMouseX(evt);
-      me.goto(logicalTime);
-      if (isPlayingBeforeDrag) {
-        me.unPause();
-      }
+    isPlaying() {
+        return this.timeline.isPlaying();
     }
 
-    function getLogicalTimeFromMouseX(evt) {
-      let x = getSVGMousePosition(evt).x;
-      let dx = x - me.timelineOffset.x;
-      return (dx / me.timelineWidth) * me.oriTotalEngineS;
+    pause() {
+        console.log('AnimationController: pause');
+        this.tokenAnimation.doPause();
+        this._pauseSecondaryAnimations();
+        this.buttonControls.setPlayPauseButton(true);
     }
 
-    // Convert from screen coordinates to SVG document coordinates
-    function getSVGMousePosition(evt) {
-      let svg = me.svgTimeline;
-      let matrix = svg.getScreenCTM().inverse();
-      let point = svg.createSVGPoint();
-      point.x = evt.clientX;
-      point.y = evt.clientY;
-      return point.matrixTransform(matrix);
+    unPause() {
+        console.log('AnimationController: unPause');
+        this.tokenAnimation.doUnpause();
+        this._unPauseSecondaryAnimations();
+        this.buttonControls.setPlayPauseButton(false);
     }
 
-  }
-  /*
-   * <g id="timeline">
-   *   <-- timeline bar -->
-   *   <line>
-   *     <text>
-   *     ...
-   *   <line>
-
-   *   <text>
-   *     <!-- timeline cursor -->
-   *     <rect>
-   *       <animationMotion>
-   *
-   * Use: this.slotNum, this.slotEngineMs
-   */
-  createTimeline() {
-    // Create the main timeline container group
-    let timelineEl = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["G"]().attr({
-      id: 'timeline',
-      style: '-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none',
-    }).node;
-    this.timelineEl = timelineEl;
-    this.svgTimeline.append(timelineEl);
-    return timelineEl;
-  }
-
-  createMetricTables() {
-    let logs = this.logs;
-    // Show metrics for every log
-    let metricsTable = $j('#metrics_table')[0];
-    for (let i = 0; i < logs.length; i++) {
-      let row = metricsTable.insertRow(i + 1);
-      let cellLogNo = row.insertCell(0);
-      let cellLogName = row.insertCell(1);
-      let cellTotalCount = row.insertCell(2);
-      let cellPlayCount = row.insertCell(3);
-      let cellReliableCount = row.insertCell(4);
-      let cellExactFitness = row.insertCell(5);
-
-      cellLogNo.innerHTML = i + 1;
-      cellLogNo.style.backgroundColor = logs[i].color;
-      cellLogNo.style.textAlign = 'center';
-
-      if (logs[i].filename.length > 50) {
-        cellLogName.innerHTML = logs[i].filename.substr(0, 50) + '...';
-      } else {
-        cellLogName.innerHTML = logs[i].filename;
-      }
-      cellLogName.title = logs[i].filename;
-      cellLogName.style.font = '1em monospace';
-      //cellLogName.style.backgroundColor = logs[i].color;
-
-      cellTotalCount.innerHTML = logs[i].total;
-      cellTotalCount.style.textAlign = 'center';
-      cellTotalCount.style.font = '1em monospace';
-
-      cellPlayCount.innerHTML = logs[i].play;
-      cellPlayCount.title = logs[i].unplayTraces;
-      cellPlayCount.style.textAlign = 'center';
-      cellPlayCount.style.font = '1em monospace';
-
-      cellReliableCount.innerHTML = logs[i].reliable;
-      cellReliableCount.title = logs[i].unreliableTraces;
-      cellReliableCount.style.textAlign = 'center';
-      cellReliableCount.style.font = '1em monospace';
-
-      cellExactFitness.innerHTML = logs[i].exactTraceFitness;
-      cellExactFitness.style.textAlign = 'center';
-      cellExactFitness.style.font = '1em monospace';
-    }
-  }
-
-  /**
-   * Logical time: the time as shown on the timeline when the cursor speed level is 1.
-   * Actual time: the actual time of the timeline cursor when its speed is less than or greater than 1.
-   * @param logicalTime
-   * @returns {number}
-   */
-  getSVGTimeFromLogicalTime(logicalTime) {
-    if (logicalTime <= 0) return 0;
-    if (logicalTime >= this.oriTotalEngineS) return this.totalEngineS;
-    return logicalTime/this.currentSpeedLevel;
-  }
-
-  getLogicalTimeFromSVGTime(svgTime) {
-    if (svgTime <= 0) return 0;
-    if (svgTime >= this.totalEngineS) return this.oriTotalEngineS;
-    return svgTime*this.currentSpeedLevel;
-  }
-
-  getLogTimeFromLogicalTime(logicalTime) {
-    return logicalTime * this.oriTimeCoef * 1000 + this.startMs;
-  }
-
-  getCurrentSVGTime() {
-    return this.svgTimeline.getCurrentTime();
-  }
-
-  setCurrentSVGTime(time) {
-    if (time < 0) { time = 0; }
-    if (time > this.totalEngineS) { time = this.totalEngineS; }
-    let self=this;
-    this.svgDocs.forEach(function(svgDoc) {
-      if (svgDoc != self.svgMain) svgDoc.setCurrentTime(time);
-    });
-  }
-
-  /*
-   * This method is used to read SVG document current time at every interval based on timer mechanism
-   * It stops reading when SVG document time reaches the end of the timeline
-   * The end() method is used for ending tasks for the replay completion scenario
-   * Thus, the end() method should NOT create a loopback to this method.
-   */
-  updateClock() {
-    if (this.getCurrentSVGTime() >= this.totalEngineS) {
-      //console.log('AnimationController - updateClock: gotoEnd because out of animation time.');
-      // this.updateClockOnce(this.endMs);
-      // this.pause();
-    } else {
-      this.updateClockOnce(this.startMs + this.getCurrentSVGTime()*this.timeCoef*1000);
-      //this.updateClockOnce(this.startMs + this.tokenAnimation.getCurrentLogTimeFromStart());
-    }
-  }
-
-  updateClockOnce(time) {
-    let dateEl = document.getElementById('date');
-    let timeEl = document.getElementById('time');
-    let locales = 'en-GB';
-    let date = new Date();
-    date.setTime(time);
-
-    if (window.Intl) {
-      dateEl.innerHTML = new Intl.DateTimeFormat(locales, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }).format(date);
-      timeEl.innerHTML = new Intl.DateTimeFormat(locales, {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(date);
-    } else {
-      // Fallback for browsers that don't support Intl (e.g. Safari 8.0)
-      dateEl.innerHTML = date.toDateString();
-      timeEl.innerHTML = date.toTimeString();
-    }
-  }
-
-  /**
-   * SVG animation controls speed on a fixed path via time duration and determines the current position via
-   * the current engine time. However, TokenAnimation (canvas based) controls speed via frame rates.
-   * The time system in TokenAnimation and SVG animations are different because of different frame rates
-   * (we don't know what happens inside the SVG animation engine). However, we can use the current logical time
-   * as the shared information to synchronize them.
-   * @param {Number} frameRate: frames per second
-   */
-  changeSpeed(frameRate) {
-    let newSpeedLevel = frameRate/this.animationContext.getRecordingFrameRate();
-    console.log('AnimationController - changeSpeed: speedLevel = ' + newSpeedLevel);
-    this.pauseSecondaryAnimations();
-    this.updateSVGAnimations(newSpeedLevel);
-    this.tokenAnimation.setPlayingFrameRate(frameRate);
-    //this.unPause();
-    this.currentSpeedLevel = newSpeedLevel;
-  }
-
-  /**
-   * Below is the SVG rule to make sure the animation continues from the same position at the new speed.
-   * Let L be the total length of an element where tokens are moved along (e.g. a sequence flow)
-   * Let X be the current time duration set for the token to finish the length L (X is the value of dur attribute)
-   * Let D be the distance that the token has done right before the speed is changed
-   * Let Cx be the current engine time right before the speed is changed, e.g. Cx = svgDoc.getCurrentLogicalTime().
-   * Let Y be the NEW time duration set for the token to travel through the length L.
-   * Let Cy be the current engine time assuming that Y has been set and the token has finished the D distance.
-   * Thus, the token can move faster or lower if Y < X or Y > X, respectively (Y is the new value of the dur attribute)
-   * A requirement when changing the animation speed is all tokens must keep running from
-   * the last position they were right before the speed change.
-   * We have: D = Cy*L/Y = Cx*L/X => Cy = (Y/X)*Cx
-   * Thus, for the token to start from the same position it was before the speed changes (i.e. dur changes from X to Y),
-   * the engine time must be set to (Y/X)*Cx, where Cx = svgDoc.getCurrentTime().
-   * Instead of making changes to the distances, the user sets the speed through a speed slider control.
-   * Each level represents a speed rate of the tokens
-   * Sy = L/Y, Sx = L/X, SpeedRatio = Sy/Sx = X/Y: the ratio between the new and old speed levels.
-   * In the formula above:
-   *  Cy = Cx/SpeedRatio
-   *  Y = X/SpeedRatio.
-   * In summary, by setting the animation duration as above and keeping the begin attribute UNCHANGED,
-   * the SVG engine will automatically adjust its animation to go faster or slower. By setting the engine current time,
-   * the engine will start from the current position.
-   *
-   * Note that when SVG Animation changes its speed (i.e. change its time duration and current time), its internal
-   * current time has changed. This means svg.getCurrentTime() returns a different internal engine time depending on
-   * the new speed.
-   *
-   * @param {Number} speedLevel: the level number on the speed control component
-   */
-  updateSVGAnimations(speedLevel) {
-    let speedRatio = speedLevel/this.currentSpeedLevel;
-    console.log('AnimationController - updateSVGAnimations: speedRatio = ' + speedRatio);
-
-    // Update visual configurations to match the new speed
-    this.totalEngineS = this.totalEngineS / speedRatio;
-    this.slotEngineS = this.slotEngineS / speedRatio;
-    this.timeCoef = this.slotDataMs / (this.slotEngineS*1000);
-
-    // Update the speed of circle progress bar
-    let animations = $j('.progress-animation');
-    for (let i = 0; i < animations.length; i++) {
-      let animateEl = animations[i];
-      let curDur = animateEl.getAttribute('dur');
-      curDur = curDur.substr(0, curDur.length - 1);
-      animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
-      let curBegin = animateEl.getAttribute('begin');
-      curBegin = curBegin.substr(0, curBegin.length - 1);
-      animateEl.setAttributeNS(null, 'begin', curBegin / speedRatio + 's');
-    }
-
-    // Update the cursor. Must recreate the cursor because setAttributeNS doesn't work
-    if (this.cursorEl) {
-      this.timelineEl.removeChild(this.cursorEl);
-    }
-    this.createCursor();
-
-    // Now set the current SVG engine time: the SVG animation will change speed at the same position
-    let newActualTime = this.getCurrentSVGTime()/speedRatio;
-    this.setCurrentSVGTime(newActualTime);
-  }
-
-  /**
-   *
-   * @param {Number} logicalTime: the time when speed level = 1.
-   */
-  goto(logicalTime) {
-    let newLogicalTime = logicalTime;
-    if (newLogicalTime < 0) { newLogicalTime = 0; }
-    if (newLogicalTime > this.oriTotalEngineS) { newLogicalTime = this.oriTotalEngineS; }
-    this.setCurrentSVGTime(this.getSVGTimeFromLogicalTime(newLogicalTime));
-    this.tokenAnimation.doGoto(newLogicalTime);
-    this.updateClockOnce(this.getLogTimeFromLogicalTime(newLogicalTime));
-  }
-
-  isAtStart() {
-    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
-    return (currentLogicalTime === 0);
-  }
-
-  isAtEnd() {
-    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
-    return (currentLogicalTime === this.oriTotalEngineS);
-  }
-
-  // Move forward 1 slot
-  fastForward() {
-    console.log('AnimationController - fastForward');
-    if (this.isAtEnd()) return;
-    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
-    let newLogicalTime = currentLogicalTime + this.oriSlotEngineS;
-    this.goto(newLogicalTime);
-  }
-
-  // Move backward 1 slot
-  fastBackward() {
-    console.log('AnimationController - fastBackward');
-    if (this.isAtStart()) return;
-    let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
-    let newLogicalTime = currentLogicalTime - this.oriSlotEngineS;
-    this.goto(newLogicalTime);
-  }
-
-  gotoStart() {
-    console.log('AnimationController - gotoStart');
-    if (this.isAtStart()) return;
-    this.goto(0);
-    this.pause();
-  }
-
-  gotoEnd() {
-    console.log('AnimationController - gotoEnd');
-    if (this.isAtEnd()) return;
-    this.goto(this.oriTotalEngineS);
-    this.pause();
-  }
-
-  isPlaying() {
-    //return $j('#pause').hasClass(this.PAUSE_CLS);
-    return !this.svgTimeline.animationsPaused();
-  }
-
-  /**
-   * @param {Boolean} changeToPlay: true means setting the button to a Play shape, false: set it to a Pause shape.
-   */
-  setPlayPauseButton(changeToPlay) {
-    const {PAUSE_CLS, PLAY_CLS} = this;
-    const button = $j('#pause');
-
-    if (typeof changeToPlay === 'undefined') {
-      changeToPlay = !this.isPlaying();
-    }
-    if (changeToPlay) {
-      button.removeClass(PAUSE_CLS).addClass(PLAY_CLS);
-    } else {
-      button.removeClass(PLAY_CLS).addClass(PAUSE_CLS);
-    }
-  }
-
-  pause() {
-    console.log('AnimationController: pause');
-    this.tokenAnimation.doPause();
-    this.pauseSecondaryAnimations();
-    this.setPlayPauseButton(true);
-  }
-
-  pauseSecondaryAnimations() {
-    console.log('AnimationController - pauseSecondaryAnimations');
-    this.svgDocs.forEach(function(svgDoc) {
-      svgDoc.pauseAnimations();
-    });
-
-    if (this.clockTimer) {
-      clearInterval(this.clockTimer);
-    }
-  }
-
-  unPause() {
-    console.log('AnimationController: unPause');
-    this.tokenAnimation.doUnpause();
-    this.unPauseSecondaryAnimations();
-    this.setPlayPauseButton(false);
-  }
-
-  unPauseSecondaryAnimations() {
-    console.log('AnimationController - unPauseSecondaryAnimations');
-    let me = this;
-    this.svgDocs.forEach(function(svgDoc) {
-      svgDoc.unpauseAnimations();
-    });
-
-    if (this.clockTimer) clearInterval(this.clockTimer);
-    this.clockTimer = setInterval(me.updateClock.bind(this),100);
-  }
-
-  playPause() {
-    if (this.isAtEnd()) return;
-    console.log('AnimationController: toggle play/pause');
-    if (this.isPlaying()) {
-      this.pause();
-    } else {
-      this.unPause();
-    }
-  }
-
-  /**
-   * Create two paths: one crossing and one skipping a node
-   * @param {String} nodeId
-   */
-  createNodePathElements (nodeId) {
-    let incomingEndPoint = $j(
-        '[data-element-id=' + this.canvas.getIncomingFlowId(nodeId) +
-        ']',
-    )
-    let incomingPathE = incomingEndPoint.find('g').find('path').get(0)
-    incomingEndPoint = incomingPathE.getPointAtLength(
-        incomingPathE.getTotalLength(),
-    )
-    let crossPath, skipPath;
-    let arrayAbove, arrayBelow;
-
-    let outgoingStartPoint = $j(
-        '[data-element-id=' + this.canvas.getOutgoingFlowId(nodeId) +
-        ']',
-    )
-    let outgoingPathE = outgoingStartPoint.find('g').find('path').get(0)
-    outgoingStartPoint = outgoingPathE.getPointAtLength(0)
-
-    let startPoint = incomingEndPoint
-    let endPoint = outgoingStartPoint
-
-    let nodeTransformE = $j('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
-    let nodeRectE = $j('[data-element-id=' + nodeId + ']').
-    find('g').
-    find('rect').
-    get(0)
-    let taskRectPoints = _utils__WEBPACK_IMPORTED_MODULE_3__["getViewportPoints"](
-        this.svgMain,
-        nodeRectE,
-        nodeTransformE,
-    )
-
-    crossPath =
-        'm' + startPoint.x + ',' + startPoint.y +
-        ' L' + taskRectPoints.cc.x + ',' + taskRectPoints.cc.y +
-        ' L' + endPoint.x + ',' + endPoint.y
-
-    // Both points are on a same edge
-    if (
-        (Math.abs(startPoint.x - endPoint.x) < 10 &&
-            Math.abs(endPoint.x - taskRectPoints.se.x) < 10) ||
-        (Math.abs(startPoint.x - endPoint.x) < 10 &&
-            Math.abs(endPoint.x - taskRectPoints.sw.x) < 10) ||
-        (Math.abs(startPoint.y - endPoint.y) < 10 &&
-            Math.abs(endPoint.y - taskRectPoints.nw.y) < 10) ||
-        (Math.abs(startPoint.y - endPoint.y) < 10 &&
-            Math.abs(endPoint.y - taskRectPoints.sw.y) < 10)
-    ) {
-      skipPath =
-          'm' + startPoint.x + ',' + startPoint.y +
-          ' L' + endPoint.x + ',' + endPoint.y
-    } else {
-      arrayAbove = new Array()
-      arrayBelow = new Array()
-
-      if (
-          taskRectPoints.se.y <
-          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.se)
-      ) {
-        arrayAbove.push(taskRectPoints.se)
-      } else {
-        arrayBelow.push(taskRectPoints.se)
-      }
-
-      if (
-          taskRectPoints.sw.y <
-          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.sw)
-      ) {
-        arrayAbove.push(taskRectPoints.sw)
-      } else {
-        arrayBelow.push(taskRectPoints.sw)
-      }
-
-      if (
-          taskRectPoints.ne.y <
-          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.ne)
-      ) {
-        arrayAbove.push(taskRectPoints.ne)
-      } else {
-        arrayBelow.push(taskRectPoints.ne)
-      }
-
-      if (
-          taskRectPoints.nw.y <
-          _utils__WEBPACK_IMPORTED_MODULE_3__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.nw)
-      ) {
-        arrayAbove.push(taskRectPoints.nw)
-      } else {
-        arrayBelow.push(taskRectPoints.nw)
-      }
-
-      if (arrayAbove.length == 1) {
-        skipPath =
-            'm' + startPoint.x + ',' + startPoint.y + ' ' +
-            'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
-            'L' + endPoint.x + ',' + endPoint.y
-      } else if (arrayBelow.length == 1) {
-        skipPath =
-            'm' + startPoint.x + ',' + startPoint.y + ' ' +
-            'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
-            'L' + endPoint.x + ',' + endPoint.y
-      } else {
-        if (Math.abs(startPoint.x - taskRectPoints.sw.x) < 10) {
-          skipPath =
-              'm' + startPoint.x + ',' + startPoint.y + ' ' +
-              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-              'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-              'L' + endPoint.x + ',' + endPoint.y
-        } else if (Math.abs(startPoint.x - taskRectPoints.se.x) < 10) {
-          skipPath =
-              'm' + startPoint.x + ',' + startPoint.y + ' ' +
-              'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-              'L' + endPoint.x + ',' + endPoint.y
-        } else if (Math.abs(startPoint.y - taskRectPoints.sw.y) < 10) {
-          skipPath =
-              'm' + startPoint.x + ',' + startPoint.y + ' ' +
-              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-              'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-              'L' + endPoint.x + ',' + endPoint.y
-        } else if (Math.abs(startPoint.y - taskRectPoints.nw.y) < 10) {
-          skipPath =
-              'm' + startPoint.x + ',' + startPoint.y + ' ' +
-              'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-              'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-              'L' + endPoint.x + ',' + endPoint.y
+    /**
+     * Toggle between play and pause.
+     */
+    playPause() {
+        if (this.timeline.isAtEnd()) return;
+        console.log('AnimationController: toggle play/pause');
+        if (this.isPlaying()) {
+            this.pause();
+        } else {
+            this.unPause();
         }
-      }
     }
 
-    let crossPathE = document.createElementNS(SVG_NS, 'path');
-    crossPathE.setAttributeNS(null, 'd', crossPath);
-    crossPathE.setAttributeNS(null, 'fill', 'transparent');
-    crossPathE.setAttributeNS(null, 'stroke', 'none');
-
-    let skipPathE = document.createElementNS(SVG_NS, 'path');
-    skipPathE.setAttributeNS(null, 'd', skipPath);
-    skipPathE.setAttributeNS(null, 'fill', 'transparent');
-    skipPathE.setAttributeNS(null, 'stroke', 'none');
-
-    let nodeGroupE = $j('[data-element-id=' + nodeId + ']').find('g').get(0);
-    nodeGroupE.appendChild(crossPathE);
-    nodeGroupE.appendChild(skipPathE);
-  }
-
-  getLogColor(logNo, logColor) {
-    return this.apPalette[logNo - 1][0] || logColor;
-  }
-
-  /**
-   * @param {AnimationEventType} event
-   */
-  update(event) {
-    //console.log('AnimationController: event processing');
-    if (!(event instanceof _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEvent"])) return;
-
-    // Need to check playing state to avoid calling pause/unpause too many times
-    // which will disable the digital clock
-    if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_NOT_AVAILABLE && this.isPlaying()) {
-      this.pauseSecondaryAnimations();
+    _pauseSecondaryAnimations() {
+        console.log('AnimationController - pauseSecondaryAnimations');
+        this.timeline.pause();
+        this.progress.pause();
+        this.clock.pause();
     }
-    else if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_AVAILABLE && !this.isPlaying()) {
-      this.unPauseSecondaryAnimations();
+
+    _unPauseSecondaryAnimations() {
+        console.log('AnimationController - unPauseSecondaryAnimations');
+        this.timeline.unPause();
+        this.progress.unPause();
+        this.clock.unPause();
     }
-    else if (event.getEventType() === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION) {
-      this.pause();
-      this.updateClockOnce(this.endMs);
+
+
+    /**
+     * @param {AnimationEventType} event
+     * @param {Object} eventData
+     */
+    handleEvent(event, eventData) {
+        //console.log('AnimationController: event processing');
+        if (!(event instanceof _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEvent"])) return;
+
+        // Need to check playing state to avoid calling pause/unpause too many times
+        // which will disable the digital clock
+        if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_NOT_AVAILABLE && this.isPlaying()) {
+            this._pauseSecondaryAnimations();
+        } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_AVAILABLE && !this.isPlaying()) {
+            this._unPauseSecondaryAnimations();
+        } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION) {
+            this.pause();
+            this.clock.setTime(this.animationContext.getLogicalTimelineMax());
+        } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].MODEL_CANVAS_MOVING) {
+            let modelBox = event.getEventData().viewbox;
+            let modelMatrix = event.getEventData().transformMatrix;
+            this.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
+            if (this.isPlaying()) {
+                this.pause();
+                this.isPlayingBeforeMovingModel = true;
+            }
+        } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].MODEL_CANVAS_MOVED) {
+            let modelBox = event.getEventData().viewbox;
+            let modelMatrix = event.getEventData().transformMatrix;
+            this.tokenAnimation.setPosition(modelBox.x, modelBox.y, modelBox.width, modelBox.height, modelMatrix);
+            if (this.isPlayingBeforeMovingModel) {
+                this.unPause();
+                this.isPlayingBeforeMovingModel = false;
+            }
+        }
     }
-  }
 
 }
 
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+
+/***/ }),
+
+/***/ "./src/loganimation/clockAnimation.js":
+/*!********************************************!*\
+  !*** ./src/loganimation/clockAnimation.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClockAnimation; });
+/**
+ * ClockAnimation manages the clock on the animation page.
+ * It uses setInterval and javascript to create a clock and sync
+ * with the main token animation.
+ *
+ */
+class ClockAnimation {
+    /**
+     * @param {AnimationController} animationController
+     * @param {HTMLElement} dateElement
+     * @param {HTMLElement} timeElement
+     */
+    constructor(animationController, dateElement, timeElement) {
+        this._animationController = animationController;
+        this._animationContext = animationController.getAnimationContext();
+        this._dateElement = dateElement;
+        this._timeElement = timeElement;
+        this.clockTimer = null; // id of the window timer returned from setInterval.
+    }
+
+    unPause() {
+        if (!this.clockTimer) clearInterval(this.clockTimer);
+        this.clockTimer = setInterval(this._updateClock.bind(this),100);
+    }
+
+    pause() {
+        if (!this.clockTimer) clearInterval(this.clockTimer);
+    }
+
+    setCurrentTime(dateTime) {
+        this._updateClockOnce(dateTime);
+    }
+
+    /*
+     * This method is used to read SVG document current time at every interval based on timer mechanism
+     * It stops reading when SVG document time reaches the end of the timeline
+     * The end() method is used for ending tasks for the replay completion scenario
+     * Thus, the end() method should NOT create a loopback to this method.
+     */
+    _updateClock() {
+        if (this._animationController._getCurrentSVGTime() >= this._animationContext.getLogicalTimelineMax()) {
+        } else {
+            this._updateClockOnce(this._animationContext.getLogStartTime() +
+                                this._animationController._getCurrentSVGTime()*this._animationContext.getTimelineRatio()*1000);
+        }
+    }
+
+    _updateClockOnce(time) {
+        let dateEl = this._dateElement;
+        let timeEl = this._timeElement;
+        let locales = 'en-GB';
+        let date = new Date();
+        date.setTime(time);
+
+        if (window.Intl) {
+            dateEl.innerHTML = new Intl.DateTimeFormat(locales, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+            }).format(date);
+            timeEl.innerHTML = new Intl.DateTimeFormat(locales, {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).format(date);
+        } else {
+            // Fallback for browsers that don't support Intl (e.g. Safari 8.0)
+            dateEl.innerHTML = date.toDateString();
+            timeEl.innerHTML = date.toTimeString();
+        }
+    }
+}
 
 /***/ }),
 
@@ -64761,8 +64067,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 class DataRequester {
     /**
-     * @param {Buffer} buffer
-     * @param {String} pluginExecutionId
+     * @param {String} pluginExecutionId: plugin running instance id
      */
     constructor(pluginExecutionId) {
         this._buffer = undefined;
@@ -64794,6 +64099,7 @@ class DataRequester {
      * @param {Number} frameIndex
      * @param {Buffer} buffer
      * @param {Number} requestToken
+     * @param {Number} chunkSize
      */
     requestData(buffer, requestToken, frameIndex, chunkSize) {
         console.log('DataRequester - requestData: frameIndex=' + frameIndex + ", requestToken=" + requestToken);
@@ -64804,31 +64110,6 @@ class DataRequester {
                                         'chunkSize': chunkSize});
     }
 
-    // This is for testing performance
-    calculatePrimes(iterations, multiplier) {
-        var primes = [];
-        for (var i = 0; i < iterations; i++) {
-            var candidate = i * (multiplier * Math.random());
-            var isPrime = true;
-            for (var c = 2; c <= Math.sqrt(candidate); ++c) {
-                if (candidate % c === 0) {
-                    // not prime
-                    isPrime = false;
-                    break;
-                }
-            }
-            if (isPrime) {
-                primes.push(candidate);
-            }
-        }
-        return primes;
-    }
-
-    // This is for testing performance
-    doPointlessComputationsWithBlocking() {
-        var primes = calculatePrimes(iterations, multiplier);
-        console.log(primes);
-    }
 }
 
 
@@ -64845,7 +64126,7 @@ class DataRequester {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Buffer; });
-/* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
+/* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
 /* harmony import */ var _dataRequester__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dataRequester */ "./src/loganimation/dataRequester.js");
 
 /**
@@ -65189,151 +64470,1027 @@ class Buffer {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _logAnimation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./logAnimation */ "./src/loganimation/logAnimation.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _logAnimation__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _animationMain__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationMain */ "./src/loganimation/animationMain.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _animationMain__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
 
 
 /***/ }),
 
-/***/ "./src/loganimation/logAnimation.js":
+/***/ "./src/loganimation/playActionControl.js":
+/*!***********************************************!*\
+  !*** ./src/loganimation/playActionControl.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PlayActionControl; });
+/**
+ * PlayActionControl groups buttons controlling the animation such as start, pause, fast foward, etc.
+ *
+ * @author Bruce Nguyen
+ */
+class PlayActionControl{
+    /**
+     * @param {LogAnimation} animation
+     * @param {HTMLButtonElement} gotoStartButton
+     * @param {HTMLButtonElement} pauseButton
+     * @param {HTMLButtonElement} forwardButton
+     * @param {HTMLButtonElement} backwardButton
+     * @param {HTMLButtonElement} gotoEndButton
+     * @param {String} playClassName: CSS class name of the play state
+     * @param {String} pauseClassName: CSS class name of the pause state
+     */
+    constructor(animation,
+                gotoStartButton, pauseButton, forwardButton,
+                backwardButton, gotoEndButton,
+                playClassName,
+                pauseClassName) {
+        this.animation = animation;
+        this.gotoStartButton = gotoStartButton;
+        this.gotoEndButton = gotoEndButton;
+        this.pauseButton = pauseButton;
+        this.forwardButton = forwardButton;
+        this.backwardButton = backwardButton;
+
+        gotoStartButton.addEventListener('click', animation.gotoStart);
+        gotoEndButton.addEventListener('click', animation.gotoEnd);
+        pauseButton.addEventListener('click', animation.playPause);
+        forwardButton.addEventListener('click', animation.fastForward);
+        backwardButton.addEventListener('click', animation.fastBackward);
+
+        this.PLAY_CLS = playClassName;
+        this.PAUSE_CLS = pauseClassName;
+    }
+
+    /**
+     * @param {Boolean} changeToPlay: true means setting the button to a Play shape, false: set it to a Pause shape.
+     */
+    setPlayPauseButton(changeToPlay) {
+        if (typeof changeToPlay === 'undefined') {
+            changeToPlay = !this.animation.isPlaying();
+        }
+        if (changeToPlay) {
+            this.pauseButton.removeClass(this.PAUSE_CLS).addClass(this.PLAY_CLS);
+        } else {
+            this.pauseButton.removeClass(this.PLAY_CLS).addClass(this.PAUSE_CLS);
+        }
+    }
+}
+
+/***/ }),
+
+/***/ "./src/loganimation/processMapController.js":
+/*!**************************************************!*\
+  !*** ./src/loganimation/processMapController.js ***!
+  \**************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ProcessMapController; });
+/* harmony import */ var _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../bpmneditor/apromoreEditor */ "./src/bpmneditor/apromoreEditor.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/loganimation/utils.js");
+/* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
+
+
+
+
+/**
+ * ProcessMapController encapsulates the process map editor and provides
+ * interfaces into the editor needed by the token animation. The token animation
+ * shows animation on the editor.
+ *
+ * @author Bruce Nguyen
+ */
+class ProcessMapController {
+    /**
+     * @param {LogAnimation} animation
+     * @param {String} uiContainerId: id of the parent div element for containing the editor
+     * @param {String }processMapXML: BPMN XML of the process map
+     * @param {Object} elementMapping: map from element index to element id
+     */
+    constructor(animation, uiContainerId, processMapXML, elementMapping) {
+        this._animationController = animation;
+        const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
+        this._editor = this._init(uiContainerId, processMapXML, BPMN_NS, BPMN_NS);
+        setTimeout((function () {
+            this._svgMain = this._editor.getCanvas().getSVGContainer();
+            this._svgViewport = this._editor.getCanvas().getSVGViewport();
+            this._initIndexToElementMapping(elementMapping);
+            this._listeners = [];
+
+            let me = this;
+            this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function() {
+                let modelBox = me.getBoundingClientRect();
+                let modelMatrix = me.getTransformMatrix();
+                me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVING,
+                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+            });
+
+            this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function() {
+                let modelBox = me.getBoundingClientRect();
+                let modelMatrix = me.getTransformMatrix();
+                me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVED,
+                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+            });
+        }).bind(this), 1000);
+
+    }
+
+    /**
+     * @returns {DOMRect}
+     */
+    getBoundingClientRect() {
+        return this._svgMain.getBoundingClientRect();
+    }
+
+    /**
+     * @returns {DOMMatrix}
+     */
+    getTransformMatrix() {
+        return this._svgViewport.transform.baseVal.consolidate().matrix;
+    }
+
+    /**
+     * @param {String} elementIndex: index of the modelling element.
+     * @returns {SVGElement} SVG element
+     */
+    getPathElement(elementIndex) {
+        return this._indexToElement[elementIndex];
+    }
+
+    registerListener(listener) {
+        this._listeners.push(listener);
+    }
+
+    /**
+     * @param {AnimationEvent} event
+     */
+    _notifyAll(event) {
+        this._listeners.forEach(function(listener){
+            listener.handleEvent(event);
+        })
+    }
+
+
+    /**
+     * @param {Object} elementMapping: map from element index to element id
+     * @return {Object} mapping from element index to SVG Path Element having the element id
+     * @private
+     */
+    _initIndexToElementMapping(elementMapping) {
+        this._indexToElement = {};
+        let elementIndexIDMap = elementMapping[0];
+        let skipElementIndexIDMap = elementMapping[1];
+        for (let elementIndex in elementIndexIDMap) {
+            let elementId = elementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            if (!pathElement) { // create cross and skip paths as they are not present
+                this._createNodePathElements(elementId);
+                pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            }
+            this._indexToElement[elementIndex] = pathElement;
+        }
+
+        for (let elementIndex in skipElementIndexIDMap) {
+            let elementId = skipElementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+            this._indexToElement[elementIndex] = pathElement;
+        }
+    }
+
+    /**
+     * Create two paths: one crossing and one skipping a node
+     * The paths are added as children to the node element
+     * @param {String} nodeId
+     */
+    _createNodePathElements (nodeId) {
+        let editorCanvas = this._editor.getCanvas();
+        let incomingEndPoint = $j(
+            '[data-element-id=' + editorCanvas.getIncomingFlowId(nodeId) +
+            ']',
+        )
+        let incomingPathE = incomingEndPoint.find('g').find('path').get(0)
+        incomingEndPoint = incomingPathE.getPointAtLength(
+            incomingPathE.getTotalLength(),
+        )
+        let crossPath, skipPath;
+        let arrayAbove, arrayBelow;
+
+        let outgoingStartPoint = $j(
+            '[data-element-id=' + editorCanvas.getOutgoingFlowId(nodeId) +
+            ']',
+        )
+        let outgoingPathE = outgoingStartPoint.find('g').find('path').get(0)
+        outgoingStartPoint = outgoingPathE.getPointAtLength(0)
+
+        let startPoint = incomingEndPoint
+        let endPoint = outgoingStartPoint
+
+        let nodeTransformE = $j('[data-element-id=' + nodeId + ']').get(0) //this <g> element contains the translate function
+        let nodeRectE = $j('[data-element-id=' + nodeId + ']')
+                                    .find('g')
+                                    .find('rect')
+                                    .get(0)
+        let taskRectPoints = _utils__WEBPACK_IMPORTED_MODULE_1__["getViewportPoints"](
+            this._svgMain,
+            nodeRectE,
+            nodeTransformE,
+        )
+
+        crossPath =
+            'm' + startPoint.x + ',' + startPoint.y +
+            ' L' + taskRectPoints.cc.x + ',' + taskRectPoints.cc.y +
+            ' L' + endPoint.x + ',' + endPoint.y
+
+        // Both points are on a same edge
+        if (
+            (Math.abs(startPoint.x - endPoint.x) < 10 &&
+                Math.abs(endPoint.x - taskRectPoints.se.x) < 10) ||
+            (Math.abs(startPoint.x - endPoint.x) < 10 &&
+                Math.abs(endPoint.x - taskRectPoints.sw.x) < 10) ||
+            (Math.abs(startPoint.y - endPoint.y) < 10 &&
+                Math.abs(endPoint.y - taskRectPoints.nw.y) < 10) ||
+            (Math.abs(startPoint.y - endPoint.y) < 10 &&
+                Math.abs(endPoint.y - taskRectPoints.sw.y) < 10)
+        ) {
+            skipPath =
+                'm' + startPoint.x + ',' + startPoint.y +
+                ' L' + endPoint.x + ',' + endPoint.y
+        } else {
+            arrayAbove = []
+            arrayBelow = []
+
+            if (
+                taskRectPoints.se.y <
+                _utils__WEBPACK_IMPORTED_MODULE_1__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.se)
+            ) {
+                arrayAbove.push(taskRectPoints.se)
+            } else {
+                arrayBelow.push(taskRectPoints.se)
+            }
+
+            if (
+                taskRectPoints.sw.y <
+                _utils__WEBPACK_IMPORTED_MODULE_1__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.sw)
+            ) {
+                arrayAbove.push(taskRectPoints.sw)
+            } else {
+                arrayBelow.push(taskRectPoints.sw)
+            }
+
+            if (
+                taskRectPoints.ne.y <
+                _utils__WEBPACK_IMPORTED_MODULE_1__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.ne)
+            ) {
+                arrayAbove.push(taskRectPoints.ne)
+            } else {
+                arrayBelow.push(taskRectPoints.ne)
+            }
+
+            if (
+                taskRectPoints.nw.y <
+                _utils__WEBPACK_IMPORTED_MODULE_1__["getStraighLineFunctionValue"](startPoint, endPoint, taskRectPoints.nw)
+            ) {
+                arrayAbove.push(taskRectPoints.nw)
+            } else {
+                arrayBelow.push(taskRectPoints.nw)
+            }
+
+            if (arrayAbove.length === 1) {
+                skipPath =
+                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                    'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
+                    'L' + endPoint.x + ',' + endPoint.y
+            } else if (arrayBelow.length === 1) {
+                skipPath =
+                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                    'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
+                    'L' + endPoint.x + ',' + endPoint.y
+            } else {
+                if (Math.abs(startPoint.x - taskRectPoints.sw.x) < 10) {
+                    skipPath =
+                        'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                        'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+                        'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
+                        'L' + endPoint.x + ',' + endPoint.y
+                } else if (Math.abs(startPoint.x - taskRectPoints.se.x) < 10) {
+                    skipPath =
+                        'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                        'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
+                        'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+                        'L' + endPoint.x + ',' + endPoint.y
+                } else if (Math.abs(startPoint.y - taskRectPoints.sw.y) < 10) {
+                    skipPath =
+                        'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                        'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+                        'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
+                        'L' + endPoint.x + ',' + endPoint.y
+                } else if (Math.abs(startPoint.y - taskRectPoints.nw.y) < 10) {
+                    skipPath =
+                        'm' + startPoint.x + ',' + startPoint.y + ' ' +
+                        'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
+                        'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
+                        'L' + endPoint.x + ',' + endPoint.y
+                }
+            }
+        }
+
+        let crossPathE = document.createElementNS(SVG_NS, 'path');
+        crossPathE.setAttributeNS(null, 'd', crossPath);
+        crossPathE.setAttributeNS(null, 'fill', 'transparent');
+        crossPathE.setAttributeNS(null, 'stroke', 'none');
+
+        let skipPathE = document.createElementNS(SVG_NS, 'path');
+        skipPathE.setAttributeNS(null, 'd', skipPath);
+        skipPathE.setAttributeNS(null, 'fill', 'transparent');
+        skipPathE.setAttributeNS(null, 'stroke', 'none');
+
+        let nodeGroupE = $j('[data-element-id=' + nodeId + ']').find('g').get(0);
+        nodeGroupE.appendChild(crossPathE);
+        nodeGroupE.appendChild(skipPathE);
+    }
+
+    /**
+     *
+     * @param {String} editorParentId: id of the div element hosting the editor
+     * @param {String} xml: XML content of the BPMN map/model
+     * @param {String} url:
+     * @param namespace
+     * @returns {*}
+     */
+    _init(editorParentId, xml, url, namespace) {
+        return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__["ORYX"].Editor({
+            xml,
+            model: {
+                id: editorParentId,
+                showPlugins: false,
+                stencilset: {
+                    url,
+                    namespace
+                }
+            },
+            fullscreen: true // false
+        });
+    }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+
+/***/ }),
+
+/***/ "./src/loganimation/progressAnimation.js":
+/*!***********************************************!*\
+  !*** ./src/loganimation/progressAnimation.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ProgressAnimation; });
+/* harmony import */ var _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @svgdotjs/svg.js */ "./node_modules/@svgdotjs/svg.js/dist/svg.esm.js");
+
+
+/**
+ * ProgressAnimation manages the progress indicator of the animation.
+ *
+ * @author Bruce Nguyen
+ */
+class ProgressAnimation {
+    /**
+     * @param {LogAnimation}animation
+     * @param {HTMLDivElement} uiTopContainer
+     * @param {HTMLDivElement} uiPopupContainer
+     */
+    constructor(animation, uiTopContainer, uiPopupContainer) {
+        this._ANIMATION_CLASS = 'progress-animation';
+        this._SVG_NS = "http://www.w3.org/2000/svg";
+        this._animationController = animation;
+        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainer, 1.0);
+        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainer, uiPopupContainer);
+        this._currentSpeedLevel = 1.0;
+    }
+
+    setCurrentTime(time) {
+        for (let svg in this._svgProgresses) {
+            svg.setCurrentTime(time);
+        }
+    }
+
+    pause() {
+        for (let svg in this._svgProgresses) {
+            svg.pauseAnimations();
+        }
+    }
+
+    unPause() {
+        for (let svg in this._svgProgresses) {
+            svg.unPauseAnimations();
+        }
+    }
+    /**
+     * @see TimelineAnimation.setSpeedLevel()
+     * @param {Number} newSpeedLevel: the level number on the speed control component
+     */
+    setSpeedLevel(newSpeedLevel) {
+        let speedRatio = newSpeedLevel/this._currentSpeedLevel;
+        let animations = $j('.' + this._ANIMATION_CLASS);
+        for (let i = 0; i < animations.length; i++) {
+            let animateEl = animations[i];
+            let curDur = animateEl.getAttribute('dur');
+            curDur = curDur.substr(0, curDur.length - 1);
+            animateEl.setAttributeNS(null,'dur', curDur/speedRatio + 's');
+            let curBegin = animateEl.getAttribute('begin');
+            curBegin = curBegin.substr(0, curBegin.length - 1);
+            animateEl.setAttributeNS(null, 'begin', curBegin / speedRatio + 's');
+            this._svgProgresses[i].setCurrentTime(this._svgProgresses[i].getCurrentTime()/speedRatio);
+        }
+        this._currentSpeedLevel = newSpeedLevel;
+    }
+
+    /**
+     *
+     * @param {Array} logSummaries
+     * @param {HTMLDivElement} uiTopContainer
+     * @param {Number} speedRatio
+     * @return {SVGElement[]}
+     * @private
+     */
+    _createProgressIndicators(logSummaries, uiTopContainer, speedRatio) {
+        let log;
+        let svgProgress, svgProgresses = [];
+        let progressTopContainer = uiTopContainer;
+
+        progressTopContainer.empty();
+        for (let i = 0; i < logSummaries.length; i++) {
+            log = logSummaries[i];
+            svgProgress = $j(`<svg id="progressbar-${i}  xmlns="${this._SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
+            progressTopContainer.append(
+                $j(`<div id="progress-c-${i}"></div>`).append(
+                    svgProgress.append(this._createProgressIndicatorsForLog(i + 1, log, speedRatio)),
+                ).append($j(`<div class="label">${log.filename}</div>`)),
+            );
+            svgProgress = svgProgress[0];
+            svgProgresses.push(svgProgress);
+        }
+
+        return svgProgresses;
+    }
+
+    /*
+     * Create progress indicator for one log
+     * log: the log object (name, color, traceCount, progress, tokenAnimations)
+     * x,y: the coordinates to draw the progress bar
+     */
+    /**
+     * Create progress indicator for one log
+     * @param logNo: ordinal number of one log
+     * @param log: log summary data
+     * @param speedRatio
+     * @returns {*}
+     * @private
+     */
+    _createProgressIndicatorsForLog(logNo, log, speedRatio) {
+        speedRatio = speedRatio || 1;
+        let {values, keyTimes, begin, dur} = log.progress;
+        let color = this._animationController.getLogColor(logNo, log.color);
+        let progress = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["G"]().attr({
+            id: 'ap-la-progress-' + logNo,
+        }).node;
+
+        let path = 'M ' + 0 + ',' + 0 + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
+        let pie = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(path).attr({
+            fill: color,
+            'fill-opacity': 0.5,
+            stroke: color,
+            'stroke-width': '5',
+            'stroke-dasharray': '0 126 126 0',
+            'stroke-dashoffset': '1',
+        }).node;
+
+        let pieAnim = document.createElementNS(SVG_NS, 'animate');
+        pieAnim.setAttributeNS(null, 'class', this._ANIMATION_CLASS );
+        pieAnim.setAttributeNS(null, 'attributeName', 'stroke-dashoffset');
+        pieAnim.setAttributeNS(null, 'values', values);
+        pieAnim.setAttributeNS(null, 'keyTimes', keyTimes);
+        pieAnim.setAttributeNS(null, 'begin', begin / speedRatio + 's');
+        pieAnim.setAttributeNS(null, 'dur', dur / speedRatio + 's');
+        pieAnim.setAttributeNS(null, 'fill', 'freeze');
+        pieAnim.setAttributeNS(null, 'repeatCount', '1');
+        pie.appendChild(pieAnim);
+        progress.appendChild(pie);
+        return progress;
+    }
+
+    /**
+     * Create a popup window when hovering the mouse over the progress indicator.
+     * @param {Array} logSummaries
+     * @param {HTMLDivElement} uiTopContainer
+     * @param {HTMLDivElement} uiPopupContainer
+     * @private
+     */
+    _createLogInfoPopups(logSummaries, uiTopContainer, uiPopupContainer) {
+        let logInfo = uiPopupContainer;
+        let props = [
+            {
+                id: 'info-no',
+                key: 'index',
+            },
+            {
+                id: 'info-log',
+                key: 'filename',
+            },
+            {
+                id: 'info-traces',
+                key: 'total',
+            },
+            {
+                id: 'info-replayed',
+                key: 'play',
+                title: 'unplayTraces',
+            },
+            {
+                id: 'info-reliable',
+                key: 'reliable',
+                title: 'unreliableTraces',
+            },
+            {
+                id: 'info-fitness',
+                key: 'exactTraceFitness',
+            },
+        ];
+
+        function getProps(log) {
+            props.forEach(function(prop) {
+                $j('#' + prop.id).text(log[prop.key]).attr('title', log[prop.title || prop.key]);
+            });
+        }
+
+        for (let i = 0; i < logSummaries.length; i++) {
+            let pId = '#' + uiTopContainer.id + '-' + (i + 1);
+            $j(pId).hover(
+                (function(idx) {
+                    let log = logSummaries[idx - 1];
+                    return function() {
+                        getProps(log);
+                        let {top, left} = $j(pId).offset();
+                        let bottom = `calc(100vh - ${top - 10}px)`;
+                        left += 20;
+                        logInfo.attr('data-log-idx', idx);
+                        logInfo.css({bottom, left});
+                        logInfo.show();
+                    };
+                })(i + 1),
+                function() {
+                    logInfo.hide();
+                },
+            );
+        }
+    }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+
+/***/ }),
+
+/***/ "./src/loganimation/speedControl.js":
 /*!******************************************!*\
-  !*** ./src/loganimation/logAnimation.js ***!
+  !*** ./src/loganimation/speedControl.js ***!
   \******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LogAnimation; });
-/* harmony import */ var _animationController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationController */ "./src/loganimation/animationController.js");
-/* harmony import */ var _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../bpmneditor/apromoreEditor */ "./src/bpmneditor/apromoreEditor.js");
-/*-
- * #%L
- * This file is part of "Apromore Core".
- *
- * Copyright (C) 2017 Queensland University of Technology.
- * %%
- * Copyright (C) 2018 - 2020 The University of Melbourne.
- * %%
- *
- * "Apromore" is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3 of the
- * License, or (at your option) any later version.
- *
- * "Apromore" is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program.
- * If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
- * #L%
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SpeedControl; });
+/* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery-ui-bundle */ "./node_modules/jquery-ui-bundle/jquery-ui.js");
+/* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jquery-ui-slider-pips-npm */ "./node_modules/jquery-ui-slider-pips-npm/dist/jquery-ui-slider-pips.js");
+/* harmony import */ var jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+/**
+ * SpeedControl controls the speed with a slider.
  */
+class SpeedControl{
+    /**
+     * @param {LogAnimation} animation
+     * @param {HTMLDivElement} uiContainer
+     */
+    constructor(animation, uiContainer) {
+        this._animationController = animation;
+        let speedControl = uiContainer;
+        this._speedSlider = speedControl.slider({
+            orientation: "horizontal",
+            step: 1,
+            min: 1,
+            max: 11,
+            value: 5
+        });
+
+        let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240, 480];
+        speedControl.slider("float", {
+            handle: true,
+            pips: true,
+            labels: true,
+            prefix: "",
+            suffix: ""
+        });
+
+        let lastSliderValue = speedControl.slider("value");
+        speedControl.on("slidechange", function(event, ui) {
+            this._animationController.setSpeedLevel(STEP_VALUES[ui.value - 1]);
+            lastSliderValue = ui.value;
+        });
+    }
+}
+
+/***/ }),
+
+/***/ "./src/loganimation/timelineAnimation.js":
+/*!***********************************************!*\
+  !*** ./src/loganimation/timelineAnimation.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TimelineAnimation; });
+/* harmony import */ var _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @svgdotjs/svg.js */ "./node_modules/@svgdotjs/svg.js/dist/svg.esm.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_1__);
 
 
 
+/**
+ * TimelineAnimation shows a timeline and a running tick when the animation is going on.
+ */
+class TimelineAnimation {
+    /**
+     * @param {LogAnimation} animation
+     * @param {SVGElement} uiContainer
+     * @param {Array} caseCountsByFrames
+     */
+    constructor(animation, uiContainer, caseCountsByFrames) {
+        this.animation = animation;
+        this.animationContext = animation.getAnimationContext();
 
+        // Parameters
+        this.slotNum = this.animationContext.getTimelineSlots();
+        this.endPos = this.slotNum;
+        this.slotEngineS = this.animationContext.getLogicalSlotTime(); // in seconds
+        this.logMillis = animation.getAnimationContext().getLogEndTime() -
+            animation.getAnimationContext().getLogStartTime();
+        this.slotDataMs = this.logMillis / this.slotNum;
+        this.timeCoef = this.animationContext.getTimelineRatio();
 
-/*
-// $.noConflict();
-window.$j = jQuery.noConflict();
-$j.browser = {};
-$j.browser.mozilla =
-    /mozilla/.test(navigator.userAgent.toLowerCase()) &&
-    !/webkit/.test(navigator.userAgent.toLowerCase());
-$j.browser.webkit = /webkit/.test(navigator.userAgent.toLowerCase());
-$j.browser.opera = /opera/.test(navigator.userAgent.toLowerCase());
-$j.browser.msie = /msie/.test(navigator.userAgent.toLowerCase());
-*/
+        // Visual settings
+        this.slotWidth = 9;
+        this.timelineWidth = this.slotNum * this.slotWidth;
+        this.logIntervalSize = 5;
+        this.logIntervalHeight = 7;
+        this.logIntervalMargin = 8;
+        this.timelineOffset = {
+            x: 20, y: 20,
+        };
+        this.SHOW_OTHER_LOGS_TIMESPAN = false;
+        this.textFont = {size: '11', anchor: 'middle'};
 
-/*
-ORYX.Plugins.ApromoreSave.apromoreSaveAs = function(xml, svg) {
-  zAu.send(new zk.Event(zk.Widget.$(jq("$win")), "onSaveAs", xml));
-};
+        // Main elements
+        this.svgTimeline = uiContainer;
+        this.timelineEl = this._createTimelineElement()
+        this.svgTimeline.append(this.timelineEl);
+        this.currentSpeedLevel = 1.0;
 
-ORYX.Plugins.ApromoreSave.apromoreSave = function(xml, svg) {
-  zAu.send(new zk.Event(zk.Widget.$(jq("$win")), "onSave", xml));
-};
-*/
+        // Add components
+        this._addTimelineDistribution(caseCountsByFrames);
+        this._addLogIntervals();
+        this._addTicks();
+        this._addCursor();
+    }
 
-class LogAnimation {
-  constructor(editorParentId, xml, url, namespace, animationData, pluginExecutionId) {
-    let editor = this._initEditor(editorParentId, xml, url, namespace);
-    window.setTimeout((function() {
-      this.controller = this._initAnimationController(editor.getCanvas(), animationData, pluginExecutionId);
-    }).bind(this), 1000);
-  }
+    getCurrentTime() {
+        return this.svgTimeline.getCurrentTime();
+    }
 
-  getAnimationController() {
-    return this.controller;
-  }
+    setCurrentTime(time) {
+        return this.svgTimeline.setCurrentTime(time);
+    }
 
-  _initAnimationController(editorCanvas, animationData, pluginExecutionId) {
-    let controller = new _animationController__WEBPACK_IMPORTED_MODULE_0__["default"](editorCanvas, pluginExecutionId);
-    this.setPlayControls(true); // Disable play controls as the controller init. may take time
-    controller.initialize(animationData);
-    this.setPlayControls(false);
-    document.title = "Apromore - Log Animator";
-    return controller;
-  }
+    isPlaying() {
+        //return $j('#pause').hasClass(this.PAUSE_CLS);
+        return !this.svgTimeline.animationsPaused();
+    }
 
-  /**
-   *
-   * @param {String} editorParentId: id of the div element hosting the editor
-   * @param {String} xml: XML content of the BPMN map/model
-   * @param {String} url:
-   * @param namespace
-   * @returns {*}
-   */
-  _initEditor(editorParentId, xml, url, namespace) {
-    return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_1__["ORYX"].Editor({
-      xml,
-      model: {
-        id: editorParentId,
-        showPlugins: false,
-        stencilset: {
-          url,
-          namespace
+    isAtStart() {
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        return (currentLogicalTime === 0);
+    }
+
+    isAtEnd() {
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        return (currentLogicalTime === this.animationContext.getLogicalTimelineMax());
+    }
+
+    pause() {
+        this.svgTimeline.pauseAnimations();
+    }
+
+    unPause() {
+        this.svgTimeline.unPauseAnimations();
+    }
+
+    /**
+     * Logical time: the time as shown on the timeline when the cursor speed level is 1.
+     * Actual time: the actual time of the timeline cursor when its speed is less than or greater than 1.
+     * @param logicalTime: in seconds
+     * @returns {Number}: in seconds
+     */
+    getSVGTimeFromLogicalTime(logicalTime) {
+        if (logicalTime <= 0) return 0;
+        if (logicalTime >= this.animationContext.getLogicalTimelineMax()) return this.totalEngineS;
+        return logicalTime/this.currentSpeedLevel;
+    }
+
+    /**
+     * @param svgTime: in seconds
+     * @returns {Number} in seconds
+     */
+    getLogicalTimeFromSVGTime(svgTime) {
+        if (svgTime <= 0) return 0;
+        if (svgTime >= this.animationContext.getLogicalTimelineMax()) {
+            return this.animationContext.getLogicalTimelineMax();
         }
-      },
-      fullscreen: true // false
-    });
-  }
+        return svgTime*this.currentSpeedLevel;
+    }
 
-  setPlayControls(disabled) {
-    $j("#start").get(0).disabled = disabled;
-    $j("#pause").get(0).disabled = disabled;
-    $j("#forward").get(0).disabled = disabled;
-    $j("#backward").get(0).disabled = disabled;
-    $j("#end").get(0).disabled = disabled;
-    $j("#speed-control").get(0).disabled = disabled;
-  }
+    /**
+     * @param logicalTime: in seconds
+     * @returns {Number}: in milliseconds
+     */
+    getLogTimeFromLogicalTime(logicalTime) {
+        return this.animationContext.getLogStartTime() + logicalTime * this.animationContext.getTimelineRatio() * 1000;
+    }
 
-  playPause(e) {
-    this.controller.playPause(e);
-  }
+    /**
+     * Below is the SVG rule to make sure the animation continues from the same position at the new speed.
+     * Let L be the total length of an element where tokens are moved along (e.g. a sequence flow)
+     * Let X be the current time duration set for the token to finish the length L (X is the value of dur attribute)
+     * Let D be the distance that the token has done right before the speed is changed
+     * Let Cx be the current engine time right before the speed is changed, e.g. Cx = svgDoc.getCurrentLogicalTime().
+     * Let Y be the NEW time duration set for the token to travel through the length L.
+     * Let Cy be the current engine time assuming that Y has been set and the token has finished the D distance.
+     * Thus, the token can move faster or lower if Y < X or Y > X, respectively (Y is the new value of the dur attribute)
+     * A requirement when changing the animation speed is all tokens must keep running from
+     * the last position they were right before the speed change.
+     * We have: D = Cy*L/Y = Cx*L/X => Cy = (Y/X)*Cx
+     * Thus, for the token to start from the same position it was before the speed changes (i.e. dur changes from X to Y),
+     * the engine time must be set to (Y/X)*Cx, where Cx = svgDoc.getCurrentTime().
+     * Instead of making changes to the distances, the user sets the speed through a speed slider control.
+     * Each level represents a speed rate of the tokens
+     * Sy = L/Y, Sx = L/X, SpeedRatio = Sy/Sx = X/Y: the ratio between the new and old speed levels.
+     * In the formula above:
+     *  Cy = Cx/SpeedRatio
+     *  Y = X/SpeedRatio.
+     * In summary, by setting the animation duration as above and keeping the begin attribute UNCHANGED,
+     * the SVG engine will automatically adjust its animation to go faster or slower. By setting the engine current time,
+     * the engine will start from the current position.
+     *
+     * Note that when SVG Animation changes its speed (i.e. change its time duration and current time), its internal
+     * current time has changed. This means svg.getCurrentTime() returns a different internal engine time depending on
+     * the new speed.
+     *
+     * @param {Number} newSpeedLevel: the level number on the speed control component
+     */
+    setSpeedLevel(newSpeedLevel) {
+        let speedRatio = newSpeedLevel/this.currentSpeedLevel;
+        this.totalEngineS = this.totalEngineS / speedRatio;
+        this.slotEngineS = this.slotEngineS / speedRatio;
+        this.timeCoef = this.slotDataMs / (this.slotEngineS*1000);
+        this._addCursor();
+        this.svgTimeline.setCurrentTime(this.svgTimeline.getCurrentTime()/speedRatio);
+        this.currentSpeedLevel = newSpeedLevel;
+    }
 
-  fastForward() {
-    this.controller.fastForward();
-  }
+    /*
+     * <g id="timeline">
+     *   <-- timeline bar -->
+     *   <line>
+     *     <text>
+     *     ...
+     *   <line>
 
-  fastBackward() {
-    this.controller.fastBackward();
-  }
+     *   <text>
+     *     <!-- timeline cursor -->
+     *     <rect>
+     *       <animationMotion>
+     *
+     * Use: this.slotNum, this.slotEngineMs
+     */
+    _createTimelineElement() {
+        // Create the main timeline container group
+        let timelineEl = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["G"]().attr({
+            id: 'timeline',
+            style: '-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none',
+        }).node;
+        return timelineEl;
+    }
 
-  gotoStart (e) {
-    this.controller.gotoStart();
-  }
+    _addTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt) {
+        new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Line"]().plot(x, y, x, y + tickSize).stroke({color, width: 0.5}).addTo(this.timelineEl);
+        y -= textToTickGap;
+        new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(timeTxt).font(this.textFont).attr({x, y}).addTo(this.timelineEl);
+        y -= this.textFont.size * 1.5; // lineHeight
+        new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(dateTxt).font(this.textFont).attr({x, y}).addTo(this.timelineEl);
+    }
 
-  gotoEnd(e) {
-    this.controller.gotoEnd();
-  }
+    _addTicks() {
+        // Add text and line for the bar
+        let tickSize = this.logIntervalHeight * (this.animation.getNumberOfLogs() - 1) + 2 * this.logIntervalMargin;
+        let textToTickGap = 5;
+        let x = this.timelineOffset.x;
+        let y = this.timelineOffset.y;
+        let time = this.animationContext.getLogStartTime();
+        let color;
+        let date, dateTxt, timeTxt;
+        let skip;
 
-};
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+        for (let i = 0; i <= this.slotNum; i++) {
+            if (i % 10 === 0) {
+                date = moment__WEBPACK_IMPORTED_MODULE_1__(time);
+                dateTxt = date.format('D MMM YY');
+                timeTxt = date.format('H:mm:ss');
+                color = 'grey';
+                skip = false;
+            } else {
+                dateTxt = '';
+                timeTxt = '';
+                color = '#e0e0e0';
+                skip = true;
+            }
+            if (!skip) {
+                this._addTick(x, y, tickSize, color, textToTickGap, dateTxt, timeTxt, this.timelineEl);
+            }
+            x += this.slotWidth;
+            time += this.slotDataMs;
+        }
+    }
+
+    /**
+     * @param {Array} caseCountsByFrames: data with case count for every frame.
+     * @private
+     */
+    _addTimelineDistribution(caseCountsByFrames) {
+        // Create a virtual horizontal line
+        let startX = this.timelineOffset.x;
+        let endX = startX + this.slotNum*this.slotWidth;
+        let timelinePathY = this.timelineOffset.y + this.logIntervalMargin;
+        let timelinePath = 'm' + startX + ',' + timelinePathY + ' L' + endX + ',' + timelinePathY;
+        let timelinePathE = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(timelinePath).attr({fill: 'transparent', stroke: 'none'}).node;
+        this.timelineEl.appendChild(timelinePathE);
+        let totalLength = timelinePathE.getTotalLength();
+
+        // Set up canvas
+        let timelineBox = this.svgTimeline.getBoundingClientRect();
+        let ctx = document.querySelector("#timelineCanvas").getContext('2d');
+        ctx.canvas.width = timelineBox.width;
+        ctx.canvas.height = timelineBox.height;
+        ctx.canvas.x = timelineBox.x;
+        ctx.canvas.y = timelineBox.y;
+        ctx.strokeStyle = '#D3D3D3';
+        ctx.lineWidth = 2;
+        let matrix = timelinePathE.getCTM();
+        ctx.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+
+        // Draw distribution
+        if (caseCountsByFrames) {
+            const MAX_HEIGHT = ctx.canvas.height/4;
+            let maxCount = 0;
+            for (let count of Object.values(caseCountsByFrames)) {
+                if (typeof(count) != 'function' && maxCount < count) {
+                    maxCount = count;
+                }
+            }
+            let totalFrames = caseCountsByFrames.length;
+            for (let i=0;i<totalFrames;i++) {
+                let distance = i/totalFrames;
+                let point = timelinePathE.getPointAtLength(totalLength * distance);
+                let height = (caseCountsByFrames[i]/maxCount)*MAX_HEIGHT;
+                ctx.beginPath();
+                ctx.moveTo(point.x, timelinePathY);
+                ctx.lineTo(point.x, timelinePathY - height);
+                ctx.stroke();
+            }
+        }
+    }
+
+    _addCursor() {
+        if (this.cursorEl) this.timelineEl.removeChild(this.cursorEl);
+
+        let x = this.timelineOffset.x;
+        let y = this.timelineOffset.y + 5;
+        let cursorEl;
+        let me = this;
+
+        let path = 'M0 0 L8 8 L8 25 L-8 25 L-8 8 Z';
+        cursorEl = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Path"]().plot(path).attr({
+            fill: '#FAF0E6',
+            stroke: 'grey',
+            style: 'cursor: move',
+            transform: `translate(${x},${y})`,
+        }).node;
+
+        let cursorAnim = document.createElementNS(SVG_NS, 'animateTransform');
+        cursorAnim.setAttributeNS(null, 'attributeName', 'transform');
+        cursorAnim.setAttributeNS(null, 'type', 'translate');
+        cursorAnim.setAttributeNS(null, 'id', 'cursor-animation');
+        cursorAnim.setAttributeNS(null, 'begin', '0s');
+        //cursorAnim.setAttributeNS(null, 'dur', this.animationContext.getLogicalTimelineMax() + 's');
+        cursorAnim.setAttributeNS(null, 'dur', this.slotNum * this.slotEngineS + 's');
+        cursorAnim.setAttributeNS(null, 'by', '1');
+        cursorAnim.setAttributeNS(null, 'from', x + ',' + y);
+        cursorAnim.setAttributeNS(null, 'to', x + this.slotNum * this.slotWidth + ',' + y);
+        cursorAnim.setAttributeNS(null, 'fill', 'freeze');
+
+        cursorEl.appendChild(cursorAnim);
+        this.timelineEl.appendChild(cursorEl);
+
+        this.cursorEl = cursorEl;
+        this.cursorAnim = cursorAnim;
+
+        // Control dragging of the timeline cursor
+        let dragging = false;
+        let isPlayingBeforeDrag = false;
+
+        cursorEl.addEventListener('mousedown', startDragging.bind(this));
+        this.svgTimeline.addEventListener('mouseup', stopDragging.bind(this));
+        this.svgTimeline.addEventListener('mouseleave', stopDragging.bind(this));
+
+        function startDragging(evt) {
+            isPlayingBeforeDrag = me.animation.isPlaying();
+            evt.preventDefault();
+            dragging = true;
+            me.pause();
+        }
+
+        function stopDragging(evt) {
+            if (!dragging) return; // Avoid doing the below two times
+            if (evt.type === 'mouseleave' && dragging) {
+                return;
+            }
+            dragging = false;
+            let logicalTime = getLogicalTimeFromMouseX(evt);
+            me.animation.goto(logicalTime);
+            if (isPlayingBeforeDrag) {
+                me.animation.unPause();
+            }
+        }
+
+        function getLogicalTimeFromMouseX(evt) {
+            let x = getSVGMousePosition(evt).x;
+            let dx = x - me.timelineOffset.x;
+            return (dx / me.timelineWidth) * me.animationContext.getLogicalTimelineMax();
+        }
+
+        // Convert from screen coordinates to SVG document coordinates
+        function getSVGMousePosition(evt) {
+            let svg = me.svgTimeline;
+            let matrix = svg.getScreenCTM().inverse();
+            let point = svg.createSVGPoint();
+            point.x = evt.clientX;
+            point.y = evt.clientY;
+            return point.matrixTransform(matrix);
+        }
+    }
+
+    // Add log intervals to timeline
+    _addLogIntervals() {
+        let ox = this.timelineOffset.x, y = this.timelineOffset.y + this.logIntervalMargin; // Start offset
+        let logSummaries = this.animation.getLogSummaries();
+        for (let i = 0; i < logSummaries.length; i++) {
+            let log = logSummaries[i];
+            let x1 = ox + this.slotWidth * log.startDatePos;
+            let x2 = ox + this.slotWidth * log.endDatePos;
+            let style = 'stroke: ' + this.animation.getLogColor(i+1, log.color) + '; stroke-width: ' + this.logIntervalSize;
+            let opacity = 0.8;
+            new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Line"]().plot(x1, y, x2, y).attr({style, opacity}).addTo(this.timelineEl);
+
+            // Display date label at the two ends
+            if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 !== 0) {
+                let txt = log.startDateLabel.substr(0, 19);
+                let x = ox + this.slotWidth * log.startDatePos - 50;
+                y += 5;
+                new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["Text"]().plain(txt).font(this.textFont).attr({x, y}).addTo(this.timelineEl);
+            }
+            y += this.logIntervalHeight;
+        }
+    }
+}
 
 /***/ }),
 
@@ -65341,20 +65498,24 @@ class LogAnimation {
 /*!********************************************!*\
   !*** ./src/loganimation/tokenAnimation.js ***!
   \********************************************/
-/*! exports provided: TokenAnimation */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TokenAnimation", function() { return TokenAnimation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TokenAnimation; });
 /* harmony import */ var _frameBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./frameBuffer */ "./src/loganimation/frameBuffer.js");
-/* harmony import */ var _animation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animation */ "./src/loganimation/animation.js");
+/* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
+/* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
+/* harmony import */ var _processMapController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./processMapController */ "./src/loganimation/processMapController.js");
 /**
  * logStartTime, logEndTime: the starting and ending timestamps (milliseconds) in the log timeline
  * logicalTimelineMax: the maximum number of seconds on the logical timeline
  * actualToLogicalFactor: one second in the actual timeline equals how many seconds in the logical timeline
  * logicalToLogFactor: one second in the logical timeline equals how many seconds in the log
  */
+
+
 
 
 
@@ -65376,23 +65537,31 @@ __webpack_require__.r(__webpack_exports__);
  *
  *  The animation configurations are contained in an AnimationContext
  *  The animation informs the outside via events and listeners.
+ *
+ *  @author Bruce Nguyen
  */
 
 class TokenAnimation {
     /**
-     * @param {AnimationContext} animationContext
-     * @param {RenderingContext} canvasContext
-     * @param {Object} pathMap: map from element index to the corresponding SVG path element
+     * @param {LogAnimation} animation
+     * @param {HTMLCanvasElement} canvasElement
+     * @param {ProcessMapController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animationContext, canvasContext, pathMap, colorPalette) {
+    constructor(animation, canvasElement, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
-        this._animationContext = animationContext;
-        this._canvasContext = canvasContext;
-        this._elementPathMap = pathMap;
+        this._animationController = animation;
+        this._animationContext = animation.getAnimationContext();
+
+        this._processMapController = processMapController;
+        let mapBox = processMapController.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+
+        this._canvasContext = canvasElement.getContext('2d');
         this._colorPalette = colorPalette;
 
-        this._frameBuffer = new _frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"](animationContext); //the buffer start filling immediately based on the animation context.
+
+        this._frameBuffer = new _frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"](animation.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
         this._currentFrame = undefined;
 
@@ -65404,7 +65573,7 @@ class TokenAnimation {
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
-        this._state = _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING;
+        this._state = _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING;
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
@@ -65415,10 +65584,10 @@ class TokenAnimation {
         console.log('TokenAnimation: start');
         this.setTokenStyle();
         this._currentTime = 0;
-        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
+        this._setState(_animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        //this._loopBufferRead();
-        //this._loopDraw(0);
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**
@@ -65484,13 +65653,15 @@ class TokenAnimation {
         this._canvasContext.globalCompositeOperation = "lighten";
     }
 
+    // Whether out of playing time
     isInProgress () {
         let currentLogicalTime = this.getCurrentLogicalTime();
-        return (currentLogicalTime > 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
+        return (currentLogicalTime >= 0 && currentLogicalTime < this._animationContext.getLogicalTimelineMax());
     }
 
+    // Is in pausing state?
     isPausing() {
-        return this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING;
+        return this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING;
     }
 
     getCurrentFrameIndex() {
@@ -65520,12 +65691,12 @@ class TokenAnimation {
      */
     doPause() {
         console.log('TokenAnimation: pause');
-        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
+        this._setState(_animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
     }
 
     doUnpause() {
         console.log('TokenAnimation: unpause');
-        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING);
+        this._setState(_animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING);
     }
 
     /**
@@ -65543,7 +65714,7 @@ class TokenAnimation {
         }
 
         let previousState = this._getState();
-        this._setState(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING); //intermediate state
+        this._setState(_animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING); //intermediate state
         let newFrameIndex = this._getFrameIndexFromLogicalTime(logicalTimeMark);
         console.log('TokenAnimation - goto: move to  logicalTime=' + logicalTimeMark + ' frame index = ' + newFrameIndex);
         this._frameBuffer.moveTo(newFrameIndex);
@@ -65559,7 +65730,7 @@ class TokenAnimation {
      */
     _loopBufferRead() {
         setTimeout(this._loopBufferRead.bind(this), 1000);
-        if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING || this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
+        if (this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING || this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
             if (this._frameQueue.length >= 2*_frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"].DEFAULT_CHUNK_SIZE) return;
             let frames = this._frameBuffer.readNextChunk();
             if (frames && frames.length > 0) {
@@ -65580,7 +65751,7 @@ class TokenAnimation {
      */
     _loopDraw(newTime) {
         window.requestAnimationFrame(this._loopDraw.bind(this));
-        if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) { // draw frames in the queue sequentially
+        if (this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) { // draw frames in the queue sequentially
             this._now = newTime;
             let elapsed = this._now - this._then;
             if (elapsed >= this._drawingInterval) {
@@ -65593,16 +65764,16 @@ class TokenAnimation {
                     if (frame.index >= this._animationContext.getTotalNumberOfFrames()-1) {
                         console.log('Frame index = ' + frame.index + ' reached max frame index. Notify end of animation');
                         console.log('Frame queue size = ' + this._frameQueue.length);
-                        this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION));
+                        this._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].END_OF_ANIMATION, {}));
                     }
                     else {
-                        this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_AVAILABLE));
+                        this._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].FRAMES_AVAILABLE, {}));
                     }
                 } else {
-                    this._notifyAll(new AnimationEvent(_animation__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].FRAMES_NOT_AVAILABLE));
+                    this._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].FRAMES_NOT_AVAILABLE, {}));
                 }
             }
-        } else if (this._state === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) { // only draw the current frame
+        } else if (this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) { // only draw the current frame
             let frame = this._currentFrame || this._frameQueue.shift();
             if (frame) {
                 this._drawFrame(frame);
@@ -65629,7 +65800,7 @@ class TokenAnimation {
         this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            let pathElement = this._getPathElement(elementIndex);
+            let pathElement = this._processMapController.getPathElement(elementIndex);
             let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
@@ -65664,7 +65835,7 @@ class TokenAnimation {
      * @private
      */
     _getTokenFillColor(logNo, tokenSize) {
-        let colorIndex = 0;
+        let colorIndex;
         if (tokenSize <= 2) {
             colorIndex = 0;
         }
@@ -65693,7 +65864,7 @@ class TokenAnimation {
      * @private
      */
     _selectTokenColor(numberOfTokens) {
-        let colorIndex = 0;
+        let colorIndex;
         if (numberOfTokens <= 2) colorIndex = 0;
         else if (numberOfTokens <= 4) colorIndex = 1;
         else if (numberOfTokens <= 6) colorIndex = 2;
@@ -65710,15 +65881,15 @@ class TokenAnimation {
      */
     _setState(newState) {
         this._state = newState;
-        if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) {
+        if (newState === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) {
             console.log('TokenAnimation: set state PLAYING');
             this._now = this._then; //restart counting frame intervals
         }
-        else if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING) {
+        else if (newState === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].JUMPING) {
             console.log('TokenAnimation: set state JUMPING');
             this._clearData();
         }
-        else if (newState === _animation__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
+        else if (newState === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
             console.log('TokenAnimation: set state PAUSING');
         }
     }
@@ -65753,10 +65924,6 @@ class TokenAnimation {
         return (frameIndex/this._animationContext.getRecordingFrameRate());
     }
 
-    _getPathElement(elementIndex) {
-        return this._elementPathMap[elementIndex];
-    }
-
     _clearData() {
         this._frameQueue = [];
         this._currentFrame = undefined;
@@ -65766,9 +65933,8 @@ class TokenAnimation {
      * @param {AnimationEvent} event
      */
     _notifyAll(event) {
-        let engine = this;
         this._listeners.forEach(function(listener){
-            listener.update(event);
+            listener.handleEvent(event);
         })
     }
 }
@@ -65823,7 +65989,7 @@ window.SVG_NS = "http://www.w3.org/2000/svg";
 window.XLINK_NS = "http://www.w3.org/1999/xlink";
 
 function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /* ******************************************************************
@@ -65835,24 +66001,24 @@ function getRandomInt(min, max) {
  * Return object has four points: nw, ne, se, sw, cc (center) (each with x,y attribute)
  * ******************************************************************/
 function getViewportPoints(svg, rect, container) {
-  let matrix = container.transform.baseVal.getItem(0).matrix;
-  let corners = {
-    nw: svg.createSVGPoint().matrixTransform(matrix),
-    ne: svg.createSVGPoint().matrixTransform(matrix),
-    sw: svg.createSVGPoint().matrixTransform(matrix),
-    se: svg.createSVGPoint().matrixTransform(matrix),
-    cc: svg.createSVGPoint().matrixTransform(matrix)
-  };
+    let matrix = container.transform.baseVal.getItem(0).matrix;
+    let corners = {
+        nw: svg.createSVGPoint().matrixTransform(matrix),
+        ne: svg.createSVGPoint().matrixTransform(matrix),
+        sw: svg.createSVGPoint().matrixTransform(matrix),
+        se: svg.createSVGPoint().matrixTransform(matrix),
+        cc: svg.createSVGPoint().matrixTransform(matrix)
+    };
 
-  let bbox = rect.getBBox();
-  corners.ne.x += bbox.width;
-  corners.se.x += bbox.width;
-  corners.se.y += bbox.height;
-  corners.sw.y += bbox.height;
-  corners.cc.x += bbox.width / 2;
-  corners.cc.y += bbox.height / 2;
+    let bbox = rect.getBBox();
+    corners.ne.x += bbox.width;
+    corners.se.x += bbox.width;
+    corners.se.y += bbox.height;
+    corners.sw.y += bbox.height;
+    corners.cc.x += bbox.width / 2;
+    corners.cc.y += bbox.height / 2;
 
-  return corners;
+    return corners;
 }
 
 /*
@@ -65860,77 +66026,81 @@ function getViewportPoints(svg, rect, container) {
  * output: SVGPoint
  */
 function toViewportCoords(svg, groupE) {
-  let pt = svg.createSVGPoint();
-  let matrix = groupE.getScreenCTM();
-  let rect = groupE.getBBox();
-  pt.x = rect.x;
-  pt.y = rect.y;
-  return pt.matrixTransform(matrix);
+    let pt = svg.createSVGPoint();
+    let matrix = groupE.getScreenCTM();
+    let rect = groupE.getBBox();
+    pt.x = rect.x;
+    pt.y = rect.y;
+    return pt.matrixTransform(matrix);
 }
 
 function drawCoordinateOrigin(svg) {
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  let pt = svg.createSVGPoint();
-  //let matrix  = groupE.getCTM();
-  //let rect = groupE.getBBox();
-  pt.x = svg.x.animVal.value;
-  pt.y = svg.y.animVal.value;
-  //console.log("SVG Document Origin: x="+ pt.x + " y=" + pt.y);
-  //pt = pt.matrixTransform(matrix);
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    let pt = svg.createSVGPoint();
+    //let matrix  = groupE.getCTM();
+    //let rect = groupE.getBBox();
+    pt.x = svg.x.animVal.value;
+    pt.y = svg.y.animVal.value;
+    //console.log("SVG Document Origin: x="+ pt.x + " y=" + pt.y);
+    //pt = pt.matrixTransform(matrix);
 
-  let lineX = document.createElementNS(SVG_NS, "line");
-  lineX.setAttributeNS(null, "x1", pt.x);
-  lineX.setAttributeNS(null, "y1", pt.y);
-  lineX.setAttributeNS(null, "x2", pt.x + 50);
-  lineX.setAttributeNS(null, "y2", pt.y);
-  lineX.setAttributeNS(null, "stroke", "red");
-  lineX.setAttributeNS(null, "stroke-width", "5");
+    let lineX = document.createElementNS(SVG_NS, "line");
+    lineX.setAttributeNS(null, "x1", pt.x);
+    lineX.setAttributeNS(null, "y1", pt.y);
+    lineX.setAttributeNS(null, "x2", pt.x + 50);
+    lineX.setAttributeNS(null, "y2", pt.y);
+    lineX.setAttributeNS(null, "stroke", "red");
+    lineX.setAttributeNS(null, "stroke-width", "5");
 
-  let lineY = document.createElementNS(SVG_NS, "line");
-  lineY.setAttributeNS(null, "x1", pt.x);
-  lineY.setAttributeNS(null, "y1", pt.y);
-  lineY.setAttributeNS(null, "x2", pt.x);
-  lineY.setAttributeNS(null, "y2", pt.y + 50);
-  lineY.setAttributeNS(null, "stroke", "red");
-  lineY.setAttributeNS(null, "stroke-width", "5");
+    let lineY = document.createElementNS(SVG_NS, "line");
+    lineY.setAttributeNS(null, "x1", pt.x);
+    lineY.setAttributeNS(null, "y1", pt.y);
+    lineY.setAttributeNS(null, "x2", pt.x);
+    lineY.setAttributeNS(null, "y2", pt.y + 50);
+    lineY.setAttributeNS(null, "stroke", "red");
+    lineY.setAttributeNS(null, "stroke-width", "5");
 
-  //alert(rect.x + " " + rect.y);
+    //alert(rect.x + " " + rect.y);
 
-  svg.appendChild(lineX);
-  svg.appendChild(lineY);
+    svg.appendChild(lineX);
+    svg.appendChild(lineY);
 }
 
+/**
+ * @deprecated
+ * @param svg
+ */
 function drawProcessModelOrigin(svg) {
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  let pt = svg.createSVGPoint();
-  let matrix = groupE.getCTM();
-  let rect = groupE.getBBox();
-  pt.x = rect.x;
-  pt.y = rect.y;
-  //alert(pt.x + " " + pt.y);
-  pt = pt.matrixTransform(matrix);
-  //console.log("Process Model Origin: x="+ pt.x + " y=" + pt.y);
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    let pt = svg.createSVGPoint();
+    let matrix = groupE.getCTM();
+    let rect = groupE.getBBox();
+    pt.x = rect.x;
+    pt.y = rect.y;
+    //alert(pt.x + " " + pt.y);
+    pt = pt.matrixTransform(matrix);
+    //console.log("Process Model Origin: x="+ pt.x + " y=" + pt.y);
 
-  let lineX = document.createElementNS(SVG_NS, "line");
-  lineX.setAttributeNS(null, "x1", pt.x);
-  lineX.setAttributeNS(null, "y1", pt.y);
-  lineX.setAttributeNS(null, "x2", pt.x + 50);
-  lineX.setAttributeNS(null, "y2", pt.y);
-  lineX.setAttributeNS(null, "stroke", "blue");
-  lineX.setAttributeNS(null, "stroke-width", "5");
+    let lineX = document.createElementNS(SVG_NS, "line");
+    lineX.setAttributeNS(null, "x1", pt.x);
+    lineX.setAttributeNS(null, "y1", pt.y);
+    lineX.setAttributeNS(null, "x2", pt.x + 50);
+    lineX.setAttributeNS(null, "y2", pt.y);
+    lineX.setAttributeNS(null, "stroke", "blue");
+    lineX.setAttributeNS(null, "stroke-width", "5");
 
-  let lineY = document.createElementNS(SVG_NS, "line");
-  lineY.setAttributeNS(null, "x1", pt.x);
-  lineY.setAttributeNS(null, "y1", pt.y);
-  lineY.setAttributeNS(null, "x2", pt.x);
-  lineY.setAttributeNS(null, "y2", pt.y + 50);
-  lineY.setAttributeNS(null, "stroke", "blue");
-  lineY.setAttributeNS(null, "stroke-width", "5");
+    let lineY = document.createElementNS(SVG_NS, "line");
+    lineY.setAttributeNS(null, "x1", pt.x);
+    lineY.setAttributeNS(null, "y1", pt.y);
+    lineY.setAttributeNS(null, "x2", pt.x);
+    lineY.setAttributeNS(null, "y2", pt.y + 50);
+    lineY.setAttributeNS(null, "stroke", "blue");
+    lineY.setAttributeNS(null, "stroke-width", "5");
 
-  //alert(rect.x + " " + rect.y);
+    //alert(rect.x + " " + rect.y);
 
-  groupE.appendChild(lineX);
-  groupE.appendChild(lineY);
+    groupE.appendChild(lineX);
+    groupE.appendChild(lineY);
 }
 
 /* ********************************************************************
@@ -65947,47 +66117,49 @@ function drawProcessModelOrigin(svg) {
  *  - incomingFlow: id of incoming flow
  * ********************************************************************/
 function findModelNode(jsonModel, id) {
-  let nodes = jsonModel.childShapes;
+    let nodes = jsonModel.childShapes;
 
-  //Find the node (with outgoing already)
-  let node = null;
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].resourceId == id) {
-      node = nodes[i];
-      break;
-    }
-  }
-
-  //Check and select the sequence flow (task can have association flow as outgoing)
-  if (node != null) {
-    if (node.outgoing.length > 2) {
-      for (let i = 0; i < nodes.outgoing.length; ++i) {
-        for (let j = 0; j < nodes.length; ++j) {
-          if (
-            nodes[j].resourceId == node.outgoing[i].resourceId &&
-            nodes[i].stencil.id == "SequenceFlow"
-          ) {
-            node.outgoingFlow = nodes[j].resourceId;
+    //Find the node (with outgoing already)
+    let node = null;
+    for (let i = 0; i < nodes.length; ++i) {
+        if (nodes[i].resourceId === id) {
+            node = nodes[i];
             break;
-          }
         }
-      }
-    } else {
-      node.outgoingFlow = node.outgoing[0].resourceId;
     }
-  }
 
-  //Find and assign the incoming flow
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].stencil.id == "SequenceFlow") {
-      if (nodes[i].target.resourceId == id) {
-        node.incomingFlow = nodes[i].resourceId;
-        break;
-      }
+    //Check and select the sequence flow (task can have association flow as outgoing)
+    if (node != null) {
+        if (node.outgoing.length > 2) {
+            for (let i = 0; i < nodes.outgoing.length; ++i) {
+                for (let j = 0; j < nodes.length; ++j) {
+                    if (
+                        nodes[j].resourceId === node.outgoing[i].resourceId &&
+                        nodes[i].stencil.id === "SequenceFlow"
+                    ) {
+                        node.outgoingFlow = nodes[j].resourceId;
+                        break;
+                    }
+                }
+            }
+        } else {
+            node.outgoingFlow = node.outgoing[0].resourceId;
+        }
     }
-  }
 
-  return node;
+    //Find and assign the incoming flow
+    for (let i = 0; i < nodes.length; ++i) {
+        if (nodes[i].stencil.id === "SequenceFlow") {
+            if (nodes[i].target.resourceId === id) {
+                if (node != null) {
+                    node.incomingFlow = nodes[i].resourceId;
+                    break;
+                }
+            }
+        }
+    }
+
+    return node;
 }
 
 /* *******************************************************
@@ -65996,9 +66168,9 @@ function findModelNode(jsonModel, id) {
  * Return value of y.
  *********************************************************/
 function getStraighLineFunctionValue(p1, p2, pi) {
-  let a = (p1.y - p2.y) / (p1.x - p2.x);
-  let b = p1.y - (p1.x * (p1.y - p2.y)) / (p1.x - p2.x);
-  return a * pi.x + b;
+    let a = (p1.y - p2.y) / (p1.x - p2.x);
+    let b = p1.y - (p1.x * (p1.y - p2.y)) / (p1.x - p2.x);
+    return a * pi.x + b;
 }
 
 
