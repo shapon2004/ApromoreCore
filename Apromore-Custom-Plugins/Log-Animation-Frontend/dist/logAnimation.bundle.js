@@ -63664,7 +63664,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
 /* harmony import */ var _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tokenAnimation */ "./src/loganimation/tokenAnimation.js");
 /* harmony import */ var _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./timelineAnimation */ "./src/loganimation/timelineAnimation.js");
-/* harmony import */ var _processModelController__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./processModelController */ "./src/loganimation/processModelController.js");
+/* harmony import */ var _processMapController__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./processMapController */ "./src/loganimation/processMapController.js");
 /* harmony import */ var _speedControl__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./speedControl */ "./src/loganimation/speedControl.js");
 /* harmony import */ var _progressAnimation__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./progressAnimation */ "./src/loganimation/progressAnimation.js");
 /* harmony import */ var _clockAnimation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clockAnimation */ "./src/loganimation/clockAnimation.js");
@@ -63712,69 +63712,48 @@ __webpack_require__.r(__webpack_exports__);
  * The View and Controller of MVC are bundled as Controller. View is accessed via jQuery.
  * The Model of MVC is not explicitly managed as the data is read-only. Data include JSON and XML read from the server.
  * As the business gets more complex, a more complete MVC model would be considered.
- * Caller of LogAnimation must execute in steps: loadProcessModel, initAnimationComponents, and then start().
  *
  * @author Bruce Nguyen
  */
 class LogAnimation {
-    /** The creation of LogAnimation is divided into two stages: loading the model into the editor and then
-     * initializing animation components. The first stage takes time and so the second stage must wait until the
-     * first stage can finish.
+    /**
+     * @param {String} processMapXML: the BPMN XML text encoding the process model
+     * @param {String} setupData: the JSON raw text containg initial setup data
      * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
-     * @param {String} setupDataJSON: the JSON raw text containg initial setup data
-     * @param {String} modelXML: BPMN XML of the model
      */
-    constructor(pluginExecutionId, setupDataJSON, modelXML) {
+    constructor(processMapXML, setupData, pluginExecutionId) {
         this.pluginExecutionId = pluginExecutionId;
-        let setupData = JSON.parse(setupDataJSON);
-        this.logSummaries = setupData.logs;
+        let jsonSetup = JSON.parse(setupData);
+        this.logSummaries = jsonSetup.logs;
         this.isPlayingBeforeMovingModel = false;
-        this.colorPalette = [
+        this.apPalette = [
             ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
             ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
         ];
-        this.processMapController = new _processModelController__WEBPACK_IMPORTED_MODULE_4__["default"](this);
 
-        this._loadProcessModel(modelXML);
-
-        window.setTimeout((function() {
-            this._initialize(setupData)
-        }).bind(this), 1000);
-    }
-
-    /**
-     * Load process model component. This could take time for loading XML data into the editor.
-     * @param modelXML: the model content
-     */
-    _loadProcessModel(modelXML) {
-        this.processMapController.loadProcessModel('editorcanvas', modelXML);
-    }
-
-    _initialize(setupData) {
-        if (!this.processMapController) {
-            console.error('Stop. The process model has not been loaded yet!');
-            return;
-        }
-        let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
-            caseCountsByFrames} = setupData;
+        // Add token animation
+        let {recordingFrameRate, elementMapping, startMs, endMs, totalEngineS,
+            timelineSlots, slotEngineUnit, caseCountsByFrames} = jsonSetup;
         this.animationContext = new _animationContextState__WEBPACK_IMPORTED_MODULE_0__["AnimationContext"](this.pluginExecutionId, startMs, endMs, timelineSlots,
-            totalEngineS, slotEngineUnit, recordingFrameRate);
+                                                    totalEngineS, slotEngineUnit, recordingFrameRate);
+        this.processMapController = new _processMapController__WEBPACK_IMPORTED_MODULE_4__["default"](this, 'editorcanvas', processMapXML, elementMapping);
+        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, $j("#canvas"), this.processMapController, this.apPalette);
 
-        this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, $j("#canvas"), this.processMapController, this.colorPalette);
+        // Add other animation components
         this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
         this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_5__["default"](this, $j("#speed-control"));
         this.progress = new _progressAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
         this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_7__["default"](this, $j('#date'), $j('#time'));
         this.buttonControls = new _playActionControl__WEBPACK_IMPORTED_MODULE_8__["default"](this,
-            $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
-            'ap-mc-icon-play', 'ap-mc-icon-pause');
+                                $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+                                'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events
         this.processMapController.registerListener(this);
         this.tokenAnimation.registerListener(this);
         this._setKeyboardEvents();
 
+        // Start
         this.tokenAnimation.startEngine();
         this.pause();
     }
@@ -63805,7 +63784,7 @@ class LogAnimation {
     }
 
     getLogColor(logNo, logColor) {
-        return this.colorPalette[logNo - 1][0] || logColor;
+        return this.apPalette[logNo - 1][0] || logColor;
     }
 
     _getCurrentSVGTime() {
@@ -64000,7 +63979,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 class ClockAnimation {
     /**
-     * @param {LogAnimation} animationController
+     * @param {AnimationController} animationController
      * @param {HTMLElement} dateElement
      * @param {HTMLElement} timeElement
      */
@@ -64563,16 +64542,16 @@ class PlayActionControl{
 
 /***/ }),
 
-/***/ "./src/loganimation/processModelController.js":
-/*!****************************************************!*\
-  !*** ./src/loganimation/processModelController.js ***!
-  \****************************************************/
+/***/ "./src/loganimation/processMapController.js":
+/*!**************************************************!*\
+  !*** ./src/loganimation/processMapController.js ***!
+  \**************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ProcessModelController; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ProcessMapController; });
 /* harmony import */ var _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../bpmneditor/apromoreEditor */ "./src/bpmneditor/apromoreEditor.js");
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./src/loganimation/utils.js");
 /* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
@@ -64581,100 +64560,45 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * ProcessModelController encapsulates the process map editor and provides
+ * ProcessMapController encapsulates the process map editor and provides
  * interfaces into the editor needed by the token animation. The token animation
  * shows animation on the editor.
  *
  * @author Bruce Nguyen
  */
-class ProcessModelController {
+class ProcessMapController {
     /**
      * @param {LogAnimation} animation
+     * @param {String} uiContainerId: id of the parent div element for containing the editor
+     * @param {String }processMapXML: BPMN XML of the process map
+     * @param {Object} elementMapping: map from element index to element id
      */
-    constructor(animation) {
-        this._logAnimation = animation;
-        this._listeners = [];
-        this._editor;
-        this._svgMain;
-        this._svgViewport;
-    }
-
-    /**
-     * Note that loadEditor takes time for the XML to be loaded and BPMN data model to be created.
-     * Caller of this method must take this loading time into account, otherwise the other methods
-     * will fail because the BPMN data model has not been created in the memory yet.
-     * @param {String} editorContainerId: id of the div element hosting the editor
-     * @param {String} modelXML: XML content of the BPMN map/model
-     */
-    loadProcessModel(editorContainerId, modelXML) {
+    constructor(animation, uiContainerId, processMapXML, elementMapping) {
+        this._animationController = animation;
         const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
-        this._editor = new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__["ORYX"].Editor({
-            modelXML,
-            model: {
-                id: editorContainerId,
-                showPlugins: false,
-                stencilset: {
-                    url:BPMN_NS,
-                    namespace:BPMN_NS
-                }
-            },
-            fullscreen: true // false
-        });
-    }
+        this._editor = this._init(uiContainerId, processMapXML, BPMN_NS, BPMN_NS);
+        setTimeout((function () {
+            this._svgMain = this._editor.getCanvas().getSVGContainer();
+            this._svgViewport = this._editor.getCanvas().getSVGViewport();
+            this._initIndexToElementMapping(elementMapping);
+            this._listeners = [];
 
-    /**
-     * @param {Object} elementMapping: map from element index to element id
-     */
-    initialize(elementMapping) {
-        if (!this._editor) {
-            console.error('Stop. The editor has not loaded data yet');
-            return;
-        }
+            let me = this;
+            this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function() {
+                let modelBox = me.getBoundingClientRect();
+                let modelMatrix = me.getTransformMatrix();
+                me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVING,
+                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+            });
 
-        this._svgMain = this._editor.getCanvas().getSVGContainer();
-        this._svgViewport = this._editor.getCanvas().getSVGViewport();
+            this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function() {
+                let modelBox = me.getBoundingClientRect();
+                let modelMatrix = me.getTransformMatrix();
+                me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVED,
+                    {viewbox: modelBox, transformMatrix: modelMatrix}));
+            });
+        }).bind(this), 1000);
 
-        let me = this;
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function() {
-            let modelBox = me.getBoundingClientRect();
-            let modelMatrix = me.getTransformMatrix();
-            me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVING,
-                {viewbox: modelBox, transformMatrix: modelMatrix}));
-        });
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function() {
-            let modelBox = me.getBoundingClientRect();
-            let modelMatrix = me.getTransformMatrix();
-            me._notifyAll(new _animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEvent"](_animationEvents__WEBPACK_IMPORTED_MODULE_2__["AnimationEventType"].MODEL_CANVAS_MOVED,
-                {viewbox: modelBox, transformMatrix: modelMatrix}));
-        });
-
-        this._createIndexToElementCache(elementMapping);
-    }
-
-    /**
-     * @param {Object} elementMapping: map from element index to element id
-     * @return {Object} mapping from element index to SVG Path Element having the element id
-     * @private
-     */
-    _createIndexToElementCache(elementMapping) {
-        this._indexToElement = {};
-        let elementIndexIDMap = elementMapping[0];
-        let skipElementIndexIDMap = elementMapping[1];
-        for (let elementIndex in elementIndexIDMap) {
-            let elementId = elementIndexIDMap[elementIndex];
-            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-            if (!pathElement) { // create cross and skip paths as they are not present
-                this._createNodePathElements(elementId);
-                pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
-            }
-            this._indexToElement[elementIndex] = pathElement;
-        }
-
-        for (let elementIndex in skipElementIndexIDMap) {
-            let elementId = skipElementIndexIDMap[elementIndex];
-            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
-            this._indexToElement[elementIndex] = pathElement;
-        }
     }
 
     /**
@@ -64710,6 +64634,33 @@ class ProcessModelController {
         this._listeners.forEach(function(listener){
             listener.handleEvent(event);
         })
+    }
+
+
+    /**
+     * @param {Object} elementMapping: map from element index to element id
+     * @return {Object} mapping from element index to SVG Path Element having the element id
+     * @private
+     */
+    _initIndexToElementMapping(elementMapping) {
+        this._indexToElement = {};
+        let elementIndexIDMap = elementMapping[0];
+        let skipElementIndexIDMap = elementMapping[1];
+        for (let elementIndex in elementIndexIDMap) {
+            let elementId = elementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            if (!pathElement) { // create cross and skip paths as they are not present
+                this._createNodePathElements(elementId);
+                pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(0);
+            }
+            this._indexToElement[elementIndex] = pathElement;
+        }
+
+        for (let elementIndex in skipElementIndexIDMap) {
+            let elementId = skipElementIndexIDMap[elementIndex];
+            let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
+            this._indexToElement[elementIndex] = pathElement;
+        }
     }
 
     /**
@@ -64864,7 +64815,28 @@ class ProcessModelController {
         nodeGroupE.appendChild(skipPathE);
     }
 
-
+    /**
+     *
+     * @param {String} editorParentId: id of the div element hosting the editor
+     * @param {String} xml: XML content of the BPMN map/model
+     * @param {String} url:
+     * @param namespace
+     * @returns {*}
+     */
+    _init(editorParentId, xml, url, namespace) {
+        return new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__["ORYX"].Editor({
+            xml,
+            model: {
+                id: editorParentId,
+                showPlugins: false,
+                stencilset: {
+                    url,
+                    namespace
+                }
+            },
+            fullscreen: true // false
+        });
+    }
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
@@ -65535,7 +65507,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _frameBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./frameBuffer */ "./src/loganimation/frameBuffer.js");
 /* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
 /* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
-/* harmony import */ var _processModelController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./processModelController */ "./src/loganimation/processModelController.js");
+/* harmony import */ var _processMapController__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./processMapController */ "./src/loganimation/processMapController.js");
 /**
  * logStartTime, logEndTime: the starting and ending timestamps (milliseconds) in the log timeline
  * logicalTimelineMax: the maximum number of seconds on the logical timeline
@@ -65573,7 +65545,7 @@ class TokenAnimation {
     /**
      * @param {LogAnimation} animation
      * @param {HTMLCanvasElement} canvasElement
-     * @param {ProcessModelController} processMapController
+     * @param {ProcessMapController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
     constructor(animation, canvasElement, processMapController, colorPalette) {

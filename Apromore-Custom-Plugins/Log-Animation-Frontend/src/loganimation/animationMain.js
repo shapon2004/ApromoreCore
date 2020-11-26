@@ -66,7 +66,11 @@ export default class LogAnimation {
 
         this._loadProcessModel(modelXML);
 
+<<<<<<< HEAD
         window.setTimeout((function() {
+=======
+        setTimeout((function() {
+>>>>>>> 2791775f869062606402bfdea765a3e517946d0e
             this._initialize(setupData)
         }).bind(this), 1000);
     }
@@ -81,7 +85,11 @@ export default class LogAnimation {
 
     _initialize(setupData) {
         if (!this.processMapController) {
+<<<<<<< HEAD
             console.error('Stop. The process model has not been loaded yet!');
+=======
+            console.error('Stop. The process model is not loaded yet!');
+>>>>>>> 2791775f869062606402bfdea765a3e517946d0e
             return;
         }
         let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
