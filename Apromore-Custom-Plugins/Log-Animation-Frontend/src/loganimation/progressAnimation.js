@@ -7,7 +7,7 @@ import * as SVG from "@svgdotjs/svg.js";
  */
 export default class ProgressAnimation {
     /**
-     * @param {LogAnimation}animation
+     * @param {LogAnimation} animation
      * @param {HTMLDivElement} uiTopContainer
      * @param {HTMLDivElement} uiPopupContainer
      */

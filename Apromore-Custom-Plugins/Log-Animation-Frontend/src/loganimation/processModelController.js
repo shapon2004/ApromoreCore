@@ -16,9 +16,9 @@ export default class ProcessModelController {
     constructor(animation) {
         this._logAnimation = animation;
         this._listeners = [];
-        this._editor;
-        this._svgMain;
-        this._svgViewport;
+        // this._editor;
+        // this._svgMain;
+        // this._svgViewport;
     }
 
     /**
@@ -26,22 +26,19 @@ export default class ProcessModelController {
      * Caller of this method must take this loading time into account, otherwise the other methods
      * will fail because the BPMN data model has not been created in the memory yet.
      * @param {String} editorContainerId: id of the div element hosting the editor
-     * @param {String} modelXML: XML content of the BPMN map/model
+     * @param {String} xml: XML content of the BPMN map/model
      */
-    loadProcessModel(editorContainerId, modelXML) {
-        const BPMN_NS = "http://b3mn.org/stencilset/bpmn2.0#";
+    loadProcessModel(editorContainerId, xml, callBack) {
         this._editor = new ORYX.Editor({
-            modelXML,
+            xml,
+            callBack: callBack,
             model: {
                 id: editorContainerId,
-                showPlugins: false,
-                stencilset: {
-                    url:BPMN_NS,
-                    namespace:BPMN_NS
-                }
+                showPlugins: false
             },
             fullscreen: true // false
         });
+        this._canvas = this._editor.getCanvas();
     }
 
     /**
@@ -53,17 +50,17 @@ export default class ProcessModelController {
             return;
         }
 
-        this._svgMain = this._editor.getCanvas().getSVGContainer();
-        this._svgViewport = this._editor.getCanvas().getSVGViewport();
+        this._svgMain = this._canvas.getSVGContainer();
+        this._svgViewport = this._canvas.getSVGViewport();
 
         let me = this;
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changing", function() {
+        this._canvas.addEventBusListener("canvas.viewbox.changing", function() {
             let modelBox = me.getBoundingClientRect();
             let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVING,
                 {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
-        this._editor.getCanvas().addEventBusListener("canvas.viewbox.changed", function() {
+        this._canvas.addEventBusListener("canvas.viewbox.changed", function() {
             let modelBox = me.getBoundingClientRect();
             let modelMatrix = me.getTransformMatrix();
             me._notifyAll(new AnimationEvent(AnimationEventType.MODEL_CANVAS_MOVED,
@@ -140,9 +137,8 @@ export default class ProcessModelController {
      * @param {String} nodeId
      */
     _createNodePathElements (nodeId) {
-        let editorCanvas = this._editor.getCanvas();
         let incomingEndPoint = $j(
-            '[data-element-id=' + editorCanvas.getIncomingFlowId(nodeId) +
+            '[data-element-id=' + this._canvas.getIncomingFlowId(nodeId) +
             ']',
         )
         let incomingPathE = incomingEndPoint.find('g').find('path').get(0)
@@ -153,7 +149,7 @@ export default class ProcessModelController {
         let arrayAbove, arrayBelow;
 
         let outgoingStartPoint = $j(
-            '[data-element-id=' + editorCanvas.getOutgoingFlowId(nodeId) +
+            '[data-element-id=' + this._canvas.getOutgoingFlowId(nodeId) +
             ']',
         )
         let outgoingPathE = outgoingStartPoint.find('g').find('path').get(0)

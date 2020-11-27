@@ -1,21 +1,16 @@
-import LogAnimation from '../../src/loganimation/animationMain';
+import LogAnimation from '../../src/loganimation';
 
-/**
- * @returns {LogAnimation}
- */
 export function createSimpleLogAnimation() {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 999999;
     jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
     loadFixtures('logAnimationUI.html');
-
-    const URL = "http://b3mn.org/stencilset/bpmn2.0#";
     let bpmn = require('./fixtures/simpleMap.bpmn');
     let setupData = require('./fixtures/setupData.txt');
-    jasmine.clock().install();
-    let logAnimation = new LogAnimation('101', setupData.default, bpmn.default);
-    jasmine.clock().tick(1000);
-    jasmine.clock().uninstall();
-    return logAnimation;
+
+    let logAnimation = new LogAnimation('101');
+    logAnimation.loadProcessModel(bpmn.default, function() {});
+    window.setTimeout(function() {
+        logAnimation.initialize(setupData.default);
+    }, 1000);
 }
 
 /**

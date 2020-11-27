@@ -46,57 +46,55 @@ import PlayActionControl from "./playActionControl";
  * @author Bruce Nguyen
  */
 export default class LogAnimation {
-    /** The creation of LogAnimation is divided into two stages: loading the model into the editor and then
-     * initializing animation components. The first stage takes time and so the second stage must wait until the
-     * first stage can finish.
+    /**
      * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
-     * @param {String} setupDataJSON: the JSON raw text containg initial setup data
-     * @param {String} modelXML: BPMN XML of the model
      */
-    constructor(pluginExecutionId, setupDataJSON, modelXML) {
+    constructor(pluginExecutionId) {
         this.pluginExecutionId = pluginExecutionId;
-        let setupData = JSON.parse(setupDataJSON);
-        this.logSummaries = setupData.logs;
         this.isPlayingBeforeMovingModel = false;
         this.colorPalette = [
             ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
             ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
         ];
-        this.processMapController = new ProcessModelController(this);
-
-        this._loadProcessModel(modelXML);
-
-        window.setTimeout((function() {
-            this._initialize(setupData)
-        }).bind(this), 1000);
     }
 
     /**
-     * Load process model component. This could take time for loading XML data into the editor.
+     * Load process model to be used for log animation.
+     * This method could take time for loading big XML data. It is made a separate method with callback
+     * for the caller to use for progress or result tracking.
      * @param modelXML: the model content
+     * @param callBack: the callBack function to notify of the model loading result
      */
-    _loadProcessModel(modelXML) {
-        this.processMapController.loadProcessModel('editorcanvas', modelXML);
+    loadProcessModel(modelXML, callBack) {
+        this.processMapController = new ProcessModelController(this);
+        this.processMapController.loadProcessModel('editorcanvas', modelXML, callBack);
     }
 
-    _initialize(setupData) {
+    /**
+     * Caller of LogAnimation must make sure that it has successfuly loaded a process model before initializing it.
+     * A log animation cannot work without a process model.
+     * @param {String} setupDataJSON: log animation setup data
+     */
+    initialize(setupDataJSON) {
         if (!this.processMapController) {
             console.error('Stop. The process model has not been loaded yet!');
             return;
         }
+        let setupData = JSON.parse(setupDataJSON);
+        this.logSummaries = setupData.logs;
         let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
             caseCountsByFrames} = setupData;
         this.animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, timelineSlots,
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new TokenAnimation(this, $j("#canvas"), this.processMapController, this.colorPalette);
+        this.tokenAnimation = new TokenAnimation(this, $j("#canvas")[0], this.processMapController, this.colorPalette);
         this.timeline = new TimelineAnimation(this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
         this.speedControl = new SpeedControl(this, $j("#speed-control"));
         this.progress = new ProgressAnimation(this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
-        this.clock = new ClockAnimation(this, $j('#date'), $j('#time'));
+        this.clock = new ClockAnimation(this, $j('#date')[0], $j('#time')[0]);
         this.buttonControls = new PlayActionControl(this,
-            $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+            $j('#start')[0], $j('#pause')[0], $j('#forward')[0], $j('#backward')[0], $j('#end')[0],
             'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events

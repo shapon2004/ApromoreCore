@@ -42,14 +42,9 @@ export default class TokenAnimation {
         console.log('TokenAnimation - constructor');
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
-
-        this._processMapController = processMapController;
-        let mapBox = processMapController.getBoundingClientRect();
-        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
-
         this._canvasContext = canvasElement.getContext('2d');
         this._colorPalette = colorPalette;
-
+        this._processMapController = processMapController;
 
         this._frameBuffer = new Buffer(animation.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
@@ -67,6 +62,9 @@ export default class TokenAnimation {
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
+
+        let mapBox = processMapController.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
     }
 
     // Set visual styles and start the main loops
@@ -76,8 +74,8 @@ export default class TokenAnimation {
         this._currentTime = 0;
         this._setState(AnimationState.PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        this._loopBufferRead();
-        this._loopDraw(0);
+        // this._loopBufferRead();
+        // this._loopDraw(0);
     }
 
     /**
