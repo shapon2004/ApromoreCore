@@ -15,6 +15,7 @@ export default class TimelineAnimation {
         this.animationContext = animation.getAnimationContext();
 
         // Parameters
+        this.totalEngineS = this.animationContext.getLogicalTimelineMax();
         this.slotNum = this.animationContext.getTimelineSlots();
         this.endPos = this.slotNum;
         this.slotEngineS = this.animationContext.getLogicalSlotTime(); // in seconds

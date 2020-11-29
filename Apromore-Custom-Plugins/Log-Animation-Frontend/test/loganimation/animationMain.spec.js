@@ -35,25 +35,5 @@ describe('Test Simple Animation Controller', function () {
         expect(animation.isPlaying()).toBeFalse();
     });
 
-    it('It can go back to the start position', function() {
-        animation.playPause();
-        expect(animation.isPlaying()).toBeTrue();
-        setTimeout(function() {
-            animation.gotoStart();
-            expect(animation.isAtStart()).toBeTrue();
-            expect(animation.isAtEnd()).toBeFalse();
-            expect(animation.isPlaying()).toBeFalse();
-        }, 2000);
-    });
 
-    it('It can jump to the end position', function() {
-        animation.playPause();
-        expect(animation.isPlaying()).toBeTrue();
-        setTimeout(function() {
-            animation.gotoEnd();
-            expect(animation.isAtStart()).toBeFalse();
-            expect(animation.isAtEnd()).toBeTrue();
-            expect(animation.isPlaying()).toBeFalse();
-        }, 2000);
-    });
 });

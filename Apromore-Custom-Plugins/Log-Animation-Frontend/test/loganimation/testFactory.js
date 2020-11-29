@@ -1,5 +1,8 @@
 import LogAnimation from '../../src/loganimation';
 
+/**
+ * @returns {LogAnimation}
+ */
 export function createSimpleLogAnimation() {
     jasmine.getFixtures().fixturesPath = 'base/test/loganimation/fixtures';
     loadFixtures('logAnimationUI.html');

@@ -156,6 +156,10 @@ export default class LogAnimation {
         return this.timeline.getLogTimeFromLogicalTime(logicalTime);
     }
 
+    getCurrentLogicalTime() {
+        return this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
+    }
+
     /**
      * SVG animation controls speed on a fixed path via time duration and determines the current position via
      * the current engine time. However, TokenAnimation (canvas based) controls speed via frame rates.
