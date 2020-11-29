@@ -34,15 +34,15 @@ import ProcessModelController from './processModelController';
 export default class TokenAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLCanvasElement} canvasElement
+     * @param {String} canvasElementId: id of the canvas element
      * @param {ProcessModelController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animation, canvasElement, processMapController, colorPalette) {
+    constructor(animation, canvasElementId, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
-        this._canvasContext = canvasElement.getContext('2d');
+        this._canvasContext = $j('#' + canvasElementId)[0].getContext('2d');
         this._colorPalette = colorPalette;
         this._processMapController = processMapController;
 

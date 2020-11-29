@@ -6,31 +6,31 @@
 export default class PlayActionControl{
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLButtonElement} gotoStartButton
-     * @param {HTMLButtonElement} pauseButton
-     * @param {HTMLButtonElement} forwardButton
-     * @param {HTMLButtonElement} backwardButton
-     * @param {HTMLButtonElement} gotoEndButton
+     * @param {String} gotoStartButtonId: button id
+     * @param {String} pauseButtonId
+     * @param {String} forwardButtonId
+     * @param {String} backwardButtonId
+     * @param {String} gotoEndButtonId
      * @param {String} playClassName: CSS class name of the play state
      * @param {String} pauseClassName: CSS class name of the pause state
      */
     constructor(animation,
-                gotoStartButton, pauseButton, forwardButton,
-                backwardButton, gotoEndButton,
+                gotoStartButtonId, pauseButtonId, forwardButtonId,
+                backwardButtonId, gotoEndButtonId,
                 playClassName,
                 pauseClassName) {
         this.animation = animation;
-        this.gotoStartButton = gotoStartButton;
-        this.gotoEndButton = gotoEndButton;
-        this.pauseButton = pauseButton;
-        this.forwardButton = forwardButton;
-        this.backwardButton = backwardButton;
+        this.gotoStartButton = $j('#' + gotoStartButtonId);
+        this.gotoEndButton = $j('#' + gotoEndButtonId);
+        this.pauseButton = $j('#' + pauseButtonId);
+        this.forwardButton = $j('#' + forwardButtonId);
+        this.backwardButton = $j('#' + backwardButtonId);
 
-        gotoStartButton.addEventListener('click', animation.gotoStart);
-        gotoEndButton.addEventListener('click', animation.gotoEnd);
-        pauseButton.addEventListener('click', animation.playPause);
-        forwardButton.addEventListener('click', animation.fastForward);
-        backwardButton.addEventListener('click', animation.fastBackward);
+        this.gotoStartButton.on('click', animation.gotoStart);
+        this.gotoEndButton.on('click', animation.gotoEnd);
+        this.pauseButton.on('click', animation.playPause);
+        this.forwardButton.on('click', animation.fastForward);
+        this.backwardButton.on('click', animation.fastBackward);
 
         this.PLAY_CLS = playClassName;
         this.PAUSE_CLS = pauseClassName;

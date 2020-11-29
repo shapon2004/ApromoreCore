@@ -8,33 +8,33 @@ import * as SVG from "@svgdotjs/svg.js";
 export default class ProgressAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLDivElement} uiTopContainer
-     * @param {HTMLDivElement} uiPopupContainer
+     * @param {String} uiTopContainerId: id of the container div element
+     * @param {String} uiPopupContainerId: id of the popup div element
      */
-    constructor(animation, uiTopContainer, uiPopupContainer) {
+    constructor(animation, uiTopContainerId, uiPopupContainerId) {
         this._ANIMATION_CLASS = 'progress-animation';
         this._SVG_NS = "http://www.w3.org/2000/svg";
         this._animationController = animation;
-        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainer, 1.0);
-        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainer, uiPopupContainer);
+        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainerId, 1.0);
+        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainerId, uiPopupContainerId);
         this._currentSpeedLevel = 1.0;
     }
 
     setCurrentTime(time) {
-        for (let svg in this._svgProgresses) {
+        for (let svg of this._svgProgresses) {
             svg.setCurrentTime(time);
         }
     }
 
     pause() {
-        for (let svg in this._svgProgresses) {
+        for (let svg of this._svgProgresses) {
             svg.pauseAnimations();
         }
     }
 
     unPause() {
-        for (let svg in this._svgProgresses) {
-            svg.unPauseAnimations();
+        for (let svg of this._svgProgresses) {
+            svg.unpauseAnimations();
         }
     }
     /**
@@ -65,10 +65,10 @@ export default class ProgressAnimation {
      * @return {SVGElement[]}
      * @private
      */
-    _createProgressIndicators(logSummaries, uiTopContainer, speedRatio) {
+    _createProgressIndicators(logSummaries, uiTopContainerId, speedRatio) {
         let log;
         let svgProgress, svgProgresses = [];
-        let progressTopContainer = uiTopContainer;
+        let progressTopContainer = $j('#'+ uiTopContainerId);
 
         progressTopContainer.empty();
         for (let i = 0; i < logSummaries.length; i++) {
@@ -76,7 +76,7 @@ export default class ProgressAnimation {
             svgProgress = $j(`<svg id="progressbar-${i}  xmlns="${this._SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
             progressTopContainer.append(
                 $j(`<div id="progress-c-${i}"></div>`).append(
-                    svgProgress.append(this._createProgressIndicatorsForLog(i + 1, log, speedRatio)),
+                    svgProgress.append(this._createProgressIndicatorsForLog(uiTopContainerId, i + 1, log, speedRatio)),
                 ).append($j(`<div class="label">${log.filename}</div>`)),
             );
             svgProgress = svgProgress[0];
@@ -99,12 +99,12 @@ export default class ProgressAnimation {
      * @returns {*}
      * @private
      */
-    _createProgressIndicatorsForLog(logNo, log, speedRatio) {
+    _createProgressIndicatorsForLog(uiTopContainerId, logNo, log, speedRatio) {
         speedRatio = speedRatio || 1;
         let {values, keyTimes, begin, dur} = log.progress;
         let color = this._animationController.getLogColor(logNo, log.color);
         let progress = new SVG.G().attr({
-            id: 'ap-la-progress-' + logNo,
+            id: uiTopContainerId + '-' + logNo,
         }).node;
 
         let path = 'M ' + 0 + ',' + 0 + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
@@ -134,12 +134,12 @@ export default class ProgressAnimation {
     /**
      * Create a popup window when hovering the mouse over the progress indicator.
      * @param {Array} logSummaries
-     * @param {HTMLDivElement} uiTopContainer
-     * @param {HTMLDivElement} uiPopupContainer
+     * @param {String} uiTopContainerId
+     * @param {String} uiPopupContainerId
      * @private
      */
-    _createLogInfoPopups(logSummaries, uiTopContainer, uiPopupContainer) {
-        let logInfo = uiPopupContainer;
+    _createLogInfoPopups(logSummaries, uiTopContainerId, uiPopupContainerId) {
+        let logInfo = $j('#' + uiPopupContainerId);
         let props = [
             {
                 id: 'info-no',
@@ -176,7 +176,7 @@ export default class ProgressAnimation {
         }
 
         for (let i = 0; i < logSummaries.length; i++) {
-            let pId = '#' + uiTopContainer.id + '-' + (i + 1);
+            let pId = '#' + uiTopContainerId + '-' + (i + 1);
             $j(pId).hover(
                 (function(idx) {
                     let log = logSummaries[idx - 1];

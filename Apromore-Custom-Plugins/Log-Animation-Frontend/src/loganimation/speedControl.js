@@ -7,11 +7,11 @@ import 'jquery-ui-slider-pips-npm';
 export default class SpeedControl{
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLDivElement} uiContainer
+     * @param {String} uiContainerId: id of the containing div
      */
-    constructor(animation, uiContainer) {
+    constructor(animation, uiContainerId) {
         this._animationController = animation;
-        let speedControl = uiContainer;
+        let speedControl = $j('#' + uiContainerId);
         this._speedSlider = speedControl.slider({
             orientation: "horizontal",
             step: 1,

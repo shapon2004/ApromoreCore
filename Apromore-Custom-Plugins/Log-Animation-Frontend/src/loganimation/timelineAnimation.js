@@ -7,10 +7,10 @@ import * as moment from "moment";
 export default class TimelineAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {SVGElement} uiContainer
+     * @param {String} uiContainerId: id of the div container
      * @param {Array} caseCountsByFrames
      */
-    constructor(animation, uiContainer, caseCountsByFrames) {
+    constructor(animation, uiContainerId, caseCountsByFrames) {
         this.animation = animation;
         this.animationContext = animation.getAnimationContext();
 
@@ -36,7 +36,7 @@ export default class TimelineAnimation {
         this.textFont = {size: '11', anchor: 'middle'};
 
         // Main elements
-        this.svgTimeline = uiContainer;
+        this.svgTimeline = $j('#' + uiContainerId)[0];
         this.timelineEl = this._createTimelineElement()
         this.svgTimeline.append(this.timelineEl);
         this.currentSpeedLevel = 1.0;
@@ -62,12 +62,12 @@ export default class TimelineAnimation {
     }
 
     isAtStart() {
-        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentTime());
         return (currentLogicalTime === 0);
     }
 
     isAtEnd() {
-        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentTime());
         return (currentLogicalTime === this.animationContext.getLogicalTimelineMax());
     }
 
@@ -76,7 +76,7 @@ export default class TimelineAnimation {
     }
 
     unPause() {
-        this.svgTimeline.unPauseAnimations();
+        this.svgTimeline.unpauseAnimations();
     }
 
     /**

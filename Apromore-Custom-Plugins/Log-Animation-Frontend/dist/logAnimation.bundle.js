@@ -63659,7 +63659,7 @@ class AnimationEvent {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LogAnimation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LogAnimation; });
 /* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
 /* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
 /* harmony import */ var _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./tokenAnimation */ "./src/loganimation/tokenAnimation.js");
@@ -63717,58 +63717,60 @@ __webpack_require__.r(__webpack_exports__);
  * @author Bruce Nguyen
  */
 class LogAnimation {
-    /** The creation of LogAnimation is divided into two stages: loading the model into the editor and then
-     * initializing animation components. The first stage takes time and so the second stage must wait until the
-     * first stage can finish.
+    /**
      * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
-     * @param {String} setupDataJSON: the JSON raw text containg initial setup data
-     * @param {String} modelXML: BPMN XML of the model
      */
-    constructor(pluginExecutionId, setupDataJSON, modelXML) {
+    constructor(pluginExecutionId) {
         this.pluginExecutionId = pluginExecutionId;
-        let setupData = JSON.parse(setupDataJSON);
-        this.logSummaries = setupData.logs;
         this.isPlayingBeforeMovingModel = false;
         this.colorPalette = [
             ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'],
             ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118']
         ];
-        this.processMapController = new _processModelController__WEBPACK_IMPORTED_MODULE_4__["default"](this);
-
-        this._loadProcessModel(modelXML);
-
-        window.setTimeout((function() {
-            this._initialize(this.processMapController._editor.getCanvas(), setupData);
-        }).bind(this), 1000);
     }
 
     /**
-     * Load process model component. This could take time for loading XML data into the editor.
+     * Load process model to be used for log animation.
+     * This method could take time for loading big XML data. It is made a separate method with callback
+     * for the caller to use for progress or result tracking.
      * @param modelXML: the model content
+     * @param callBack: the callBack function to notify of the model loading result
      */
-    _loadProcessModel(modelXML) {
-        this.processMapController.loadProcessModel('editorcanvas', modelXML);
+    loadProcessModel(modelXML, callBack) {
+        this.processMapController = new _processModelController__WEBPACK_IMPORTED_MODULE_4__["default"](this);
+        this.processMapController.loadProcessModel('editorcanvas', modelXML, callBack);
     }
 
-    _initialize(canvas, setupData) {
-        this.canvas = canvas;
+    /**
+     * Caller of LogAnimation must make sure that it has successfuly loaded a process model before initializing it.
+     * A log animation cannot work without a process model.
+     * @param {String} setupDataJSON: log animation setup data
+     */
+    initialize(setupDataJSON) {
         if (!this.processMapController) {
             console.error('Stop. The process model has not been loaded yet!');
             return;
         }
-        let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
-            caseCountsByFrames} = setupData;
+        let setupData = JSON.parse(setupDataJSON);
+        this.logSummaries = setupData.logs;
+        let {recordingFrameRate, elementIndexIDMap, caseCountsByFrames} = setupData;
+        let startMs = new Date(setupData.timeline.startDateLabel).getTime(); // Start date in milliseconds
+        let endMs = new Date(setupData.timeline.endDateLabel).getTime(); // End date in milliseconds
+        let totalEngineS = setupData.timeline.totalEngineSeconds;
+        let slotEngineUnit = setupData.timeline.slotEngineUnit;
+        let timelineSlots = setupData.timeline.timelineSlots;
+
         this.animationContext = new _animationContextState__WEBPACK_IMPORTED_MODULE_0__["AnimationContext"](this.pluginExecutionId, startMs, endMs, timelineSlots,
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, $j("#canvas"), this.processMapController, this.colorPalette);
-        this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
-        this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_5__["default"](this, $j("#speed-control"));
-        this.progress = new _progressAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
-        this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_7__["default"](this, $j('#date'), $j('#time'));
+        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, 'canvas', this.processMapController, this.colorPalette);
+        this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, 'timeline_svg', caseCountsByFrames);
+        this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_5__["default"](this, 'speed-control');
+        this.progress = new _progressAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, 'ap-la-progress', 'ap-la-info-tip');
+        this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_7__["default"](this, 'date', 'time');
         this.buttonControls = new _playActionControl__WEBPACK_IMPORTED_MODULE_8__["default"](this,
-            $j('#start'), $j('#pause'), $j('#forward'), $j('#backward'), $j('#end'),
+            'start', 'pause', 'forward', 'backward', 'end',
             'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events
@@ -63872,6 +63874,14 @@ class LogAnimation {
         if (this.timeline.isAtEnd()) return;
         this.goto(this.animationContext.getLogicalTimelineMax());
         this.pause();
+    }
+
+    isAtStart() {
+        return this.timeline.isAtStart();
+    }
+
+    isAtEnd() {
+        return this.timeline.isAtEnd();
     }
 
     /**
@@ -63979,7 +63989,6 @@ class LogAnimation {
 
 }
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -63992,7 +64001,7 @@ class LogAnimation {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClockAnimation; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClockAnimation; });
 /**
  * ClockAnimation manages the clock on the animation page.
  * It uses setInterval and javascript to create a clock and sync
@@ -64002,14 +64011,14 @@ __webpack_require__.r(__webpack_exports__);
 class ClockAnimation {
     /**
      * @param {LogAnimation} animationController
-     * @param {HTMLElement} dateElement
-     * @param {HTMLElement} timeElement
+     * @param {String} dateElementId: id of the containing div
+     * @param {String} timeElementId: id of the containing div
      */
-    constructor(animationController, dateElement, timeElement) {
+    constructor(animationController, dateElementId, timeElementId) {
         this._animationController = animationController;
         this._animationContext = animationController.getAnimationContext();
-        this._dateElement = dateElement;
-        this._timeElement = timeElement;
+        this._dateElement = $j('#' + dateElementId)[0];
+        this._timeElement = $j('#' + timeElementId)[0];
         this.clockTimer = null; // id of the window timer returned from setInterval.
     }
 
@@ -64066,6 +64075,7 @@ class ClockAnimation {
         }
     }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -64508,7 +64518,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PlayActionControl; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PlayActionControl; });
 /**
  * PlayActionControl groups buttons controlling the animation such as start, pause, fast foward, etc.
  *
@@ -64517,31 +64527,31 @@ __webpack_require__.r(__webpack_exports__);
 class PlayActionControl{
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLButtonElement} gotoStartButton
-     * @param {HTMLButtonElement} pauseButton
-     * @param {HTMLButtonElement} forwardButton
-     * @param {HTMLButtonElement} backwardButton
-     * @param {HTMLButtonElement} gotoEndButton
+     * @param {String} gotoStartButtonId: button id
+     * @param {String} pauseButtonId
+     * @param {String} forwardButtonId
+     * @param {String} backwardButtonId
+     * @param {String} gotoEndButtonId
      * @param {String} playClassName: CSS class name of the play state
      * @param {String} pauseClassName: CSS class name of the pause state
      */
     constructor(animation,
-                gotoStartButton, pauseButton, forwardButton,
-                backwardButton, gotoEndButton,
+                gotoStartButtonId, pauseButtonId, forwardButtonId,
+                backwardButtonId, gotoEndButtonId,
                 playClassName,
                 pauseClassName) {
         this.animation = animation;
-        this.gotoStartButton = gotoStartButton;
-        this.gotoEndButton = gotoEndButton;
-        this.pauseButton = pauseButton;
-        this.forwardButton = forwardButton;
-        this.backwardButton = backwardButton;
+        this.gotoStartButton = $j('#' + gotoStartButtonId);
+        this.gotoEndButton = $j('#' + gotoEndButtonId);
+        this.pauseButton = $j('#' + pauseButtonId);
+        this.forwardButton = $j('#' + forwardButtonId);
+        this.backwardButton = $j('#' + backwardButtonId);
 
-        gotoStartButton.addEventListener('click', animation.gotoStart);
-        gotoEndButton.addEventListener('click', animation.gotoEnd);
-        pauseButton.addEventListener('click', animation.playPause);
-        forwardButton.addEventListener('click', animation.fastForward);
-        backwardButton.addEventListener('click', animation.fastBackward);
+        this.gotoStartButton.on('click', animation.gotoStart);
+        this.gotoEndButton.on('click', animation.gotoEnd);
+        this.pauseButton.on('click', animation.playPause);
+        this.forwardButton.on('click', animation.fastForward);
+        this.backwardButton.on('click', animation.fastBackward);
 
         this.PLAY_CLS = playClassName;
         this.PAUSE_CLS = pauseClassName;
@@ -64561,6 +64571,7 @@ class PlayActionControl{
         }
     }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -64595,9 +64606,9 @@ class ProcessModelController {
     constructor(animation) {
         this._logAnimation = animation;
         this._listeners = [];
-        this._editor;
-        this._svgMain;
-        this._svgViewport;
+        // this._editor;
+        // this._svgMain;
+        // this._svgViewport;
     }
 
     /**
@@ -64605,11 +64616,12 @@ class ProcessModelController {
      * Caller of this method must take this loading time into account, otherwise the other methods
      * will fail because the BPMN data model has not been created in the memory yet.
      * @param {String} editorContainerId: id of the div element hosting the editor
-     * @param {String} modelXML: XML content of the BPMN map/model
+     * @param {String} xml: XML content of the BPMN map/model
      */
-    loadProcessModel(editorContainerId, modelXML) {
+    loadProcessModel(editorContainerId, xml, callBack) {
         this._editor = new _bpmneditor_apromoreEditor__WEBPACK_IMPORTED_MODULE_0__["ORYX"].Editor({
-            modelXML,
+            xml,
+            callBack: callBack,
             model: {
                 id: editorContainerId,
                 showPlugins: false
@@ -64620,9 +64632,9 @@ class ProcessModelController {
     }
 
     /**
-     * @param {Object} elementMapping: map from element index to element id
+     * @param {Object} elementIndexIDMap: map from element index to element id
      */
-    initialize(elementMapping) {
+    initialize(elementIndexIDMap) {
         if (!this._editor) {
             console.error('Stop. The editor has not loaded data yet');
             return;
@@ -64645,7 +64657,7 @@ class ProcessModelController {
                 {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
 
-        this._createIndexToElementCache(elementMapping);
+        this._createIndexToElementCache(elementIndexIDMap);
     }
 
     /**
@@ -64886,34 +64898,34 @@ __webpack_require__.r(__webpack_exports__);
  */
 class ProgressAnimation {
     /**
-     * @param {LogAnimation}animation
-     * @param {HTMLDivElement} uiTopContainer
-     * @param {HTMLDivElement} uiPopupContainer
+     * @param {LogAnimation} animation
+     * @param {String} uiTopContainerId: id of the container div element
+     * @param {String} uiPopupContainerId: id of the popup div element
      */
-    constructor(animation, uiTopContainer, uiPopupContainer) {
+    constructor(animation, uiTopContainerId, uiPopupContainerId) {
         this._ANIMATION_CLASS = 'progress-animation';
         this._SVG_NS = "http://www.w3.org/2000/svg";
         this._animationController = animation;
-        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainer, 1.0);
-        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainer, uiPopupContainer);
+        this._svgProgresses = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainerId, 1.0);
+        this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainerId, uiPopupContainerId);
         this._currentSpeedLevel = 1.0;
     }
 
     setCurrentTime(time) {
-        for (let svg in this._svgProgresses) {
+        for (let svg of this._svgProgresses) {
             svg.setCurrentTime(time);
         }
     }
 
     pause() {
-        for (let svg in this._svgProgresses) {
+        for (let svg of this._svgProgresses) {
             svg.pauseAnimations();
         }
     }
 
     unPause() {
-        for (let svg in this._svgProgresses) {
-            svg.unPauseAnimations();
+        for (let svg of this._svgProgresses) {
+            svg.unpauseAnimations();
         }
     }
     /**
@@ -64944,10 +64956,10 @@ class ProgressAnimation {
      * @return {SVGElement[]}
      * @private
      */
-    _createProgressIndicators(logSummaries, uiTopContainer, speedRatio) {
+    _createProgressIndicators(logSummaries, uiTopContainerId, speedRatio) {
         let log;
         let svgProgress, svgProgresses = [];
-        let progressTopContainer = uiTopContainer;
+        let progressTopContainer = $j('#'+ uiTopContainerId);
 
         progressTopContainer.empty();
         for (let i = 0; i < logSummaries.length; i++) {
@@ -64955,7 +64967,7 @@ class ProgressAnimation {
             svgProgress = $j(`<svg id="progressbar-${i}  xmlns="${this._SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
             progressTopContainer.append(
                 $j(`<div id="progress-c-${i}"></div>`).append(
-                    svgProgress.append(this._createProgressIndicatorsForLog(i + 1, log, speedRatio)),
+                    svgProgress.append(this._createProgressIndicatorsForLog(uiTopContainerId, i + 1, log, speedRatio)),
                 ).append($j(`<div class="label">${log.filename}</div>`)),
             );
             svgProgress = svgProgress[0];
@@ -64978,12 +64990,12 @@ class ProgressAnimation {
      * @returns {*}
      * @private
      */
-    _createProgressIndicatorsForLog(logNo, log, speedRatio) {
+    _createProgressIndicatorsForLog(uiTopContainerId, logNo, log, speedRatio) {
         speedRatio = speedRatio || 1;
         let {values, keyTimes, begin, dur} = log.progress;
         let color = this._animationController.getLogColor(logNo, log.color);
         let progress = new _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__["G"]().attr({
-            id: 'ap-la-progress-' + logNo,
+            id: uiTopContainerId + '-' + logNo,
         }).node;
 
         let path = 'M ' + 0 + ',' + 0 + ' m 0, 0 a 20,20 0 1,0 0.00001,0';
@@ -65013,12 +65025,12 @@ class ProgressAnimation {
     /**
      * Create a popup window when hovering the mouse over the progress indicator.
      * @param {Array} logSummaries
-     * @param {HTMLDivElement} uiTopContainer
-     * @param {HTMLDivElement} uiPopupContainer
+     * @param {String} uiTopContainerId
+     * @param {String} uiPopupContainerId
      * @private
      */
-    _createLogInfoPopups(logSummaries, uiTopContainer, uiPopupContainer) {
-        let logInfo = uiPopupContainer;
+    _createLogInfoPopups(logSummaries, uiTopContainerId, uiPopupContainerId) {
+        let logInfo = $j('#' + uiPopupContainerId);
         let props = [
             {
                 id: 'info-no',
@@ -65055,7 +65067,7 @@ class ProgressAnimation {
         }
 
         for (let i = 0; i < logSummaries.length; i++) {
-            let pId = '#' + uiTopContainer.id + '-' + (i + 1);
+            let pId = '#' + uiTopContainerId + '-' + (i + 1);
             $j(pId).hover(
                 (function(idx) {
                     let log = logSummaries[idx - 1];
@@ -65089,7 +65101,7 @@ class ProgressAnimation {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SpeedControl; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SpeedControl; });
 /* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jquery-ui-bundle */ "./node_modules/jquery-ui-bundle/jquery-ui.js");
 /* harmony import */ var jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(jquery_ui_bundle__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var jquery_ui_slider_pips_npm__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jquery-ui-slider-pips-npm */ "./node_modules/jquery-ui-slider-pips-npm/dist/jquery-ui-slider-pips.js");
@@ -65103,11 +65115,11 @@ __webpack_require__.r(__webpack_exports__);
 class SpeedControl{
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLDivElement} uiContainer
+     * @param {String} uiContainerId: id of the containing div
      */
-    constructor(animation, uiContainer) {
+    constructor(animation, uiContainerId) {
         this._animationController = animation;
-        let speedControl = uiContainer;
+        let speedControl = $j('#' + uiContainerId);
         this._speedSlider = speedControl.slider({
             orientation: "horizontal",
             step: 1,
@@ -65132,6 +65144,7 @@ class SpeedControl{
         });
     }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -65144,7 +65157,7 @@ class SpeedControl{
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TimelineAnimation; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TimelineAnimation; });
 /* harmony import */ var _svgdotjs_svg_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @svgdotjs/svg.js */ "./node_modules/@svgdotjs/svg.js/dist/svg.esm.js");
 /* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
 /* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_1__);
@@ -65157,10 +65170,10 @@ __webpack_require__.r(__webpack_exports__);
 class TimelineAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {SVGElement} uiContainer
+     * @param {String} uiContainerId: id of the div container
      * @param {Array} caseCountsByFrames
      */
-    constructor(animation, uiContainer, caseCountsByFrames) {
+    constructor(animation, uiContainerId, caseCountsByFrames) {
         this.animation = animation;
         this.animationContext = animation.getAnimationContext();
 
@@ -65186,7 +65199,7 @@ class TimelineAnimation {
         this.textFont = {size: '11', anchor: 'middle'};
 
         // Main elements
-        this.svgTimeline = uiContainer;
+        this.svgTimeline = $j('#' + uiContainerId)[0];
         this.timelineEl = this._createTimelineElement()
         this.svgTimeline.append(this.timelineEl);
         this.currentSpeedLevel = 1.0;
@@ -65212,12 +65225,12 @@ class TimelineAnimation {
     }
 
     isAtStart() {
-        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentTime());
         return (currentLogicalTime === 0);
     }
 
     isAtEnd() {
-        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentSVGTime());
+        let currentLogicalTime = this.getLogicalTimeFromSVGTime(this.getCurrentTime());
         return (currentLogicalTime === this.animationContext.getLogicalTimelineMax());
     }
 
@@ -65226,7 +65239,7 @@ class TimelineAnimation {
     }
 
     unPause() {
-        this.svgTimeline.unPauseAnimations();
+        this.svgTimeline.unpauseAnimations();
     }
 
     /**
@@ -65515,6 +65528,7 @@ class TimelineAnimation {
         }
     }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -65527,7 +65541,7 @@ class TimelineAnimation {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TokenAnimation; });
+/* WEBPACK VAR INJECTION */(function($j) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TokenAnimation; });
 /* harmony import */ var _frameBuffer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./frameBuffer */ "./src/loganimation/frameBuffer.js");
 /* harmony import */ var _animationContextState__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./animationContextState */ "./src/loganimation/animationContextState.js");
 /* harmony import */ var _animationEvents__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./animationEvents */ "./src/loganimation/animationEvents.js");
@@ -65568,22 +65582,17 @@ __webpack_require__.r(__webpack_exports__);
 class TokenAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {HTMLCanvasElement} canvasElement
+     * @param {String} canvasElementId: id of the canvas element
      * @param {ProcessModelController} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animation, canvasElement, processMapController, colorPalette) {
+    constructor(animation, canvasElementId, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
-
-        this._processMapController = processMapController;
-        let mapBox = processMapController.getBoundingClientRect();
-        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
-
-        this._canvasContext = canvasElement.getContext('2d');
+        this._canvasContext = $j('#' + canvasElementId)[0].getContext('2d');
         this._colorPalette = colorPalette;
-
+        this._processMapController = processMapController;
 
         this._frameBuffer = new _frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"](animation.getAnimationContext()); //the buffer start filling immediately based on the animation context.
         this._frameQueue = []; // queue of frames used for animating
@@ -65601,6 +65610,9 @@ class TokenAnimation {
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
+
+        let mapBox = processMapController.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
     }
 
     // Set visual styles and start the main loops
@@ -65963,6 +65975,7 @@ class TokenAnimation {
     }
 }
 
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 

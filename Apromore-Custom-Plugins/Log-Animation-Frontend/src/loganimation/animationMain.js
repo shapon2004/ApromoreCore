@@ -82,19 +82,24 @@ export default class LogAnimation {
         }
         let setupData = JSON.parse(setupDataJSON);
         this.logSummaries = setupData.logs;
-        let {recordingFrameRate, startMs, endMs, totalEngineS, timelineSlots, slotEngineUnit, elementIndexIDMap,
-            caseCountsByFrames} = setupData;
+        let {recordingFrameRate, elementIndexIDMap, caseCountsByFrames} = setupData;
+        let startMs = new Date(setupData.timeline.startDateLabel).getTime(); // Start date in milliseconds
+        let endMs = new Date(setupData.timeline.endDateLabel).getTime(); // End date in milliseconds
+        let totalEngineS = setupData.timeline.totalEngineSeconds;
+        let slotEngineUnit = setupData.timeline.slotEngineUnit;
+        let timelineSlots = setupData.timeline.timelineSlots;
+
         this.animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, timelineSlots,
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new TokenAnimation(this, $j("#canvas")[0], this.processMapController, this.colorPalette);
-        this.timeline = new TimelineAnimation(this, $j('div.ap-la-timeline > div > svg')[0], caseCountsByFrames);
-        this.speedControl = new SpeedControl(this, $j("#speed-control"));
-        this.progress = new ProgressAnimation(this, $j('#ap-la-progress'), $j('#ap-la-info-tip'));
-        this.clock = new ClockAnimation(this, $j('#date')[0], $j('#time')[0]);
+        this.tokenAnimation = new TokenAnimation(this, 'canvas', this.processMapController, this.colorPalette);
+        this.timeline = new TimelineAnimation(this, 'timeline_svg', caseCountsByFrames);
+        this.speedControl = new SpeedControl(this, 'speed-control');
+        this.progress = new ProgressAnimation(this, 'ap-la-progress', 'ap-la-info-tip');
+        this.clock = new ClockAnimation(this, 'date', 'time');
         this.buttonControls = new PlayActionControl(this,
-            $j('#start')[0], $j('#pause')[0], $j('#forward')[0], $j('#backward')[0], $j('#end')[0],
+            'start', 'pause', 'forward', 'backward', 'end',
             'ap-mc-icon-play', 'ap-mc-icon-pause');
 
         // Register events
@@ -198,6 +203,14 @@ export default class LogAnimation {
         if (this.timeline.isAtEnd()) return;
         this.goto(this.animationContext.getLogicalTimelineMax());
         this.pause();
+    }
+
+    isAtStart() {
+        return this.timeline.isAtStart();
+    }
+
+    isAtEnd() {
+        return this.timeline.isAtEnd();
     }
 
     /**

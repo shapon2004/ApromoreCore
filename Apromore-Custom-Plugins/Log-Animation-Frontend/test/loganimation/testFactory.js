@@ -11,6 +11,7 @@ export function createSimpleLogAnimation() {
     window.setTimeout(function() {
         logAnimation.initialize(setupData.default);
     }, 1000);
+    return logAnimation;
 }
 
 /**

@@ -42,9 +42,9 @@ export default class ProcessModelController {
     }
 
     /**
-     * @param {Object} elementMapping: map from element index to element id
+     * @param {Object} elementIndexIDMap: map from element index to element id
      */
-    initialize(elementMapping) {
+    initialize(elementIndexIDMap) {
         if (!this._editor) {
             console.error('Stop. The editor has not loaded data yet');
             return;
@@ -67,7 +67,7 @@ export default class ProcessModelController {
                 {viewbox: modelBox, transformMatrix: modelMatrix}));
         });
 
-        this._createIndexToElementCache(elementMapping);
+        this._createIndexToElementCache(elementIndexIDMap);
     }
 
     /**
