@@ -21,21 +21,22 @@
  */
 package org.apromore.service.csvimporter.dateparser;
 
+import static org.apromore.service.csvimporter.dateparser.DateUtil.determineDateFormat;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.apromore.service.csvimporter.services.ParquetFactoryProvider;
 import org.apromore.service.csvimporter.services.SampleLogGenerator;
 import org.apromore.service.csvimporter.services.legacy.LogReader;
 import org.apromore.service.csvimporter.services.legacy.LogReaderImpl;
 import org.apromore.service.csvimporter.services.utilities.TestUtilities;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.apromore.service.csvimporter.dateparser.DateUtil.determineDateFormat;
-import static org.junit.Assert.assertEquals;
-
-
+@Ignore
 public class DateUtilUnitTest {
     /**
      * Expected headers for <code>test1-valid.csv</code>.
