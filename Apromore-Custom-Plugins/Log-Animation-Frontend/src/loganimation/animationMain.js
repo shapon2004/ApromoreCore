@@ -107,6 +107,7 @@ export default class LogAnimation {
         this.tokenAnimation.registerListener(this);
         this._setKeyboardEvents();
 
+        this.clock.setCurrentTime(this.animationContext.getLogStartTime());
         this.tokenAnimation.startEngine();
         this.pause();
     }
@@ -300,7 +301,7 @@ export default class LogAnimation {
             this._unPauseSecondaryAnimations();
         } else if (event.getEventType() === AnimationEventType.END_OF_ANIMATION) {
             this.pause();
-            this.clock.setTime(this.animationContext.getLogicalTimelineMax());
+            this.clock.setCurrentTime(this.animationContext.getLogicalTimelineMax());
         } else if (event.getEventType() === AnimationEventType.MODEL_CANVAS_MOVING) {
             let modelBox = event.getEventData().viewbox;
             let modelMatrix = event.getEventData().transformMatrix;

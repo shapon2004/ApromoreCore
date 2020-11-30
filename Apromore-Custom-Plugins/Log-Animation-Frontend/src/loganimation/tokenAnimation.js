@@ -74,8 +74,8 @@ export default class TokenAnimation {
         this._currentTime = 0;
         this._setState(AnimationState.PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        // this._loopBufferRead();
-        // this._loopDraw(0);
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**

@@ -33,7 +33,7 @@ describe('After writing frames to a Buffer', function () {
         frameBuffer.write(frames, 0);
     });
 
-    it('The frames are written correctly', function() {
+    it('The frames are added correctly', function() {
         expect(frameBuffer.getFirstIndex()).toEqual(0);
         expect(frameBuffer.getLastIndex()).toEqual(299);
         expect(frameBuffer.getCurrentIndex()).toEqual(0);

@@ -10,7 +10,7 @@ module.exports = {
     output: {
         filename: 'logAnimation.bundle.js',
         path: path.resolve(__dirname, 'dist'),
-        //library: "LogAnimation",   // Important
+        library: "LogAnimation",   // Important
         libraryTarget: 'umd',   // Important
         libraryExport: 'default'
         //umdNamedDefine: true   // Important

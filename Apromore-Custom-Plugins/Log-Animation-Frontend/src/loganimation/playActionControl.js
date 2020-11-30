@@ -15,22 +15,25 @@ export default class PlayActionControl{
      * @param {String} pauseClassName: CSS class name of the pause state
      */
     constructor(animation,
-                gotoStartButtonId, pauseButtonId, forwardButtonId,
-                backwardButtonId, gotoEndButtonId,
+                gotoStartButtonId,
+                pauseButtonId,
+                forwardButtonId,
+                backwardButtonId,
+                gotoEndButtonId,
                 playClassName,
                 pauseClassName) {
         this.animation = animation;
         this.gotoStartButton = $j('#' + gotoStartButtonId);
-        this.gotoEndButton = $j('#' + gotoEndButtonId);
         this.pauseButton = $j('#' + pauseButtonId);
         this.forwardButton = $j('#' + forwardButtonId);
         this.backwardButton = $j('#' + backwardButtonId);
+        this.gotoEndButton = $j('#' + gotoEndButtonId);
 
-        this.gotoStartButton.on('click', animation.gotoStart);
-        this.gotoEndButton.on('click', animation.gotoEnd);
-        this.pauseButton.on('click', animation.playPause);
-        this.forwardButton.on('click', animation.fastForward);
-        this.backwardButton.on('click', animation.fastBackward);
+        this.gotoStartButton.on('click', animation.gotoStart.bind(animation));
+        this.gotoEndButton.on('click', animation.gotoEnd.bind(animation));
+        this.pauseButton.on('click', animation.playPause.bind(animation));
+        this.forwardButton.on('click', animation.fastForward.bind(animation));
+        this.backwardButton.on('click', animation.fastBackward.bind(animation));
 
         this.PLAY_CLS = playClassName;
         this.PAUSE_CLS = pauseClassName;
