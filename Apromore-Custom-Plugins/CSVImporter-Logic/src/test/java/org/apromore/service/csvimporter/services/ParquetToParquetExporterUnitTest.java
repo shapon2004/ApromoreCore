@@ -21,14 +21,6 @@
  */
 package org.apromore.service.csvimporter.services;
 
-import static org.apromore.service.csvimporter.services.utilities.TestUtilities.convertParquetToCSV;
-import static org.apromore.service.csvimporter.utilities.ParquetUtilities.getHeaderFromParquet;
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.schema.MessageType;
 import org.apromore.service.csvimporter.io.ParquetLocalFileReader;
@@ -41,13 +33,20 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Ignore
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.apromore.service.csvimporter.services.utilities.TestUtilities.convertParquetToCSV;
+import static org.apromore.service.csvimporter.utilities.ParquetUtilities.getHeaderFromParquet;
+import static org.junit.Assert.assertEquals;
+
 public class ParquetToParquetExporterUnitTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ParquetToParquetExporterUnitTest.class);
     /**
      * Expected headers for <code>test1-valid.csv</code>.
      */
-    private final List<String> PARQUET_EXPECTED_HEADER = Arrays.asList("caseID", "activity", "startTimestamp", "endTimestamp", "processtype");
+    private final List<String> PARQUET_EXPECTED_HEADER = Arrays.asList("case_id", "activity", "start_date", "completion_time", "process_type");
     private TestUtilities utilities;
     private ParquetFactoryProvider parquetFactoryProvider;
     private SampleLogGenerator sampleLogGenerator;
@@ -79,6 +78,9 @@ public class ParquetToParquetExporterUnitTest {
         LogSample sample = sampleLogGenerator
                 .generateSampleLog(this.getClass().getResourceAsStream(testFile), 2, "UTF-8");
 
+        System.out.println("\n************************************\n");
+        System.out.println(sample.getHeader());
+        System.out.println("\n************************************\n");
         // Validate result
         assertEquals(PARQUET_EXPECTED_HEADER, sample.getHeader());
         assertEquals(2, sample.getLines().size());
@@ -314,8 +316,8 @@ public class ParquetToParquetExporterUnitTest {
         LogSample sample = sampleLogGenerator
                 .generateSampleLog(this.getClass().getResourceAsStream(testFile), 100, "UTF-8");
 
-        sample.setEndTimestampFormat("yyyy-dd-MM'T'HH:mm:ss.SSS");
-        sample.setStartTimestampFormat("yyyy-dd-MM'T'HH:mm:ss.SSS");
+        sample.setEndTimestampFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        sample.setStartTimestampFormat("yyyy-MM-dd HH:mm:ss.SSS");
         sample.setEndTimestampPos(3);
         sample.setStartTimestampPos(2);
         sample.getEventAttributesPos().remove(Integer.valueOf(2));
@@ -385,6 +387,7 @@ public class ParquetToParquetExporterUnitTest {
     /**
      * Test {@link ParquetToParquetExporter} against an invalid parquet log <code>test11-encoding.parquet</code>.
      */
+    @Ignore
     @Test
     public void test10_encoding() throws Exception {
 
@@ -403,7 +406,6 @@ public class ParquetToParquetExporterUnitTest {
 
         sample.setActivityPos(1);
         sample.getEventAttributesPos().remove(Integer.valueOf(1));
-
         //Export parquet
         LogModel logModel = parquetExporter
                 .generateParqeuetFile(
@@ -412,7 +414,6 @@ public class ParquetToParquetExporterUnitTest {
                         "windows-1255",
                         outputParquet,
                         true);
-
 
         //Read Parquet file
         String parquetToCSV = convertParquetToCSV(outputParquet, '¸');
