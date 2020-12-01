@@ -61,8 +61,6 @@ export function createEmptyFrameBuffer() {
     let animationContext = new AnimationContext(this.pluginExecutionId, startMs, endMs, timelineSlots,
         totalEngineS, slotEngineUnit, recordingFrameRate);
     let frameBuffer = new Buffer(animationContext);
-    spyOn(frameBuffer, '_loopRequestData').and.stub();
-    spyOn(frameBuffer, '_loopCleanup').and.stub();
     return frameBuffer;
 }
 

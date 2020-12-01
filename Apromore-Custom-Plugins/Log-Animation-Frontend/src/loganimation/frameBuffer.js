@@ -56,7 +56,10 @@ export default class Buffer {
         this._serverOutOfFrames = false;
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
+    }
 
+    // An explicit method to separate this operation stage from the initializing stage.
+    startOps() {
         this._loopRequestData();
         this._loopCleanup();
     }
@@ -71,6 +74,11 @@ export default class Buffer {
 
     static get DEFAULT_HISTORY_THRES() {
         return 600;
+    }
+
+    //In case the buffer wants to dynamically change to a different DataRequester (e.g. a custom data channel)
+    setDataRequester(dataRequester) {
+        this._dataRequester = dataRequester;
     }
 
     /**
@@ -309,8 +317,8 @@ export default class Buffer {
     }
 
     _loopCleanup() {
-        //console.log('Buffer - loopCleanup');
-        window.setTimeout(this._loopCleanup.bind(this),2000);
+        console.log('Buffer - loopCleanup');
+        window.setTimeout(this._loopCleanup.bind(this),1000);
         //console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);
         //this._logStockLevel();
         let obsoleteSize = this.getUsedStockLevel() - this._historyThreshold;
