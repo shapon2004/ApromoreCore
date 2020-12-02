@@ -2,7 +2,7 @@
  * #%L
  * This file is part of "Apromore Core".
  * 
- * Copyright (C) 2017 Queensland University of Technology.
+ * Copyright (C) 2015 - 2017 Queensland University of Technology.
  * %%
  * Copyright (C) 2018 - 2020 Apromore Pty Ltd.
  * %%
@@ -22,26 +22,22 @@
  * #L%
  */
 
-package org.apromore.service.loganimation;
+package org.apromore.service.loganimation.replay;
 
-import java.util.List;
+import de.hpi.bpmn2_0.model.FlowNode;
 
-import org.deckfour.xes.model.XLog;
-
-public interface LogAnimationService {
-
-   class Log {
-       public String fileName;
-       public XLog   xlog;
-       public String color;
-   }
-
-   /**
-    * @param bpmn  a BPMN 2.0 model, never <code>null</code>
-    * @param logs  the logs of the model executions to be animated, never <code>null</code>
-    * @return a JSON representation of the animation
-    * @throws Exception  if the representation couldn't be generated
-    */  
-   public Object[] createAnimation(String bpmn, List<Log> logs) throws Exception;
-   public Object[] createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
+public class FlowNode2 extends FlowNode {
+    private Object nameRef = null;
+    
+    public FlowNode2(FlowNode flowNode) {
+        super(flowNode);
+    }
+    
+    public Object getNameRef() {
+        return nameRef;
+    }
+    
+    public void setNameRef(Object nameRef) {
+        this.nameRef = nameRef;
+    }
 }

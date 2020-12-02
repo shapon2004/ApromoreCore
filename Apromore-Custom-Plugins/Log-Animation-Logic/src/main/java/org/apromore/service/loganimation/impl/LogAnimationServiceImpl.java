@@ -39,6 +39,13 @@ import javax.xml.bind.JAXBException;
 
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.service.loganimation.LogAnimationService;
+import org.apromore.service.loganimation.json.AnimationJSONBuilder;
+import org.apromore.service.loganimation.replay.AnimationLog;
+import org.apromore.service.loganimation.replay.BPMNDiagramHelper;
+import org.apromore.service.loganimation.replay.Optimizer;
+import org.apromore.service.loganimation.replay.ReplayParams;
+import org.apromore.service.loganimation.replay.ReplayTrace;
+import org.apromore.service.loganimation.replay.Replayer;
 // Third party packages
 import org.deckfour.xes.model.XLog;
 import org.json.JSONException;
@@ -51,8 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-// Local classes
-import de.hpi.bpmn2_0.animation.AnimationJSONBuilder;
 import de.hpi.bpmn2_0.exceptions.BpmnConverterException;
 import de.hpi.bpmn2_0.factory.AbstractBpmnFactory;
 import de.hpi.bpmn2_0.model.Definitions;
@@ -62,12 +67,6 @@ import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.activity.Task;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.model.event.Event;
-import de.hpi.bpmn2_0.replay.AnimationLog;
-import de.hpi.bpmn2_0.replay.BPMNDiagramHelper;
-import de.hpi.bpmn2_0.replay.Optimizer;
-import de.hpi.bpmn2_0.replay.ReplayParams;
-import de.hpi.bpmn2_0.replay.ReplayTrace;
-import de.hpi.bpmn2_0.replay.Replayer;
 import de.hpi.bpmn2_0.transformation.BPMN2DiagramConverter;
 import de.hpi.bpmn2_0.transformation.Diagram2BpmnConverter;
 
@@ -77,7 +76,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl.class);
 
     @Override
-    public String createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
+    public Object[] createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
 
         Set<XLog> xlogs = new HashSet<>();
         for (Log log: logs) {
@@ -154,7 +153,11 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         } else {
 //            LOGGER.info(replayer.getProcessCheckingMsg());
         }
-
+        
+        for (AnimationLog animationLog : replayedLogs) {
+            animationLog.setDiagram(bpmnDefinition);
+        }
+        
         /*
         * ------------------------------------------
         * Return Json animation
@@ -164,18 +167,21 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         if (replayedLogs.size() > 0) {
 
             //To be replaced
-            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, params);
+            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, bpmnDefinition, params);
             JSONObject json = jsonBuilder.parseLogCollection();
             json.put("success", true);  // Ext2JS's file upload requires this flag
-            String string = json.toString();
+            //String string = json.toString();
             //LOGGER.info(string);
-            jsonBuilder.clear();
+            //jsonBuilder.clear();
 
-            return string;
+            //return string;
+            return new Object[] {json, replayedLogs.get(0)};
         }
         else {
-            return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            //return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            return null;
         }
+        
     }
     
     // Build id mapping from diagram with gateways to the corresponding diagram with no gateways
@@ -293,8 +299,8 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
      * @param logs: logs to be replayed
      */ 
     @Override
-    public String createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
-
+    public Object[] createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
+        
         Set<XLog> xlogs = new HashSet<>();
         for (Log log: logs) {
             xlogs.add(log.xlog);
@@ -358,7 +364,6 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         ArrayList<AnimationLog> replayedLogs = new ArrayList();
         if (replayer.isValidProcess()) {
 //            LOGGER.info("Process " + bpmnDefinition.getId() + " is valid");
-//            EncodeTraces.getEncodeTraces().read(xlogs); //build a mapping from traceId to charstream
             for (Log log: logs) {
 
                 AnimationLog animationLog = replayer.replay(log.xlog, log.color);
@@ -382,9 +387,10 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
          */
         for (AnimationLog animationLog : replayedLogs) {
             transformToNonGateways(animationLog, diagramMapping);
+            animationLog.setDiagram(bpmnDefNoGateways);
         }
         LOGGER.info("Finish replaying log over model");
-
+        
         /*
         * ------------------------------------------
         * Return Json animation
@@ -394,17 +400,17 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
         if (replayedLogs.size() > 0) {
 
             //To be replaced
-            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, params);
+            AnimationJSONBuilder jsonBuilder = new AnimationJSONBuilder(replayedLogs, bpmnDefNoGateways, params);
             JSONObject json = jsonBuilder.parseLogCollection();
             json.put("success", true);  // Ext2JS's file upload requires this flag
-            String string = json.toString();
-            //LOGGER.info(string);
-            jsonBuilder.clear();
+
+            //return string;
             LOGGER.info("Finish generating JSON and start sending to the browser");
-            return string;
+            return new Object[] {json, replayedLogs.get(0)};
         }
         else {
-            return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            //return "{success:false, errors: {errormsg: '" + "No logs can be played." + "'}}";
+            return null;
         }
     }
 
@@ -415,4 +421,5 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
 
         return definitions;
     }
+
 }
