@@ -404,7 +404,7 @@ public class AnimationLog {
     }
     
     private void createElementMapping(Definitions diagram) {
-    	Set<FlowElement> elements = new HashSet<>();
+    	List<FlowElement> elements = new ArrayList<>();
         List<BaseElement> rootElements = diagram.getRootElement();
         if (rootElements.size() == 1) {
             BaseElement rootElement = rootElements.get(0);

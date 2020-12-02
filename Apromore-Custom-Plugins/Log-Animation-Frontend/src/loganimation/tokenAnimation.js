@@ -70,6 +70,7 @@ export default class TokenAnimation {
     // Set visual styles and start the main loops
     startEngine() {
         console.log('TokenAnimation: start');
+        this._frameBuffer.startOps();
         this.setTokenStyle();
         this._currentTime = 0;
         this._setState(AnimationState.PAUSING);

@@ -28,9 +28,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apromore.plugin.portal.loganimation2.frames.AnimationIndex;
-import org.apromore.plugin.portal.loganimation2.frames.FrameRecorder;
-import org.apromore.plugin.portal.loganimation2.frames.Frames;
+import org.apromore.plugin.portal.loganimation2.model.AnimationContext;
+import org.apromore.plugin.portal.loganimation2.model.AnimationIndex;
+import org.apromore.plugin.portal.loganimation2.model.FrameRecorder;
+import org.apromore.plugin.portal.loganimation2.model.Movie;
 import org.apromore.plugin.portal.loganimation2.stats.Stats;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.common.UserSessionManager;
@@ -68,7 +69,7 @@ public class LogAnimationController extends BaseController {
     private Set<RequestParameterType<?>> params;
     private String pluginExecutionId = "";
     private AnimationContext animateContext;
-    private Frames animationFrames;
+    private Movie animationMovie;
     //private AnimationData animationData;
     
     /*
@@ -153,13 +154,13 @@ public class LogAnimationController extends BaseController {
             
             System.out.println("Start recording frames");
             timer = System.currentTimeMillis();
-            animationFrames = FrameRecorder.record(animationLog, animationIndex, animateContext);
+            animationMovie = FrameRecorder.record(animationLog, animationIndex, animateContext);
             System.out.println("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
             
             JSONObject setupData = (JSONObject)session.get("setupData");
             setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
             setupData.put("elementIndexIDMap", animationLog.getElementJSON());
-            setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationFrames));
+            setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationMovie));
             param.put("setupData", escapeQuotedJavascript(setupData.toString()));
 
             this.setTitle(title);
@@ -219,12 +220,10 @@ public class LogAnimationController extends BaseController {
     
     @Override
     public String processRequest(Map<String,String[]> parameterMap) {
-        //String pluginExecutionId = parameterMap.get("pluginExecutionId")[0];
         String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
         String  chunkSize = parameterMap.get("chunkSize")[0];
-        //return "Response from server: pluginExecutionId=" + pluginExecutionId + ", startFrameIndex=" + startFrameIndex;
         try {
-            String chunkJSON = animationFrames.getChunkJSON(Integer.parseInt(startFrameIndex), Integer.parseInt(chunkSize));
+            String chunkJSON = animationMovie.getChunkJSON(Integer.parseInt(startFrameIndex), Integer.parseInt(chunkSize)).toString();
             return escapeQuotedJavascript(chunkJSON);
         }
         catch (NumberFormatException | JSONException e) {

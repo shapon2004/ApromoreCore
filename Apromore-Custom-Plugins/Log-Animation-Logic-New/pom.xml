@@ -78,7 +78,6 @@
             <groupId>org.jgrapht</groupId>
             <artifactId>jgrapht-core</artifactId>
             <version>0.9.1</version>
-            <scope>provided</scope>
         </dependency>       
         <dependency>
             <groupId>org.slf4j</groupId>

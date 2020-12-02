@@ -76,7 +76,6 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl.class);
 
     @Override
-    //public String createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
     public Object[] createAnimation(String bpmn, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
 
         Set<XLog> xlogs = new HashSet<>();
@@ -153,6 +152,10 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
 
         } else {
 //            LOGGER.info(replayer.getProcessCheckingMsg());
+        }
+        
+        for (AnimationLog animationLog : replayedLogs) {
+            animationLog.setDiagram(bpmnDefinition);
         }
         
         /*
@@ -297,7 +300,7 @@ public class LogAnimationServiceImpl extends DefaultParameterAwarePlugin impleme
      */ 
     @Override
     public Object[] createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws BpmnConverterException, IOException, JAXBException, JSONException {
-
+        
         Set<XLog> xlogs = new HashSet<>();
         for (Log log: logs) {
             xlogs.add(log.xlog);

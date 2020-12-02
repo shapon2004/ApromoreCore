@@ -21,12 +21,18 @@
  */
 package org.apromore.plugin.portal.loganimation2.stats;
 
-import org.apromore.plugin.portal.loganimation2.frames.Frame;
-import org.apromore.plugin.portal.loganimation2.frames.Frames;
+import org.apromore.plugin.portal.loganimation2.model.Frame;
+import org.apromore.plugin.portal.loganimation2.model.Movie;
 import org.json.JSONArray;
 
+/**
+ * <b>Stats</b> is used to contain or generate statistics for an animation movie {@link Movie}.
+ * 
+ * @author Bruce Nguyen
+ *
+ */
 public class Stats {
-    public static JSONArray computeCaseCountsJSON(Frames frames) {
+    public static JSONArray computeCaseCountsJSON(Movie frames) {
         JSONArray json = new JSONArray();
         for (Frame frame : frames) {
             json.put(frame.getCaseIndexes().length);

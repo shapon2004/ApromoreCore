@@ -21,7 +21,7 @@
  */
 package org.apromore.service.loganimation2.replay;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
@@ -40,7 +40,7 @@ public class ElementMapping {
 	private HashBiMap<String, Integer> elementIdToIndexMap = new HashBiMap<>();
 	private HashBiMap<String, Integer> elementIdToSkipIndexMap = new HashBiMap<>();
 	
-	public ElementMapping(Collection<FlowElement> elements) {
+	public ElementMapping(List<FlowElement> elements) {
 		int index=0;
 		for (FlowElement element : elements) {
 		    elementIdToIndexMap.put(element.getId(), index);

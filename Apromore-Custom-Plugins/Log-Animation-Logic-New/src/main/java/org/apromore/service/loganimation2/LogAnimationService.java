@@ -41,10 +41,7 @@ public interface LogAnimationService {
     * @param logs  the logs of the model executions to be animated, never <code>null</code>
     * @return a JSON representation of the animation
     * @throws Exception  if the representation couldn't be generated
-    */
-   //public String createAnimation(String bpmn, List<Log> logs) throws Exception;
-   //public String createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
-   
+    */  
    public Object[] createAnimation(String bpmn, List<Log> logs) throws Exception;
    public Object[] createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
 }

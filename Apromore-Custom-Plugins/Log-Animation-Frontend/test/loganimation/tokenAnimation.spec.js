@@ -1,6 +1,6 @@
 import * as testFactory from "./testFactory";
 
-xdescribe('Test Simple Token Animation', function () {
+describe('Test Simple Token Animation', function () {
     let tokenAnimation;
     beforeEach(function() {
         tokenAnimation = testFactory.createFullDataTokenAnimation();

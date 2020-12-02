@@ -105,7 +105,6 @@
         </z:zk>
 
         <n:span id="oryxstartupcode">
-            <n:script src="/loganimation2/js/ap/startup.js" type="text/javascript"/>
             <n:script defer="true">
                 <![CDATA[
                 window.animationData = '${arg.setupData}';
@@ -146,19 +145,19 @@
                     </div>
 
                     <div id="buttons_and_rate">
-                        <button id='start' onclick="Ap.la.session.gotoStart(event);" title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
+                        <button id='start' title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
                             <img></img>
                         </button>
-                        <button id='backward' onclick="Ap.la.session.fastBackward();" disabled="disabled" title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
+                        <button id='backward' title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
                             <img></img>
                         </button>
-                        <button id="pause" onclick="Ap.la.session.playPause();" disabled="disabled" title="Play" sclass="ap-mc-icon ap-mc-icon-play">
+                        <button id="pause" title="Play" sclass="ap-mc-icon ap-mc-icon-play">
                             <img></img>
                         </button>
-                        <button id='forward' onclick="Ap.la.session.fastForward();" disabled="disabled" title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
+                        <button id='forward' title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
                             <img></img>
                         </button>
-                        <button id='end' onclick="Ap.la.session.gotoEnd(event);" disabled="disabled" title="End" sclass="ap-mc-icon ap-mc-icon-end">
+                        <button id='end' title="End" sclass="ap-mc-icon ap-mc-icon-end">
                             <img></img>
                         </button>
                     </div>

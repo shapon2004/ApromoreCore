@@ -3,10 +3,10 @@
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
-	else {
-		var a = factory();
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
+	else if(typeof exports === 'object')
+		exports["LogAnimation"] = factory();
+	else
+		root["LogAnimation"] = factory();
 })(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -63778,6 +63778,7 @@ class LogAnimation {
         this.tokenAnimation.registerListener(this);
         this._setKeyboardEvents();
 
+        this.clock.setCurrentTime(this.animationContext.getLogStartTime());
         this.tokenAnimation.startEngine();
         this.pause();
     }
@@ -63825,6 +63826,10 @@ class LogAnimation {
 
     _getLogTimeFromLogicalTime(logicalTime) {
         return this.timeline.getLogTimeFromLogicalTime(logicalTime);
+    }
+
+    getCurrentLogicalTime() {
+        return this._getLogicalTimeFromSVGTime(this._getCurrentSVGTime());
     }
 
     /**
@@ -63967,7 +63972,7 @@ class LogAnimation {
             this._unPauseSecondaryAnimations();
         } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].END_OF_ANIMATION) {
             this.pause();
-            this.clock.setTime(this.animationContext.getLogicalTimelineMax());
+            this.clock.setCurrentTime(this.animationContext.getLogicalTimelineMax());
         } else if (event.getEventType() === _animationEvents__WEBPACK_IMPORTED_MODULE_1__["AnimationEventType"].MODEL_CANVAS_MOVING) {
             let modelBox = event.getEventData().viewbox;
             let modelMatrix = event.getEventData().transformMatrix;
@@ -64536,22 +64541,25 @@ class PlayActionControl{
      * @param {String} pauseClassName: CSS class name of the pause state
      */
     constructor(animation,
-                gotoStartButtonId, pauseButtonId, forwardButtonId,
-                backwardButtonId, gotoEndButtonId,
+                gotoStartButtonId,
+                pauseButtonId,
+                forwardButtonId,
+                backwardButtonId,
+                gotoEndButtonId,
                 playClassName,
                 pauseClassName) {
         this.animation = animation;
         this.gotoStartButton = $j('#' + gotoStartButtonId);
-        this.gotoEndButton = $j('#' + gotoEndButtonId);
         this.pauseButton = $j('#' + pauseButtonId);
         this.forwardButton = $j('#' + forwardButtonId);
         this.backwardButton = $j('#' + backwardButtonId);
+        this.gotoEndButton = $j('#' + gotoEndButtonId);
 
-        this.gotoStartButton.on('click', animation.gotoStart);
-        this.gotoEndButton.on('click', animation.gotoEnd);
-        this.pauseButton.on('click', animation.playPause);
-        this.forwardButton.on('click', animation.fastForward);
-        this.backwardButton.on('click', animation.fastBackward);
+        this.gotoStartButton.on('click', animation.gotoStart.bind(animation));
+        this.gotoEndButton.on('click', animation.gotoEnd.bind(animation));
+        this.pauseButton.on('click', animation.playPause.bind(animation));
+        this.forwardButton.on('click', animation.fastForward.bind(animation));
+        this.backwardButton.on('click', animation.fastBackward.bind(animation));
 
         this.PLAY_CLS = playClassName;
         this.PAUSE_CLS = pauseClassName;
@@ -65118,7 +65126,7 @@ class SpeedControl{
      * @param {String} uiContainerId: id of the containing div
      */
     constructor(animation, uiContainerId) {
-        this._animationController = animation;
+        this._animation = animation;
         let speedControl = $j('#' + uiContainerId);
         this._speedSlider = speedControl.slider({
             orientation: "horizontal",
@@ -65139,7 +65147,7 @@ class SpeedControl{
 
         let lastSliderValue = speedControl.slider("value");
         speedControl.on("slidechange", function(event, ui) {
-            this._animationController.setSpeedLevel(STEP_VALUES[ui.value - 1]);
+            animation.setSpeedLevel(STEP_VALUES[ui.value - 1]);
             lastSliderValue = ui.value;
         });
     }
@@ -65178,6 +65186,7 @@ class TimelineAnimation {
         this.animationContext = animation.getAnimationContext();
 
         // Parameters
+        this.totalEngineS = this.animationContext.getLogicalTimelineMax();
         this.slotNum = this.animationContext.getTimelineSlots();
         this.endPos = this.slotNum;
         this.slotEngineS = this.animationContext.getLogicalSlotTime(); // in seconds
@@ -65622,8 +65631,8 @@ class TokenAnimation {
         this._currentTime = 0;
         this._setState(_animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING);
         this.setPlayingFrameRate(this._animationContext.getRecordingFrameRate());
-        // this._loopBufferRead();
-        // this._loopDraw(0);
+        this._loopBufferRead();
+        this._loopDraw(0);
     }
 
     /**
