@@ -209,8 +209,9 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnWithGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(animationData));
+                //String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
+                Object[] result = logAnimationService.createAnimation(bpmnWithGateways, logs);
+                session.put("animationData", escapeQuotedJavascript(result[0].toString()));
                 System.out.println("ANIMATIONDATA");
             }
             session.put("logs", logs);
@@ -251,8 +252,9 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnNoGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                String animationData = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(animationData));
+                //String animationData = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
+                Object[] result = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
+                session.put("animationData", escapeQuotedJavascript(result[0].toString()));
                 System.out.println("ANIMATIONDATA");
             }
             session.put("logs", logs);
