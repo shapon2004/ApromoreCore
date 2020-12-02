@@ -32,12 +32,6 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Objects;
 
-// Local classes
-import org.apromore.manager.client.ManagerService;
-import org.apromore.portal.ConfigBean;
-import org.apromore.service.AuthorizationService;
-import org.apromore.service.EventLogService;
-import org.apromore.service.SecurityService;
 // Third party packages
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -47,6 +41,14 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.Window;
+
+// Local classes
+import org.apromore.manager.client.ManagerService;
+import org.apromore.service.EventLogService;
+import org.apromore.service.SecurityService;
+import org.apromore.service.AuthorizationService;
+import org.apromore.service.WorkspaceService;
+import org.apromore.portal.ConfigBean;
 
 /**
  * Base Controller that all controllers inherit.
@@ -59,10 +61,12 @@ public class BaseController extends Window {
     public static final String EVENT_LOG_SERVICE = "eventLogService";
     public static final String SECURITY_SERVICE = "securityService";
     public static final String AUTH_SERVICE = "authorizationService";
+    public static final String WORKSPACE_SERVICE = "workspaceService";
     private ManagerService managerService;
     private EventLogService eventLogService;
     private SecurityService securityService;
     private AuthorizationService authorizationService;
+    private WorkspaceService workspaceService;
 
     protected AutowireCapableBeanFactory beanFactory;
     protected ConfigBean config;
@@ -107,6 +111,14 @@ public class BaseController extends Window {
             setAuthorizationService(authorizationService);
         }
         return authorizationService;
+    }
+
+    public WorkspaceService getWorkspaceService() {
+        if (workspaceService == null) {
+            workspaceService = (WorkspaceService) SpringUtil.getBean(WORKSPACE_SERVICE);
+            setWorkspaceService(workspaceService);
+        }
+        return workspaceService;
     }
 
     /**
@@ -223,7 +235,12 @@ public class BaseController extends Window {
     private void setSecurityService(final SecurityService securityService) {
         this.securityService = securityService;
     }
+
     private void setAuthorizationService(final AuthorizationService authorizationService) {
         this.authorizationService = authorizationService;
+    }
+
+    private void setWorkspaceService(final WorkspaceService workspaceService) {
+        this.workspaceService = workspaceService;
     }
 }
