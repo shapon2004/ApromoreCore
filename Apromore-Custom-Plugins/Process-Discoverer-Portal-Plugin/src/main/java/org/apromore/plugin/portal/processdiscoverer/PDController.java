@@ -28,13 +28,14 @@ import static org.apromore.logman.attribute.graph.MeasureType.FREQUENCY;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import javax.servlet.http.HttpSession;
 
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
-import org.apromore.plugin.portal.loganimation.LogAnimationPluginInterface;
+import org.apromore.plugin.portal.loganimation.api.LogAnimationPluginInterface;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
 import org.apromore.plugin.portal.processdiscoverer.controllers.AnimationController2;
 import org.apromore.plugin.portal.processdiscoverer.controllers.CaseDetailsController;
@@ -149,8 +150,8 @@ public class PDController extends BaseController {
     private ProcessService processService;
     private EventLogService eventLogService;
     private ProcessDiscoverer processDiscoverer;
-    private LogAnimationPluginInterface logAnimationPluginInterface;
-    private org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface logAnimationPluginInterface2;
+    private LogAnimationPluginInterface logAnimationPluginCE;
+    private LogAnimationPluginInterface logAnimationPluginEE;
     private LogFilterPlugin logFilterPlugin;
     private PDFactory pdFactory;
 
@@ -222,15 +223,15 @@ public class PDController extends BaseController {
     // because of system crashes or modules crashed/undeployed
     private boolean prepareSystemServices() {
         //canoniserService = (CanoniserService) beanFactory.getBean("canoniserService");
-        domainService = (DomainService) Sessions.getCurrent().getAttribute("domainService"); //beanFactory.getBean("domainService");
-        processService = (ProcessService) Sessions.getCurrent().getAttribute("processService"); //beanFactory.getBean("processService");
-        eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService"); //beanFactory.getBean("eventLogService");
-        logAnimationPluginInterface = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPlugin"); //beanFactory.getBean("logAnimationPlugin");
-        logAnimationPluginInterface2 = (org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPlugin2");
+        domainService = (DomainService) Sessions.getCurrent().getAttribute("domainService");
+        processService = (ProcessService) Sessions.getCurrent().getAttribute("processService");
+        eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService");
+        logAnimationPluginCE = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPluginCE"); 
+        logAnimationPluginEE = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPluginEE");
         logFilterPlugin = (LogFilterPlugin) Sessions.getCurrent().getAttribute("logFilterPlugin"); //beanFactory.getBean("logFilterPlugin");
 
         if (domainService == null || processService == null ||
-                eventLogService == null || logAnimationPluginInterface == null ||
+                eventLogService == null || logAnimationPluginCE == null || logAnimationPluginEE == null ||
                 logFilterPlugin == null) {
             return false;
         }
@@ -251,7 +252,7 @@ public class PDController extends BaseController {
         }
         
         if (!prepareSystemServices()) {
-            Messagebox.show("Errors occurred while initializing Process Discoverer. Please contact your administrator.");
+            Messagebox.show("Key system services for PD are not available. Please contact your administrator.");
             return false;
         }
         
@@ -828,10 +829,6 @@ public class PDController extends BaseController {
         return domainService;
     }
 
-//    public CanoniserService getCanoniserService() {
-//        return canoniserService;
-//    }
-
     public EventLogService getEvenLogService() {
         return eventLogService;
     }
@@ -840,14 +837,13 @@ public class PDController extends BaseController {
         return processService;
     }
 
-    public LogAnimationPluginInterface getLogAnimationPlugin() {
-        return this.logAnimationPluginInterface;
+    public LogAnimationPluginInterface getLogAnimationPluginCE() {
+        return this.logAnimationPluginCE;
     }
     
-    public org.apromore.plugin.portal.loganimation2.LogAnimationPluginInterface getLogAnimationPlugin2() {
-        return this.logAnimationPluginInterface2;
+    public LogAnimationPluginInterface getLogAnimationPluginEE() {
+        return this.logAnimationPluginEE;
     }
-
 
     public LogFilterPlugin getLogFilterPlugin() {
         return logFilterPlugin;

@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.loganimation;
+package org.apromore.plugin.portal.loganimation.api;
 
 import org.apromore.plugin.portal.PortalContext;
 import org.deckfour.xes.model.XLog;
