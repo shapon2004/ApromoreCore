@@ -22,27 +22,12 @@
  * #L%
  */
 
-package org.apromore.service.loganimation;
+package org.apromore.plugin.portal.loganimation;
 
-import java.util.List;
-
+import org.apromore.plugin.portal.PortalContext;
 import org.deckfour.xes.model.XLog;
 
-@Deprecated
-public interface LogAnimationService {
-
-   class Log {
-       public String fileName;
-       public XLog   xlog;
-       public String color;
-   }
-
-   /**
-    * @param bpmn  a BPMN 2.0 model, never <code>null</code>
-    * @param logs  the logs of the model executions to be animated, never <code>null</code>
-    * @return a JSON representation of the animation
-    * @throws Exception  if the representation couldn't be generated
-    */
-   public String createAnimation(String bpmn, List<Log> logs) throws Exception;
-   public String createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
+public interface LogAnimationPluginInterface {
+    public void execute(PortalContext portalContext, String bpmnWithGateways, XLog eventlog, String logName);
+    void execute(PortalContext portalContext, String bpmnWithGateways, String bpmnNoGateways, XLog eventlog, String logName);
 }

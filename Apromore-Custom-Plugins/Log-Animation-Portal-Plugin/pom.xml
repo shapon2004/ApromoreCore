@@ -45,7 +45,7 @@
                             org.apromore.portal.dialogController.dto,
                             org.apromore.portal.util,
                             org.deckfour.xes.model,
-                            org.eclipse.virgo.web.dm;resolution:=optional,
+                            org.eclipse.virgo.web.dm,
                             org.springframework.beans.factory.aspectj,
                             org.springframework.security.web.session,
                             org.springframework.web.context,
@@ -83,11 +83,6 @@
             <artifactId>log-animation-logic</artifactId>
             <version>1.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apromore.plugin</groupId>
-            <artifactId>log-animation-portal-plugin-api</artifactId>
-            <version>1.0.0</version>
-        </dependency>        
         <dependency>
             <groupId>org.apromore.plugin</groupId>
             <artifactId>editor-plugin-api</artifactId>

@@ -38,7 +38,6 @@ import javax.inject.Inject;
 
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
-import org.apromore.plugin.portal.loganimation.api.LogAnimationPluginInterface;
 import org.apromore.plugin.property.RequestParameterType;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.dialogController.MainController;
@@ -210,9 +209,8 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnWithGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                //String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
-                Object[] result = logAnimationService.createAnimation(bpmnWithGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(result[0].toString()));
+                String animationData = logAnimationService.createAnimation(bpmnWithGateways, logs);
+                session.put("animationData", escapeQuotedJavascript(animationData));
                 System.out.println("ANIMATIONDATA");
             }
             session.put("logs", logs);
@@ -253,9 +251,8 @@ public class LogAnimationPlugin extends DefaultPortalPlugin implements LogAnimat
     
             session.put("bpmnXML", bpmnNoGateways);
             if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-                //String animationData = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
-                Object[] result = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
-                session.put("animationData", escapeQuotedJavascript(result[0].toString()));
+                String animationData = logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
+                session.put("animationData", escapeQuotedJavascript(animationData));
                 System.out.println("ANIMATIONDATA");
             }
             session.put("logs", logs);

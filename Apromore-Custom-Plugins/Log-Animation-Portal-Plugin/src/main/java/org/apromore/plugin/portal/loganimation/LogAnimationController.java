@@ -152,9 +152,8 @@ public class LogAnimationController extends BaseController {
             if(animationData == null) {
                 if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
                     List<LogAnimationService.Log> logs = (List<LogAnimationService.Log>) session.get("logs");
-                    //animationData = logAnimationService.createAnimation(bpmnXML, logs);
-                    Object[] result = logAnimationService.createAnimation(bpmnXML, logs);
-                    param.put("animationData", escapeQuotedJavascript(result[0].toString()));
+                    animationData = logAnimationService.createAnimation(bpmnXML, logs);
+                    param.put("animationData", escapeQuotedJavascript(animationData));
                 }
             }else {
                 param.put("animationData", escapeQuotedJavascript(animationData));
