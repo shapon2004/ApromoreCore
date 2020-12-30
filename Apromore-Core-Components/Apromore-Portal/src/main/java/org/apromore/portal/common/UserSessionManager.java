@@ -123,7 +123,9 @@ public abstract class UserSessionManager {
 
             } else if (details instanceof UserType) {  // Locally created user
                 UserType user = (UserType) details;
+
                 LOGGER.info("Local login, user=" + user.getUsername());
+
                 setCurrentUser(user);
 
             } else if (details != null) {

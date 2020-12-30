@@ -87,7 +87,7 @@
               <i class="icon-remove-circle"></i>
               User registration is accepted. Please login.
             </div>
-          </div>
+          </div>``
           <div if="${param['success'] == '2'}" xmlns="http://www.w3.org/1999/xhtml">
             <div class="alert alert-success">
               <button type="button" class="close" data-dismiss="alert">&#xd7;</button>

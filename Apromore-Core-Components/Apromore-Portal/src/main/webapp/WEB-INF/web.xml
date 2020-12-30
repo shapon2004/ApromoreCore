@@ -123,6 +123,7 @@
 
   <servlet-mapping>
     <servlet-name>zkLoader</servlet-name>
+
     <url-pattern>*.zul</url-pattern>
   </servlet-mapping>
   

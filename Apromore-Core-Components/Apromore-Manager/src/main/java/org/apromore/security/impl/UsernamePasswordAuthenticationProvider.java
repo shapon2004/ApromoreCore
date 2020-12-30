@@ -29,6 +29,8 @@ import org.apromore.dao.model.User;
 import org.apromore.mapper.UserMapper;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -58,6 +60,8 @@ import java.util.Set;
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, readOnly = true, rollbackFor = Exception.class)
 public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UsernamePasswordAuthenticationProvider.class);
+
     @Inject
     private UserRepository userRepository;
 
@@ -74,6 +78,7 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
 
         try {
             User account = userRepository.login(token.getName(), SecurityUtil.hashPassword((String) token.getCredentials()));
+            LOGGER.info("\n\n>>>>> after userRepository login, account: ", account);
 
             return authenticatedToken(account, authentication);
         } catch (Exception e) {
@@ -93,6 +98,8 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
 
         SecurityContextHolder.setContext(SecurityContextHolder.createEmptyContext());
         SecurityContextHolder.getContext().setAuthentication(authenticated);
+
+        LOGGER.info("\n\n>>>>> authenticatedToken UsernamePasswordAuthenticationToken authenticated: ", authenticated);
 
         return authenticated;
     }

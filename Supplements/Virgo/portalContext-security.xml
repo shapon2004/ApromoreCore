@@ -48,6 +48,7 @@
     <http auto-config="false" access-denied-page="/denied.zul" use-expressions="true"
           entry-point-ref="apromoreAuthenticationEntryPoint" authentication-manager-ref="authenticationManager">
         <intercept-url pattern="/login.zul*" access="permitAll" requires-channel="any"/>
+
         <intercept-url pattern="/**" access="hasRole('ROLE_USER')" requires-channel="any"/>
 
         <logout logout-url="/j_spring_security_logout" logout-success-url="/login.zul" delete-cookies="JSESSIONID,Apromore"/>
@@ -58,6 +59,10 @@
         <remember-me services-ref="rememberMeServices"/>
     </http>
 
+    <http pattern="/**" use-expressions="true" auto-config="true">
+        <intercept-url pattern="/login.zul*" access="permitAll"/>
+        <custom-filter before="BASIC_AUTH_FILTER" ref="loginPageFilter"/>
+    </http>
 
     <!-- The remote authentication details -->
     <authentication-manager id="authenticationManager">
@@ -111,11 +116,12 @@
 
     <beans:bean id="httpInvokerRequestExecutor" class="org.springframework.security.remoting.httpinvoker.AuthenticationSimpleHttpInvokerRequestExecutor"/>
 
-
     <!-- Custom Filters for Apromore -->
     <beans:bean id="apromoreAuthenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
         <beans:property name="loginFormUrl" value="/login.zul"/>
     </beans:bean>
+
+    <beans:bean id="loginPageFilter" class="org.apromore.security.filter.LoginPageFilter"/>
 
     <beans:bean id="apromoreUsernamePasswordAuthenticationFilter" class="org.apromore.security.filter.ApromoreUsernamePasswordAuthenticationFilter">
         <beans:property name="authenticationManager" ref="authenticationManager"/>

@@ -92,6 +92,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserByLogin(String username) throws UserNotFoundException {
         User user = userRepo.findByUsername(username);
+        LOGGER.info("\n\n>>> user by login: ", user);
+
         if (user != null) {
             return user;
         } else {

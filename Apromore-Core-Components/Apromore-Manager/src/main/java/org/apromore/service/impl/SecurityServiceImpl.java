@@ -238,6 +238,8 @@ public class SecurityServiceImpl implements SecurityService {
     @Override
     public User getUserById(String guid) throws UserNotFoundException{
         User user = userRepo.findByRowGuid(guid);
+        LOGGER.info("\n\n>>>>> user by id: " + user);
+
         if (user != null) {
             return user;
         } else {

@@ -152,6 +152,9 @@ public class AccessController extends SelectorComposer<Div> {
             currentUser = UserSessionManager.getCurrentUser();
         }
         userName = currentUser.getUsername();
+        LOGGER.info("\n\n>>>>> currentUser objet: ", currentUser);
+        LOGGER.info("\n\n>>>>> userName: ", userName);
+
         selectedAssignment = null;
         groupArtifactsMap = new HashMap<String, ListModelList<Artifact>>();
     }
