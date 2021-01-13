@@ -87,6 +87,7 @@ databaseChangeLog:
   - changeSet:
       id:  20201124091000
       author:  frankma
+      context: MYSQL,H2 
       changes:
         -  update:
              columns:
@@ -109,6 +110,35 @@ databaseChangeLog:
               - column:
                   name:  name
                   valueComputed: substring(content,10,instr(content,'\",\"criteria')-10)
+            tableName:  usermetadata
+            where:  name is null and type_id = 1
+
+  - changeSet:
+      id:  20210113093700
+      author:  nolantellis
+      context: POSTGRES
+      changes:
+        -  update:
+             columns:
+               -  column:
+                    name:  revision
+                    value: 1
+             tableName:  usermetadata
+             where:  revision is null
+
+        - update:
+            columns:
+              - column:
+                  name:  name
+                  value: "My dashboard"
+            tableName:  usermetadata
+            where:  name is null and type_id = 2
+
+        - update:
+            columns:
+              - column:
+                  name:  name
+                  valueComputed: substr(content,10,position(content,'\",\"criteria')-10)
             tableName:  usermetadata
             where:  name is null and type_id = 1
 

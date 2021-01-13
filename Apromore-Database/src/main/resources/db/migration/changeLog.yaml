@@ -25,6 +25,18 @@ databaseChangeLog:
               relativeToChangelogFile: true
               splitStatements: false  
               stripComments: true
+
+   - changeSet:  
+       id:  20210112180100  
+       author: nolantellis
+       context: POSTGRES
+       changes:  
+          - sqlFile:    
+              encoding: UTF-8
+              path: sql/db-data-postgres.sql
+              relativeToChangelogFile: true
+              splitStatements: false  
+              stripComments: true
         
    - include:
       file: db/migration/changeLog-Schema.yaml

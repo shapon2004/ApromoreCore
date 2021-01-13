@@ -126,7 +126,7 @@ databaseChangeLog:
             name: date_modified
             type: TIMESTAMP
         - column:
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: ged_matrix_computation
             type: BOOLEAN
         tableName: folder
@@ -201,19 +201,19 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_read
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_write
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_ownership
             type: BOOLEAN
         tableName: group_folder
@@ -244,19 +244,19 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_read
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_write
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_ownership
             type: BOOLEAN
         tableName: group_log
@@ -287,19 +287,19 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_read
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_write
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '0'
+            defaultValueBoolean: 'false'
             name: has_ownership
             type: BOOLEAN
         tableName: group_process
@@ -423,13 +423,13 @@ databaseChangeLog:
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '1'
+            defaultValueBoolean: 'true'
             name: is_approved
             type: BOOLEAN
         - column:
             constraints:
               nullable: false
-            defaultValueComputed: '1'
+            defaultValueBoolean: 'true'
             name: is_locked
             type: BOOLEAN
         - column:
