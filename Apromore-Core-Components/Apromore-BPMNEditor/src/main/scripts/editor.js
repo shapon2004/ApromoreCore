@@ -21,27 +21,25 @@
  * DEALINGS IN THE SOFTWARE.
  **/
 
-/**
- @namespace Global Oryx name space
- @name ORYX
- */
 if (!ORYX) {
     var ORYX = {};
 }
 
 /**
- * The Editor class.
+ * The Editor class represents the BPMN Editor. It wraps a BPMN.io editor inside while provides
+ * other UI layout components (east, west, north, south) for property panel, navigation pane, etc.
+ * and access to pluggable functions via buttons (called plugins). These editor features will call
+ * to the wrapped BPMN.io editor.
+ * Its behavior is divided into public and private methods (starting with underscore).
  */
 ORYX.Editor = {
     construct: function (config) {
         "use strict";
 
         this._canvas = undefined;
-        this.zoomLevel = 1.0;
-        this.availablePlugins = [];
-        this.activatedPlugins = [];
-        this.pluginsData = [];
-        this.modelMetaData = config;
+        this.availablePlugins = []; // available plugin data read from plugin configuration files
+        this.activatedPlugins = []; // available plugin objects created from plugin javascript source files
+        this.pluginsData = []; // plugin properties
         this.layout_regions = undefined;
         this.layout = undefined;
 
@@ -70,13 +68,12 @@ ORYX.Editor = {
         // CREATES the canvas
         this._createCanvas(model.stencil ? model.stencil.id : null, model.properties, langs);
 
-        // GENERATES the whole EXT.VIEWPORT
+        // GENERATES the main UI regions
         this._generateGUI();
 
         // LOAD the plugins
         window.setTimeout(function () {
-            this.loadPlugins();
-            this.activatePlugins();
+            this._loadPlugins();
         }.bind(this), 100);
 
         // LOAD the content of the current editor instance
@@ -114,8 +111,8 @@ ORYX.Editor = {
     },
 
     /**
-     * Generate the whole viewport of the
-     * Editor and initialized the Ext-Framework
+     * Generate the whole UI components for the editor
+     * It is based on Ext Sencha regions: east, west, south and north
      */
     _generateGUI: function () {
         "use strict";
@@ -282,7 +279,7 @@ ORYX.Editor = {
         } else {
             layout_config.renderTo = this.id;
             //layout_config.height = layoutHeight;
-            layout_config.height = this.getEditorNode().clientHeight; // the panel and the containing div should be of the same height
+            layout_config.height = this._getEditorNode().clientHeight; // the panel and the containing div should be of the same height
             this.layout = new Ext.Panel(layout_config)
         }
 
@@ -299,17 +296,13 @@ ORYX.Editor = {
         }
 
         // Set the editor to the center, and refresh the size
-        this.getEditorNode().setAttributeNS(null, 'align', 'left');
+        this._getEditorNode().setAttributeNS(null, 'align', 'left');
         this.getCanvas().rootNode.setAttributeNS(null, 'align', 'left');
-        // this.getCanvas().setSize({
-        //     width: ORYX.CONFIG.CANVAS_WIDTH,
-        //     height: ORYX.CONFIG.CANVAS_HEIGHT
-        // });
 
     },
 
     /**
-     * adds a component to the specified region
+     * Adds a component to the specified UI region on the editor
      *
      * @param {String} region
      * @param {Ext.Component} component
@@ -355,6 +348,7 @@ ORYX.Editor = {
         return null;
     },
 
+    // Get plugins that have been activated successfully (i.e. those plugin objects)
     getAvailablePlugins: function () {
         var curAvailablePlugins = this.availablePlugins.clone();
         curAvailablePlugins.each(function (plugin) {
@@ -369,88 +363,18 @@ ORYX.Editor = {
         return curAvailablePlugins;
     },
 
-    loadScript: function (url, callback) {
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        if (script.readyState) {  //IE
-            script.onreadystatechange = function () {
-                if (script.readyState == "loaded" || script.readyState == "complete") {
-                    script.onreadystatechange = null;
-                    callback();
-                }
-            };
-        } else {  //Others
-            script.onload = function () {
-                callback();
-            };
-        }
-        script.src = url;
-        document.getElementsByTagName("head")[0].appendChild(script);
-    },
     /**
-     * activate Plugin
-     *
-     * @param {String} name
-     * @param {Function} callback
-     *        callback(sucess, [errorCode])
-     *            errorCodes: NOTUSEINSTENCILSET, REQUIRESTENCILSET, NOTFOUND, YETACTIVATED
+     *  Make plugin object
+     *  Activated plugins: array of plugin objects
+     *  [
+     *      {
+     *          <plugin attributes>,
+     *          type: name of the plugin,
+     *          engaged: true
+     *      }
+     *  ]
      */
-    activatePluginByName: function (name, callback, loadTry) {
-
-        var match = this.getAvailablePlugins().find(function (value) {
-            return value.name == name
-        });
-        if (match && (!match.engaged || (match.engaged === 'false'))) {
-            var facade = this._getPluginFacade();
-            var me = this;
-            ORYX.Log.debug("Initializing plugin '%0'", match.name);
-
-            try {
-
-                var className = eval(match.name);
-                var newPlugin = new className(facade, match);
-                newPlugin.type = match.name;
-
-                // If there is an GUI-Plugin, they get all Plugins-Offer-Meta-Data
-                if (newPlugin.registryChanged)
-                    newPlugin.registryChanged(me.pluginsData);
-
-                // If there have an onSelection-Method it will pushed to the Editor Event-Handler
-                // if (newPlugin.onSelectionChanged)
-                //     me.registerOnEvent(ORYX.CONFIG.EVENT_SELECTION_CHANGED, newPlugin.onSelectionChanged.bind(newPlugin));
-                this.activatedPlugins.push(newPlugin);
-                this.activatedPlugins.each(function (loaded) {
-                    if (loaded.registryChanged)
-                        loaded.registryChanged(this.pluginsData);
-                }.bind(me));
-                callback(true);
-
-            } catch (e) {
-                ORYX.Log.warn("Plugin %0 is not available", match.name);
-                if (!!loadTry) {
-                    callback(false, "INITFAILED");
-                    return;
-                }
-                this.loadScript("plugins/scripts/" + match.source, this.activatePluginByName.bind(this, match.name, callback, true));
-            }
-        } else {
-            callback(false, match ? "NOTFOUND" : "YETACTIVATED");
-            //TODO error handling
-        }
-    },
-
-    /**
-     *  Laden der Plugins
-     */
-    activatePlugins: function () {
-
-        // if there should be plugins but still are none, try again.
-        // TODO this should wait for every plugin respectively.
-        /*if (!ORYX.Plugins && ORYX.availablePlugins.length > 0) {
-         window.setTimeout(this.loadPlugins.bind(this), 100);
-         return;
-         }*/
-
+    _activatePlugins: function () {
         var me = this;
         var newPlugins = [];
         var facade = this._getPluginFacade();
@@ -462,8 +386,8 @@ ORYX.Editor = {
                 if (className) {
                     var plugin = new className(facade, value);
                     plugin.type = value.name;
-                    newPlugins.push(plugin);
                     plugin.engaged = true;
+                    newPlugins.push(plugin);
                 }
             } catch (e) {
                 ORYX.Log.warn("Plugin %0 is not available", value.name);
@@ -472,13 +396,9 @@ ORYX.Editor = {
         });
 
         newPlugins.each(function (value) {
-            // If there is an GUI-Plugin, they get all Plugins-Offer-Meta-Data
+            // For plugins that need to work on other plugins such as the toolbar
             if (value.registryChanged)
                 value.registryChanged(me.pluginsData);
-
-            // If there have an onSelection-Method it will pushed to the Editor Event-Handler
-            // if (value.onSelectionChanged)
-            //     me.registerOnEvent(ORYX.CONFIG.EVENT_SELECTION_CHANGED, value.onSelectionChanged.bind(value));
         });
 
         this.activatedPlugins = newPlugins;
@@ -489,7 +409,7 @@ ORYX.Editor = {
         }
     },
 
-    getEditorNode: function () {
+    _getEditorNode: function () {
         return document.getElementById(this.id);
     },
 
@@ -503,7 +423,7 @@ ORYX.Editor = {
             width: ORYX.CONFIG.CANVAS_WIDTH,
             height: ORYX.CONFIG.CANVAS_HEIGHT,
             id: ORYX.Utils.provideId(),
-            parentNode: this.getEditorNode(),
+            parentNode: this._getEditorNode(),
             language: lang
         });
     },
@@ -517,45 +437,21 @@ ORYX.Editor = {
     },
 
     /**
-     * Returns a per-editor singleton plugin facade.
-     * To be used in plugin initialization.
+     * Facade object representing the editor to be used by plugins instead of
+     * passing the whole editor object
      */
     _getPluginFacade: function () {
         if (!(this._pluginFacade)) {
             this._pluginFacade = (function () {
                 return {
-                    activatePluginByName: this.activatePluginByName.bind(this),
                     getAvailablePlugins: this.getAvailablePlugins.bind(this),
                     offer: this.offer.bind(this),
-                    getStencilSets: function() {return {}},
-                    getStencilSetExtensionDefinition: function () {return {}},
-                    getRules: function() {return {}},
-                    loadStencilSet: function() {},
-                    createShape: function() {},
-                    deleteShape: function() {},
-                    getSelection: function() {},
-                    setSelection: function() {},
-                    updateSelection: function() {},
                     getCanvas: this.getCanvas.bind(this),
                     getSimulationDrawer: this.getSimulationDrawer.bind(this),
                     useSimulationPanel: this.useSimulationPanel,
-                    importJSON: function() {},
-                    importERDF: function() {},
-                    getERDF: function() {},
-                    getJSON: function() {},
                     getXML: this.getXML.bind(this),
                     getSVG: this.getSVG.bind(this),
-                    getSerializedJSON: function() {},
-                    executeCommands: function() {},
-                    isExecutingCommands: function() {},
-                    registerOnEvent: function() {},
-                    unregisterOnEvent: function() {},
-                    raiseEvent: function() {},
-                    enableEvent: function() {},
-                    disableEvent: function() {},
-                    eventCoordinates: function() {},
                     addToRegion: this.addToRegion.bind(this),
-                    getAllLanguages: function() {return {}}
                 }
             }.bind(this)())
         }
@@ -597,50 +493,35 @@ ORYX.Editor = {
     },
 
     /**
-     * First bootstrapping layer. The Oryx loading procedure begins. In this
-     * step, all preliminaries that are not in the responsibility of Oryx to be
-     * met have to be checked here, such as the existance of the prototpe
-     * library in the current execution environment. After that, the second
-     * bootstrapping layer is being invoked. Failing to ensure that any
-     * preliminary condition is not met has to fail with an error.
-     */
-    load: function() {
-
-        if (ORYX.CONFIG.PREVENT_LOADINGMASK_AT_READY !== true) {
-            var waitingpanel = new Ext.Window({renderTo:Ext.getBody(),id:'oryx-loading-panel',bodyStyle:'padding: 8px;background:white',title:ORYX.I18N.Oryx.title,width:'auto',height:'auto',modal:true,resizable:false,closable:false,html:'<span style="font-size:11px;">' + ORYX.I18N.Oryx.pleaseWait + '</span>'})
-            waitingpanel.show()
-        }
-
-        ORYX.Log.debug("Oryx begins loading procedure.");
-
-        // check for prototype
-        if( (typeof Prototype=='undefined') ||
-            (typeof Element == 'undefined') ||
-            (typeof Element.Methods=='undefined') ||
-            parseFloat(Prototype.Version.split(".")[0] + "." +
-                Prototype.Version.split(".")[1]) < 1.5)
-
-            throw("Application requires the Prototype JavaScript framework >= 1.5.3");
-
-        ORYX.Log.debug("Prototype > 1.5 found.");
-
-        // continue loading.
-        this.loadPlugins();
-    },
-
-    /**
      * Load a list of predefined plugins from the server
      */
-    loadPlugins: function() {
-
-        // load plugins if enabled.
-        if(ORYX.CONFIG.PLUGINS_ENABLED)
-            this._loadPlugins()
-        else
+    _loadPlugins: function() {
+        if(ORYX.CONFIG.PLUGINS_ENABLED) {
+            this._loadPluginData();
+            this._activatePlugins();
+        }
+        else {
             ORYX.Log.warn("Ignoring plugins, loading Core only.");
+        }
     },
 
-    _loadPlugins: function() {
+
+    // Available plugins structure: array of plugin structures
+    // [
+    //      {
+    //          name: plugin name,
+    //          source: plugin javascript source filename,
+    //          properties (both plugin and global properties):
+    //          [
+    //              {attributeName1 -> attributeValue1, attributeName2 -> attributeValue2,...}
+    //              {attributeName1 -> attributeValue1, attributeName2 -> attributeValue2,...}
+    //              {attributeName1 -> attributeValue1, attributeName2 -> attributeValue2,...}
+    //          ],
+    //          requires: namespaces:[list of javascript libraries],
+    //          notUsesIn: namespaces:[list of javascript libraries]
+    //      }
+    // ]
+    _loadPluginData: function() {
         var me = this;
         var source = ORYX.CONFIG.PLUGINS_CONFIG;
 
@@ -649,30 +530,24 @@ ORYX.Editor = {
             asynchronous: false,
             method: 'get',
             onSuccess: function(result) {
-
-                /*
-                 * This is the method that is being called when the plugin
-                 * configuration was successfully loaded from the server. The
-                 * file has to be processed and the contents need to be
-                 * considered for further plugin requireation.
-                 */
-
                 ORYX.Log.info("Plugin configuration file loaded.");
 
                 // get plugins.xml content
                 var resultXml = result.responseXML;
                 console.log('Plugin list:', resultXml);
 
-                // TODO: Describe how properties are handled.
-                // Get the globale Properties
+                // Global properties XML:
+                // <properties>
+                //      <property attributeName1="attributeValue1" attributeName2="attributeValue2" />
+                //      <property attributeName1="attributeValue1" attributeName2="attributeValue2" />
+                //      ...
+                // </properties>
                 var globalProperties = [];
                 var preferences = $A(resultXml.getElementsByTagName("properties"));
                 preferences.each( function(p) {
-
                     var props = $A(p.childNodes);
                     props.each( function(prop) {
-                        var property = new Hash();
-
+                        var property = new Hash(); // Hash is provided by Prototype library
                         // get all attributes from the node and set to global properties
                         var attributes = $A(prop.attributes)
                         attributes.each(function(attr){property[attr.nodeName] = attr.nodeValue});
@@ -680,29 +555,24 @@ ORYX.Editor = {
                     });
                 });
 
-
-                // TODO Why are we using XML if we don't respect structure anyway?
-                // for each plugin element in the configuration..
+                // Plugin XML:
+                //  <plugins>
+                //      <plugin source="javascript filename.js" name="Javascript class name" property="" requires="" notUsesIn="" />
+                //      <plugin source="javascript filename.js" name="Javascript class name" property="" requires="" notUsesIn="" />
+                //  </plugins>
                 var plugin = resultXml.getElementsByTagName("plugin");
                 $A(plugin).each( function(node) {
-
-                    // get all element's attributes.
-                    // TODO: What about: var pluginData = $H(node.attributes) !?
                     var pluginData = new Hash();
 
                     //pluginData: for one plugin
-                    //.properties: contain all properties in the plugins.xml
-                    //.requires: contains the requires property for the plugin
                     //.source: source javascript
                     //.name: name
-                    //.notUseIn:
-
                     $A(node.attributes).each( function(attr){
                         pluginData[attr.nodeName] = attr.nodeValue});
 
                     // ensure there's a name attribute.
                     if(!pluginData['name']) {
-                        ORYX.Log.error("A plugin is not providing a name. Ingnoring this plugin.");
+                        ORYX.Log.error("A plugin is not providing a name. Ignoring this plugin.");
                         return;
                     }
 
@@ -712,7 +582,7 @@ ORYX.Editor = {
                         return;
                     }
 
-                    // Get all private Properties
+                    // Get all plugin properties
                     var propertyNodes = node.getElementsByTagName("property");
                     var properties = [];
                     $A(propertyNodes).each(function(prop) {
@@ -740,7 +610,6 @@ ORYX.Editor = {
                             if( !requires ){
                                 requires = {namespaces:[]}
                             }
-
                             requires.namespaces.push(namespace.nodeValue)
                         }
                     });
@@ -749,7 +618,6 @@ ORYX.Editor = {
                     if( requires ){
                         pluginData['requires'] = requires;
                     }
-
 
                     // Get the RequieredNodes
                     var notUsesInNodes = node.getElementsByTagName("notUsesIn");
@@ -770,29 +638,18 @@ ORYX.Editor = {
                         pluginData['notUsesIn'] = notUsesIn;
                     }
 
-
                     var url = ORYX.PATH + ORYX.CONFIG.PLUGINS_FOLDER + pluginData['source'];
-
-                    ORYX.Log.debug("Requireing '%0'", url);
-
-                    // Add the Script-Tag to the Site
-                    //Kickstart.require(url);
-
+                    ORYX.Log.debug("Requiring '%0'", url);
                     ORYX.Log.info("Plugin '%0' successfully loaded.", pluginData['name']);
-
-                    // Add the Plugin-Data to all available Plugins
                     me.availablePlugins.push(pluginData);
-
                 });
 
             },
-            onFailure: me._loadPluginsOnFails
+            onFailure: function () {
+                ORYX.Log.error("Plugin configuration file not available.");
+            }
         });
 
-    },
-
-    _loadPluginsOnFails: function(result) {
-        ORYX.Log.error("Plugin configuration file not available.");
     },
 
     toggleFullScreen: function () {

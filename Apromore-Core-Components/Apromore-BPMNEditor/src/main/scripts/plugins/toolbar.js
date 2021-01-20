@@ -83,18 +83,14 @@ ORYX.Plugins.Toolbar = Clazz.extend({
 		ORYX.Log.trace("Creating a toolbar.")
 
         if(!this.toolbar){
-			this.toolbar = new Ext.ux.SlicedToolbar({
-			height: 24
-		});
-				var region = this.facade.addToRegion("north", this.toolbar, "Toolbar");
+			this.toolbar = new Ext.ux.SlicedToolbar({height: 24});
+			var region = this.facade.addToRegion("north", this.toolbar, "Toolbar");
 		}
-
 
 		var currentGroupsName = this.plugs.last()?this.plugs.last().group:plugs[0].group;
 
         // Map used to store all drop down buttons of current group
         var currentGroupsDropDownButton = {};
-
 
 		plugs.each((function(value) {
 			if(!value.name) {return}
