@@ -44,7 +44,6 @@ ORYX.Plugins.Toolbar = Clazz.extend({
 		Ext.QuickTips.init();
 
 		this.buttons = [];
-        this.facade.registerOnEvent(ORYX.CONFIG.EVENT_BUTTON_UPDATE, this.onButtonUpdate.bind(this));
 	},
 
     /**

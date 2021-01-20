@@ -451,7 +451,7 @@ ORYX.Editor = {
                     useSimulationPanel: this.useSimulationPanel,
                     getXML: this.getXML.bind(this),
                     getSVG: this.getSVG.bind(this),
-                    addToRegion: this.addToRegion.bind(this),
+                    addToRegion: this.addToRegion.bind(this)
                 }
             }.bind(this)())
         }

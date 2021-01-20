@@ -65,6 +65,8 @@ ORYX.Editor = {
         // Defines if the editor should be fullscreen or not
         this.fullscreen = config.fullscreen !== false;
 
+        this.useSimulationPanel = config.useSimulationPanel || false;
+
         // CREATES the canvas
         this._createCanvas(model.stencil ? model.stencil.id : null, model.properties, langs);
 
@@ -84,7 +86,10 @@ ORYX.Editor = {
                 container: '#' + this.getCanvas().rootNode.id,
                 keyboard: {
                     bindTo: window
-                }
+                },
+                propertiesPanel: this.useSimulationPanel ? {
+                    parent: '#js-properties-panel'
+                } : undefined
             }));
 
             if (config && config.xml) {
@@ -171,7 +176,6 @@ ORYX.Editor = {
                 region: 'east',
                 layout: 'fit',
                 cls: 'x-panel-editor-east',
-                autoEl: 'div',
                 collapseTitle: ORYX.I18N.View.East,
                 titleCollapse: true,
                 border: false,
@@ -179,9 +183,14 @@ ORYX.Editor = {
                 floatable: false,
                 expandTriggerAll: true,
                 collapsible: true,
-                width: ORYX.CONFIG.PANEL_RIGHT_WIDTH || 200,
+                width: 450,
                 split: true,
-                title: "East"
+                title: "Simulation Parameters",
+                items: {
+                    layout: "fit",
+                    autoHeight: true,
+                    el: document.getElementById("js-properties-panel")
+                }
             }),
 
             // DEFINES BOTTOM-AREA
@@ -277,7 +286,10 @@ ORYX.Editor = {
             this.layout = new Ext.Panel(layout_config)
         }
 
-        this.layout_regions.east.hide();
+        if (!this.useSimulationPanel) {
+            this.layout_regions.east.hide();
+        }
+
         this.layout_regions.west.hide();
         this.layout_regions.info.hide();
         if (Ext.isIPad && "undefined" != typeof iScroll) {
@@ -357,76 +369,6 @@ ORYX.Editor = {
         return curAvailablePlugins;
     },
 
-    loadScript: function (url, callback) {
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        if (script.readyState) {  //IE
-            script.onreadystatechange = function () {
-                if (script.readyState == "loaded" || script.readyState == "complete") {
-                    script.onreadystatechange = null;
-                    callback();
-                }
-            };
-        } else {  //Others
-            script.onload = function () {
-                callback();
-            };
-        }
-        script.src = url;
-        document.getElementsByTagName("head")[0].appendChild(script);
-    },
-    /**
-     * activate Plugin
-     *
-     * @param {String} name
-     * @param {Function} callback
-     *        callback(sucess, [errorCode])
-     *            errorCodes: NOTUSEINSTENCILSET, REQUIRESTENCILSET, NOTFOUND, YETACTIVATED
-     */
-    activatePluginByName: function (name, callback, loadTry) {
-
-        var match = this.getAvailablePlugins().find(function (value) {
-            return value.name == name
-        });
-        if (match && (!match.engaged || (match.engaged === 'false'))) {
-            var facade = this._getPluginFacade();
-            var me = this;
-            ORYX.Log.debug("Initializing plugin '%0'", match.name);
-
-            try {
-
-                var className = eval(match.name);
-                var newPlugin = new className(facade, match);
-                newPlugin.type = match.name;
-
-                // If there is an GUI-Plugin, they get all Plugins-Offer-Meta-Data
-                if (newPlugin.registryChanged)
-                    newPlugin.registryChanged(me.pluginsData);
-
-                // If there have an onSelection-Method it will pushed to the Editor Event-Handler
-                // if (newPlugin.onSelectionChanged)
-                //     me.registerOnEvent(ORYX.CONFIG.EVENT_SELECTION_CHANGED, newPlugin.onSelectionChanged.bind(newPlugin));
-                this.activatedPlugins.push(newPlugin);
-                this.activatedPlugins.each(function (loaded) {
-                    if (loaded.registryChanged)
-                        loaded.registryChanged(this.pluginsData);
-                }.bind(me));
-                callback(true);
-
-            } catch (e) {
-                ORYX.Log.warn("Plugin %0 is not available", match.name);
-                if (!!loadTry) {
-                    callback(false, "INITFAILED");
-                    return;
-                }
-                this.loadScript("plugins/scripts/" + match.source, this.activatePluginByName.bind(this, match.name, callback, true));
-            }
-        } else {
-            callback(false, match ? "NOTFOUND" : "YETACTIVATED");
-            //TODO error handling
-        }
-    },
-
     /**
      *  Laden der Plugins
      */
@@ -500,6 +442,10 @@ ORYX.Editor = {
         return this._canvas;
     },
 
+    getSimulationDrawer: function() {
+        return this.layout_regions.east;
+    },
+
     /**
      * Returns a per-editor singleton plugin facade.
      * To be used in plugin initialization.
@@ -508,36 +454,14 @@ ORYX.Editor = {
         if (!(this._pluginFacade)) {
             this._pluginFacade = (function () {
                 return {
-                    activatePluginByName: this.activatePluginByName.bind(this),
                     getAvailablePlugins: this.getAvailablePlugins.bind(this),
                     offer: this.offer.bind(this),
-                    getStencilSets: function() {return {}},
-                    getStencilSetExtensionDefinition: function () {return {}},
-                    getRules: function() {return {}},
-                    loadStencilSet: function() {},
-                    createShape: function() {},
-                    deleteShape: function() {},
-                    getSelection: function() {},
-                    setSelection: function() {},
-                    updateSelection: function() {},
                     getCanvas: this.getCanvas.bind(this),
-                    importJSON: function() {},
-                    importERDF: function() {},
-                    getERDF: function() {},
-                    getJSON: function() {},
+                    getSimulationDrawer: this.getSimulationDrawer.bind(this),
+                    useSimulationPanel: this.useSimulationPanel,
                     getXML: this.getXML.bind(this),
                     getSVG: this.getSVG.bind(this),
-                    getSerializedJSON: function() {},
-                    executeCommands: function() {},
-                    isExecutingCommands: function() {},
-                    registerOnEvent: function() {},
-                    unregisterOnEvent: function() {},
-                    raiseEvent: function() {},
-                    enableEvent: function() {},
-                    disableEvent: function() {},
-                    eventCoordinates: function() {},
-                    addToRegion: this.addToRegion.bind(this),
-                    getAllLanguages: function() {return {}}
+                    addToRegion: this.addToRegion.bind(this)
                 }
             }.bind(this)())
         }
