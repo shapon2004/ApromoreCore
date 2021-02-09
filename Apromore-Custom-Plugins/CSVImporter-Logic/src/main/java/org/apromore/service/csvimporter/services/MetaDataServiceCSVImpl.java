@@ -63,7 +63,9 @@ class MetaDataServiceCSVImpl implements MetaDataService {
 	    char separator = getMaxOccurringChar(firstLine);
 //            setting this for performance
 	    this.seperator = separator;
-	    this.headers = Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*"));
+		System.out.println("Before = " + Arrays.asList(firstLine.split("\\s*" + separator + "\\s*")));
+		System.out.println("After = " + Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*")));
+		this.headers = Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*"));
 
 	    if (!(new String(Constants.supportedSeparators).contains(String.valueOf(separator))))
 		throw new Exception("Try different encoding");
