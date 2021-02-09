@@ -63,7 +63,7 @@ class MetaDataServiceCSVImpl implements MetaDataService {
 	    char separator = getMaxOccurringChar(firstLine);
 //            setting this for performance
 	    this.seperator = separator;
-	    this.headers = Arrays.asList(firstLine.split("\\s*" + separator + "\\s*"));
+	    this.headers = Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*"));
 
 	    if (!(new String(Constants.supportedSeparators).contains(String.valueOf(separator))))
 		throw new Exception("Try different encoding");
@@ -91,7 +91,7 @@ class MetaDataServiceCSVImpl implements MetaDataService {
 	    if (!(new String(Constants.supportedSeparators).contains(String.valueOf(separator))))
 		throw new Exception("Try different encoding");
 
-	    List<String> header = Arrays.asList(firstLine.split("\\s*" + separator + "\\s*"));
+	    List<String> header = Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*"));
 
 	    return new LogMetaData(header);
 
@@ -114,7 +114,7 @@ class MetaDataServiceCSVImpl implements MetaDataService {
 		throw new Exception("Try different encoding");
 
 	    List<String> header = !headers.isEmpty() ? headers
-		    : Arrays.asList(firstLine.split("\\s*" + separator + "\\s*"));
+		    : Arrays.asList(firstLine.replaceAll("[\uFEFF-\uFFFF]", "").split("\\s*" + separator + "\\s*"));
 
 	    in2 = new ReaderInputStream(brReader, charset);
 	    csvReader = new CSVFileReader().newCSVReader(in2, charset, separator);
