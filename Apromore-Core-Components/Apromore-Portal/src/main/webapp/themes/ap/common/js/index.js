@@ -35,6 +35,7 @@ window.Ap = window.Ap || {
   dash: {}, // Dashboard
   la: {}, // Log Animation
   common: {}, // Common
+  colorPicker: {}, // ColorPicker
 };
 
 const NOTIFICATION_DELAY = 3000; // Delay to hide notification
