@@ -23,19 +23,34 @@
  *  Utility functions for uploading log data. This include character encoding detection
  */
 Ap.uploadFileSelected = function (evt) {
+    let maxUploadSize;
+
+    try {
+       maxUploadSize= parseInt($target.data("max-upload-size"));
+    } catch (e) {
+       maxUploadSize = 100000000; // default
+    }
+
     try {
         let files = evt.target.files;
         let file = files[0];
+        console.log(file.size, maxUploadSize);
+        if (file.size > maxUploadSize) {
+            Ap.common.notify('File size exceeds the allowable limit', 'error');
+            zk.$("$okButtonImport").setDisabled(true);
+            return;
+        } else {
+            zk.$("$okButtonImport").setDisabled(false);
+        }
         if (!file || !file.name.endsWith('csv')) {
             return;
         }
-
         let reader = new FileReader();
         reader.onload = function(ev) {
             let encoding = JSON.stringify(jschardet.detect(ev.target.result));
             localStorage.setItem('ap.csv-importer.encoding', encoding);
         };
-        reader.readAsBinaryString(file.slice(0, 10000000));
+        reader.readAsBinaryString(file.slice(0, 10000000)); // sample
     } catch (e) {
         // pass
     }

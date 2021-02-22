@@ -82,6 +82,7 @@ public class ImportController extends BaseController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportController.class);
     private static final String UTF8_CHARSET = StandardCharsets.UTF_8.toString();
+    private static final String MAX_UPLOAD_SIZE = "max-upload-size";
 
     private MainController mainC;
     private Window importWindow;
@@ -129,6 +130,7 @@ public class ImportController extends BaseController {
             final Window win = (Window) Executions.createComponents("macros/import.zul", null, null);
             this.importWindow = (Window) win.getFellow("importWindow");
             Button uploadButton = (Button) this.importWindow.getFellow("uploadButton");
+            uploadButton.setClientDataAttribute(MAX_UPLOAD_SIZE, Integer.toString(mainC.config.getMaxUploadSize()));
             this.fileUrl = (Textbox) this.importWindow.getFellow("fileUrl");
             Button uploadURLButton = (Button) this.importWindow.getFellow("uploadURLButton");
             Button cancelButton = (Button) this.importWindow.getFellow("cancelButtonImport");
@@ -140,6 +142,7 @@ public class ImportController extends BaseController {
             Label supportedExtL = (Label) this.importWindow.getFellow("supportedExt");
             Label supportedExtURL = (Label) this.importWindow.getFellow("supportedExtURL");
             isPublicCheckbox = ((Checkbox) this.importWindow.getFellow("public"));
+
 
             // build the list of supported extensions to display
             SortedSet<String> supportedExt = new TreeSet<>();
