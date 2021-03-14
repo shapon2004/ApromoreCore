@@ -32,7 +32,7 @@
                         </Embed-Dependency>                    
                         <Import-Package>
                             org.apromore.portal.servlet,
-                            com.sun.xml.bind.v2,
+                            com.sun.xml.bind.v2;resolution:=optional,
                             org.apromore.manager.client.*,
                             org.apromore.portal.*,
                             org.apromore.plugin,
