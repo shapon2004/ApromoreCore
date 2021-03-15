@@ -269,11 +269,71 @@
           </n:div>
         -->
       </div>
+      
       <!-- Graph Area -->
-      <!-- Must use a client div for cytoscape inside a client table -->
-      <n:div id="ap-pd-process-model" style="background-color:none;"/>
-      <div id="vizBridge" visible="false"></div>
+      <n:div>
+          <!------ PD INTERACTIVE MODE ---->
+          <n:div id="ap-pd-process-model" style="background-color:none;"/>
+          <div id="vizBridge" visible="false"></div>
+      
+          <!------ PD ANIMATION MODE ---->
+          <n:div id="ap-pd-animation">
+            <n:div id="ap-pd-process-model-animation" style="background-color:none;"/>
+            <n:div id="ap-pd-playback_controls">
+                <div sclass="ap-la-left-container">
+                    <div sclass="ap-la-controls">
+                        <div sclass="ap-la-timer">
+                            <span id="date">&#xA0;</span>
+                            <span id="time">&#x2D;-:&#x2D;-:&#x2D;-</span>
+                            <span id="subtitle">&#xA0;</span>
+                        </div>
+
+                        <div id="buttons_and_rate">
+                            <button id='start' title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
+                                <img></img>
+                            </button>
+                            <button id='backward' title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
+                                <img></img>
+                            </button>
+                            <button id="pause" title="Play" sclass="ap-mc-icon ap-mc-icon-play">
+                                <img></img>
+                            </button>
+                            <button id='forward' title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
+                                <img></img>
+                            </button>
+                            <button id='end' title="End" sclass="ap-mc-icon ap-mc-icon-end">
+                                <img></img>
+                            </button>
+                        </div>
+
+                        <!-- Use jQuery-ui-Slider-Pips at github.com/simeydotme/jQuery-ui-Slider-Pips -->
+                        <div id="speed-control-wrapper">
+                            <!-- <center style="font: 1em monospace">Replay Speed</center> -->
+                            <div id="speed-control" disabled="disabled" style="margin: auto;">
+                                <n:div class="speed-control-tip">Speed control</n:div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div sclass="ap-la-right-container">
+                    <!-- Animation progress -->
+                    <div id="ap-la-progress"></div>
+                    <div sclass="ap-la-timeline" style="background:none;">
+                        <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
+                            <canvas id="timelineCanvas" style="background:none; pointer-events:none"></canvas>
+                        </div>                  
+                        <div style="position:absolute; background:none; width:100%">
+                            <n:svg id="timeline_svg" style="background:none;" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
+                        </div>                  
+                    </div>
+                </div>
+            </n:div>
+          </n:div>
     </n:div>
+    
+    
+    
     <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
   </window>
   <n:script type="text/javascript" defer="defer" src="/themes/ap/common/js/css-browser-selector.js"></n:script>

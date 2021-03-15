@@ -2,13 +2,16 @@ import graph from './graph';
 import util from './util';
 import search from './search';
 
-let PDp = {};
+let PD = function() {
 
+}
+
+let pdfn = PD.prototype;
 [   graph,
     util,
     search
 ].forEach(function(props) {
-    Object.assign(PDp, props);
+    Object.assign(pdfn, props);
 });
 
 zk.afterMount(function () {

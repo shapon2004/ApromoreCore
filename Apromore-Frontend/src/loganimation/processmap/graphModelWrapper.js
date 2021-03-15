@@ -17,11 +17,10 @@ export default class GraphModelWrapper {
         this._logAnimation = animation;
         this._listeners = [];
         this._pd = pd;
-        this._elementIndexToPath = {}; // mapping from element index to array of points on the element
     }
 
     initialize(elementIndexIDMap) {
-
+        this._createElementCache(elementIndexIDMap);
     }
 
     /**
@@ -29,23 +28,25 @@ export default class GraphModelWrapper {
      * @private
      */
     _createElementCache(elementMapping) {
-        this._elementIndexToPath = {};
+        let pd = this._pd;
         let elementIndexIDMap = elementMapping[0];
         let skipElementIndexIDMap = elementMapping[1];
+        this._elementIndexToElement = {};
+        this._elementIndexToPath = {}; // mapping from element index to array of points on the element
+
         for (let elementIndex in elementIndexIDMap) {
             let elementId = elementIndexIDMap[elementIndex];
-            if (this._pd.isEdge(elementId)) {
-                this._elementIndexToPath[elementIndex] = this._getNodeCrossPath(elementId);
-            }
-            else {
-
-            }
-            this._elementIndexToPath[elementIndex] = this._getNodeCrossPath(elementId);
-            this._indexToSkipPath[elementIndex] = this._getNodeSkipPath(elementId);
+            let element = pd.cy().getElementById(elementId);
+            this._elementIndexToElement[elementIndex] = element;
+            this._elementIndexToPath[elementIndex] = element.isEdge() ? element._private.rscratch.allpts
+                                                                        : pd.getNodeCrossPath(elementId);
         }
 
         for (let elementIndex in skipElementIndexIDMap) {
-            this._indexToElement[elementIndex] = pathElement;
+            let elementId = skipElementIndexIDMap[elementIndex];
+            let element = pd.cy().getElementById(elementId);
+            this._elementIndexToElement[elementIndex] = element;
+            this._elementIndexToPath[elementIndex] = pd.getNodeSkipPath(elementId);
         }
     }
 
@@ -58,66 +59,48 @@ export default class GraphModelWrapper {
     }
 
     getPointAtDistance(elementIndex, distance) {
-        let elementId = this._indexToElementId[elementIndex];
-        if (this._pd.isEdge(elementId)) {
-            return this._getPointAtDistanceOnEdge(elementId, distance);
-        }
-        else {
-            return this._getPointAtDistanceOnNode(elementId, distance);
-        }
+        return this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
+                                            : this._getPointAtDistanceOnSegments(elementIndex, distance);
     }
 
-    _getPointAtDistanceOnEdge(elementId, distance) {
-        let pts = this._pd.getEdgeControlPoints(elementId);
-        let edgeType = this._pd.getEdgeType(elementId);
+    _element(elementIndex) {
+        return this._elementIndexToElement[elementIndex];
+    }
+
+    _getPointAtDistanceOnEdge(elementIndex, distance) {
+        let pts = this._elementIndexToPath[elementIndex];
+        let edgeType = this._element(elementIndex)._private.rscratch.edgeType;
         switch (edgeType) {
             case 'bezier':
             case 'multibezier':
-                let totalLength = Math.getTotalLengthBezier(pts);
-                let currentPoint = Math.getPointAtLengthBezier(pts, distance);
-                x = currentPoint.x;
-                y = currentPoint.y;
+                return this._getPointAtDistanceOnBezier(pts, distance);
                 break;
             case 'haystack':
             case 'straight':
             case 'segments':
-                let totalLengthSegments = Math.getTotalLengthSegments(pts);
-                let currentPointOnSegments = Math.getPointAtLengthSegments(pts, distance);
-                x = currentPointOnSegments.x;
-                y = currentPointOnSegments.y;
+                return this._getPointAtDistanceOnSegments(pts, distance);
                 break;
             default:
         }
-        return {x: x, y: y};
     }
 
-    _getPointAtDistanceOnNode(node, distance) {
+    _getPointAtDistanceOnNode(elementIndex, distance) {
+        let pts = this._elementIndexToPath[elementIndex];
+        return this._getPointAtDistanceOnSegments(pts, distance);
+    }
+
+    _getPointAtDistanceOnBezier(pts, distance) {
+        let totalLength = Math.getTotalLengthBezier(pts);
+        let currentPoint = Math.getPointAtLengthBezier(pts, distance);
+        return {x: currentPoint.x, y: currentPoint.y};
+    }
+
+    _getPointAtDistanceOnSegments(pts, distance) {
         let cy = this._pd.cy();
-        if (cy.$('#' + n.id()).incomers().length > 0 &&
-            cy.$('#' + n.id()).outgoers().length > 0) {
-            let startPoint = cy.$('#' + n.id()).incomers()[0].targetEndpoint();
-            let endPoint = cy.$('#' + n.id()).outgoers()[0].sourceEndpoint();
-            let boundingBox = node.boundingBox();
-            let boxPoints = Math.getBoxPoints(boundingBox);
-            console.log('startPoint', startPoint);
-            console.log('endPoint', endPoint);
-            console.log('boxPoints', boxPoints);
-
-            let crossPath = Math.getBoxCrossPath(startPoint, endPoint, boxPoints);
-            let totalLengthSegments = Math.getTotalLengthSegments(crossPath);
-            let currentPointOnSegments = Math.getPointAtLengthSegments(crossPath, distance);
-            let x = currentPointOnSegments.x;
-            let y = currentPointOnSegments.y;
-
-            let skipPath = Math.getBoxSkipPath(startPoint, endPoint, boxPoints);
-            console.log('skipPath', skipPath);
-            totalLengthSegments = Math.getTotalLengthSegments(skipPath);
-            console.log('totalLengthSegments', totalLengthSegments);
-            currentPointOnSegments = Math.getPointAtLengthSegments(skipPath, distance);
-            x = currentPointOnSegments.x;
-            y = currentPointOnSegments.y;
-
-            return {x: x, y: y};
+        if (pts.length >= 2) {
+            let totalLengthSegments = Math.getTotalLengthSegments(pts);
+            let currentPointOnSegments = Math.getPointAtLengthSegments(pts, distance);
+            return {x: currentPointOnSegments.x, y: currentPointOnSegments.y};
         }
     }
 

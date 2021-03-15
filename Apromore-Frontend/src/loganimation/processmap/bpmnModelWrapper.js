@@ -77,8 +77,8 @@ export default class BPMNModelWrapper {
 
     /**
      * @param {Array} elementMapping:
-     *      - 1st element: mapping from element index to element id (all elements including cross and skip)
-     *      - 2nd element: mapping from skip element index to element id (included in the 1st element)
+     *      - 1st element: mapping from element index to element id (one index for sequence flow, one index for one node)
+     *      - 2nd element: mapping from skip element index to element id (one skip index for one node)
      * @return {Object} mapping from element index to SVG Path Element having the element id
      * @private
      */
@@ -97,7 +97,6 @@ export default class BPMNModelWrapper {
             this._indexToElement[elementIndex] = pathElement;
         }
 
-        // IS THIS NECESSARY AS IT'S DONE BY THE ABOVE FOR LOOP???
         for (let elementIndex in skipElementIndexIDMap) {
             let elementId = skipElementIndexIDMap[elementIndex];
             let pathElement = $j('[data-element-id=' + elementId + ']').find('g').find('path').get(1);
