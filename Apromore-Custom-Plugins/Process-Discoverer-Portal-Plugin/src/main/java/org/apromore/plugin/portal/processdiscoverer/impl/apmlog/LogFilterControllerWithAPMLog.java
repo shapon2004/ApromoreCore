@@ -29,7 +29,7 @@ import org.apromore.plugin.portal.logfilter.generic.LogFilterInputParams;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterOutputResult;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterResultListener;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.LogFilterController;
+import org.apromore.plugin.portal.processdiscoverer.actions.LogFilterController;
 import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
@@ -65,7 +65,7 @@ public class LogFilterControllerWithAPMLog extends LogFilterController implement
         session.setAttribute("filtered_log_name", parent.getTitle()); // required for showing log name on the title of FilterEE
         Sessions.getCurrent().setAttribute("sourceLogId", parent.getSourceLogId());
 
-        parent.getLogFilterPlugin().execute(new LogFilterContext(parent.getContextData().getPortalContext()), 
+        parent.getLogFilterPlugin().execute(new LogFilterContext(parent.getPortalContext()), 
                 new LogFilterInputParams(
                         parent.getLogData().getLog(), 
                         parent.getUserOptions().getMainAttributeKey(), 

@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.actions;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +29,7 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
@@ -38,7 +39,6 @@ import org.deckfour.xes.model.XLog;
 import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zul.Messagebox;
 
 public class LogExportController extends AbstractController {
     private ContextData contextData;
@@ -80,12 +80,12 @@ public class LogExportController extends AbstractController {
             final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             parent.getEvenLogService().exportToStream(outputStream, filtered_log);
 
-            parent.getEvenLogService().importLog(contextData.getPortalContext().getCurrentUser().getUsername(), contextData.getFolderId(),
+            parent.getEvenLogService().importLog(contextData.getUsername(), contextData.getFolderId(),
                     logName, new ByteArrayInputStream(outputStream.toByteArray()), "xes.gz",
                     contextData.getDomain(), DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()).toString(),
                     false);
             Notification.info("A new log named <strong>" + logName + "</strong> has been saved in the <strong>" + contextData.getFolderName() + "</strong> folder.");
-            contextData.getPortalContext().refreshContent();
+            parent.refreshPortal();
         } catch (Exception e) {
             e.printStackTrace();
         }

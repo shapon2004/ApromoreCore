@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import static org.apromore.logman.attribute.graph.MeasureType.DURATION;
 import static org.apromore.logman.attribute.graph.MeasureType.FREQUENCY;
@@ -39,6 +39,7 @@ import java.util.Set;
 import org.apromore.logman.attribute.AbstractAttribute;
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
+import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
@@ -118,6 +119,12 @@ public class ViewSettingsController extends VisualController {
     private Div durationOption;
 
     private UserOptionsData userOptions;
+    
+    private String primaryTypeLabel;
+    private String primaryAggregateCode;
+    private final String FREQ_LABEL = "frequency";
+    private final String DURATION_LABEL = "duration";
+    private String perspectiveName = "";
 
     public ViewSettingsController(PDController parent) {
         super(parent);
@@ -159,6 +166,9 @@ public class ViewSettingsController extends VisualController {
 
         frequencyAggSelector = (Combobox) compViewSettings.getFellow("frequencyAggSelector");
         durationAggSelector = (Combobox) compViewSettings.getFellow("durationAggSelector");
+        
+        primaryTypeLabel = FREQ_LABEL;
+        primaryAggregateCode = "case";
     }
 
     @Override
@@ -167,18 +177,16 @@ public class ViewSettingsController extends VisualController {
             @Override
             public void onEvent(Event event) throws Exception {
                 String value = perspectiveSelector.getSelectedItem().getValue();
-                String label = perspectiveSelector.getSelectedItem().getLabel();
-                if (value.equals("-")) {
-                    return;
-                }
-                parent.setPerspective(value, label);
+                perspectiveName = perspectiveSelector.getSelectedItem().getLabel();
+                if (value.equals("-")) return;
+                parent.setPerspective(value);
             }
         });
 
         EventListener<Event> radioListener = new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
-                parent.setBPMNMode(bpmnMode.isChecked());
+                parent.setBPMNView(bpmnMode.isChecked());
             }
         };
         this.bpmnMode.addEventListener("onCheck", radioListener);
@@ -187,9 +195,9 @@ public class ViewSettingsController extends VisualController {
             @Override
             public void onEvent(Event event) throws Exception {
                 String value = "concept:name";
-                String label = "Activities";
+                perspectiveName = "Activities";
                 selectComboboxByKey(perspectiveSelector, value);
-                parent.setPerspective(value, label);
+                parent.setPerspective(value);
             }
         });
 
@@ -335,10 +343,6 @@ public class ViewSettingsController extends VisualController {
         return linkMap;
     }
 
-    public boolean getViewMode() {
-        return bpmnMode.isChecked();
-    }
-
     private void selectFrequencyViz() throws InterruptedException {
         String freqAgg = frequencyAggSelector.getSelectedItem().getValue();
         String durationAgg = durationAggSelector.getSelectedItem().getValue();
@@ -353,7 +357,7 @@ public class ViewSettingsController extends VisualController {
         toggleComponentSclass(durationShow, includeSecondary.isChecked(), "ap-icon-eye-close", "ap-icon-eye-open");
         durationShow.setTooltiptext(includeSecondary.isChecked() ? "Hide as secondary metric" : "Show as secondary metric");
 
-        parent.setOverlay(
+        setOverlay(
             FREQUENCY,
             measureAggMap.get(freqAgg),
             measureRelationMap.get(freqAgg),
@@ -378,7 +382,7 @@ public class ViewSettingsController extends VisualController {
         toggleComponentSclass(freqShow, includeSecondary.isChecked(), "ap-icon-eye-close", "ap-icon-eye-open");
         freqShow.setTooltiptext(includeSecondary.isChecked() ? "Hide as secondary metric" : "Show as secondary metric");
 
-        parent.setOverlay(
+        setOverlay(
             DURATION,
             measureAggMap.get(durationAgg),
             measureRelationMap.get(durationAgg),
@@ -392,6 +396,42 @@ public class ViewSettingsController extends VisualController {
     @Override
     public void onEvent(Event event) throws Exception {
         throw new Exception("Unsupported interactive Event Handler");
+    }
+    
+    private void setOverlay(
+            MeasureType primaryType,
+            MeasureAggregation primaryAggregation,
+            MeasureRelation primaryRelation,
+            MeasureType secondaryType,
+            MeasureAggregation secondaryAggregation,
+            MeasureRelation secondaryRelation,
+            String aggregateCode
+    ) {
+
+        parent.getUserOptions().setPrimaryType(primaryType);
+        parent.getUserOptions().setPrimaryAggregation(primaryAggregation);
+        parent.getUserOptions().setPrimaryRelation(primaryRelation);
+        
+        parent.getUserOptions().setSecondaryType(secondaryType);
+        parent.getUserOptions().setSecondaryAggregation(secondaryAggregation);
+        parent.getUserOptions().setSecondaryRelation(secondaryRelation);
+
+        primaryAggregateCode = aggregateCode;
+        if (primaryType == FREQUENCY) {
+            primaryTypeLabel = FREQ_LABEL;
+        } else { // (overlay == DURATION) assume DURATION
+            primaryTypeLabel = DURATION_LABEL;
+        }
+        parent.generateViz();
+    }
+    
+    public String getOutputName() {
+        return parent.getContextData().getLogName() + " - " +
+                Labels.getLabel("e.agg." + primaryAggregateCode + ".text") + " " + primaryTypeLabel;
+    }
+    
+    public String getPerspectiveName() {
+        return perspectiveName;
     }
 
 }

@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,6 @@ import java.util.List;
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
-import org.apromore.logman.attribute.log.CaseInfo;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.data.CaseDetails;
 import org.apromore.processdiscoverer.Abstraction;
@@ -76,7 +75,7 @@ public class CaseDetailsController extends DataListController {
 
 	@Override
 	public String getExportFilename() {
-		return parent.getLogName() + ".csv";
+		return parent.getContextData().getLogName() + ".csv";
 	}
 
 	@Override
@@ -135,21 +134,6 @@ public class CaseDetailsController extends DataListController {
 
 	public Window getWindow() {
 		return caseDetailsWindow;
-	}
-
-	private void populateCasesBasedOnPerspective(Listbox listbox) {
-		int i = 1;
-		List<String> cells = new ArrayList<>();
-
-		for (CaseInfo caseInfo : parent.getLogData().getCaseInfoList()) {
-			cells.add(i + "");
-			cells.add(caseInfo.getCaseID());
-			cells.add(caseInfo.getCaseLength() + "");
-			cells.add(caseInfo.getVariantIndex() + 1 + "");
-			cells.add(parent.getDecimalFormatter().format(100 * caseInfo.getVariantFrequency()));
-			listbox.appendChild(genListItem(cells));
-			i++;
-		}
 	}
 
 }

@@ -20,11 +20,12 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.actions;
 
 import org.apromore.plugin.portal.logfilter.generic.LogFilterOutputResult;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterResultListener;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.zkoss.zk.ui.event.Event;
 
 /**

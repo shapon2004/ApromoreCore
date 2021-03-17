@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;

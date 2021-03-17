@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import static org.apromore.logman.attribute.graph.MeasureAggregation.CASES;
 import static org.apromore.logman.attribute.graph.MeasureAggregation.MEAN;
@@ -176,7 +176,7 @@ public class GraphSettingsController extends VisualController {
         this.parallelismSlider.addEventListener("onScroll", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
-                if (parent.getBPMNMode()) { // if BPMN mode
+                if (parent.getUserOptions().getBPMNMode()) { // if BPMN mode
                     parallelismInput.setValue(parallelismSlider.getCurpos());
                     userOptions.setParallelismFilterValue(parallelismSlider.getCurpos());
                     parent.generateViz();

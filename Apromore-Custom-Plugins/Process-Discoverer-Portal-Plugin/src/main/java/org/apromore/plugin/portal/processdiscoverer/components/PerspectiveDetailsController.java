@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import java.util.ArrayList;
 
@@ -54,7 +54,7 @@ public class PerspectiveDetailsController extends DataListController {
             long occurrences = info.getAttributeOccurrenceCount();
             double freq = info.getAttributeOccurrenceFrequency();
 
-            PerspectiveDetails perspectiveDetails = new PerspectiveDetails(value, occurrences, freq);
+            PerspectiveDetails perspectiveDetails = PerspectiveDetails.valueOf(value, occurrences, freq);
             records.add(perspectiveDetails);
             rows.add(new String []{value, Long.toString(occurrences), perspectiveDetails.getFreqStr()});
         }
@@ -67,7 +67,7 @@ public class PerspectiveDetailsController extends DataListController {
 
     @Override
     public String getExportFilename () {
-        return parent.getLogName() + "-" + parent.getPerspective() + ".csv";
+        return parent.getContextData().getLogName() + "-" + parent.getPerspective() + ".csv";
     }
 
     @Override

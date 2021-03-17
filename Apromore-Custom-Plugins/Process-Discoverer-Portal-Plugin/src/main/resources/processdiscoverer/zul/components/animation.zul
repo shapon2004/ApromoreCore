@@ -1,0 +1,82 @@
+<!--
+  #%L
+  This file is part of "Apromore Core".
+  %%
+  Copyright (C) 2018 - 2021 Apromore Pty Ltd.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Lesser Public License for more details.
+  
+  You should have received a copy of the GNU General Lesser Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/lgpl-3.0.html>.
+  #L%
+  -->
+
+<vlayout
+    xmlns:ca="client/attribute"
+    xmlns:w="client"
+    xmlns:n="native"
+    sclass="ap-pd-la">
+    
+    <n:div id="ap-pd-la" visible="false">
+        <n:div id="ap-pd-la-process-model" style="background-color:none;"/>
+        <n:div id="ap-pd-la-playback-controls">
+            <div sclass="ap-pd-la-left-container">
+                <div sclass="ap-pd-la-controls">
+                    <div sclass="ap-pd-la-timer">
+                        <span id="ap-pd-la-date">&#xA0;</span>
+                        <span id="ap-pd-la-time">&#x2D;-:&#x2D;-:&#x2D;-</span>
+                        <span id="ap-pd-la-subtitle">&#xA0;</span>
+                    </div>
+
+                    <div id="ap-pd-la-buttons">
+                        <button id='ap-pd-la-start' title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
+                            <img></img>
+                        </button>
+                        <button id='ap-pd-la-backward' title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
+                            <img></img>
+                        </button>
+                        <button id="ap-pd-la-pause" title="Play" sclass="ap-mc-icon ap-mc-icon-play">
+                            <img></img>
+                        </button>
+                        <button id='ap-pd-la-forward' title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
+                            <img></img>
+                        </button>
+                        <button id='ap-pd-la-end' title="End" sclass="ap-mc-icon ap-mc-icon-end">
+                            <img></img>
+                        </button>
+                    </div>
+
+                    <!-- Use jQuery-ui-Slider-Pips at github.com/simeydotme/jQuery-ui-Slider-Pips -->
+                    <div id="ap-pd-la-speed-controls">
+                        <!-- <center style="font: 1em monospace">Replay Speed</center> -->
+                        <div id="ap-pd-la-speed-control" disabled="disabled" style="margin: auto;">
+                            <n:div class="speed-control-tip">Speed control</n:div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div sclass="ap-pd-la-right-container">
+                <!-- Animation progress -->
+                <div id="ap-pd-la-progress"></div>
+                <div sclass="ap-la-timeline" style="background:none;">
+                    <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
+                        <canvas id="ap-pd-la-timelineCanvas" style="background:none; pointer-events:none"></canvas>
+                    </div>                  
+                    <div style="position:absolute; background:none; width:100%">
+                        <n:svg id="ap-pd-la-timeline-svg" style="background:none;" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
+                    </div>                  
+                </div>
+            </div>
+        </n:div>
+    </n:div>
+</vlayout>

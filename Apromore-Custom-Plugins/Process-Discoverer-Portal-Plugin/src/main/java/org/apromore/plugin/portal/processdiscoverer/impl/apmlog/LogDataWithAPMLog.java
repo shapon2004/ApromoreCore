@@ -226,7 +226,7 @@ public class LogDataWithAPMLog extends LogData {
             int caseVariantId = aTrace.getCaseVariantId();
             int caseSize = caseVariantIdFrequencyMap.get(caseVariantId);
             double caseVariantFreq = (double) caseSize / traceSize;
-            CaseDetails caseDetails = new CaseDetails(caseId, caseEvents, caseVariantId, caseVariantFreq);
+            CaseDetails caseDetails = CaseDetails.valueOf(caseId, caseEvents, caseVariantId, caseVariantFreq);
             listResult.add(caseDetails);
         }
         return listResult;
@@ -242,7 +242,7 @@ public class LogDataWithAPMLog extends LogData {
             long occurrences = info.getAttributeOccurrenceCount();
             double freq = info.getAttributeOccurrenceFrequency();
 
-            PerspectiveDetails perspectiveDetails = new PerspectiveDetails(value, occurrences, freq);
+            PerspectiveDetails perspectiveDetails = PerspectiveDetails.valueOf(value, occurrences, freq);
             listResult.add(perspectiveDetails);
         }
         return listResult;

@@ -20,9 +20,10 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.actions;
 
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
@@ -46,6 +47,7 @@ public class AnimationController extends AbstractController {
             throw new MissingLayoutException("Missing layout of the process map for animating");
         }
         
+        /*
         if (parent.getBPMNMode()) {
             parent.getLogAnimationPlugin().execute(
                     parent.getContextData().getPortalContext(), 
@@ -60,6 +62,15 @@ public class AnimationController extends AbstractController {
                     getBPMN(abs.getDiagram(), abs.getLayout().getGraphLayout()), 
                     parent.getLogData().getLog().getActualXLog(), 
                     parent.getContextData().getLogName());
+        }
+        */
+        
+        // Call animation logic to align the current log and BPMN diagram
+        if (parent.isAnalysisMode()) {
+            parent.switchToAnimationMode();
+        }
+        else {
+            parent.switchToGraphMode();
         }
     }
     

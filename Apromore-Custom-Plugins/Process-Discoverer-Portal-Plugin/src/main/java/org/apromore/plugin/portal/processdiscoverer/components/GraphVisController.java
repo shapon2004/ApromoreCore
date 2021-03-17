@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.components;
 
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.zkoss.zk.ui.Component;
@@ -29,6 +29,9 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Messagebox;
 
+/**
+ * Manage the graph visualization
+ */
 public class GraphVisController extends VisualController {
 
     private final String STARTEVENT_REL_PATTERN = "|> =>";

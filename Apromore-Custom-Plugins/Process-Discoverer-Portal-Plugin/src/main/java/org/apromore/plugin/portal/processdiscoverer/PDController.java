@@ -33,32 +33,31 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
+import org.apromore.logman.ALog;
 import org.apromore.logman.attribute.IndexableAttribute;
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
-import org.apromore.plugin.portal.loganimation.api.LogAnimationPluginInterface;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
-import org.apromore.plugin.portal.processdiscoverer.controllers.CaseDetailsController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.GraphSettingsController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.GraphVisController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.LogFilterController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.LogStatsController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.PerspectiveDetailsController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.TimeStatsController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.ViewSettingsController;
+import org.apromore.plugin.portal.processdiscoverer.actions.LogFilterController;
+import org.apromore.plugin.portal.processdiscoverer.components.CaseDetailsController;
+import org.apromore.plugin.portal.processdiscoverer.components.GraphSettingsController;
+import org.apromore.plugin.portal.processdiscoverer.components.GraphVisController;
+import org.apromore.plugin.portal.processdiscoverer.components.LogStatsController;
+import org.apromore.plugin.portal.processdiscoverer.components.PerspectiveDetailsController;
+import org.apromore.plugin.portal.processdiscoverer.components.TimeStatsController;
+import org.apromore.plugin.portal.processdiscoverer.components.ViewSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
+import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
 import org.apromore.plugin.portal.processdiscoverer.impl.factory.PDFactory;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
-import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.UserSessionManager;
-import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.dialogController.BaseController;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
 import org.apromore.portal.model.FolderType;
@@ -69,12 +68,11 @@ import org.apromore.processdiscoverer.ProcessDiscoverer;
 import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.ProcessService;
+import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.json.JSONObject;
-import org.zkoss.util.resource.Labels;
-import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
@@ -89,23 +87,25 @@ import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 
 /**
- * This class acts as the main controller for PD<br>
- * Other controllers under the controllers package are used to handle specific behaviors.<br>
- * All UI controls are contained in the main window (todo: no subclasses for panels on the window).<br>
- * To avoid managing too many individual variables, they are all grouped under data objects
- * <b>ContextData</b> contains contextual variables<br> relating to the environment calling this plugin,<br>
- * <b>LogData</b> represents the log data, <b>UserOptions</b><br> manages all user variables set via UI controls,<br>
- * and <b>OutputData</b> represents the existing output data being displayed on the UI.
+ * PDController manages the main UI of PD. Other sub-controllers are either action (under the actions package) 
+ * or component controllers (under the components package). Each component controller manages one UI area such as
+ * Abstraction settings, view settings, or log statistics.<br>
+ * PDController is also the Mediator for the sub-controllers, representing them to communicate with 
+ * the outside as well as among them, avoiding direct communication between sub-controllers, 
+ * e.g. a UI change needs to communicate from a sub-controller to PDController which will coordinate 
+ * this change to other sub-controllers.
  * <p>
- * Starting point: first, the window will be created which fires onCreate(),
- * then ZK client engine sends an onLoaded event to the main window, triggering windowListener().
- * TODO: as this is open in a separate browser tab with a different ZK execution from that of the portal,
- * if the user signs out of the portal tab, the actions in this plugin calling to the portal session would fail
+ * Data items in PD are grouped under three objects: <b>ContextData</b> contains contextual variables<br> relating to 
+ * the environment calling this plugin, <b>LogData</b> represents the log, <b>UserOptions</b><br> manages all user 
+ * variables set via UI controls, and <b>OutputData</b> represents the existing output data being displayed on the UI. 
+ * All controllers share common data which is provided via DataManager.
+ * <p>
+ * PD consumes memory resources in various ways (e.g. using third-party libraries), it implements SessionCleanup 
+ * interface to be called upon the Session is destroyed by ZK. 
+ * <p>
+ * Starting point: first, the window will be created which fires onCreate(), then ZK client engine sends an 
+ * onLoaded event to the main window triggering windowListener().
  * 
- * In addition, as PD consumes substantial memory resources in various ways (e.g. using third-party libraries),
- * it implements SessionCleanup interface and registers with ZK to be called upon the Session is destroyed 
- * by ZK and the web server. For example, in its cleanup routine, data-intensive components such as PD Logic 
- * and Process Visualizer will be called to clean up themselves.
  */
 public class PDController extends BaseController {
 
@@ -115,9 +115,6 @@ public class PDController extends BaseController {
 
     private final String LAYOUT_HIERARCHY = "layoutHierarchy";
     private final String LAYOUT_DAGRE_TB = "layoutDagreTopBottom";
-
-    private final String FREQ_LABEL = "frequency";
-    private final String DURATION_LABEL = "duration";
 
     private final String CASE_SECTION_ATTRIBUTE_COMBINATION = "CASE_SECTION_ATTRIBUTE_COMBINATION";
     private final String EVENT_ATTRIBUTE_DURATION = "EVENT_ATTRIBUTE_DURATION";
@@ -141,12 +138,8 @@ public class PDController extends BaseController {
     private Button downloadPDF;
     private Button downloadPNG;
     private Button exportBPMN;
-    // private Button exportBPMNAnnotatedForBIMP;
 
-    private Label logTitle;
     private Window mainWindow;
-
-    private Label perspectiveSelected;
 
     //////////////////// SUPPORT SERVICES ///////////////////////////////////
 
@@ -155,8 +148,6 @@ public class PDController extends BaseController {
     private ProcessService processService;
     private EventLogService eventLogService;
     private ProcessDiscoverer processDiscoverer;
-    private LogAnimationPluginInterface logAnimationPluginCE;
-    private LogAnimationPluginInterface logAnimationPluginEE;
     private LogFilterPlugin logFilterPlugin;
     private PDFactory pdFactory;
 
@@ -186,10 +177,9 @@ public class PDController extends BaseController {
     private LogSummaryType logSummary;
     private PortalContext portalContext;
 
-    private String primaryTypeLabel;
-    private String primaryAggregateCode;
-
     private int sourceLogId; // plugin maintain log ID for Filter; Filter remove value to avoid conflic from multiple plugins
+    
+    private PDMode mode = PDMode.GRAPH_MODE;
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -231,20 +221,24 @@ public class PDController extends BaseController {
     // Check infrastructure services to be available. They can become unavailable
     // because of system crashes or modules crashed/undeployed
     private boolean prepareSystemServices() {
-        //canoniserService = (CanoniserService) beanFactory.getBean("canoniserService");
         domainService = (DomainService) Sessions.getCurrent().getAttribute("domainService");
         processService = (ProcessService) Sessions.getCurrent().getAttribute("processService");
         eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService");
-        logAnimationPluginCE = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPluginCE"); 
-        logAnimationPluginEE = (LogAnimationPluginInterface) Sessions.getCurrent().getAttribute("logAnimationPluginEE");
         logFilterPlugin = (LogFilterPlugin) Sessions.getCurrent().getAttribute("logFilterPlugin"); //beanFactory.getBean("logFilterPlugin");
 
-        if (domainService == null || processService == null ||
-                eventLogService == null || logAnimationPluginCE == null || logAnimationPluginEE == null ||
-                logFilterPlugin == null) {
+        if (domainService == null || processService == null || eventLogService == null || logFilterPlugin == null) {
             return false;
         }
         return true;
+    }
+    
+    private LogData createLogData(ConfigData configData)  throws Exception {
+        XLog xlog = eventLogService.getXLog(contextData.getLogId());
+        if (xlog == null) {
+            throw new InvalidDataException("XLog data is null");
+        }
+        ALog aLog = new ALog(xlog);
+        return new LogData(configData, aLog);
     }
     
     // This is to check the availability of system services before executing a related action
@@ -285,18 +279,15 @@ public class PDController extends BaseController {
             LogSummaryType logSummary = (LogSummaryType) session.get("selection");
             pdFactory = (PDFactory) session.get("pdFactory");
             
-            configData = pdFactory.createConfigData();
-            contextData = pdFactory.createContextData(
-                    portalContext,
+            configData = ConfigData.DEFAULT;
+            contextData = ContextData.valueOf(
+                    portalContext.getCurrentUser().getUsername(),
                     logSummary.getDomain(),
                     logSummary.getId(),
                     logSummary.getName(),
                     portalContext.getCurrentFolder() == null ? 0 : portalContext.getCurrentFolder().getId(),
-                    portalContext.getCurrentFolder() == null ? "Home" : portalContext.getCurrentFolder().getFolderName(),
-                    configData);
-            userOptions = pdFactory.createUserOptionsData();
-            primaryTypeLabel = FREQ_LABEL;
-            primaryAggregateCode = "case";
+                    portalContext.getCurrentFolder() == null ? "Home" : portalContext.getCurrentFolder().getFolderName());
+            userOptions = new UserOptionsData();
             userOptions.setPrimaryType(FREQUENCY);
             userOptions.setPrimaryAggregation(MeasureAggregation.CASES);
             userOptions.setSecondaryType(DURATION);
@@ -307,7 +298,7 @@ public class PDController extends BaseController {
             userOptions.setInvertedArcsMode(false);
     
             // Prepare log data
-            logData = pdFactory.createLogData(contextData, eventLogService);
+            logData = createLogData(configData);
             IndexableAttribute mainAttribute = logData.getAttribute(configData.getDefaultAttribute());
             if (mainAttribute == null) {
                 Messagebox.show("We cannot display the process map due to missing activity (i.e. concept:name) attribute in the log.", 
@@ -338,10 +329,9 @@ public class PDController extends BaseController {
             graphSettingsController = pdFactory.createGraphSettingsController(this);
             logStatsController = pdFactory.createLogStatsController(this);
             timeStatsController = pdFactory.createTimeStatsController(this);
+            logFilterController = pdFactory.createLogFilterController(this);
 
             initialize();
-            initializeDefaults();
-            
             System.out.println("Session ID = " + ((HttpSession)Sessions.getCurrent().getNativeSession()).getId());
             System.out.println("Desktop ID = " + getDesktop().getId());
             
@@ -356,22 +346,17 @@ public class PDController extends BaseController {
         }
     }
 
-    // All data and controllers must be all already available
+    // All data and controllers must be already available
     private void initialize() {
         try {
             initializeControls();
-            updateTimeStats();
+            timeStatsController.updateUI(contextData);
             viewSettingsController.updateUI(null);
             initializeEventListeners();
         } catch (Exception e) {
             e.printStackTrace();
             Messagebox.show(e.getMessage(), "Process Discoverer", Messagebox.OK, Messagebox.ERROR);
         }
-    }
-
-    // Adjust UI when detecting special conditions
-    private void initializeDefaults() {
-
     }
 
     private void initializeControls() {
@@ -387,14 +372,10 @@ public class PDController extends BaseController {
             logStatsController.initializeControls(contextData);
             graphVisController.initializeControls(contextData);
     
-            Component compLogStats = mainWindow.query(".ap-pd-logstats");
-    
-            perspectiveSelected = (Label) compLogStats.getFellow("perspectiveSelected");
-    
             // Main action buttons
             casesDetails = (Button) mainWindow.getFellow("caseDetails");
             perspectiveDetails = (Button) mainWindow.getFellow("perspectiveDetails");
-            //fitness = (Button) mainWindow.getFellow("fitness");
+
             filter = (Button) mainWindow.getFellow("filter");
             filterClear = (Button) mainWindow.getFellow("filterClear");
             animate = (Button) mainWindow.getFellow("animate");
@@ -402,7 +383,6 @@ public class PDController extends BaseController {
             share = (Button) mainWindow.getFellow("share");
     
             exportFilteredLog = (Button) mainWindow.getFellow("exportUnfitted");
-            // export = (Combobutton) mainWindow.getFellow(StringValues.b[70]);
             downloadPDF = (Button) mainWindow.getFellow("downloadPDF");
             downloadPNG = (Button) mainWindow.getFellow("downloadPNG");
             exportBPMN = (Button) mainWindow.getFellow("exportBPMN");
@@ -420,13 +400,6 @@ public class PDController extends BaseController {
         }
     }
 
-    private LogFilterController getFilterController() throws Exception {
-        if (logFilterController == null) {
-            logFilterController = pdFactory.createLogFilterController(this);
-        }
-        return logFilterController;
-    }
-
     private void initializeEventListeners() {
         PDController me = this;
         try {
@@ -439,7 +412,17 @@ public class PDController extends BaseController {
                 @Override
                 public void onEvent(Event event) throws Exception {
                     String compId = ((Checkbox) event.getTarget()).getId();
-                    setLayout(compId);
+                    switch (compId) {
+                    case LAYOUT_HIERARCHY:
+                        userOptions.setLayoutHierarchy(true);
+                        userOptions.setLayoutDagre(false);
+                        break;
+                    case LAYOUT_DAGRE_TB:
+                        userOptions.setLayoutHierarchy(false);
+                        userOptions.setLayoutDagre(true);
+                        break;
+                    }
+                    graphVisController.changeLayout();
                 }
             };
             layoutHierarchy.addEventListener("onClick", layoutListener);
@@ -486,15 +469,6 @@ public class PDController extends BaseController {
                                     } catch (Exception e) {
                                         Messagebox.show("Unable to clear the filter", "Filter error", Messagebox.OK, Messagebox.ERROR);
                                     }
-                                    /*
-                                    LogFilterController logFilterController = me.getFilterController();
-                                    logFilterController.subscribeFilterResult();
-
-                                    EventQueue eqFilteredView = EventQueues.lookup("filter_view_ctrl", EventQueues.DESKTOP, true);
-                                    if (eqFilteredView != null) {
-                                        eqFilteredView.publish(new Event("ctrl", null, "removeall"));
-                                    }
-                                    */
                                 }
                             }
                         }
@@ -508,7 +482,6 @@ public class PDController extends BaseController {
                     Clients.showBusy("Launch Filter Dialog ...");
                     Sessions.getCurrent().setAttribute("sourceLogId", sourceLogId);
                     String payload = event.getData().toString();
-                    LogFilterController logFilterController = me.getFilterController();
                     logFilterController.onEvent(event);
                     EventQueue eqFilteredView = EventQueues.lookup("filter_view_ctrl", EventQueues.DESKTOP, true);
                     eqFilteredView.publish(new Event("ctrl", null, payload));
@@ -551,7 +524,6 @@ public class PDController extends BaseController {
                         }
                         Clients.showBusy("Launch Filter Dialog ...");
                         Sessions.getCurrent().setAttribute("sourceLogId", sourceLogId);
-                        LogFilterController logFilterController = me.getFilterController();
                         logFilterController.onEvent(event);
                         EventQueue eqFilteredView = EventQueues.lookup("filter_view_ctrl", EventQueues.DESKTOP, true);
                         eqFilteredView.publish(new Event("ctrl", null, parameters));
@@ -561,7 +533,7 @@ public class PDController extends BaseController {
                     }
                 }
             });
-            filter.addEventListener("onClick", this.getFilterController());
+            filter.addEventListener("onClick", logFilterController);
             animate.addEventListener("onClick", pdFactory.createAnimationController(this));
     
             exportFilteredLog.addEventListener("onExport", pdFactory.createLogExportController(this));
@@ -569,13 +541,13 @@ public class PDController extends BaseController {
             downloadPDF.addEventListener("onClick", new EventListener<Event>() {
                 @Override
                 public void onEvent(Event event) throws Exception {
-                    graphVisController.exportPDF(getOutputName());
+                    graphVisController.exportPDF(viewSettingsController.getOutputName());
                 }
             });
             downloadPNG.addEventListener("onClick", new EventListener<Event>() {
                 @Override
                 public void onEvent(Event event) throws Exception {
-                    graphVisController.exportPNG(getOutputName());
+                    graphVisController.exportPNG(viewSettingsController.getOutputName());
                 }
             });
 
@@ -624,33 +596,9 @@ public class PDController extends BaseController {
 
     }
 
-    private void showSingleDurationFilterError() {
-        Messagebox.show("Unable to filter on duration as there's only one value.",
-                "Filter error", Messagebox.OK, Messagebox.ERROR);
-    }
-
     public void clearFilter() throws Exception {
-        this.getFilterController().clearFilter();
-    }
-
-    private void setLayout(String layout) throws Exception {
-        switch (layout) {
-            case LAYOUT_HIERARCHY:
-                userOptions.setLayoutHierarchy(true);
-                userOptions.setLayoutDagre(false);
-                break;
-            case LAYOUT_DAGRE_TB:
-                userOptions.setLayoutHierarchy(false);
-                userOptions.setLayoutDagre(true);
-                break;
-        }
-        graphVisController.changeLayout();
-    }
-
-
-    private String getOutputName() {
-        return contextData.getLogName() + " - " +
-                Labels.getLabel("e.agg." + primaryAggregateCode + ".text") + " " + primaryTypeLabel;
+        if (this.mode != PDMode.GRAPH_MODE) return;
+        logFilterController.clearFilter();
     }
 
     /**
@@ -660,60 +608,20 @@ public class PDController extends BaseController {
      * @param reset: true to reset the graph zoom and panning
      */
     public void updateUI(boolean reset) {
+        if (this.mode != PDMode.GRAPH_MODE) return;
         try {
-            updateLogStats();
-            updateTimeStats();
+            logStatsController.updateUI(contextData);
+            timeStatsController.updateUI(contextData);
             viewSettingsController.updateUI(contextData);
             userOptions.setRetainZoomPan(!reset);
             generateViz();
-            if (!reset) {
-                graphVisController.centerToWindow();
-            }
+            if (!reset) graphVisController.centerToWindow();
             boolean noFilter = this.getLogData().isCurrentFilterCriteriaEmpty();
             filterClear.setDisabled(noFilter);
         }
         catch (Exception ex) {
             Messagebox.show("Errors occured while updating UI: " + ex.getMessage());
         }
-    }
-
-    public boolean getBPMNMode() {
-        return userOptions.getBPMNMode();
-    }
-
-    private void updateTimeStats() throws Exception {
-        this.timeStatsController.updateUI(contextData);
-    }
-
-    public void updateLogStats() throws Exception {
-        this.logStatsController.updateUI(contextData);
-    }
-
-    public void setOverlay(
-            MeasureType primaryType,
-            MeasureAggregation primaryAggregation,
-            MeasureRelation primaryRelation,
-            MeasureType secondaryType,
-            MeasureAggregation secondaryAggregation,
-            MeasureRelation secondaryRelation,
-            String aggregateCode
-    ) throws InterruptedException {
-
-        userOptions.setPrimaryType(primaryType);
-        userOptions.setPrimaryAggregation(primaryAggregation);
-        userOptions.setPrimaryRelation(primaryRelation);
-        
-        userOptions.setSecondaryType(secondaryType);
-        userOptions.setSecondaryAggregation(secondaryAggregation);
-        userOptions.setSecondaryRelation(secondaryRelation);
-
-        primaryAggregateCode = aggregateCode;
-        if (primaryType == FREQUENCY) {
-            primaryTypeLabel = FREQ_LABEL;
-        } else { // (overlay == DURATION) assume DURATION
-            primaryTypeLabel = DURATION_LABEL;
-        }
-        generateViz();
     }
 
     public AbstractionParams genAbstractionParamsSimple(
@@ -747,6 +655,8 @@ public class PDController extends BaseController {
      */
     public void generateViz() {
         long timer1 = System.currentTimeMillis();
+        
+        if (this.mode != PDMode.GRAPH_MODE) return;
 
         if (logData.getAttributeLog() == null) {
             Messagebox.show("Cannot create data for visualization. Please check the log!",
@@ -815,7 +725,6 @@ public class PDController extends BaseController {
             System.out.println("Sent json data to browser at " + formatter.format(new Date()));
 
             graphVisController.displayDiagram(visualizedText);
-            contextData.setFirstTimeLoadingFinished(true);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -826,25 +735,37 @@ public class PDController extends BaseController {
         }
     }
 
-    public void setBPMNMode(boolean mode) {
+    public void setBPMNView(boolean mode) {
+        if (this.mode != PDMode.GRAPH_MODE) return;
         userOptions.setBPMNMode(mode);
         graphSettingsController.updateParallelism(mode);
         generateViz();
     }
-
-    public String getPerspective() {
-        return perspectiveSelected.getValue();
+    
+    public void setMode(PDMode newMode) {
+        if (this.mode == PDMode.GRAPH_MODE && newMode == PDMode.ANIMATION_MODE) {
+            graphVisController.hide();
+            animationVisController.show();
+        }
+        else if (this.mode == PDMode.ANIMATION_MODE && newMode == PDMode.GRAPH_MODE) {
+            animationVisConroller.hide();
+            graphVisController.show();
+        }
+        this.mode = newMode;
     }
 
-    public void setPerspective(String value, String label) throws Exception {
+    public String getPerspective() {
+        return viewSettingsController.getPerspectiveName();
+    }
+
+    public void setPerspective(String value) throws Exception {
+        if (this.mode != PDMode.GRAPH_MODE) return;
         if (!value.equals(userOptions.getMainAttributeKey())) {
-            perspectiveSelected.setValue(label);
-            perspectiveSelected.setTooltiptext(label);
             animate.setDisabled(!value.equals(configData.getDefaultAttribute()));
             userOptions.setMainAttributeKey(value);
             logData.setMainAttribute(value);
-            updateTimeStats();
-            updateLogStats();
+            timeStatsController.updateUI(contextData);
+            logStatsController.updateUI(contextData);
             generateViz();
         }
     }
@@ -869,8 +790,6 @@ public class PDController extends BaseController {
         return this.configData;
     }
 
-    public String getLogName() { return contextData.getLogName(); }
-
     public ProcessDiscoverer getProcessDiscoverer() {
         return this.processDiscoverer;
     }
@@ -879,28 +798,12 @@ public class PDController extends BaseController {
         return this.processVisualizer;
     }
 
-    public DomainService getDomainService() {
-        return domainService;
-    }
-
     public EventLogService getEvenLogService() {
         return eventLogService;
     }
 
     public ProcessService getProcessService() {
         return processService;
-    }
-    
-    public LogAnimationPluginInterface getLogAnimationPlugin() throws MissingLogAnimationPluginException {
-        if (logAnimationPluginEE != null) {
-            return logAnimationPluginEE;
-        }
-        else if (logAnimationPluginCE != null) {
-            return logAnimationPluginCE;
-        }
-        else {
-            throw new MissingLogAnimationPluginException("LogAnimation plugin was not available");
-        }
     }
 
     public LogFilterPlugin getLogFilterPlugin() {
@@ -913,5 +816,13 @@ public class PDController extends BaseController {
 
     public int getSourceLogId() {
         return sourceLogId;
+    }
+    
+    public PortalContext getPortalContext() {
+        return this.portalContext;
+    }
+    
+    public void refreshPortal() {
+        this.portalContext.refreshContent();
     }
 }

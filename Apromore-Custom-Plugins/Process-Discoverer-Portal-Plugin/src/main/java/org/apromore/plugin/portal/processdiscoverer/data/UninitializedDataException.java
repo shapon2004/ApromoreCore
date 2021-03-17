@@ -19,34 +19,10 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+package org.apromore.plugin.portal.processdiscoverer.data;
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
-
-import org.apromore.plugin.portal.processdiscoverer.PDController;
-import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.EventListener;
-
-public abstract class AbstractController implements EventListener<Event> {
-    protected PDController parent;
-
-    public AbstractController(PDController controller) {
-        this.parent = controller;
-    }
-    
-    @Override
-    public void onEvent(Event event) throws Exception {
-        //
-    }
-    
-    public void initializeControls(Object data) throws Exception {
-        //
-    }
-    
-    public void initializeEventListeners(Object data) throws Exception {
-        
-    }
-    
-    public void updateUI(Object data) throws Exception {
-        //
+public class UninitializedDataException extends Exception {
+    public UninitializedDataException(String msg) {
+        super(msg);
     }
 }

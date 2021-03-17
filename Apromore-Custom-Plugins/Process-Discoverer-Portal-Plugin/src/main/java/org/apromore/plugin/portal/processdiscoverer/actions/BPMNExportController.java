@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.controllers;
+package org.apromore.plugin.portal.processdiscoverer.actions;
 
 import java.io.ByteArrayInputStream;
 import java.util.GregorianCalendar;
@@ -29,8 +29,8 @@ import java.util.Map;
 
 import javax.xml.datatype.DatatypeFactory;
 
-import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.apromore.plugin.portal.processdiscoverer.utils.InputDialog;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.portal.common.notification.Notification;
@@ -42,7 +42,6 @@ import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNEdge;
 import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -80,7 +79,6 @@ public class BPMNExportController extends AbstractController {
     private EventQueue<Event> eventQueue = null;
 
     private PDController controller = null;
-    private PortalContext portalContext = null;
     private String minedModel = null; 
     
     //Progress window
@@ -92,7 +90,6 @@ public class BPMNExportController extends AbstractController {
 
     public BPMNExportController(PDController controller, boolean showProgressBar) {
         super(controller);
-    	this.portalContext = controller.getContextData().getPortalContext();
     	this.controller = controller;
         this.showProgressBar = showProgressBar;
         this.progressListener = new ProgressEventListener();
@@ -258,13 +255,13 @@ public class BPMNExportController extends AbstractController {
             	public void onEvent(Event event) throws Exception {
 					if (event.getName().equals("onOK")) {
     				   String modelName = (String)event.getData();
-				       String user = portalContext.getCurrentUser().getUsername();
+				       String user = controller.getContextData().getUsername();
 				        Version version = new Version(1, 0);
 				        String now = DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar()).toString();
 				        boolean publicModel = false;
 
 				        controller.getProcessService().importProcess(user,
-				        		portalContext.getCurrentFolder() == null ? 0 : controller.getContextData().getFolderId(), //portalContext.getCurrentFolder().getId(),
+				        		controller.getContextData().getFolderId(),
 				        		modelName,
 				                version,
 				                "BPMN 2.0",
@@ -275,7 +272,7 @@ public class BPMNExportController extends AbstractController {
 				                now,  // last update timestamp
 				                publicModel);
                         Notification.info("A new BPMN model named <strong>" + modelName + "</strong> has been saved in the <strong>" + controller.getContextData().getFolderName() + "</strong> folder.");
-				        portalContext.refreshContent();
+				        controller.refreshPortal();
 					}
             	}
 			});
