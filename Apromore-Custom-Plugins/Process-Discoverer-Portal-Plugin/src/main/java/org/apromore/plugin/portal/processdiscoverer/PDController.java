@@ -42,6 +42,7 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
 import org.apromore.plugin.portal.processdiscoverer.actions.LogFilterController;
+import org.apromore.plugin.portal.processdiscoverer.components.AnimationViewController;
 import org.apromore.plugin.portal.processdiscoverer.components.CaseDetailsController;
 import org.apromore.plugin.portal.processdiscoverer.components.GraphSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.components.GraphVisController;
@@ -62,12 +63,15 @@ import org.apromore.portal.dialogController.BaseController;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
 import org.apromore.portal.model.FolderType;
 import org.apromore.portal.model.LogSummaryType;
+import org.apromore.portal.plugincontrol.PluginExecution;
+import org.apromore.portal.plugincontrol.PluginExecutionManager;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.processdiscoverer.AbstractionParams;
 import org.apromore.processdiscoverer.ProcessDiscoverer;
 import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.ProcessService;
+import org.apromore.service.loganimation.LogAnimationService2;
 import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.slf4j.Logger;
@@ -147,6 +151,7 @@ public class PDController extends BaseController {
     private DomainService domainService;
     private ProcessService processService;
     private EventLogService eventLogService;
+    private LogAnimationService2 logAnimationService;
     private ProcessDiscoverer processDiscoverer;
     private LogFilterPlugin logFilterPlugin;
     private PDFactory pdFactory;
@@ -161,8 +166,8 @@ public class PDController extends BaseController {
     private GraphSettingsController graphSettingsController;
     private LogStatsController logStatsController;
     private TimeStatsController timeStatsController;
+    private AnimationViewController animationViewController;
     private ProcessVisualizer processVisualizer;
-
     private LogFilterController logFilterController;
 
     //////////////////// DATA ///////////////////////////////////
@@ -180,6 +185,7 @@ public class PDController extends BaseController {
     private int sourceLogId; // plugin maintain log ID for Filter; Filter remove value to avoid conflic from multiple plugins
     
     private PDMode mode = PDMode.GRAPH_MODE;
+    private String pluginExecutionId;
 
     /////////////////////////////////////////////////////////////////////////
 
@@ -224,6 +230,7 @@ public class PDController extends BaseController {
         domainService = (DomainService) Sessions.getCurrent().getAttribute("domainService");
         processService = (ProcessService) Sessions.getCurrent().getAttribute("processService");
         eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService");
+        logAnimationService = (LogAnimationService2) Sessions.getCurrent().getAttribute("logAnimationService");
         logFilterPlugin = (LogFilterPlugin) Sessions.getCurrent().getAttribute("logFilterPlugin"); //beanFactory.getBean("logFilterPlugin");
 
         if (domainService == null || processService == null || eventLogService == null || logFilterPlugin == null) {
@@ -330,6 +337,7 @@ public class PDController extends BaseController {
             logStatsController = pdFactory.createLogStatsController(this);
             timeStatsController = pdFactory.createTimeStatsController(this);
             logFilterController = pdFactory.createLogFilterController(this);
+            animationViewController = new AnimationViewController(this);
 
             initialize();
             System.out.println("Session ID = " + ((HttpSession)Sessions.getCurrent().getNativeSession()).getId());
@@ -534,8 +542,13 @@ public class PDController extends BaseController {
                 }
             });
             filter.addEventListener("onClick", logFilterController);
-            animate.addEventListener("onClick", pdFactory.createAnimationController(this));
-    
+            animate.addEventListener("onClick", new EventListener<Event>() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    setPDMode(getPDMode() == PDMode.GRAPH_MODE ? PDMode.ANIMATION_MODE : PDMode.GRAPH_MODE);
+                }
+            });
+            
             exportFilteredLog.addEventListener("onExport", pdFactory.createLogExportController(this));
             exportBPMN.addEventListener("onClick", pdFactory.createBPMNExportController(this));
             downloadPDF.addEventListener("onClick", new EventListener<Event>() {
@@ -589,6 +602,8 @@ public class PDController extends BaseController {
                     }
                 }
             });
+            
+            pluginExecutionId = PluginExecutionManager.registerPluginExecution(new PluginExecution(this), Sessions.getCurrent());
         }
         catch (Exception ex) {
             Messagebox.show("Errors occured while initializing event handlers.");
@@ -734,6 +749,10 @@ public class PDController extends BaseController {
                     Messagebox.ERROR);
         }
     }
+    
+    public boolean isBPMNView() {
+        return this.userOptions.getBPMNMode(); 
+    }
 
     public void setBPMNView(boolean mode) {
         if (this.mode != PDMode.GRAPH_MODE) return;
@@ -749,10 +768,10 @@ public class PDController extends BaseController {
     public void setPDMode(PDMode newMode) {
         if (this.mode == PDMode.GRAPH_MODE && newMode == PDMode.ANIMATION_MODE) {
             graphVisController.hide();
-            animationVisController.show();
+            animationViewController.createAnimation();
         }
         else if (this.mode == PDMode.ANIMATION_MODE && newMode == PDMode.GRAPH_MODE) {
-            animationVisConroller.hide();
+            animationViewController.hide();
             graphVisController.show();
         }
         this.mode = newMode;
@@ -813,6 +832,10 @@ public class PDController extends BaseController {
     public LogFilterPlugin getLogFilterPlugin() {
         return logFilterPlugin;
     }
+    
+    public LogAnimationService2 getLogAnimationService() {
+        return logAnimationService;
+    }
 
     public DecimalFormat getDecimalFormatter() {
         return this.decimalFormat;
@@ -828,5 +851,9 @@ public class PDController extends BaseController {
     
     public void refreshPortal() {
         this.portalContext.refreshContent();
+    }
+    
+    public String getPluginExecutionId() {
+        return this.pluginExecutionId;
     }
 }

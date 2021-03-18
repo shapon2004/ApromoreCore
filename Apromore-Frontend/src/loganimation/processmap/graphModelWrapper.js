@@ -10,11 +10,9 @@ import * as Math from '../../utils/math';
  */
 export default class GraphModelWrapper {
     /**
-     * @param {LogAnimation} animation: main animation controller
      * @param {Cytoscape} cy: cytoscape
      */
-    constructor(animation, cy) {
-        this._logAnimation = animation;
+    constructor(cy) {
         this._listeners = [];
         this._cy = cy;
     }

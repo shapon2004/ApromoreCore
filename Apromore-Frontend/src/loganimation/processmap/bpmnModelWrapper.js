@@ -17,10 +17,8 @@ import {AnimationEvent, AnimationEventType} from "../animationEvents";
  */
 export default class BPMNModelWrapper {
     /**
-     * @param {LogAnimation} animation
      */
-    constructor(animation) {
-        this._logAnimation = animation;
+    constructor() {
         this._listeners = [];
     }
 

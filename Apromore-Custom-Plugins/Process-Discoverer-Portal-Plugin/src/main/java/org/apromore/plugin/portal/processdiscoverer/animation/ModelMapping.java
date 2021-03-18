@@ -23,6 +23,7 @@ package org.apromore.plugin.portal.processdiscoverer.animation;
 
 import java.util.List;
 
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,6 +66,10 @@ public class ModelMapping {
 	        }
 	    }
 	}
+	
+    public ModelMapping(BPMNDiagram diagram) {
+
+    }
 	
 	public int getIndex(String elementId) {
 		return elementIdToIndexMap.getIfAbsent(elementId, () -> -1);

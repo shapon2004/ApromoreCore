@@ -1,5 +1,6 @@
 import cytoscape from "cytoscape/dist/cytoscape.esm";
 import * as Math from '../utils/math';
+import GraphModelWrapper from "../loganimation/processmap/graphModelWrapper";
 
 const LAYOUT_MANUAL_BEZIER = 0;
 const LAYOUT_DAGRE_LR = 1;
@@ -628,23 +629,12 @@ PDp.showPerspectiveDetails = function() {
     this.zkSendEvent('$perspectiveDetails', 'onApShow', {top: top + 'px', left: left + 'px'});
 }
 
-
-PDp.cy = function() {
-    return cy;
-}
-
-PDp.getNodeCrossPath = function(nodeId) {
-    let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
-    let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
-    let boundingBox = cy.getElementById(nodeId).boundingBox();
-    return Math.getBoxCrossPath(startPoint, endPoint, boundingBox);
-}
-
-PDp.getNodeSkipPath = function(nodeId) {
-    let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
-    let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
-    let boundingBox = cy.getElementById(nodeId).boundingBox();
-    return Math.getBoxSkipPath(startPoint, endPoint, boundingBox);
+PDp.switchToAnimation = function(setupDataJSON, containerId) {
+    cy.unmount();
+    cy.mount($j('#' + uiPopupContainerId)[0]);
+    let processMapController = new GraphModelWrapper(cy);
+    let logAnimation = new LogAnimation(this.pluginExecutionId, processMapController);
+    logAnimation.initialize(setupDataJSON);
 }
 
 export default PDp;

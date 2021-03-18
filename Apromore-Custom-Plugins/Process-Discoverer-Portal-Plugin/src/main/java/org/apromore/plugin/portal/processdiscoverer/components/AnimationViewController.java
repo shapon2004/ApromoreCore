@@ -11,8 +11,12 @@ import org.apromore.plugin.portal.processdiscoverer.animation.AnimationIndex;
 import org.apromore.plugin.portal.processdiscoverer.animation.FrameRecorder;
 import org.apromore.plugin.portal.processdiscoverer.animation.ModelMapping;
 import org.apromore.plugin.portal.processdiscoverer.animation.Movie;
-import org.apromore.portal.plugincontrol.PluginExecution;
-import org.apromore.portal.plugincontrol.PluginExecutionManager;
+import org.apromore.plugin.portal.processdiscoverer.animation.Stats;
+import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
+import org.apromore.processdiscoverer.Abstraction;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.processmining.models.jgraph.ProMJGraph;
+import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.replay.AnimationLog;
@@ -21,8 +25,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.util.Clients;
 
 /**
  * This class manages the animation visualization 
@@ -58,45 +62,51 @@ public class AnimationViewController extends VisualController {
         //
     }
     
-    private List<LogAnimationService2.Log> createLogs(XLog eventlog, String logName) {
+    private List<LogAnimationService2.Log> createLogs(XLog eventlog) {
         List<LogAnimationService2.Log> logs = new ArrayList<>();
         Iterator<String> colors = Arrays.asList("#0088FF", "#FF8800", "#88FF00").iterator();
         LogAnimationService2.Log log = new LogAnimationService2.Log();
-        log.fileName = logName;
+        log.fileName = parent.getContextData().getLogName();
         log.xlog     = eventlog;
         log.color    = colors.hasNext() ? colors.next() : "red";
         logs.add(log);
         return logs;
     }
     
-    public AnimationResult createAlignment() {
-        if (logAnimationService != null) {  // logAnimationService is null if invoked from the editor toobar
-            AnimationResult result = bpmnNoGateways.isEmpty() ? logAnimationService.createAnimation(bpmnWithGateways, logs) :
-                                logAnimationService.createAnimationWithNoGateways(bpmnWithGateways, bpmnNoGateways, logs);
-            if (result == null) {
-                throw new Exception("No animation result was created");
-            }
-            return result;
+    public AnimationResult createAlignment() throws Exception {
+        Abstraction abs = parent.getOutputData().getAbstraction();
+        if (abs.getLayout() == null) {
+            throw new MissingLayoutException("Missing layout of the process map for animating");
+        }
+        
+        LogAnimationService2 logAnimationService = parent.getLogAnimationService();
+        AnimationResult result = null;
+        if (parent.isBPMNView()) {
+            result = logAnimationService.createAnimation(
+                                        getBPMN(abs.getValidBPMNDiagram(), abs.getLayout().getGraphLayout()),
+                                        createLogs(parent.getLogData().getLog().getActualXLog()));
+            
         }
         else {
-            throw new Exception("Log Animation Service is not available");
+            result = logAnimationService.createAnimationWithNoGateways(
+                                        getBPMN(abs.getValidBPMNDiagram(), null), 
+                                        getBPMN(abs.getDiagram(), abs.getLayout().getGraphLayout()), 
+                                        createLogs(parent.getLogData().getLog().getActualXLog())); 
         }
+        
+        if (result == null) {
+            throw new Exception("No animation result was created");
+        }
+        return result;
     }
     
-    public void createAnimation() {
+    public void createAnimation() throws Exception {
+        // Align log and model
         AnimationResult alignmentResult = createAlignment();
+        
+        // Prepare animation data
         AnimationContext animateContext = new AnimationContext(alignmentResult.getAnimationLogs());
-        ModelMapping modelMapping = new ModelMapping(parent.get);
-        
-        JSONObject setupData = alignmentResult.getSetupJSON();
-        setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
-        setupData.put("recordingDuration", animateContext.getRecordingDuration());
-        setupData.put("logStartFrameIndexes", logStartFrameIndexes);
-        setupData.put("logEndFrameIndexes", logEndFrameIndexes);
-        setupData.put("elementIndexIDMap", modelMapping.getElementJSON());
-        setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationMovie));
-        
-        
+        ModelMapping modelMapping = new ModelMapping(parent.getOutputData().getAbstraction().getValidBPMNDiagram());
         
         long timer = System.currentTimeMillis();
         List<AnimationIndex> animationIndexes = new ArrayList<>();
@@ -114,10 +124,46 @@ public class AnimationViewController extends VisualController {
         Movie animationMovie = FrameRecorder.record(alignmentResult.getAnimationLogs(), animationIndexes, animateContext);
         LOGGER.debug("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
         
-
+        // Prepare initial setup data for the animation
+        JSONObject setupData = alignmentResult.getSetupJSON();
+        setupData.put("recordingFrameRate", animateContext.getRecordingFrameRate());
+        setupData.put("recordingDuration", animateContext.getRecordingDuration());
+        setupData.put("logStartFrameIndexes", logStartFrameIndexes);
+        setupData.put("logEndFrameIndexes", logEndFrameIndexes);
+        setupData.put("elementIndexIDMap", modelMapping.getElementJSON());
+        setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationMovie));
         
-        // Create page parameters, these parameters will be injected into the ZUL file by ZK
-        String pluginExecutionId = PluginExecutionManager.registerPluginExecution(new PluginExecution(this), Sessions.getCurrent());
+        // Show animation view
+        String javascript = "Ap.pd.switchToAnimation(" + 
+                            "'" + parent.getPluginExecutionId() + "'," + 
+                            "'" + setupData.toString() + "'" +
+                            ")";
+        Clients.evalJavaScript(javascript);
+    }
+    
+    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
+        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
+        if (layoutInfo != null) {
+            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
+        }
+        else {
+            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
+        }
+        BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n " +
+                "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\"\n " +
+                "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\"\n " +
+                "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\"\n " +
+                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n " +
+                "targetNamespace=\"http://www.omg.org/bpmn20\"\n " +
+                "xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">");
+        sb.append(definitions.exportElements());
+        sb.append("</definitions>");
+        String bpmnText = sb.toString();
+        bpmnText.replaceAll("\n", "");
+        return bpmnText;
     }
     
 }
