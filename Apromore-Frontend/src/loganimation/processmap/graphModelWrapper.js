@@ -1,9 +1,9 @@
 import PD from '../../processdiscoverer';
 import {AnimationEvent, AnimationEventType} from "../animationEvents";
-import * as Math from '../../utils/math'
+import * as Math from '../../utils/math';
 
 /**
- * GraphModelWrapper encapsulates PD and and implementation needed by the token animation.
+ * GraphModelWrapper encapsulates Cytoscape and implementation needed by the token animation.
  * The token animation shows animation on the graph.
  *
  * @author Bruce Nguyen
@@ -11,12 +11,12 @@ import * as Math from '../../utils/math'
 export default class GraphModelWrapper {
     /**
      * @param {LogAnimation} animation: main animation controller
-     * @param {PD} pd: process discoverer
+     * @param {Cytoscape} cy: cytoscape
      */
-    constructor(animation, pd) {
+    constructor(animation, cy) {
         this._logAnimation = animation;
         this._listeners = [];
-        this._pd = pd;
+        this._cy = cy;
     }
 
     initialize(elementIndexIDMap) {
@@ -28,7 +28,8 @@ export default class GraphModelWrapper {
      * @private
      */
     _createElementCache(elementMapping) {
-        let pd = this._pd;
+        let graph = this;
+        let cy = this._cy;
         let elementIndexIDMap = elementMapping[0];
         let skipElementIndexIDMap = elementMapping[1];
         this._elementIndexToElement = {};
@@ -36,22 +37,22 @@ export default class GraphModelWrapper {
 
         for (let elementIndex in elementIndexIDMap) {
             let elementId = elementIndexIDMap[elementIndex];
-            let element = pd.cy().getElementById(elementId);
+            let element = cy.getElementById(elementId);
             this._elementIndexToElement[elementIndex] = element;
             this._elementIndexToPath[elementIndex] = element.isEdge() ? element._private.rscratch.allpts
-                                                                        : pd.getNodeCrossPath(elementId);
+                                                                        : graph._getNodeCrossPath(elementId);
         }
 
         for (let elementIndex in skipElementIndexIDMap) {
             let elementId = skipElementIndexIDMap[elementIndex];
-            let element = pd.cy().getElementById(elementId);
+            let element = cy.getElementById(elementId);
             this._elementIndexToElement[elementIndex] = element;
-            this._elementIndexToPath[elementIndex] = pd.getNodeSkipPath(elementId);
+            this._elementIndexToPath[elementIndex] = graph._getNodeSkipPath(elementId);
         }
     }
 
     getBoundingClientRect() {
-        return this._pd.getBoundingClientRect();
+        return this._cy.elements().boundingBox();
     }
 
     getTransformMatrix() {
@@ -96,12 +97,27 @@ export default class GraphModelWrapper {
     }
 
     _getPointAtDistanceOnSegments(pts, distance) {
-        let cy = this._pd.cy();
+        let cy = this._cy;
         if (pts.length >= 2) {
             let totalLengthSegments = Math.getTotalLengthSegments(pts);
             let currentPointOnSegments = Math.getPointAtLengthSegments(pts, distance);
             return {x: currentPointOnSegments.x, y: currentPointOnSegments.y};
         }
+    }
+
+    _getNodeCrossPath = function(nodeId) {
+        let cy = this._cy;
+        let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
+        let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
+        let boundingBox = cy.getElementById(nodeId).boundingBox();
+        return Math.getBoxCrossPath(startPoint, endPoint, boundingBox);
+    }
+
+    _getNodeSkipPath = function(nodeId) {
+        let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
+        let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
+        let boundingBox = cy.getElementById(nodeId).boundingBox();
+        return Math.getBoxSkipPath(startPoint, endPoint, boundingBox);
     }
 
     registerListener(listener) {

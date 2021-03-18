@@ -23,6 +23,7 @@
 package org.apromore.plugin.portal.processdiscoverer.actions;
 
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.PDMode;
 import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.processdiscoverer.Abstraction;
@@ -66,11 +67,11 @@ public class AnimationController extends AbstractController {
         */
         
         // Call animation logic to align the current log and BPMN diagram
-        if (parent.isAnalysisMode()) {
-            parent.switchToAnimationMode();
+        if (parent.getPDMode() == PDMode.GRAPH_MODE) {
+            parent.setPDMode(PDMode.ANIMATION_MODE);
         }
         else {
-            parent.switchToGraphMode();
+            parent.setPDMode(PDMode.GRAPH_MODE);;
         }
     }
     

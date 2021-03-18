@@ -742,7 +742,11 @@ public class PDController extends BaseController {
         generateViz();
     }
     
-    public void setMode(PDMode newMode) {
+    public PDMode getPDMode() {
+        return this.mode;
+    }
+    
+    public void setPDMode(PDMode newMode) {
         if (this.mode == PDMode.GRAPH_MODE && newMode == PDMode.ANIMATION_MODE) {
             graphVisController.hide();
             animationVisController.show();

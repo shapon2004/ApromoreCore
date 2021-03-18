@@ -374,6 +374,11 @@
     });
   }
 
+  function switchToAnimation() {
+    
+    cy.unmount();
+  }
+
   function loadTrace(json) {
     isTraceMode = true;
     reset();
