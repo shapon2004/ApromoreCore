@@ -2,8 +2,12 @@ import graph from './graph';
 import util from './util';
 import search from './search';
 
-let PD = function() {
-
+let PD = function(pluginExecutionId, processViewContainerId, animationViewContainerId) {
+    this._private = {
+        'pluginExecutionId': pluginExecutionId,
+        'processViewContainerId': processViewContainerId,
+        'animationViewContainerId': animationViewContainerId
+    }
 }
 
 let pdfn = PD.prototype;

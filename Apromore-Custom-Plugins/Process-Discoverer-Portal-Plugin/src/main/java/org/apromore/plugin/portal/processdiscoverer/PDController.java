@@ -42,7 +42,6 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
 import org.apromore.plugin.portal.processdiscoverer.actions.LogFilterController;
-import org.apromore.plugin.portal.processdiscoverer.components.AnimationViewController;
 import org.apromore.plugin.portal.processdiscoverer.components.CaseDetailsController;
 import org.apromore.plugin.portal.processdiscoverer.components.GraphSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.components.GraphVisController;
@@ -166,7 +165,6 @@ public class PDController extends BaseController {
     private GraphSettingsController graphSettingsController;
     private LogStatsController logStatsController;
     private TimeStatsController timeStatsController;
-    private AnimationViewController animationViewController;
     private ProcessVisualizer processVisualizer;
     private LogFilterController logFilterController;
 
@@ -337,7 +335,6 @@ public class PDController extends BaseController {
             logStatsController = pdFactory.createLogStatsController(this);
             timeStatsController = pdFactory.createTimeStatsController(this);
             logFilterController = pdFactory.createLogFilterController(this);
-            animationViewController = new AnimationViewController(this);
 
             initialize();
             System.out.println("Session ID = " + ((HttpSession)Sessions.getCurrent().getNativeSession()).getId());
@@ -766,15 +763,21 @@ public class PDController extends BaseController {
     }
     
     public void setPDMode(PDMode newMode) {
-        if (this.mode == PDMode.GRAPH_MODE && newMode == PDMode.ANIMATION_MODE) {
-            graphVisController.hide();
-            animationViewController.createAnimation();
+        try {
+            if (newMode == this.mode) {
+                return;
+            }
+            else if (newMode == PDMode.ANIMATION_MODE) {
+                graphVisController.switchToAnimation();
+            }
+            else if (newMode == PDMode.GRAPH_MODE) {
+                graphVisController.switchToProcessModel();
+            }
+            this.mode = newMode;
         }
-        else if (this.mode == PDMode.ANIMATION_MODE && newMode == PDMode.GRAPH_MODE) {
-            animationViewController.hide();
-            graphVisController.show();
+        catch (Exception ex) {
+            Messagebox.show(ex.getMessage());
         }
-        this.mode = newMode;
     }
 
     public String getPerspective() {

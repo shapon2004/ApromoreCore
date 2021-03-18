@@ -1,6 +1,7 @@
 import cytoscape from "cytoscape/dist/cytoscape.esm";
 import * as Math from '../utils/math';
 import GraphModelWrapper from "../loganimation/processmap/graphModelWrapper";
+import LogAnimation from "../loganimation";
 
 const LAYOUT_MANUAL_BEZIER = 0;
 const LAYOUT_DAGRE_LR = 1;
@@ -629,12 +630,21 @@ PDp.showPerspectiveDetails = function() {
     this.zkSendEvent('$perspectiveDetails', 'onApShow', {top: top + 'px', left: left + 'px'});
 }
 
-PDp.switchToAnimation = function(setupDataJSON, containerId) {
+PDp.switchToAnimationView = function(setupDataJSON) {
+    let pd = this;
     cy.unmount();
-    cy.mount($j('#' + uiPopupContainerId)[0]);
+    cy.mount($j('#' + pd.animationViewContainerId)[0]);
+    $j('#' + pd.animationViewContainerId).hide();
     let processMapController = new GraphModelWrapper(cy);
     let logAnimation = new LogAnimation(this.pluginExecutionId, processMapController);
     logAnimation.initialize(setupDataJSON);
+}
+
+PDp.switchToProcessView = function() {
+    let pd = this;
+    cy.unmount();
+    cy.mount($j('#' + pd.processViewContainerId)[0]);
+    $j('#' + pd.processViewContainerId).hide();
 }
 
 export default PDp;
