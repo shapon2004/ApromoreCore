@@ -9,7 +9,6 @@
 import FrameBuffer from "./frameBuffer";
 import {AnimationState} from "./animationContextState";
 import {AnimationEvent, AnimationEventType} from "./animationEvents";
-import ProcessModelController from './processmap/bpmnModelWrapper';
 
 /**
  * The animation reads frames from the Buffer into a Frame Queue and draws them on the canvas.
@@ -35,7 +34,7 @@ export default class TokenAnimation {
     /**
      * @param {LogAnimation} animation
      * @param {String} canvasElementId: id of the canvas element
-     * @param {ProcessModelController} processMapController
+     * @param {Object} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
     constructor(animation, canvasElementId, processMapController, colorPalette) {

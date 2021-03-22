@@ -37,7 +37,6 @@ import org.apromore.plugin.portal.processdiscoverer.animation.Stats;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
-import org.apromore.processmining.models.jgraph.ProMJGraph;
 import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
@@ -75,7 +74,9 @@ public class GraphVisController extends VisualController {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphVisController.class);
 
-    Component vizBridge;
+    private Component vizBridge;
+    
+    private Movie animationMovie;
 
     public GraphVisController(PDController controller) {
         super(controller);
@@ -225,7 +226,9 @@ public class GraphVisController extends VisualController {
      */
     public void displayDiagram(String visualizedText) {
         //int retainZoomPan = parent.getUserOptions().getRetainZoomPan() ? 1 : 0;
-        String javascript = "Ap.pd.loadLog('" + visualizedText + "'," +  parent.getUserOptions().getSelectedLayout() + "," +
+        String javascript = "Ap.pd.loadLog('" + 
+                            visualizedText + "'," +  
+                            parent.getUserOptions().getSelectedLayout() + "," +
                             parent.getUserOptions().getRetainZoomPan() + ");";
         Clients.evalJavaScript(javascript);
         parent.getUserOptions().setRetainZoomPan(false);
@@ -270,18 +273,21 @@ public class GraphVisController extends VisualController {
         throw new Exception("Unsupported interactive Event Handler");
     }
     
-    public void switchToProcessModel() {
-        String javascript = "Ap.pd.switchToProcessView()"; 
+    public void switchToInteractiveView() {
+        String javascript = "Ap.pd.switchToInteractiveView()"; 
         Clients.evalJavaScript(javascript);
     }
     
-    public void switchToAnimation() throws Exception {
+    public void switchToAnimationView() throws Exception {
         // Align log and model
-        AnimationResult alignmentResult = createAlignment();
+        BPMNDiagram oriDiagram = parent.getOutputData().getAbstraction().getDiagram();
+        BPMNDiagram alignDiagram = parent.getOutputData().getAbstraction().getValidBPMNDiagram();
+        AnimationResult alignmentResult = createAlignment(oriDiagram, alignDiagram,
+                                                          parent.getLogData().getLog().getActualXLog());
         
         // Prepare animation data
         AnimationContext animateContext = new AnimationContext(alignmentResult.getAnimationLogs());
-        ModelMapping modelMapping = new ModelMapping(parent.getOutputData().getAbstraction().getValidBPMNDiagram());
+        ModelMapping modelMapping = new ModelMapping(alignDiagram);
         
         long timer = System.currentTimeMillis();
         List<AnimationIndex> animationIndexes = new ArrayList<>();
@@ -296,7 +302,7 @@ public class GraphVisController extends VisualController {
         
         LOGGER.debug("Start recording frames");
         timer = System.currentTimeMillis();
-        Movie animationMovie = FrameRecorder.record(alignmentResult.getAnimationLogs(), animationIndexes, animateContext);
+        animationMovie = FrameRecorder.record(alignmentResult.getAnimationLogs(), animationIndexes, animateContext);
         LOGGER.debug("Finished recording frames: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
         
         // Prepare initial setup data for the animation
@@ -309,10 +315,7 @@ public class GraphVisController extends VisualController {
         setupData.put("caseCountsByFrames", Stats.computeCaseCountsJSON(animationMovie));
         
         // Show animation view
-        String javascript = "Ap.pd.switchToAnimationView(" + 
-                            "'" + parent.getPluginExecutionId() + "'," + 
-                            "'" + setupData.toString() + "'" +
-                            ")";
+        String javascript = "Ap.pd.switchToAnimationView('" + setupData.toString() + "')";
         Clients.evalJavaScript(javascript);
     }
     
@@ -327,7 +330,7 @@ public class GraphVisController extends VisualController {
         return logs;
     }
     
-    private AnimationResult createAlignment() throws Exception {
+    private AnimationResult createAlignment(BPMNDiagram oriDiagram, BPMNDiagram alignDiagram, XLog log) throws Exception {
         Abstraction abs = parent.getOutputData().getAbstraction();
         if (abs.getLayout() == null) {
             throw new MissingLayoutException("Missing layout of the process map for animating");
@@ -336,16 +339,13 @@ public class GraphVisController extends VisualController {
         LogAnimationService2 logAnimationService = parent.getLogAnimationService();
         AnimationResult result = null;
         if (parent.isBPMNView()) {
-            result = logAnimationService.createAnimation(
-                                        getBPMN(abs.getValidBPMNDiagram(), abs.getLayout().getGraphLayout()),
-                                        createLogs(parent.getLogData().getLog().getActualXLog()));
+            result = logAnimationService.createAnimation(getBPMN(alignDiagram), createLogs(log));
             
         }
         else {
-            result = logAnimationService.createAnimationWithNoGateways(
-                                        getBPMN(abs.getValidBPMNDiagram(), null), 
-                                        getBPMN(abs.getDiagram(), abs.getLayout().getGraphLayout()), 
-                                        createLogs(parent.getLogData().getLog().getActualXLog())); 
+            result = logAnimationService.createAnimationWithNoGateways(getBPMN(alignDiagram), 
+                                                                        getBPMN(oriDiagram), 
+                                                                        createLogs(log)); 
         }
         
         if (result == null) {
@@ -354,14 +354,13 @@ public class GraphVisController extends VisualController {
         return result;
     }
     
-    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
+    public Movie getAnimationMovie() {
+        return this.animationMovie;
+    }
+    
+    private String getBPMN(BPMNDiagram diagram) {
         BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
-        if (layoutInfo != null) {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
-        }
-        else {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
-        }
+        definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
         BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +

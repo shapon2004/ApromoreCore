@@ -1,19 +1,18 @@
 const webpack = require("webpack");
 const path = require('path');
 
-//const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-//const TerserPlugin = require("terser-webpack-plugin");
-//const HtmlWebpackPlugin = require("html-webpack-plugin");
-
 module.exports = {
-    entry: './src/loganimation/index.js',
+    entry: {
+        LogAnimation: './src/loganimation/index.js',
+        ProcessDiscoverer: './src/processdiscoverer/index.js',
+        BPMNModelWrapper: './src/processmap/bpmnModelWrapper.js'
+    },
     output: {
-        filename: 'logAnimation.bundle.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
-        library: "LogAnimation",   // Important
+        library: ['Apromore', '[name]'],   // Important
         libraryTarget: 'umd',   // Important
         libraryExport: 'default'
-        //umdNamedDefine: true   // Important
     },
     mode: 'development',
     devtool: 'source-map',

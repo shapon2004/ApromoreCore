@@ -21,20 +21,14 @@
  */
 package org.apromore.plugin.portal.processdiscoverer.animation;
 
-import java.util.List;
-
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNEdge;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNNode;
+import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Activity;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import de.hpi.bpmn2_0.model.BaseElement;
-import de.hpi.bpmn2_0.model.Definitions;
-import de.hpi.bpmn2_0.model.FlowElement;
-import de.hpi.bpmn2_0.model.Process;
-import de.hpi.bpmn2_0.model.activity.Activity;
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 /**
  * Mapping from modelling element IDs to indexes and vice versa.
@@ -45,30 +39,21 @@ public class ModelMapping {
 	private HashBiMap<String, Integer> elementIdToIndexMap = new HashBiMap<>();
 	private HashBiMap<String, Integer> elementIdToSkipIndexMap = new HashBiMap<>();
 	
-	public ModelMapping(Definitions diagram) {
-		int index=0;
-		
-	    List<BaseElement> rootElements = diagram.getRootElement();
-	    if (rootElements.size() == 1) {
-	        BaseElement rootElement = rootElements.get(0);
-	        if (rootElement instanceof Process) {
-	            Process process = (Process)rootElement;
-	            for (FlowElement element : process.getFlowElement()) {
-	                if (element instanceof Activity || element instanceof SequenceFlow) {
-	                    elementIdToIndexMap.put(element.getId(), index);
-	                    index++;
-	                    if (element instanceof Activity) {
-	                        elementIdToSkipIndexMap.put(element.getId(), index);
-	                        index++;
-	                    }
-	                }                  
-	            }
-	        }
-	    }
-	}
-	
     public ModelMapping(BPMNDiagram diagram) {
-
+        int index=0;
+        for (BPMNNode node : diagram.getNodes()) {
+            elementIdToIndexMap.put(node.getId().toString(), index);
+            index++;
+            if (node instanceof Activity) {
+                elementIdToSkipIndexMap.put(node.getId().toString(), index);
+                index++;
+            }
+        }
+        
+        for (BPMNEdge<? extends BPMNNode, ? extends BPMNNode> edge : diagram.getEdges()) {
+            elementIdToIndexMap.put(edge.getEdgeID().toString(), index);
+            index++;
+        }
     }
 	
 	public int getIndex(String elementId) {

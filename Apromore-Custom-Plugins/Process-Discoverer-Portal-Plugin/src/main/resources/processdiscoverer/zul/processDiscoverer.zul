@@ -33,7 +33,7 @@
 <?link rel="stylesheet" href="../../themes/${labels.theme}/portal/css/portal.css" type="text/css" ?>
 <?script src="../../themes/ap/common/js/index.js"?>
 <zk xmlns="http://www.zkoss.org/2005/zul"
-    xmlns:h="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://www.w3.org/1999/xhtml" 
     xmlns:w="client"
     xmlns:n="native"
     xmlns:ca="client/attribute"
@@ -265,15 +265,57 @@
       </div>
       
       <!-- Graph Area -->
-      <!------ PD INTERACTIVE MODE ---->
-      <n:div>
-          <n:div id="ap-pd-process-model" style="background-color:none;"/>
+      <!-- PD INTERACTIVE MODE -->
+      <n:div id="ap-pd-interactive" visible="true">
+          <n:div id="ap-pd-model" style="background-color:none;"/>
           <div id="vizBridge" visible="false"></div>
       </n:div>
-      <!------ PD ANIMATION MODE ---->
-      <animation />
+      
+      <!-- PD ANIMATION MODE -->
+      <n:div id="ap-pd-animation" visible="false">
+        <animation />
+      </n:div>
     
       <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
+    </n:div> 
   </window>
   <n:script type="text/javascript" defer="defer" src="/themes/ap/common/js/css-browser-selector.js"></n:script>
+  
+  <n:script defer="true">
+    <![CDATA[
+    
+    zk.afterMount(function () {
+        Ap.pd = new Apromore.PD('${arg.pluginExecutionId}', 
+                                'ap-pd-interactive', 
+                                'ap-pd-animation',
+                                'ap-pd-la-canvas',
+                                'ap-pd-la-timeline-svg',
+                                'ap-pd-la-speed-control',
+                                '',
+                                '',
+                                'ap-pd-la-clock',
+                                'ap-pd-la-buttons',
+                                'ap-mc-icon-play',
+                                'ap-mc-icon-pause');
+        zAu.send(new zk.Event(zk.Widget.$('$win'), 'onLoaded'));
+        setTimeout(function () {
+            try {
+                Ap.pd.installComboitemHandlers();
+            } catch (e) {
+                // pass
+            }
+        }, 1000);
+        
+        document.addEventListener("click", (evt) => {
+            const el = Ap.pd.searchOptions[0];
+            const input = Ap.pd.searchInput[0];
+            const target = evt.target;
+            if (el !== target && input !== target) {
+                Ap.pd.updateSelectedNodes();
+            }
+        });
+    });
+
+    ]]>
+  </n:script>
 </zk>

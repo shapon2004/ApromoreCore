@@ -33,7 +33,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import org.apromore.logman.ALog;
 import org.apromore.logman.attribute.IndexableAttribute;
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
@@ -51,7 +50,6 @@ import org.apromore.plugin.portal.processdiscoverer.components.TimeStatsControll
 import org.apromore.plugin.portal.processdiscoverer.components.ViewSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
-import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
@@ -71,8 +69,8 @@ import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.ProcessService;
 import org.apromore.service.loganimation.LogAnimationService2;
-import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
+import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.json.JSONObject;
@@ -182,13 +180,17 @@ public class PDController extends BaseController {
 
     private int sourceLogId; // plugin maintain log ID for Filter; Filter remove value to avoid conflic from multiple plugins
     
-    private PDMode mode = PDMode.GRAPH_MODE;
+    private PDMode mode = PDMode.INTERACTIVE_MODE;
     private String pluginExecutionId;
 
     /////////////////////////////////////////////////////////////////////////
 
     public PDController() throws Exception {
         super();
+        Map<String, Object> pageParams = new HashMap<>();
+        pluginExecutionId = PluginExecutionManager.registerPluginExecution(new PluginExecution(this), Sessions.getCurrent());
+        pageParams.put("pluginExecutionId", pluginExecutionId);
+        Executions.getCurrent().pushArg(pageParams);
     }
     
     //Note: this method is only valid inside onCreate() as it calls ZK current Execution
@@ -235,15 +237,6 @@ public class PDController extends BaseController {
             return false;
         }
         return true;
-    }
-    
-    private LogData createLogData(ConfigData configData)  throws Exception {
-        XLog xlog = eventLogService.getXLog(contextData.getLogId());
-        if (xlog == null) {
-            throw new InvalidDataException("XLog data is null");
-        }
-        ALog aLog = new ALog(xlog);
-        return new LogData(configData, aLog);
     }
     
     // This is to check the availability of system services before executing a related action
@@ -303,7 +296,7 @@ public class PDController extends BaseController {
             userOptions.setInvertedArcsMode(false);
     
             // Prepare log data
-            logData = createLogData(configData);
+            logData = pdFactory.createLogData(contextData, configData, eventLogService);
             IndexableAttribute mainAttribute = logData.getAttribute(configData.getDefaultAttribute());
             if (mainAttribute == null) {
                 Messagebox.show("We cannot display the process map due to missing activity (i.e. concept:name) attribute in the log.", 
@@ -542,7 +535,7 @@ public class PDController extends BaseController {
             animate.addEventListener("onClick", new EventListener<Event>() {
                 @Override
                 public void onEvent(Event event) throws Exception {
-                    setPDMode(getPDMode() == PDMode.GRAPH_MODE ? PDMode.ANIMATION_MODE : PDMode.GRAPH_MODE);
+                    setPDMode(getPDMode() == PDMode.INTERACTIVE_MODE ? PDMode.ANIMATION_MODE : PDMode.INTERACTIVE_MODE);
                 }
             });
             
@@ -600,7 +593,6 @@ public class PDController extends BaseController {
                 }
             });
             
-            pluginExecutionId = PluginExecutionManager.registerPluginExecution(new PluginExecution(this), Sessions.getCurrent());
         }
         catch (Exception ex) {
             Messagebox.show("Errors occured while initializing event handlers.");
@@ -609,7 +601,7 @@ public class PDController extends BaseController {
     }
 
     public void clearFilter() throws Exception {
-        if (this.mode != PDMode.GRAPH_MODE) return;
+        if (this.mode != PDMode.INTERACTIVE_MODE) return;
         logFilterController.clearFilter();
     }
 
@@ -620,7 +612,7 @@ public class PDController extends BaseController {
      * @param reset: true to reset the graph zoom and panning
      */
     public void updateUI(boolean reset) {
-        if (this.mode != PDMode.GRAPH_MODE) return;
+        if (this.mode != PDMode.INTERACTIVE_MODE) return;
         try {
             logStatsController.updateUI(contextData);
             timeStatsController.updateUI(contextData);
@@ -668,7 +660,7 @@ public class PDController extends BaseController {
     public void generateViz() {
         long timer1 = System.currentTimeMillis();
         
-        if (this.mode != PDMode.GRAPH_MODE) return;
+        if (this.mode != PDMode.INTERACTIVE_MODE) return;
 
         if (logData.getAttributeLog() == null) {
             Messagebox.show("Cannot create data for visualization. Please check the log!",
@@ -752,7 +744,7 @@ public class PDController extends BaseController {
     }
 
     public void setBPMNView(boolean mode) {
-        if (this.mode != PDMode.GRAPH_MODE) return;
+        if (this.mode != PDMode.INTERACTIVE_MODE) return;
         userOptions.setBPMNMode(mode);
         graphSettingsController.updateParallelism(mode);
         generateViz();
@@ -768,10 +760,10 @@ public class PDController extends BaseController {
                 return;
             }
             else if (newMode == PDMode.ANIMATION_MODE) {
-                graphVisController.switchToAnimation();
+                graphVisController.switchToAnimationView();
             }
-            else if (newMode == PDMode.GRAPH_MODE) {
-                graphVisController.switchToProcessModel();
+            else if (newMode == PDMode.INTERACTIVE_MODE) {
+                graphVisController.switchToInteractiveView();
             }
             this.mode = newMode;
         }
@@ -785,7 +777,7 @@ public class PDController extends BaseController {
     }
 
     public void setPerspective(String value) throws Exception {
-        if (this.mode != PDMode.GRAPH_MODE) return;
+        if (this.mode != PDMode.INTERACTIVE_MODE) return;
         if (!value.equals(userOptions.getMainAttributeKey())) {
             animate.setDisabled(!value.equals(configData.getDefaultAttribute()));
             userOptions.setMainAttributeKey(value);
@@ -858,5 +850,29 @@ public class PDController extends BaseController {
     
     public String getPluginExecutionId() {
         return this.pluginExecutionId;
+    }
+    
+    @Override
+    public String processRequest(Map<String,String[]> parameterMap) {
+        String  startFrameIndex = parameterMap.get("startFrameIndex")[0];
+        String  chunkSize = parameterMap.get("chunkSize")[0];
+        try {
+            String chunkJSON = graphVisController.getAnimationMovie()
+                                        .getChunkJSON(Integer.parseInt(startFrameIndex), 
+                                                        Integer.parseInt(chunkSize)).toString();
+            return escapeQuotedJavascript(chunkJSON);
+        }
+        catch (NumberFormatException | JSONException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * @param json
+     * @return the <var>json</var> escaped so that it can be quoted in Javascript.
+     *     Specifically, it replaces apostrophes with \\u0027 and removes embedded newlines and leading and trailing whitespace.
+     */
+    private String escapeQuotedJavascript(String json) {
+        return json.replace("\n", " ").replace("'", "\\u0027").trim();
     }
 }

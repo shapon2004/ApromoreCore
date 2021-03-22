@@ -22,7 +22,6 @@
 package org.apromore.plugin.portal.processdiscoverer.impl.factory;
 
 import org.apromore.logman.ALog;
-import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.actions.AnimationController;
 import org.apromore.plugin.portal.processdiscoverer.actions.BPMNExportController;
@@ -40,7 +39,6 @@ import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
 import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
-import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
 import org.apromore.plugin.portal.processdiscoverer.impl.json.ProcessJSONVisualizer;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
 import org.apromore.processdiscoverer.Abstraction;
@@ -49,33 +47,15 @@ import org.deckfour.xes.model.XLog;
 
 public class PDStandardFactory implements PDFactory {
 
-    @Override
-    public ContextData createContextData(PortalContext portalContext, 
-            String domain,
-            int logId, String logName,
-            int containingFolderId, String containingFolderName, 
-            ConfigData configData)  throws Exception {
-        return new ContextData(portalContext, domain, logId, logName, containingFolderId, containingFolderName, configData);
-    }
 
     @Override
-    public LogData createLogData(ContextData contextData, EventLogService eventLogService)  throws Exception {
+    public LogData createLogData(ContextData contextData, ConfigData configData, EventLogService eventLogService)  throws Exception {
         XLog xlog = eventLogService.getXLog(contextData.getLogId());
         if (xlog == null) {
             throw new InvalidDataException("XLog data is null");
         }
         ALog aLog = new ALog(xlog);
-        return new LogData(contextData.getConfigData(), aLog);
-    }
-
-    @Override
-    public ConfigData createConfigData()  throws Exception {
-        return new ConfigData();
-    }
-
-    @Override
-    public UserOptionsData createUserOptionsData()  throws Exception {
-        return new UserOptionsData();
+        return new LogData(configData, aLog);
     }
 
     @Override

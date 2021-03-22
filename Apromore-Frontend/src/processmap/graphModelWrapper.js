@@ -1,6 +1,6 @@
-import PD from '../../processdiscoverer';
-import {AnimationEvent, AnimationEventType} from "../animationEvents";
-import * as Math from '../../utils/math';
+import PD from '../processdiscoverer';
+import {AnimationEvent, AnimationEventType} from "../loganimation/animationEvents";
+import * as Math from '../utils/math';
 
 /**
  * GraphModelWrapper encapsulates Cytoscape and implementation needed by the token animation.
@@ -103,7 +103,7 @@ export default class GraphModelWrapper {
         }
     }
 
-    _getNodeCrossPath = function(nodeId) {
+    _getNodeCrossPath(nodeId) {
         let cy = this._cy;
         let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
         let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
@@ -111,7 +111,7 @@ export default class GraphModelWrapper {
         return Math.getBoxCrossPath(startPoint, endPoint, boundingBox);
     }
 
-    _getNodeSkipPath = function(nodeId) {
+    _getNodeSkipPath(nodeId) {
         let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
         let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
         let boundingBox = cy.getElementById(nodeId).boundingBox();

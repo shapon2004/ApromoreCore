@@ -1,6 +1,6 @@
 import cytoscape from "cytoscape/dist/cytoscape.esm";
 import * as Math from '../utils/math';
-import GraphModelWrapper from "../loganimation/processmap/graphModelWrapper";
+import GraphModelWrapper from "../processmap/graphModelWrapper";
 import LogAnimation from "../loganimation";
 
 const LAYOUT_MANUAL_BEZIER = 0;
@@ -633,18 +633,30 @@ PDp.showPerspectiveDetails = function() {
 PDp.switchToAnimationView = function(setupDataJSON) {
     let pd = this;
     cy.unmount();
-    cy.mount($j('#' + pd.animationViewContainerId)[0]);
-    $j('#' + pd.animationViewContainerId).hide();
+    $j('#' + pd._private.interactiveViewContainerId).hide();
+    cy.mount($j('#' + pd._private.animationViewContainerId)[0]);
+    $j('#' + pd._private.animationViewContainerId).show();
+
     let processMapController = new GraphModelWrapper(cy);
-    let logAnimation = new LogAnimation(this.pluginExecutionId, processMapController);
+    let logAnimation = new LogAnimation(pd._private.pluginExecutionId, processMapController,
+                                        pd._private.tokenAnimationContainerId,
+                                        pd._private.timelineContainerId,
+                                        pd._private.speedControlContainerId,
+                                        pd._private.progressContainerId,
+                                        pd._private.logInfoContainerId,
+                                        pd._private.clockContainerId,
+                                        pd._private.buttonsContainerId,
+                                        pd._private.playClassName,
+                                        pd._private.pauseClassName);
     logAnimation.initialize(setupDataJSON);
 }
 
-PDp.switchToProcessView = function() {
+PDp.switchToInteractiveView = function() {
     let pd = this;
     cy.unmount();
-    cy.mount($j('#' + pd.processViewContainerId)[0]);
-    $j('#' + pd.processViewContainerId).hide();
+    $j('#' + pd._private.animationViewContainerId).hide();
+    cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
+    $j('#' + pd._private.interactiveViewContainerId).show();
 }
 
 export default PDp;

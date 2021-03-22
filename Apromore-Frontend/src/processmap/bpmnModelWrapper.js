@@ -1,6 +1,6 @@
-import {Apromore} from "../../bpmneditor/apromoreEditor";
-import * as utils from "../utils";
-import {AnimationEvent, AnimationEventType} from "../animationEvents";
+import {Apromore} from "../bpmneditor/apromoreEditor";
+import * as utils from "../loganimation/utils";
+import {AnimationEvent, AnimationEventType} from "../loganimation/animationEvents";
 
 /**
  * BPMNModelWrapper encapsulates the BPMN.io model editor and provides

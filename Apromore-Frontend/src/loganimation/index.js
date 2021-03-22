@@ -1,3 +1,3 @@
 export {
     default
-} from './animationMain';
+} from './logAnimation';

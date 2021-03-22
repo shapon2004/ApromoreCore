@@ -6,28 +6,17 @@
 export default class PlayActionControl{
     /**
      * @param {LogAnimation} animation
-     * @param {String} gotoStartButtonId: button id
-     * @param {String} pauseButtonId
-     * @param {String} forwardButtonId
-     * @param {String} backwardButtonId
-     * @param {String} gotoEndButtonId
+     * @param {String} buttonsContainerId: containing div id
      * @param {String} playClassName: CSS class name of the play state
      * @param {String} pauseClassName: CSS class name of the pause state
      */
-    constructor(animation,
-                gotoStartButtonId,
-                pauseButtonId,
-                forwardButtonId,
-                backwardButtonId,
-                gotoEndButtonId,
-                playClassName,
-                pauseClassName) {
+    constructor(animation, buttonsContainerId, playClassName, pauseClassName) {
         this.animation = animation;
-        this.gotoStartButton = $j('#' + gotoStartButtonId);
-        this.pauseButton = $j('#' + pauseButtonId);
-        this.forwardButton = $j('#' + forwardButtonId);
-        this.backwardButton = $j('#' + backwardButtonId);
-        this.gotoEndButton = $j('#' + gotoEndButtonId);
+        this.gotoStartButton = $j('#' + buttonsContainerId + " > button").get(0);
+        this.pauseButton = $j('#' + buttonsContainerId + " > button").get(1);
+        this.forwardButton = $j('#' + buttonsContainerId + " > button").get(2);
+        this.backwardButton = $j('#' + buttonsContainerId + " > button").get(3);
+        this.gotoEndButton = $j('#' + buttonsContainerId + " > button").get(4);
 
         this.gotoStartButton.on('click', animation.gotoStart.bind(animation));
         this.gotoEndButton.on('click', animation.gotoEnd.bind(animation));

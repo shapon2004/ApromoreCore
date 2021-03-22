@@ -21,7 +21,6 @@
  */
 package org.apromore.plugin.portal.processdiscoverer.impl.factory;
 
-import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.actions.AnimationController;
 import org.apromore.plugin.portal.processdiscoverer.actions.BPMNExportController;
@@ -38,20 +37,12 @@ import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
 import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
-import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.service.EventLogService;
 
 public interface PDFactory {
-    ContextData createContextData(PortalContext portalContext, 
-            String domain,
-            int logId, String logName,
-            int containingFolderId, String containingFolderName, 
-            ConfigData configData)  throws Exception;
-    LogData createLogData(ContextData contextData, EventLogService eventLogService)  throws Exception;
-    ConfigData createConfigData()  throws Exception;
-    UserOptionsData createUserOptionsData()  throws Exception;
+    LogData createLogData(ContextData contextData, ConfigData configData, EventLogService eventLogService)  throws Exception;
     OutputData createOutputData(Abstraction currentAbstraction, String visualizedText)  throws Exception;
     
     GraphVisController createGraphVisController(PDController pdController) throws Exception;

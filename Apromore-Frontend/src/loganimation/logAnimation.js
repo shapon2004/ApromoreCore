@@ -50,8 +50,27 @@ export default class LogAnimation {
      * This map/model can have different implementations, e.g. bpmn.io or cytoscape.js
      * @param {String} pluginExecutionId: ID of the running log animation instance, used for communicating with the server.
      * @param {Object} processMapController: the process map/model controller
+     * @param {String} tokenAnimationContainerId: id of the container of token animation
+     * @param {String} timelineContainerId: id of the container of timeline panel
+     * @param {String} speedControlContainerId: id of the container of speed control panel
+     * @param {String} progressContainerId: id of the container of the progress panel
+     * @param {String} logInfoContainerId: id of the container of the log info panel
+     * @param {String} clockContainerId: id of the container of the clock
+     * @param {String} buttonsContainerId: id of the container of the control buttons panel
+     * @param {String} playClassName: CSS class name of the play state
+     * @param {String} pauseClassName: CSS class name of the pause state
      */
-    constructor(pluginExecutionId, processMapController) {
+    constructor(pluginExecutionId,
+                processMapController,
+                tokenAnimationContainerId,
+                timelineContainerId,
+                speedControlContainerId,
+                progressContainerId,
+                logInfoContainerId,
+                clockContainerId,
+                buttonsContainerId,
+                playClassName,
+                pauseClassName) {
         this.pluginExecutionId = pluginExecutionId;
         this.isPlayingBeforeMovingModel = false;
         this.colorPalette = [
@@ -64,19 +83,16 @@ export default class LogAnimation {
             ['#ff80ff', '#ff66ff', '#ff4dff', '#ff33ff', '#ff1aff', '#ff00ff', '#e600e6', '#cc00cc'] //pink
         ];
         this.processMapController = processMapController;
+        this.tokenAnimationContainerId = tokenAnimationContainerId;
+        this.timelineContainerId = timelineContainerId;
+        this.speedControlContainerId = speedControlContainerId;
+        this.progressContainerId = progressContainerId;
+        this.logInfoContainerId = logInfoContainerId;
+        this.clockContainerId = clockContainerId;
+        this.buttonsContainerId = buttonsContainerId;
+        this.playClassName = playClassName;
+        this.pauseClassName = pauseClassName;
     }
-
-    /**
-     * Load process model to be used for log animation.
-     * This method could take time for loading big XML data. It is made a separate method with callback
-     * for the caller to use for progress or result tracking.
-     * @param modelXML: the model content
-     * @param callBack: the callBack function to notify of the model loading result
-     */
-    // loadProcessModel(modelXML, callBack) {
-    //     this.processMapController = new ProcessModelController(this);
-    //     this.processMapController.loadProcessModel('editorcanvas', modelXML, callBack);
-    // }
 
     /**
      * Caller of LogAnimation must make sure that it has successfuly loaded a process model before initializing it.
@@ -101,14 +117,14 @@ export default class LogAnimation {
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new TokenAnimation(this, 'canvas', this.processMapController, this.colorPalette);
-        this.timeline = new TimelineAnimation(this, 'timeline_svg', 'timelineCanvas', caseCountsByFrames);
-        this.speedControl = new SpeedControl(this, 'speed-control');
-        this.progress = new ProgressAnimation(this, logStartFrameIndexes, logEndFrameIndexes, 'ap-la-progress', 'ap-la-info-tip');
-        this.clock = new ClockAnimation(this, 'date', 'time');
-        this.buttonControls = new PlayActionControl(this,
-            'start', 'pause', 'forward', 'backward', 'end',
-            'ap-mc-icon-play', 'ap-mc-icon-pause');
+        this.tokenAnimation = new TokenAnimation(this, this.tokenAnimationContainerId, this.processMapController, this.colorPalette);
+        this.timeline = new TimelineAnimation(this, this.timelineContainerId, caseCountsByFrames);
+        this.speedControl = new SpeedControl(this, this.speedControlContainerId);
+        if (this.progressContainerId) {
+            this.progress = new ProgressAnimation(this, logStartFrameIndexes, logEndFrameIndexes, this.progressContainerId, this.logInfoContainerId);
+        }
+        this.clock = new ClockAnimation(this, this.clockContainerId);
+        this.buttonControls = new PlayActionControl(this, this.buttonsContainerId, this.playClassName, this.pauseClassName);
 
         // Register events
         this.processMapController.registerListener(this);
@@ -308,7 +324,7 @@ export default class LogAnimation {
         else if (event.getEventType() === AnimationEventType.FRAMES_AVAILABLE) {
             let frameIndex = event.getEventData().frameIndex;
             this.timeline.updateCursor(frameIndex);
-            this.progress.updateProgress(frameIndex);
+            if (this.progress) this.progress.updateProgress(frameIndex);
             this.clock.setClockTime(this.getLogTimeFromFrameIndex(frameIndex));
             this.unFreezeControls();
         }

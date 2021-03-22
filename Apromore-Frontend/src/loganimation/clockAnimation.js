@@ -7,15 +7,13 @@
 export default class ClockAnimation {
     /**
      * @param {LogAnimation} animationController
-     * @param {String} dateElementId: id of the containing div
-     * @param {String} timeElementId: id of the containing div
+     * @param {String} clockContainerId: id of the containing div
      */
-    constructor(animationController, dateElementId, timeElementId) {
+    constructor(animationController, clockContainerId) {
         this._animationController = animationController;
         this._animationContext = animationController.getAnimationContext();
-        this._dateElement = $j('#' + dateElementId)[0];
-        this._timeElement = $j('#' + timeElementId)[0];
-        this.clockTimer = null; // id of the window timer returned from setInterval.
+        this._dateElement = $j('#' + clockContainerId + " > span").get(0);
+        this._timeElement = $j('#' + clockContainerId + " > span").get(1);
     }
 
     setClockTime(time) {

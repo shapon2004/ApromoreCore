@@ -67,11 +67,11 @@ public class AnimationController extends AbstractController {
         */
         
         // Call animation logic to align the current log and BPMN diagram
-        if (parent.getPDMode() == PDMode.GRAPH_MODE) {
+        if (parent.getPDMode() == PDMode.INTERACTIVE_MODE) {
             parent.setPDMode(PDMode.ANIMATION_MODE);
         }
         else {
-            parent.setPDMode(PDMode.GRAPH_MODE);;
+            parent.setPDMode(PDMode.INTERACTIVE_MODE);;
         }
     }
     

@@ -9,10 +9,9 @@ export default class TimelineAnimation {
     /**
      * @param {LogAnimation} animation
      * @param {String} uiContainerId: id of the SVG element
-     * @param {String} canvasContainerId: id of the canvas element used for the timeline
      * @param {Array} caseCountsByFrames
      */
-    constructor(animation, uiContainerId, canvasContainerId, caseCountsByFrames) {
+    constructor(animation, uiContainerId, caseCountsByFrames) {
         this.animation = animation;
         this.animationContext = animation.getAnimationContext();
 
@@ -46,7 +45,7 @@ export default class TimelineAnimation {
         this.timelineCenterLineY = this.timelineOffset.y + this.logIntervalMargin;
         this.timelineEl.appendChild(this.timelineCenterLine);
         this.svgTimeline.append(this.timelineEl);
-        this.canvasContext = document.querySelector('#' + canvasContainerId).getContext('2d');
+        this.canvasContext = document.querySelector('#' + uiContainerId + ' + canvas').getContext('2d');
 
         this._listeners = [];
         this._initializeComponents(caseCountsByFrames);

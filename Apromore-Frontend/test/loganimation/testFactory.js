@@ -1,8 +1,8 @@
 import LogAnimation from '../../src/loganimation';
 import {AnimationContext} from "../../src/loganimation/animationContextState";
 import FrameBuffer from "../../src/loganimation/frameBuffer";
-import ProcessModelController from "../../src/loganimation/processmap/processModelController";
-import processModelController from "../../src/loganimation/processmap/processModelController";
+import ProcessModelController from "../../src/processmap/processModelController";
+import processModelController from "../../src/processmap/processModelController";
 import TokenAnimation from "../../src/loganimation/tokenAnimation";
 import {Apromore} from "../../src/bpmneditor/apromoreEditor";
 
