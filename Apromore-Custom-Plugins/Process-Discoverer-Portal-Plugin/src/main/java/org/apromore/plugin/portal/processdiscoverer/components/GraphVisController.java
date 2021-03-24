@@ -282,12 +282,11 @@ public class GraphVisController extends VisualController {
         // Align log and model
         BPMNDiagram oriDiagram = parent.getOutputData().getAbstraction().getDiagram();
         BPMNDiagram alignDiagram = parent.getOutputData().getAbstraction().getValidBPMNDiagram();
-        AnimationResult alignmentResult = createAlignment(oriDiagram, alignDiagram,
-                                                          parent.getLogData().getLog().getActualXLog());
+        AnimationResult alignmentResult = createAlignment(oriDiagram, alignDiagram, parent.getLogData().getLog().getActualXLog());
         
         // Prepare animation data
         AnimationContext animateContext = new AnimationContext(alignmentResult.getAnimationLogs());
-        ModelMapping modelMapping = new ModelMapping(alignDiagram);
+        ModelMapping modelMapping = new ModelMapping(oriDiagram);
         
         long timer = System.currentTimeMillis();
         List<AnimationIndex> animationIndexes = new ArrayList<>();

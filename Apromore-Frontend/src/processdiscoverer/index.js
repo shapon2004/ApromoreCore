@@ -17,6 +17,7 @@ let PD = function(pluginExecutionId, interactiveViewContainerId, animationViewCo
         'interactiveViewContainerId': interactiveViewContainerId,
         'animationViewContainerId': animationViewContainerId,
         'tokenAnimationContainerId': tokenAnimationContainerId,
+        'timelineContainerId': timelineContainerId,
         'speedControlContainerId': speedControlContainerId,
         'progressContainerId': progressContainerId,
         'logInfoContainerId': logInfoContainerId,
@@ -35,4 +36,4 @@ let pdfn = PD.prototype;
     Object.assign(pdfn, props);
 });
 
-export default PDp;
+export default PD;

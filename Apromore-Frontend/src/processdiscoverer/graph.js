@@ -1,7 +1,25 @@
 import cytoscape from "cytoscape/dist/cytoscape.esm";
-import * as Math from '../utils/math';
+import popper from 'cytoscape-popper';
+import dagre from 'cytoscape-dagre';
+const edgeBendEditing = require('cytoscape-edge-bend-editing');
+const undoRedo = require('cytoscape-undo-redo');
+
+cytoscape.use(popper);
+cytoscape.use( dagre );
+edgeBendEditing(cytoscape, {
+    bendShapeSizeFactor: 6,
+    enabled: true,
+    initBendPointsAutomatically: false,
+    undoable: true,
+});
+undoRedo(cytoscape);
+
 import GraphModelWrapper from "../processmap/graphModelWrapper";
 import LogAnimation from "../loganimation";
+import tippy from "tippy.js";
+import * as jsPDF from "jspdf";
+const Undoo = require('undoo');
+
 
 const LAYOUT_MANUAL_BEZIER = 0;
 const LAYOUT_DAGRE_LR = 1;
@@ -216,9 +234,9 @@ let currentPanPosition;
 let isTraceMode = false; // source trace or source full log
 
 PDp.init = function() {
-
+    let pd = this;
     SIGNATURE = `/themes/${Ap.theme}/common/img/brand/logo-colour.svg`;
-    container = document.getElementById('ap-pd-process-model');
+    container = $j('#' + pd._private.interactiveViewContainerId)[0];
     cy = cytoscape(Object.assign(options, {
         container,
         style,
@@ -357,15 +375,9 @@ PDp.loadLog = function(json, layoutType, retain) {
         currentZoomLevel = zoom;
         currentPanPosition = pan;
     } else {
-        fit(layoutType);
+        this.fit(layoutType);
     }
 
-    cy.edgeBendEditing({
-        bendShapeSizeFactor: 6,
-        enabled: true,
-        initBendPointsAutomatically: false,
-        undoable: true,
-    });
 }
 
 PDp.loadTrace = function(json) {
@@ -376,7 +388,7 @@ PDp.loadTrace = function(json) {
     cy.add(source);
     this.layout(LAYOUT_MANUAL_BEZIER);
     this.setupSearch(source);
-    fit(1);
+    this.fit(1);
 }
 
 PDp.zoomIn = function() {
@@ -405,7 +417,7 @@ PDp.center = function(layoutType) {
 
 PDp.resize = function() {
     cy.resize();
-    fit();
+    this.fit();
 }
 
 PDp.moveTop = function(layoutType) {
@@ -576,7 +588,7 @@ PDp.rasterizeForPrint = function() {
 PDp.exportPDF = function(filename) {
     this.rasterizeForPrint()
         .then(function (canvas) {
-            let pdf = new jsPDF2('l', 'px', [canvas.width, canvas.height], false, true);
+            let pdf = new jsPDF('l', 'px', [canvas.width, canvas.height], false, true);
             this.loadImage(canvas.toDataURL())
                 .then(function (raster) {
                     pdf.addImage(raster, 'PNG', 0, 0, canvas.width, canvas.height, NaN, 'FAST');
@@ -632,7 +644,7 @@ PDp.showPerspectiveDetails = function() {
 
 PDp.switchToAnimationView = function(setupDataJSON) {
     let pd = this;
-    cy.unmount();
+    //cy.unmount(); //not unmount as it will set renderer to NullRenderer.
     $j('#' + pd._private.interactiveViewContainerId).hide();
     cy.mount($j('#' + pd._private.animationViewContainerId)[0]);
     $j('#' + pd._private.animationViewContainerId).show();

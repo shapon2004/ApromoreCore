@@ -34,10 +34,9 @@ public class EdgeID implements Comparable<EdgeID>, Serializable {
     public int compareTo(EdgeID edge) {
 		return id.compareTo(edge.id);
 	}
-
 	@Override
     public String toString() {
-		return "edge " + id;
+		return "edge-" + id;
 	}
 
 	@Override

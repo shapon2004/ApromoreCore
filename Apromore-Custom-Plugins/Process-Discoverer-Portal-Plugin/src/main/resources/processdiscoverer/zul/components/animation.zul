@@ -20,56 +20,61 @@
   #L%
   -->
 
+<vlayout
+    xmlns:ca="client/attribute"
+    xmlns:w="client"
+    xmlns:n="native">
+    
+    <n:canvas id="ap-pd-la-canvas" style="top:66px; position:absolute; background:none; z-index:1000; pointer-events:none"></n:canvas>
+    <n:div id="ap-pd-la-controls">
+        <div sclass="ap-pd-la-left-container">
+            <div sclass="ap-pd-la-controls">
+                <div sclass="ap-pd-la-clock" id="ap-pd-la-clock">
+                    <n:span id="ap-pd-la-clock-date">&#xA0;</n:span>
+                    <n:span id="ap-pd-la-clock-time">&#x2D;-:&#x2D;-:&#x2D;-</n:span>
+                    <n:span>&#xA0;</n:span>
+                </div>
 
-<canvas id="ap-pd-la-canvas" style="top:66px; position:absolute; background:none; z-index:1000; pointer-events:none"></canvas>
-<n:div>
-    <div sclass="ap-pd-la-left-container">
-        <div sclass="ap-pd-la-controls">
-            <div sclass="ap-pd-la-clock" id="ap-pd-la-clock">
-                <span>&#xA0;</span>
-                <span>&#x2D;-:&#x2D;-:&#x2D;-</span>
-                <span>&#xA0;</span>
-            </div>
+                <div id="ap-pd-la-buttons">
+                    <n:button id='ap-pd-la-buttons-start' label="Start" sclass="ap-mc-icon ap-mc-icon-begin">
+                        <n:img></n:img>
+                    </n:button>
+                    <n:button id='ap-pd-la-buttons-backward' label="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
+                        <n:img></n:img>
+                    </n:button>
+                    <n:button id="ap-pd-la-buttons-pause" label="Play" sclass="ap-mc-icon ap-mc-icon-play">
+                        <n:img></n:img>
+                    </n:button>
+                    <n:button id='ap-pd-la-buttons-forward' label="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
+                        <n:img></n:img>
+                    </n:button>
+                    <n:button id='ap-pd-la-buttons-end' label="End" sclass="ap-mc-icon ap-mc-icon-end">
+                        <n:img></n:img>
+                    </n:button>
+                </div>
 
-            <div id="ap-pd-la-buttons">
-                <button id='ap-pd-la-start' title="Start" sclass="ap-mc-icon ap-mc-icon-begin">
-                    <img></img>
-                </button>
-                <button id='ap-pd-la-backward' title="Backward" sclass="ap-mc-icon ap-mc-icon-fast-backward">
-                    <img></img>
-                </button>
-                <button id="ap-pd-la-pause" title="Play" sclass="ap-mc-icon ap-mc-icon-play">
-                    <img></img>
-                </button>
-                <button id='ap-pd-la-forward' title="Forward" sclass="ap-mc-icon ap-mc-icon-fast-forward">
-                    <img></img>
-                </button>
-                <button id='ap-pd-la-end' title="End" sclass="ap-mc-icon ap-mc-icon-end">
-                    <img></img>
-                </button>
-            </div>
-
-            <!-- Use jQuery-ui-Slider-Pips at github.com/simeydotme/jQuery-ui-Slider-Pips -->
-            <div>
-                <!-- <center style="font: 1em monospace">Replay Speed</center> -->
-                <div id="ap-pd-la-speed-control" disabled="disabled" style="margin: auto;">
-                    <n:div class="speed-control-tip">Speed control</n:div>
+                <!-- Use jQuery-ui-Slider-Pips at github.com/simeydotme/jQuery-ui-Slider-Pips -->
+                <div>
+                    <!-- <center style="font: 1em monospace">Replay Speed</center> -->
+                    <div id="ap-pd-la-speed-control" style="margin: auto;">
+                        <n:div class="speed-control-tip">Speed control</n:div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div sclass="ap-pd-la-right-container">
-        <!-- Animation progress -->
-        <div id="ap-pd-la-progress"></div>
-        <div sclass="ap-la-timeline" style="background:none;">
-            <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
-                <canvas id="ap-pd-la-timelineCanvas" style="background:none; pointer-events:none"></canvas>
-            </div>                  
-            <div style="position:absolute; background:none; width:100%">
-                <n:svg id="ap-pd-la-timeline-svg" style="background:none;" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
-            </div>                  
+        
+        <div sclass="ap-pd-la-right-container">
+            <!-- Animation progress -->
+            <div id="ap-pd-la-progress"></div>
+            <div sclass="ap-la-timeline" style="background:none;">
+                <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
+                    <n:canvas id="ap-pd-la-timeline-canvas" style="background:none; pointer-events:none"></n:canvas>
+                </div>                  
+                <div style="position:absolute; background:none; width:100%">
+                    <n:svg id="ap-pd-la-timeline" style="background:none;" xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 1140 80"></n:svg>
+                </div>                  
+            </div>
         </div>
-    </div>
-</n:div>
+    </n:div>
 
+</vlayout>

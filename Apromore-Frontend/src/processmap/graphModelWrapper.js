@@ -37,15 +37,21 @@ export default class GraphModelWrapper {
             let elementId = elementIndexIDMap[elementIndex];
             let element = cy.getElementById(elementId);
             this._elementIndexToElement[elementIndex] = element;
-            this._elementIndexToPath[elementIndex] = element.isEdge() ? element._private.rscratch.allpts
-                                                                        : graph._getNodeCrossPath(elementId);
+            if (element.isEdge()) {
+                this._elementIndexToPath[elementIndex] = element._private.rscratch.allpts;
+            }
+            else if (element.incomers().length > 0 && element.outgoers().length > 0) {
+                this._elementIndexToPath[elementIndex] = graph._getNodeCrossPath(elementId);
+            }
         }
 
         for (let elementIndex in skipElementIndexIDMap) {
             let elementId = skipElementIndexIDMap[elementIndex];
             let element = cy.getElementById(elementId);
             this._elementIndexToElement[elementIndex] = element;
-            this._elementIndexToPath[elementIndex] = graph._getNodeSkipPath(elementId);
+            if (element.incomers().length > 0 && element.outgoers().length > 0) {
+                this._elementIndexToPath[elementIndex] = graph._getNodeSkipPath(elementId);
+            }
         }
     }
 
@@ -108,14 +114,15 @@ export default class GraphModelWrapper {
         let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
         let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
         let boundingBox = cy.getElementById(nodeId).boundingBox();
-        return Math.getBoxCrossPath(startPoint, endPoint, boundingBox);
+        return Math.getBoxCrossPath(startPoint, endPoint, Math.getBoxPoints(boundingBox));
     }
 
     _getNodeSkipPath(nodeId) {
+        let cy = this._cy;
         let startPoint = cy.$('#' + nodeId).incomers()[0].targetEndpoint();
         let endPoint = cy.$('#' + nodeId).outgoers()[0].sourceEndpoint();
         let boundingBox = cy.getElementById(nodeId).boundingBox();
-        return Math.getBoxSkipPath(startPoint, endPoint, boundingBox);
+        return Math.getBoxSkipPath(startPoint, endPoint, Math.getBoxPoints(boundingBox));
     }
 
     registerListener(listener) {

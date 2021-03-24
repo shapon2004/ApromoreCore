@@ -12,11 +12,11 @@ export default class PlayActionControl{
      */
     constructor(animation, buttonsContainerId, playClassName, pauseClassName) {
         this.animation = animation;
-        this.gotoStartButton = $j('#' + buttonsContainerId + " > button").get(0);
-        this.pauseButton = $j('#' + buttonsContainerId + " > button").get(1);
-        this.forwardButton = $j('#' + buttonsContainerId + " > button").get(2);
-        this.backwardButton = $j('#' + buttonsContainerId + " > button").get(3);
-        this.gotoEndButton = $j('#' + buttonsContainerId + " > button").get(4);
+        this.gotoStartButton = $j('#' + buttonsContainerId + "-start");
+        this.pauseButton = $j('#' + buttonsContainerId + "-pause");
+        this.forwardButton = $j('#' + buttonsContainerId + "-forward");
+        this.backwardButton = $j('#' + buttonsContainerId + "-backward");
+        this.gotoEndButton = $j('#' + buttonsContainerId + "-end");
 
         this.gotoStartButton.on('click', animation.gotoStart.bind(animation));
         this.gotoEndButton.on('click', animation.gotoEnd.bind(animation));

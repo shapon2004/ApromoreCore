@@ -21,6 +21,9 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
+
+import MiniSearch from "minisearch";
+
 /** Search for graph
  *
  */

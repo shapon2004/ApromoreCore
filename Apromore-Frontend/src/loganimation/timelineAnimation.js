@@ -45,7 +45,7 @@ export default class TimelineAnimation {
         this.timelineCenterLineY = this.timelineOffset.y + this.logIntervalMargin;
         this.timelineEl.appendChild(this.timelineCenterLine);
         this.svgTimeline.append(this.timelineEl);
-        this.canvasContext = document.querySelector('#' + uiContainerId + ' + canvas').getContext('2d');
+        this.canvasContext = document.querySelector('#' + uiContainerId + '-canvas').getContext('2d');
 
         this._listeners = [];
         this._initializeComponents(caseCountsByFrames);

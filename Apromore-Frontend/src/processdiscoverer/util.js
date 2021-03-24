@@ -22,6 +22,8 @@
 * #L%
 */
 
+import * as moment from "moment";
+
 let PDp = {};
 
 /**

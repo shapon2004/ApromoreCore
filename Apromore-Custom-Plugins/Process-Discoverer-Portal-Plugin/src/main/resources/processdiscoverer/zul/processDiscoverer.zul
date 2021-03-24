@@ -20,16 +20,19 @@
   #L%
   -->
 
-<?component name="menuitem" extends="menuitem" autocheck="true" checkmark="true" ?>
 <?page id="ap-pd2" title="${labels.brand.shortName} - Process Discoverer" contentType="text/html;charset=UTF-8" ?>
+<?component name="menuitem" extends="menuitem" autocheck="true" checkmark="true" ?> 
 <?component name="viewSettings" macroURI="components/viewSettings.zul" ?>
 <?component name="graphSettings" macroURI="components/graphSettings.zul" ?>
 <?component name="logStats" macroURI="components/logStats.zul" ?>
 <?component name="timeStats" macroURI="components/timeStats.zul" ?>
+<?component name="animation" macroURI="components/animation.zul" ?>
+
 <?link rel="shortcut icon" href="../../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?link rel="stylesheet" href="../../css/chiaroscuro.css" type="text/css" ?>
 <?link rel="stylesheet" href="../../themes/${labels.theme}/common/css/index.css" type="text/css" ?>
 <?link rel="stylesheet" href="/processdiscoverer/css/ap/pd.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/ap/animation.css" type="text/css" ?>
 <?link rel="stylesheet" href="../../themes/${labels.theme}/portal/css/portal.css" type="text/css" ?>
 <?script src="../../themes/ap/common/js/index.js"?>
 <zk xmlns="http://www.zkoss.org/2005/zul"
@@ -44,6 +47,8 @@
   <script><![CDATA[
     Ap.theme = '${labels.theme}';
   ]]></script>
+  
+  <!--
   <script type="text/javascript" src="/processdiscoverer/js/jquery.js"></script>
   <script type="text/javascript" src="/processdiscoverer/js/minisearch/index.js"></script>
   <script type="text/javascript" src="/processdiscoverer/js/file-saver/filesaver.js"></script>
@@ -62,6 +67,8 @@
   <script src="/processdiscoverer/js/ap/search.js"></script>
   <script src="/processdiscoverer/js/ap/graph.js"></script>
   <script src="/processdiscoverer/js/ap/pd.js"></script>
+  -->
+  <script src="/processdiscoverer/js/ap/processdiscoverer.js"></script>
 
   <h:div class="ap-header">
     <h:a href="/">
@@ -266,37 +273,35 @@
       
       <!-- Graph Area -->
       <!-- PD INTERACTIVE MODE -->
-      <n:div id="ap-pd-interactive" visible="true">
-          <n:div id="ap-pd-model" style="background-color:none;"/>
-          <div id="vizBridge" visible="false"></div>
-      </n:div>
+      <n:div id="ap-pd-process-model" style="background-color:none;"/>
+      <div id="vizBridge" visible="false"></div>
       
       <!-- PD ANIMATION MODE -->
-      <n:div id="ap-pd-animation" visible="false">
+      <n:div id="ap-pd-animation" style="display:none;">
         <animation />
       </n:div>
-    
-      <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
-    </n:div> 
+    </n:div>
+    <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
   </window>
   <n:script type="text/javascript" defer="defer" src="/themes/ap/common/js/css-browser-selector.js"></n:script>
   
   <n:script defer="true">
     <![CDATA[
     
+    Ap.pd = new Apromore.ProcessDiscoverer('${arg.pluginExecutionId}', 
+                        'ap-pd-process-model', 
+                        'ap-pd-animation',
+                        'ap-pd-la-canvas',
+                        'ap-pd-la-timeline',
+                        'ap-pd-la-speed-control',
+                        '',
+                        '',
+                        'ap-pd-la-clock',
+                        'ap-pd-la-buttons',
+                        'ap-mc-icon-play',
+                        'ap-mc-icon-pause');
+    
     zk.afterMount(function () {
-        Ap.pd = new Apromore.PD('${arg.pluginExecutionId}', 
-                                'ap-pd-interactive', 
-                                'ap-pd-animation',
-                                'ap-pd-la-canvas',
-                                'ap-pd-la-timeline-svg',
-                                'ap-pd-la-speed-control',
-                                '',
-                                '',
-                                'ap-pd-la-clock',
-                                'ap-pd-la-buttons',
-                                'ap-mc-icon-play',
-                                'ap-mc-icon-pause');
         zAu.send(new zk.Event(zk.Widget.$('$win'), 'onLoaded'));
         setTimeout(function () {
             try {
@@ -307,8 +312,8 @@
         }, 1000);
         
         document.addEventListener("click", (evt) => {
-            const el = Ap.pd.searchOptions[0];
-            const input = Ap.pd.searchInput[0];
+            const el = Ap.pd.getSearchOptionEl();
+            const input = Ap.pd.getSearchInputEl();
             const target = evt.target;
             if (el !== target && input !== target) {
                 Ap.pd.updateSelectedNodes();

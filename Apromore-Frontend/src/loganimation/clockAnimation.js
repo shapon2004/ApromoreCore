@@ -12,8 +12,8 @@ export default class ClockAnimation {
     constructor(animationController, clockContainerId) {
         this._animationController = animationController;
         this._animationContext = animationController.getAnimationContext();
-        this._dateElement = $j('#' + clockContainerId + " > span").get(0);
-        this._timeElement = $j('#' + clockContainerId + " > span").get(1);
+        this._dateElement = $j('#' + clockContainerId + "-date")[0];
+        this._timeElement = $j('#' + clockContainerId + "-time")[0];
     }
 
     setClockTime(time) {
