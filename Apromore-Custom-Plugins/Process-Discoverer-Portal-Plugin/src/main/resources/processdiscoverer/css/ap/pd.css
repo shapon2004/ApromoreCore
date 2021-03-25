@@ -164,11 +164,11 @@ body {
     padding: 10px;
 }
 
-#ap-pd-animation > div {
+#ap-pd-animation-model > div {
     height: 100% !important;
 }
 
-#ap-pd-animation {
+#ap-pd-animation-model {
     position: absolute;
     top: 190px;
     left: 0;

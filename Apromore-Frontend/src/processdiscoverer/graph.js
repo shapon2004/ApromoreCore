@@ -270,7 +270,7 @@ PDp.init = function() {
     cy.on('mouseover', 'node', function (event) {
         let node = event.target;
         if (node.data(NAME_PROP)) {
-            currentNodeTooltip = this.makeTippy(node, node.data(NAME_PROP));
+            currentNodeTooltip = pd.makeTippy(node, node.data(NAME_PROP));
             currentNodeTooltip.show();
         } else {
             currentNodeTooltip = undefined;
@@ -646,7 +646,7 @@ PDp.switchToAnimationView = function(setupDataJSON) {
     let pd = this;
     //cy.unmount(); //not unmount as it will set renderer to NullRenderer.
     $j('#' + pd._private.interactiveViewContainerId).hide();
-    cy.mount($j('#' + pd._private.animationViewContainerId)[0]);
+    cy.mount($j('#' + pd._private.animationModelContainerId)[0]);
     $j('#' + pd._private.animationViewContainerId).show();
 
     let processMapController = new GraphModelWrapper(cy);

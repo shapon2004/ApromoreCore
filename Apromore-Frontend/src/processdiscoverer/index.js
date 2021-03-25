@@ -2,7 +2,10 @@ import graph from './graph';
 import util from './util';
 import search from './search';
 
-let PD = function(pluginExecutionId, interactiveViewContainerId, animationViewContainerId,
+let PD = function(pluginExecutionId,
+                  interactiveViewContainerId,
+                  animationViewContainerId,
+                  animationModelContainerId,
                   tokenAnimationContainerId,
                   timelineContainerId,
                   speedControlContainerId,
@@ -16,6 +19,7 @@ let PD = function(pluginExecutionId, interactiveViewContainerId, animationViewCo
         'pluginExecutionId': pluginExecutionId,
         'interactiveViewContainerId': interactiveViewContainerId,
         'animationViewContainerId': animationViewContainerId,
+        'animationModelContainerId': animationModelContainerId,
         'tokenAnimationContainerId': tokenAnimationContainerId,
         'timelineContainerId': timelineContainerId,
         'speedControlContainerId': speedControlContainerId,

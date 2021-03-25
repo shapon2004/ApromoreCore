@@ -2,17 +2,21 @@
  * #%L
  * This file is part of "Apromore Core".
  * %%
- * Copyright (C) 2019 - 2021 Apromore Pty Ltd. All Rights Reserved.
+ * Copyright (C) 2018 - 2021 Apromore Pty Ltd.
  * %%
- * NOTICE:  All information contained herein is, and remains the
- * property of Apromore Pty Ltd and its suppliers, if any.
- * The intellectual and technical concepts contained herein are
- * proprietary to Apromore Pty Ltd and its suppliers and may
- * be covered by U.S. and Foreign Patents, patents in process,
- * and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this
- * material is strictly forbidden unless prior written permission
- * is obtained from Apromore Pty Ltd.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Lesser Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Lesser Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
 @import url('https://fonts.googleapis.com/css?family=Titillium+Web:400,600,700&display=swap');
@@ -98,53 +102,6 @@
     opacity: 1;
 }
 
-
-.x-panel-editor-north > div > .x-panel-body {
-    box-sizing: border-box;
-    height: var(
-            --ap-menu-height
-    ) !important;
-}
-
-.x-panel-editor-north .x-toolbar > table > tbody > tr > td:first-child,
-.x-panel-editor-north .x-toolbar > table > tbody > tr > td:nth-child(2) {
-    cursor: initial !important;
-    pointer-events: none;
-}
-
-.x-panel-editor-north .x-toolbar .x-btn-left,
-.x-panel-editor-north .x-toolbar .x-btn-right {
-    display: none;
-}
-
-.x-panel-editor-north .x-toolbar button[title='Save'],
-.x-panel-editor-north .x-toolbar button[title='Save a copy...'] {
-    opacity: 0.3;
-}
-
-.x-panel-editor-north .x-toolbar .ytb-sep {
-    background-image: none !important;
-    box-sizing: border-box;
-    display: inline-block;
-    margin: 0 3px;
-    width: 2px;
-    height: 22px;
-    border-right: 1px solid var(--ap-c-grey-minor);
-    border-left: 1px solid white;
-    vertical-align: middle;
-}
-
-body > .x-panel-noborder {
-    top: calc(var(--ap-menu-height) + var(--ap-header-height)) !important;
-}
-
-body > .x-panel-editor-north,
-body > .x-panel-editor-south,
-body > .x-panel-editor-west,
-body > .x-panel-editor-east {
-    top: 0 !important;
-}
-
 .ap-la {
     background-color: transparent !important;
 }
@@ -213,7 +170,7 @@ body > .x-panel-editor-east {
 }
 
 /* Main wrapper */
-.ap-la #playback_controls {
+.ap-la #ap-pd-la-controls {
     border: 0;
     padding: 0;
     overflow: hidden;
@@ -223,7 +180,7 @@ body > .x-panel-editor-east {
     justify-items: stretch;
 }
 
-.ap-la-left-container {
+.ap-pd-la-left-container {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
@@ -291,7 +248,7 @@ body > .x-panel-editor-east {
 
 /* Right section */
 
-.ap-la-right-container {
+.ap-pd-la-right-container {
     flex: 1 1 auto;
     width: auto;
     display: flex;
@@ -302,48 +259,7 @@ body > .x-panel-editor-east {
     height: 0;
 }
 
-/* Progress display */
-.ap-la-right-container #ap-la-progress {
-    flex: 0 0 auto;
-    margin: 0;
-    height: auto;
-    width: auto;
-    position: fixed;
-    left: 350px;
-    bottom: 110px;
-    overflow: visible;
-    display: flex;
-    flex-direction: row;
-}
-
-.ap-la-right-container #ap-la-progress > div {
-    flex: 1 0 content;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 20px;
-}
-
-.ap-la-right-container #ap-la-progress > div > div {
-    flex: 1 1 content;
-}
-
-.ap-la-right-container #ap-la-progress > div > .label {
-    margin-top: 8px;
-    color: var(--ap-c-grey-minor);
-}
-
-.ap-la-right-container #ap-la-progress g {
-    cursor: pointer;
-}
-
-.ap-la-right-container #ap-la-progress svg {
-    width: 40px;
-    height: 40px;
-    overflow: visible;
-}
-
-.ap-la-timeline {
+.ap-pd-la-timeline {
     flex: 1 1 auto;
 
     position: fixed;
@@ -357,7 +273,7 @@ body > .x-panel-editor-east {
     width: 1100px;
 }
 
-.ap-la-timeline #ap-pd-la-timeline {
+.ap-pd-la-timeline #ap-pd-la-timeline {
     border: 0;
     padding: 0;
     overflow: hidden;
@@ -365,105 +281,8 @@ body > .x-panel-editor-east {
     height: 80px;
 }
 
-.ap-la-timeline svg * {
+.ap-pd-la-timeline svg * {
     font-size: 14px !important;
-}
-
-#ap-la-info-tip {
-    position: fixed;
-    width: auto;
-    left: 0;
-    bottom: 0;
-    height: auto;
-    display: none;
-    z-index: 40000;
-    background-color: grey;
-    border-radius: 4px;
-    padding: 10px;
-
-    box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
-    transform: translateX(-50%);
-}
-
-#ap-la-info-tip[data-log-idx="1"] {
-    background-color: rgba(132,199,227, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="1"] .tip-arrow {
-    border-top-color: rgba(132,199,227, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="2"] {
-    background-color: rgba(187,58,80, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="2"] .tip-arrow {
-    border-top-color: rgba(187,58,80, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="3"] {
-    background-color: rgba(58,193,109, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="3"] .tip-arrow {
-    border-top-color: rgba(58,193,109, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="4"] {
-    background-color: rgba(249,97,0, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="4"] .tip-arrow {
-    border-top-color: rgba(249,97,0, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="5"] {
-    background-color: rgba(251,165,37, 0.8);
-}
-
-#ap-la-info-tip[data-log-idx="5"] .tip-arrow {
-    border-top-color: rgba(251,165,37, 0.8);
-}
-
-
-
-#ap-la-info-tip table {
-    width: 100%;
-    border: 0;
-}
-
-#ap-la-info-tip table td {
-    border: 0;
-    padding: 0;
-    /* border-bottom: 1px solid rgba(126,144,154, 0.8); */
-    font-size: 14px;
-    font-family: var(--ap-font-base);
-    font-weight: 700;
-    color: white;
-}
-
-#ap-la-info-tip table td:first-child {
-    font-weight: 400;
-    padding-right: 8px;
-    text-align: right;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-#ap-la-info-tip .tip-arrow {
-    content: " ";
-    width: 0;
-    height: 0;
-    border: 6px solid rgba(255, 255, 255, 0);
-    border-top-color: grey;
-    position: absolute;
-    bottom: -12px;
-    left: 50%;
-    margin-left: -6px;
-    z-index: 40001;
-}
-
-.ap-la-show-case-id {
-    font-size: 14px;
 }
 
 #ap-pd-la-speed-control-wrapper .speed-control-tip {
@@ -481,11 +300,5 @@ body > .x-panel-editor-east {
 
 #ap-pd-la-speed-control-wrapper:hover .speed-control-tip {
     display: block;
-}
-
-.ap-la-cpicker, .ap-la-cpicker + div.sp-replacer {
-    opacity: 0 !important;
-    width: 1px !important;
-    height: 1px !important;
 }
 

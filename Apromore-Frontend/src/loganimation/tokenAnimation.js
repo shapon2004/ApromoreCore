@@ -139,7 +139,7 @@ export default class TokenAnimation {
         this._canvasContext.canvas.height = height;
         this._canvasContext.canvas.x = x;
         this._canvasContext.canvas.y = y;
-        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        if (matrix.a) this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
         this.setTokenStyle();
         if (!this.isWaitingForData()) this._drawFrame(this.getCurrentFrame());
     }
@@ -355,14 +355,13 @@ export default class TokenAnimation {
         this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            //let pathElement = this._processMapController.getPathElement(elementIndex);
-            //let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
                 let logIndex = token[caseIndex][0];
                 let distance = token[caseIndex][1];
                 let count = token[caseIndex][2];
                 let point = this._processMapController.getPointAtDistance(elementIndex, distance);
+                if (!point) continue;
                 let radius = count;
                 if (radius > 3) radius = 3;
                 this._canvasContext.beginPath();
@@ -443,10 +442,17 @@ export default class TokenAnimation {
 
     // Require switching transformation matrix back and forth to clear the canvas properly.
     _clearAnimation() {
-        let matrix = this._canvasContext.getTransform();
-        this._canvasContext.setTransform(1,0,0,1,0,0);
-        this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
-        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        if (this._processMapController.supportTransformMatrix()) {
+            let matrix = this._canvasContext.getTransform();
+            this._canvasContext.setTransform(1,0,0,1,0,0);
+            this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
+            this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        }
+        else {
+            let w = this._canvasContext.canvas.clientWidth;
+            let h = this._canvasContext.canvas.clientHeight;
+            this._canvasContext.clearRect(0, 0, w, h);
+        }
     }
 
     /**

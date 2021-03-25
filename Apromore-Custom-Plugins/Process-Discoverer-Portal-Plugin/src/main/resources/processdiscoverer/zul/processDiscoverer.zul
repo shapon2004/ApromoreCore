@@ -34,6 +34,9 @@
 <?link rel="stylesheet" href="/processdiscoverer/css/ap/pd.css" type="text/css" ?>
 <?link rel="stylesheet" href="/processdiscoverer/css/ap/animation.css" type="text/css" ?>
 <?link rel="stylesheet" href="../../themes/${labels.theme}/portal/css/portal.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/jquery-ui.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/jquery-ui-slider-pips.css" type="text/css" ?>
+
 <?script src="../../themes/ap/common/js/index.js"?>
 <zk xmlns="http://www.zkoss.org/2005/zul"
     xmlns:h="http://www.w3.org/1999/xhtml" 
@@ -291,6 +294,7 @@
     Ap.pd = new Apromore.ProcessDiscoverer('${arg.pluginExecutionId}', 
                         'ap-pd-process-model', 
                         'ap-pd-animation',
+                        'ap-pd-animation-model',
                         'ap-pd-la-canvas',
                         'ap-pd-la-timeline',
                         'ap-pd-la-speed-control',

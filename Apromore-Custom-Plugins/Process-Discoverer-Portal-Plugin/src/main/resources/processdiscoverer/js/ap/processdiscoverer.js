@@ -121385,7 +121385,7 @@ PDp.switchToAnimationView = function(setupDataJSON) {
     let pd = this;
     //cy.unmount(); //not unmount as it will set renderer to NullRenderer.
     $j('#' + pd._private.interactiveViewContainerId).hide();
-    cy.mount($j('#' + pd._private.animationViewContainerId)[0]);
+    cy.mount($j('#' + pd._private.animationModelContainerId)[0]);
     $j('#' + pd._private.animationViewContainerId).show();
 
     let processMapController = new _processmap_graphModelWrapper__WEBPACK_IMPORTED_MODULE_3__["default"](cy);
@@ -121432,7 +121432,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-let PD = function(pluginExecutionId, interactiveViewContainerId, animationViewContainerId,
+let PD = function(pluginExecutionId,
+                  interactiveViewContainerId,
+                  animationViewContainerId,
+                  animationModelContainerId,
                   tokenAnimationContainerId,
                   timelineContainerId,
                   speedControlContainerId,
@@ -121446,6 +121449,7 @@ let PD = function(pluginExecutionId, interactiveViewContainerId, animationViewCo
         'pluginExecutionId': pluginExecutionId,
         'interactiveViewContainerId': interactiveViewContainerId,
         'animationViewContainerId': animationViewContainerId,
+        'animationModelContainerId': animationModelContainerId,
         'tokenAnimationContainerId': tokenAnimationContainerId,
         'timelineContainerId': timelineContainerId,
         'speedControlContainerId': speedControlContainerId,

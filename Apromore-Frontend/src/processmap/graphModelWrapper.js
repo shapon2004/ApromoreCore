@@ -56,16 +56,34 @@ export default class GraphModelWrapper {
     }
 
     getBoundingClientRect() {
-        return this._cy.elements().boundingBox();
+        return this._cy.container().getBoundingClientRect();
+        // let box = this._cy.elements().renderedBoundingBox();
+        // return {x: box.x1,
+        //         y: box.y1,
+        //         width: box.w,
+        //         height: box.h};
     }
 
     getTransformMatrix() {
         return {};
     }
 
+    supportTransformMatrix() {
+        return false;
+    }
+
     getPointAtDistance(elementIndex, distance) {
-        return this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
+        let p = this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
                                             : this._getPointAtDistanceOnSegments(elementIndex, distance);
+        console.log('elementIndex:', elementIndex, 'distance:', distance, p);
+        if (p) {
+            let cy = this._cy;
+            let zoom = cy.zoom();
+            let pan = cy.pan();
+            p.x = p.x * zoom + pan.x;
+            p.y = p.y * zoom + pan.y;
+        }
+        return p;
     }
 
     _element(elementIndex) {
