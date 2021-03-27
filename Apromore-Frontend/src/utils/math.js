@@ -105,41 +105,34 @@ export const getBoxSkipPath = function(startPoint, endPoint, taskRectPoints) {
         }
 
         if (arrayAbove.length === 1) {
-            skipPath =
-                'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
-                'L' + endPoint.x + ',' + endPoint.y;
-            skipPath.push({});
+            skipPath.push(startPoint.x, startPoint.y,
+                arrayAbove[0].x, arrayAbove[0].y,
+                endPoint.x, endPoint.y);
         } else if (arrayBelow.length === 1) {
-            skipPath =
-                'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
-                'L' + endPoint.x + ',' + endPoint.y
+            skipPath.push(startPoint.x, startPoint.y,
+                arrayBelow[0].x, arrayBelow[0].y,
+                endPoint.x, endPoint.y);
         } else {
             if (Math.abs(startPoint.x - taskRectPoints.sw.x) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    taskRectPoints.se.x, taskRectPoints.se.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.x - taskRectPoints.se.x) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.se.x, taskRectPoints.se.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.y - taskRectPoints.sw.y) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    taskRectPoints.nw.x, taskRectPoints.nw.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.y - taskRectPoints.nw.y) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.nw.x, taskRectPoints.nw.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    endPoint.x, endPoint.y);
             }
         }
     }

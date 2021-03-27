@@ -164,19 +164,6 @@ body {
     padding: 10px;
 }
 
-#ap-pd-animation-model > div {
-    height: 100% !important;
-}
-
-#ap-pd-animation-model {
-    position: absolute;
-    top: 190px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 10px;
-}
-
 [data-t='ap-pd-aux'] {
     display: block;
     position: absolute;

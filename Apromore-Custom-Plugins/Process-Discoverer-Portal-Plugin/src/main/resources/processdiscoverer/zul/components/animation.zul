@@ -20,11 +20,10 @@
   #L%
   -->
 
-<n:div
-    xmlns:ca="client/attribute"
-    xmlns:w="client"
-    xmlns:n="native">
-    
+<n:div xmlns="http://www.zkoss.org/2005/zk/native"
+       xmlns:n="http://www.zkoss.org/2005/zk/native"
+       xmlns:z="http://www.zkoss.org/2005/zul"
+       sclass="ap-pd-la">
     <n:div id="ap-pd-animation-model" style="background:none;">
         <n:canvas id="ap-pd-la-canvas" style="position:absolute; background:none; z-index:1000; pointer-events:none"></n:canvas>
     </n:div>
@@ -66,8 +65,6 @@
         </div>
         
         <div sclass="ap-pd-la-right-container">
-            <!-- Animation progress -->
-            <div id="ap-pd-la-progress"></div>
             <div sclass="ap-pd-la-timeline" style="background:none;">
                 <div sclass="ap-la-timeline-canvas" style="position:absolute; background:none; width:100%">
                     <n:canvas id="ap-pd-la-timeline-canvas" style="background:none; pointer-events:none"></n:canvas>
@@ -78,5 +75,4 @@
             </div>
         </div>
     </n:div>
-
 </n:div>

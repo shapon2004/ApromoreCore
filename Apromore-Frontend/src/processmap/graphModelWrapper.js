@@ -75,13 +75,15 @@ export default class GraphModelWrapper {
     getPointAtDistance(elementIndex, distance) {
         let p = this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
                                             : this._getPointAtDistanceOnSegments(elementIndex, distance);
-        console.log('elementIndex:', elementIndex, 'distance:', distance, p);
         if (p) {
             let cy = this._cy;
             let zoom = cy.zoom();
             let pan = cy.pan();
             p.x = p.x * zoom + pan.x;
             p.y = p.y * zoom + pan.y;
+        }
+        else {
+            console.log("Error getPointAtDistance for elementIndex=" + elementIndex + ', distance=' + distance );
         }
         return p;
     }

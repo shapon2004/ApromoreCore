@@ -289,7 +289,7 @@ export default class TokenAnimation {
      * @private
      */
     _loopDraw(newTime) {
-        //console.log('TokenAnimation - loopDraw');
+        console.log('TokenAnimation - loopDraw');
         window.requestAnimationFrame(this._loopDraw.bind(this));
         if (this._state === AnimationState.PLAYING) { // draw frames in the queue sequentially
             this._now = newTime;
@@ -362,14 +362,17 @@ export default class TokenAnimation {
                 let count = token[caseIndex][2];
                 let point = this._processMapController.getPointAtDistance(elementIndex, distance);
                 if (!point) continue;
+                let y = this._getLogYAxis(logIndex, point.y);
                 let radius = count;
                 if (radius > 3) radius = 3;
+                console.log(point.x, point.y, radius);
                 this._canvasContext.beginPath();
                 this._canvasContext.strokeStyle = this._getTokenBorderColor(logIndex);
                 this._canvasContext.fillStyle = this._getTokenFillColor(logIndex, count);
-                this._canvasContext.arc(point.x, this._getLogYAxis(logIndex, point.y), 5*radius, 0, 2 * Math.PI);
+                this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.stroke();
                 this._canvasContext.fill();
+                this._canvasContext.closePath();
             }
         }
     }
@@ -451,7 +454,7 @@ export default class TokenAnimation {
         else {
             let w = this._canvasContext.canvas.clientWidth;
             let h = this._canvasContext.canvas.clientHeight;
-            this._canvasContext.clearRect(0, 0, w, h);
+            this._canvasContext.clearRect(0, 0, 10000, 10000);
         }
     }
 

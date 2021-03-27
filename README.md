@@ -5,7 +5,7 @@
 This repository contains source code of the [Apromore](https://apromore.org) Core process analytics web application server.  It can be built and run on its own, or used as a submodule containing components common to the two other Apromore editions:
 
 * [Apromore Community Edition](https://github.com/apromore/ApromoreCE), which is open source.
-* [Apromore Enterprise Edition](https://github.com/apromore/ApromoreEE), which is proprietary.
+* Apromore Enterprise Edition, which is proprietary.
 
 The instructions below are for the installation of Apromore Core from the source code. For convenience, we also make available a containerized image in [Docker](https://github.com/apromore/ApromoreDocker).
 If you are looking for the commercial edition (Apromore Enterprise Edition), check the [Apromore web site](https://apromore.org/)

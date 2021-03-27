@@ -6,7 +6,8 @@
 export class AnimationContext {
     /**
      *
-     * @param {String} pluginExecutionId
+     * @param {String} pluginExecutionId: id of the plugin execution
+     * @param {String} pluginContextName: context name of the plugin
      * @param {Number} minLogStartTime: the start timestamp in the log
      * @param {Number} maxLogEndTime: the end timestamp in the log
      * @param {Number} timelineSlots: the number of slots on the timeline

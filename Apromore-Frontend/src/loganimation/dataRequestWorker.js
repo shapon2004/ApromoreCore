@@ -28,7 +28,7 @@ onmessage = function(e) {
                 context.postMessage({success: false, code: httpRequest.status, data: httpRequest.responseText});
             }
             console.log("DataRequestWorker - send reseponse, responseCode: " + httpRequest.status);
-            //console.log("DataRequestWorker - send reseponse, responseText: " + httpRequest.responseText);
+            console.log("DataRequestWorker - send reseponse, responseText: " + httpRequest.responseText);
         }
     };
 
