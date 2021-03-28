@@ -74,7 +74,7 @@ export default class GraphModelWrapper {
 
     getPointAtDistance(elementIndex, distance) {
         let p = this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
-                                            : this._getPointAtDistanceOnSegments(elementIndex, distance);
+                                            : this._getPointAtDistanceOnNode(elementIndex, distance);
         if (p) {
             let cy = this._cy;
             let zoom = cy.zoom();
@@ -115,17 +115,31 @@ export default class GraphModelWrapper {
     }
 
     _getPointAtDistanceOnBezier(pts, distance) {
-        let totalLength = Math.getTotalLengthBezier(pts);
-        let currentPoint = Math.getPointAtLengthBezier(pts, distance);
-        return {x: currentPoint.x, y: currentPoint.y};
+        if (!pts || !pts.length || pts.length <= 1) {
+            return {x:0, y:0};
+        }
+        else if (pts.length === 2) {
+            return {x: pts[0], y: pts[1]};
+        }
+        else {
+            let totalLength = Math.getTotalLengthBezier(pts);
+            let currentPoint = Math.getPointAtLengthBezier(pts, distance*totalLength);
+            return {x: currentPoint.x, y: currentPoint.y};
+        }
     }
 
     _getPointAtDistanceOnSegments(pts, distance) {
         let cy = this._cy;
-        if (pts.length >= 2) {
-            let totalLengthSegments = Math.getTotalLengthSegments(pts);
-            let currentPointOnSegments = Math.getPointAtLengthSegments(pts, distance);
-            return {x: currentPointOnSegments.x, y: currentPointOnSegments.y};
+        if (!pts || !pts.length || pts.length <= 1) {
+            return {x:0, y:0};
+        }
+        else if (pts.length === 2) {
+            return {x: pts[0], y: pts[1]};
+        }
+        else { // at least two points, each has x,y
+            let totalLength = Math.getTotalLengthSegments(pts);
+            let currentPoint = Math.getPointAtLengthSegments(pts, distance*totalLength);
+            return {x: currentPoint.x, y: currentPoint.y};
         }
     }
 
