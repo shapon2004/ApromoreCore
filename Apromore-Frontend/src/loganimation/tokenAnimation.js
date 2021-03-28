@@ -33,15 +33,17 @@ import {AnimationEvent, AnimationEventType} from "./animationEvents";
 export default class TokenAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {String} canvasElementId: id of the canvas element
+     * @param {String} containerId: id of the div container
      * @param {Object} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animation, canvasElementId, processMapController, colorPalette) {
+    constructor(animation, containerId, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
-        this._canvasContext = $j('#' + canvasElementId)[0].getContext('2d');
+        this._containerId = containerId;
+        let canvas = this._createCanvasElement(containerId);
+        this._canvasContext = canvas[0].getContext('2d');
         this._colorPalette = colorPalette;
         this._processMapController = processMapController;
 
@@ -57,19 +59,49 @@ export default class TokenAnimation {
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
-        this._state = AnimationState.PLAYING;
+        this._state = AnimationState.INITIALIZED;
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
         this._TOKEN_LOG_GAP = 3;
+        this._backgroundJobsAllowed = false;
 
-        let mapBox = processMapController.getBoundingClientRect();
-        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+        //let mapBox = processMapController.getBoundingClientRect();
+        //this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+    }
+
+    _createCanvasElement(containerId) {
+        let container = $j('#' + containerId);
+        let canvas = $j('<canvas></canvas>');
+        container.append(canvas);
+
+        canvas[0].setAttribute('height', container[0].clientHeight);
+        canvas[0].setAttribute('width', container[0].clientWidth);
+        let x = container.css('padding-top');
+        let y = container.css('padding-top');
+        Object.assign(canvas[0].style, {
+            height: container[0].clientHeight + 'px',
+            width: container[0].clientWidth + 'px',
+            top: container.css('padding-top'),
+            left: container.css('padding-left'),
+            position: 'absolute',
+            zIndex: 1000,
+            'pointer-events': 'none'
+        });
+        return canvas;
+    }
+
+    destroy() {
+        this._backgroundJobsAllowed = false;
+        this._frameBuffer.stopOps();
+        this._clearData();
+        $j('#' + this._containerId).empty();
     }
 
     // Set visual styles and start the main loops
     startEngine() {
         console.log('TokenAnimation: start');
+        this._backgroundJobsAllowed = true;
         this._frameBuffer.startOps();
         this.setTokenStyle();
         this._currentTime = 0;
@@ -243,13 +275,6 @@ export default class TokenAnimation {
         this._frameQueue.push(...frames);
     }
 
-    /**
-     * @returns {JSON}
-     */
-    getNextFrameInQueue() {
-        return (this._frameQueue.length > 0) ? this._frameQueue[0] : undefined;
-    }
-
     getCurrentFrameIndex() {
         return this._currentFrame.index;
     }
@@ -269,6 +294,7 @@ export default class TokenAnimation {
      * Continuously read frames from the buffer into the Frame Queue
      */
     _loopBufferRead() {
+        if (!this._backgroundJobsAllowed) return;
         setTimeout(this._loopBufferRead.bind(this), 1000);
         if (this._state === AnimationState.PLAYING || this._state === AnimationState.PAUSING) {
             if (this._frameQueue.length >= 2*FrameBuffer.DEFAULT_CHUNK_SIZE) return;
@@ -289,6 +315,7 @@ export default class TokenAnimation {
      * @private
      */
     _loopDraw(newTime) {
+        if (!this._backgroundJobsAllowed) return;
         console.log('TokenAnimation - loopDraw');
         window.requestAnimationFrame(this._loopDraw.bind(this));
         if (this._state === AnimationState.PLAYING) { // draw frames in the queue sequentially

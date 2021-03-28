@@ -56,12 +56,18 @@ export default class FrameBuffer {
         this._serverOutOfFrames = false;
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
+        this._backgroundJobsAllowed = false;
     }
 
     // An explicit method to separate this operation stage from the initializing stage.
     startOps() {
+        this._backgroundJobsAllowed = true;
         this._loopRequestData();
         this._loopCleanup();
+    }
+
+    stopOps() {
+        this._backgroundJobsAllowed = false;
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -293,6 +299,7 @@ export default class FrameBuffer {
      * @private
      */
     _loopRequestData() {
+        if (!this._backgroundJobsAllowed) return;
         console.log('Buffer - loopRequestData');
         window.setTimeout(this._loopRequestData.bind(this),1000);
 
@@ -311,6 +318,7 @@ export default class FrameBuffer {
     }
 
     _loopCleanup() {
+        if (!this._backgroundJobsAllowed) return;
         console.log('Buffer - loopCleanup');
         window.setTimeout(this._loopCleanup.bind(this),1000);
         //console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);

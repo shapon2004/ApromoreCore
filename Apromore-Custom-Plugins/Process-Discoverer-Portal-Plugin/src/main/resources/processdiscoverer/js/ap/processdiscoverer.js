@@ -118508,7 +118508,8 @@ __webpack_require__.r(__webpack_exports__);
 class AnimationContext {
     /**
      *
-     * @param {String} pluginExecutionId
+     * @param {String} pluginExecutionId: id of the plugin execution
+     * @param {String} pluginContextName: context name of the plugin
      * @param {Number} minLogStartTime: the start timestamp in the log
      * @param {Number} maxLogEndTime: the end timestamp in the log
      * @param {Number} timelineSlots: the number of slots on the timeline
@@ -118580,14 +118581,17 @@ class AnimationContext {
  * Represent different states of TokenAnimation
  */
 class AnimationState {
-    static get PLAYING() { // playing animation frame by frame
+    static get INITIALIZED() {
         return 0;
     }
-    static get JUMPING() { // jumping backward or forward to a new frame
+    static get PLAYING() { // playing animation frame by frame
         return 1;
     }
-    static get PAUSING() { // pausing
+    static get JUMPING() { // jumping backward or forward to a new frame
         return 2;
+    }
+    static get PAUSING() { // pausing
+        return 3;
     }
 }
 
@@ -118740,7 +118744,7 @@ class DataRequester {
         this._hasDataRequestError = false;
         this._pluginExecutionId = pluginExecutionId;
 
-        this._workerProxy = new Worker("/loganimation2/js/ap/dataRequestWorker.js");
+        this._workerProxy = new Worker("/" + 'loganimation2' + "/js/ap/dataRequestWorker.js");
         let self = this;
         this._workerProxy.onmessage = function(e) {
             console.log('DataRequester - response received: requestToken=' + e.data.requestToken);
@@ -118852,12 +118856,18 @@ class FrameBuffer {
         this._serverOutOfFrames = false;
         this._requestToken = 0; // token to control server responses
         this._sequentialMode = true;
+        this._backgroundJobsAllowed = false;
     }
 
     // An explicit method to separate this operation stage from the initializing stage.
     startOps() {
+        this._backgroundJobsAllowed = true;
         this._loopRequestData();
         this._loopCleanup();
+    }
+
+    stopOps() {
+        this._backgroundJobsAllowed = false;
     }
 
     static get DEFAULT_CHUNK_SIZE() {
@@ -119089,6 +119099,7 @@ class FrameBuffer {
      * @private
      */
     _loopRequestData() {
+        if (!this._backgroundJobsAllowed) return;
         console.log('Buffer - loopRequestData');
         window.setTimeout(this._loopRequestData.bind(this),1000);
 
@@ -119107,6 +119118,7 @@ class FrameBuffer {
     }
 
     _loopCleanup() {
+        if (!this._backgroundJobsAllowed) return;
         console.log('Buffer - loopCleanup');
         window.setTimeout(this._loopCleanup.bind(this),1000);
         //console.log('Buffer - cleanLoop: historyThreshold=' + this._historyThreshold);
@@ -119284,24 +119296,45 @@ class LogAnimation {
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, this.tokenAnimationContainerId, this.processMapController, this.colorPalette);
-        this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, this.timelineContainerId, caseCountsByFrames);
-        this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_4__["default"](this, this.speedControlContainerId);
+        this.processMapController.registerListener(this);
+
+        if (this.tokenAnimationContainerId) {
+            this.tokenAnimation = new _tokenAnimation__WEBPACK_IMPORTED_MODULE_2__["default"](this, this.tokenAnimationContainerId, this.processMapController, this.colorPalette);
+            this.tokenAnimation.registerListener(this);
+        }
+        if (this.timelineContainerId) {
+            this.timeline = new _timelineAnimation__WEBPACK_IMPORTED_MODULE_3__["default"](this, this.timelineContainerId, caseCountsByFrames);
+            this.timeline.registerListener(this);
+        }
+        if (this.speedControlContainerId) {
+            this.speedControl = new _speedControl__WEBPACK_IMPORTED_MODULE_4__["default"](this, this.speedControlContainerId);
+        }
         if (this.progressContainerId) {
             this.progress = new _progressAnimation__WEBPACK_IMPORTED_MODULE_5__["default"](this, logStartFrameIndexes, logEndFrameIndexes, this.progressContainerId, this.logInfoContainerId);
         }
-        this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, this.clockContainerId);
-        this.buttonControls = new _playActionControl__WEBPACK_IMPORTED_MODULE_7__["default"](this, this.buttonsContainerId, this.playClassName, this.pauseClassName);
+        if (this.clockContainerId) {
+            this.clock = new _clockAnimation__WEBPACK_IMPORTED_MODULE_6__["default"](this, this.clockContainerId);
+            this.clock.setClockTime(this.animationContext.getLogStartTime());
+        }
+        if (this.buttonsContainerId) {
+            this.buttonControls = new _playActionControl__WEBPACK_IMPORTED_MODULE_7__["default"](this, this.buttonsContainerId, this.playClassName, this.pauseClassName);
+        }
 
-        // Register events
-        this.processMapController.registerListener(this);
-        this.tokenAnimation.registerListener(this);
-        this.timeline.registerListener(this);
         this._setKeyboardEvents();
 
-        this.clock.setClockTime(this.animationContext.getLogStartTime());
+        // Start
         this.tokenAnimation.startEngine();
         this.pause();
+    }
+
+    /**
+     * Destroy components with dynamic content creation
+     */
+    destroy() {
+        if (this.tokenAnimation) this.tokenAnimation.destroy();
+        if (this.timeline) this.timeline.destroy();
+        if (this.speedControl) this.speedControl.destroy();
+        if (this.progress) this.progress.destroy();
     }
 
     /**
@@ -119636,9 +119669,14 @@ class ProgressAnimation {
         this._animationContext = animation.getAnimationContext();
         this._logStartFrameIndexes = logStartFrameIndexes;
         this._logEndFrameIndexes = logEndFrameIndexes;
+        this._containerId = uiTopContainerId;
         this._svgProgressPaths = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainerId, 1.0);
         this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainerId, uiPopupContainerId);
         this._currentSpeedLevel = 1.0;
+    }
+
+    destroy() {
+        $j('#' + this._containerId).empty();
     }
 
     updateProgress(frameIndex) {
@@ -119823,6 +119861,7 @@ class SpeedControl{
      */
     constructor(animation, uiContainerId) {
         this._animation = animation;
+        this._containerId = uiContainerId;
         let speedControl = $j('#' + uiContainerId);
         this._speedSlider = speedControl.slider({
             orientation: "horizontal",
@@ -119854,6 +119893,10 @@ class SpeedControl{
 
     unFreezeControls() {
         this._speedSlider.css('pointer-events','auto');
+    }
+
+    destroy() {
+        $j('#' + this._containerId).empty();
     }
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
@@ -119915,16 +119958,22 @@ class TimelineAnimation {
         this.textFont = {size: '11', anchor: 'middle'};
 
         // Create the main timeline
+        this.containerId = uiContainerId;
         this.svgTimeline = $j('#' + uiContainerId)[0];
         this.timelineEl = this._createTimelineElement()
         this.timelineCenterLine = this._createTimelineCenterLine()
         this.timelineCenterLineY = this.timelineOffset.y + this.logIntervalMargin;
         this.timelineEl.appendChild(this.timelineCenterLine);
         this.svgTimeline.append(this.timelineEl);
-        this.canvasContext = document.querySelector('#' + uiContainerId + '-canvas').getContext('2d');
 
         this._listeners = [];
+        let canvas = this._createCanvasElement(uiContainerId);
+        this.canvasContext = canvas[0].getContext('2d');
         this._initializeComponents(caseCountsByFrames);
+    }
+
+    destroy() {
+        $j('#' + this.containerId).empty();
     }
 
     _initializeComponents(caseCountsByFrames) {
@@ -120054,6 +120103,12 @@ class TimelineAnimation {
         }
     }
 
+    _createCanvasElement(containerId) {
+        let canvas = $j('<canvas style="background:none; pointer-events:none; width:100%"></canvas>');
+        $j('#' + containerId).append(canvas);
+        return canvas;
+    }
+
     /**
      * Draw a case distribution on the timeline
      * @param {Array} caseCountsByFrames: data with case count for every frame.
@@ -120092,7 +120147,6 @@ class TimelineAnimation {
                 ctx.stroke();
             }
         }
-
     }
 
     _addCursor() {
@@ -120265,15 +120319,17 @@ __webpack_require__.r(__webpack_exports__);
 class TokenAnimation {
     /**
      * @param {LogAnimation} animation
-     * @param {String} canvasElementId: id of the canvas element
+     * @param {String} containerId: id of the div container
      * @param {Object} processMapController
      * @param {Array} colorPalette: color palette for tokens
      */
-    constructor(animation, canvasElementId, processMapController, colorPalette) {
+    constructor(animation, containerId, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
-        this._canvasContext = $j('#' + canvasElementId)[0].getContext('2d');
+        this._containerId = containerId;
+        let canvas = this._createCanvasElement(containerId);
+        this._canvasContext = canvas[0].getContext('2d');
         this._colorPalette = colorPalette;
         this._processMapController = processMapController;
 
@@ -120289,19 +120345,34 @@ class TokenAnimation {
         this._currentTime = 0; // milliseconds since the animation start (excluding pausing time)
         this._then = window.performance.now(); // point in time since the last frame interval (millis since time origin)
         this._now = this._then; // current point in time (milliseconds since the time origin)
-        this._state = _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING;
+        this._state = _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].INITIALIZED;
 
         this._listeners = [];
         this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
         this._TOKEN_LOG_GAP = 3;
+        this._backgroundJobsAllowed = false;
 
         let mapBox = processMapController.getBoundingClientRect();
         this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
     }
 
+    _createCanvasElement(containerId) {
+        let canvas = $j('<canvas style="position:absolute; background:none; z-index:1000; pointer-events:none"></canvas>');
+        $j('#' + containerId).append(canvas);
+        return canvas;
+    }
+
+    destroy() {
+        this._backgroundJobsAllowed = false;
+        this._frameBuffer.stopOps();
+        this._clearData();
+        $j('#' + this._containerId).empty();
+    }
+
     // Set visual styles and start the main loops
     startEngine() {
         console.log('TokenAnimation: start');
+        this._backgroundJobsAllowed = true;
         this._frameBuffer.startOps();
         this.setTokenStyle();
         this._currentTime = 0;
@@ -120371,7 +120442,7 @@ class TokenAnimation {
         this._canvasContext.canvas.height = height;
         this._canvasContext.canvas.x = x;
         this._canvasContext.canvas.y = y;
-        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        if (matrix.a) this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
         this.setTokenStyle();
         if (!this.isWaitingForData()) this._drawFrame(this.getCurrentFrame());
     }
@@ -120475,13 +120546,6 @@ class TokenAnimation {
         this._frameQueue.push(...frames);
     }
 
-    /**
-     * @returns {JSON}
-     */
-    getNextFrameInQueue() {
-        return (this._frameQueue.length > 0) ? this._frameQueue[0] : undefined;
-    }
-
     getCurrentFrameIndex() {
         return this._currentFrame.index;
     }
@@ -120501,6 +120565,7 @@ class TokenAnimation {
      * Continuously read frames from the buffer into the Frame Queue
      */
     _loopBufferRead() {
+        if (!this._backgroundJobsAllowed) return;
         setTimeout(this._loopBufferRead.bind(this), 1000);
         if (this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING || this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PAUSING) {
             if (this._frameQueue.length >= 2*_frameBuffer__WEBPACK_IMPORTED_MODULE_0__["default"].DEFAULT_CHUNK_SIZE) return;
@@ -120521,7 +120586,8 @@ class TokenAnimation {
      * @private
      */
     _loopDraw(newTime) {
-        //console.log('TokenAnimation - loopDraw');
+        if (!this._backgroundJobsAllowed) return;
+        console.log('TokenAnimation - loopDraw');
         window.requestAnimationFrame(this._loopDraw.bind(this));
         if (this._state === _animationContextState__WEBPACK_IMPORTED_MODULE_1__["AnimationState"].PLAYING) { // draw frames in the queue sequentially
             this._now = newTime;
@@ -120587,22 +120653,24 @@ class TokenAnimation {
         this._clearAnimation();
         for (let element of frame.elements) {
             let elementIndex = Object.keys(element)[0];
-            //let pathElement = this._processMapController.getPathElement(elementIndex);
-            //let totalLength = pathElement.getTotalLength();
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
                 let logIndex = token[caseIndex][0];
                 let distance = token[caseIndex][1];
                 let count = token[caseIndex][2];
                 let point = this._processMapController.getPointAtDistance(elementIndex, distance);
+                if (!point) continue;
+                let y = this._getLogYAxis(logIndex, point.y);
                 let radius = count;
                 if (radius > 3) radius = 3;
+                console.log(point.x, point.y, radius);
                 this._canvasContext.beginPath();
                 this._canvasContext.strokeStyle = this._getTokenBorderColor(logIndex);
                 this._canvasContext.fillStyle = this._getTokenFillColor(logIndex, count);
-                this._canvasContext.arc(point.x, this._getLogYAxis(logIndex, point.y), 5*radius, 0, 2 * Math.PI);
+                this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.stroke();
                 this._canvasContext.fill();
+                this._canvasContext.closePath();
             }
         }
     }
@@ -120675,10 +120743,17 @@ class TokenAnimation {
 
     // Require switching transformation matrix back and forth to clear the canvas properly.
     _clearAnimation() {
-        let matrix = this._canvasContext.getTransform();
-        this._canvasContext.setTransform(1,0,0,1,0,0);
-        this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
-        this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        if (this._processMapController.supportTransformMatrix()) {
+            let matrix = this._canvasContext.getTransform();
+            this._canvasContext.setTransform(1,0,0,1,0,0);
+            this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);
+            this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
+        }
+        else {
+            let w = this._canvasContext.canvas.clientWidth;
+            let h = this._canvasContext.canvas.clientHeight;
+            this._canvasContext.clearRect(0, 0, 10000, 10000);
+        }
     }
 
     /**
@@ -121009,7 +121084,7 @@ PDp.init = function() {
     cy.on('mouseover', 'node', function (event) {
         let node = event.target;
         if (node.data(NAME_PROP)) {
-            currentNodeTooltip = this.makeTippy(node, node.data(NAME_PROP));
+            currentNodeTooltip = pd.makeTippy(node, node.data(NAME_PROP));
             currentNodeTooltip.show();
         } else {
             currentNodeTooltip = undefined;
@@ -121389,7 +121464,9 @@ PDp.switchToAnimationView = function(setupDataJSON) {
     $j('#' + pd._private.animationViewContainerId).show();
 
     let processMapController = new _processmap_graphModelWrapper__WEBPACK_IMPORTED_MODULE_3__["default"](cy);
-    let logAnimation = new _loganimation__WEBPACK_IMPORTED_MODULE_4__["default"](pd._private.pluginExecutionId, processMapController,
+    let logAnimation = this._private.logAnimation = new _loganimation__WEBPACK_IMPORTED_MODULE_4__["default"](
+                                        pd._private.pluginExecutionId,
+                                        processMapController,
                                         pd._private.tokenAnimationContainerId,
                                         pd._private.timelineContainerId,
                                         pd._private.speedControlContainerId,
@@ -121404,7 +121481,9 @@ PDp.switchToAnimationView = function(setupDataJSON) {
 
 PDp.switchToInteractiveView = function() {
     let pd = this;
-    cy.unmount();
+    let la = pd._private.logAnimation;
+    if (la) la.destroy();
+    //cy.unmount();
     $j('#' + pd._private.animationViewContainerId).hide();
     cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
     $j('#' + pd._private.interactiveViewContainerId).show();
@@ -121436,7 +121515,6 @@ let PD = function(pluginExecutionId,
                   interactiveViewContainerId,
                   animationViewContainerId,
                   animationModelContainerId,
-                  tokenAnimationContainerId,
                   timelineContainerId,
                   speedControlContainerId,
                   progressContainerId,
@@ -121450,7 +121528,6 @@ let PD = function(pluginExecutionId,
         'interactiveViewContainerId': interactiveViewContainerId,
         'animationViewContainerId': animationViewContainerId,
         'animationModelContainerId': animationModelContainerId,
-        'tokenAnimationContainerId': tokenAnimationContainerId,
         'timelineContainerId': timelineContainerId,
         'speedControlContainerId': speedControlContainerId,
         'progressContainerId': progressContainerId,
@@ -121458,7 +121535,8 @@ let PD = function(pluginExecutionId,
         'clockContainerId': clockContainerId,
         'buttonsContainerId': buttonsContainerId,
         'playClassName': playClassName,
-        'pauseClassName': pauseClassName
+        'pauseClassName': pauseClassName,
+        'logAnimation': undefined
     }
 }
 
@@ -121977,16 +122055,36 @@ class GraphModelWrapper {
     }
 
     getBoundingClientRect() {
-        return this._cy.elements().boundingBox();
+        return this._cy.container().getBoundingClientRect();
+        // let box = this._cy.elements().renderedBoundingBox();
+        // return {x: box.x1,
+        //         y: box.y1,
+        //         width: box.w,
+        //         height: box.h};
     }
 
     getTransformMatrix() {
         return {};
     }
 
+    supportTransformMatrix() {
+        return false;
+    }
+
     getPointAtDistance(elementIndex, distance) {
-        return this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
-                                            : this._getPointAtDistanceOnSegments(elementIndex, distance);
+        let p = this._element(elementIndex).isEdge() ? this._getPointAtDistanceOnEdge(elementIndex, distance)
+                                            : this._getPointAtDistanceOnNode(elementIndex, distance);
+        if (p) {
+            let cy = this._cy;
+            let zoom = cy.zoom();
+            let pan = cy.pan();
+            p.x = p.x * zoom + pan.x;
+            p.y = p.y * zoom + pan.y;
+        }
+        else {
+            console.log("Error getPointAtDistance for elementIndex=" + elementIndex + ', distance=' + distance );
+        }
+        return p;
     }
 
     _element(elementIndex) {
@@ -122016,17 +122114,31 @@ class GraphModelWrapper {
     }
 
     _getPointAtDistanceOnBezier(pts, distance) {
-        let totalLength = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getTotalLengthBezier"](pts);
-        let currentPoint = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getPointAtLengthBezier"](pts, distance);
-        return {x: currentPoint.x, y: currentPoint.y};
+        if (!pts || !pts.length || pts.length <= 1) {
+            return {x:0, y:0};
+        }
+        else if (pts.length === 2) {
+            return {x: pts[0], y: pts[1]};
+        }
+        else {
+            let totalLength = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getTotalLengthBezier"](pts);
+            let currentPoint = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getPointAtLengthBezier"](pts, distance*totalLength);
+            return {x: currentPoint.x, y: currentPoint.y};
+        }
     }
 
     _getPointAtDistanceOnSegments(pts, distance) {
         let cy = this._cy;
-        if (pts.length >= 2) {
-            let totalLengthSegments = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getTotalLengthSegments"](pts);
-            let currentPointOnSegments = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getPointAtLengthSegments"](pts, distance);
-            return {x: currentPointOnSegments.x, y: currentPointOnSegments.y};
+        if (!pts || !pts.length || pts.length <= 1) {
+            return {x:0, y:0};
+        }
+        else if (pts.length === 2) {
+            return {x: pts[0], y: pts[1]};
+        }
+        else { // at least two points, each has x,y
+            let totalLength = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getTotalLengthSegments"](pts);
+            let currentPoint = _utils_math__WEBPACK_IMPORTED_MODULE_2__["getPointAtLengthSegments"](pts, distance*totalLength);
+            return {x: currentPoint.x, y: currentPoint.y};
         }
     }
 
@@ -122180,41 +122292,34 @@ const getBoxSkipPath = function(startPoint, endPoint, taskRectPoints) {
         }
 
         if (arrayAbove.length === 1) {
-            skipPath =
-                'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                'L' + arrayAbove[0].x + ',' + arrayAbove[0].y + ' ' +
-                'L' + endPoint.x + ',' + endPoint.y;
-            skipPath.push({});
+            skipPath.push(startPoint.x, startPoint.y,
+                arrayAbove[0].x, arrayAbove[0].y,
+                endPoint.x, endPoint.y);
         } else if (arrayBelow.length === 1) {
-            skipPath =
-                'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                'L' + arrayBelow[0].x + ',' + arrayBelow[0].y + ' ' +
-                'L' + endPoint.x + ',' + endPoint.y
+            skipPath.push(startPoint.x, startPoint.y,
+                arrayBelow[0].x, arrayBelow[0].y,
+                endPoint.x, endPoint.y);
         } else {
             if (Math.abs(startPoint.x - taskRectPoints.sw.x) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    taskRectPoints.se.x, taskRectPoints.se.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.x - taskRectPoints.se.x) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.se.x + ',' + taskRectPoints.se.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.se.x, taskRectPoints.se.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.y - taskRectPoints.sw.y) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    taskRectPoints.nw.x, taskRectPoints.nw.y,
+                    endPoint.x, endPoint.y);
             } else if (Math.abs(startPoint.y - taskRectPoints.nw.y) < 10) {
-                skipPath =
-                    'm' + startPoint.x + ',' + startPoint.y + ' ' +
-                    'L' + taskRectPoints.nw.x + ',' + taskRectPoints.nw.y + ' ' +
-                    'L' + taskRectPoints.sw.x + ',' + taskRectPoints.sw.y + ' ' +
-                    'L' + endPoint.x + ',' + endPoint.y
+                skipPath.push(startPoint.x, startPoint.y,
+                    taskRectPoints.nw.x, taskRectPoints.nw.y,
+                    taskRectPoints.sw.x, taskRectPoints.sw.y,
+                    endPoint.x, endPoint.y);
             }
         }
     }

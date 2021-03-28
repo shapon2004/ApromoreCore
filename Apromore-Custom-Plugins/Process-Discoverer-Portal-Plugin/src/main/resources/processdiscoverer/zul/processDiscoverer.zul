@@ -275,14 +275,12 @@
       </div>
       
       <!-- Graph Area -->
-      <!-- PD INTERACTIVE MODE -->
+      <!-- PD INTERACTIVE MODEL -->
       <n:div id="ap-pd-process-model" style="background-color:none;"/>
       <div id="vizBridge" visible="false"></div>
       
-      <!-- PD ANIMATION MODE -->
-      <n:div id="ap-pd-animation" style="display:none;">
-        <animation />
-      </n:div>
+      <!-- PD ANIMATION MODEL -->
+      <animation />
     </n:div>
     <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
   </window>
@@ -293,9 +291,8 @@
     
     Ap.pd = new Apromore.ProcessDiscoverer('${arg.pluginExecutionId}', 
                         'ap-pd-process-model', 
-                        'ap-pd-animation',
-                        'ap-pd-animation-model',
-                        'ap-pd-la-canvas',
+                        'ap-pd-la',
+                        'ap-pd-la-model',
                         'ap-pd-la-timeline',
                         'ap-pd-la-speed-control',
                         '',

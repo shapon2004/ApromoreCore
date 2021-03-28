@@ -21,9 +21,14 @@ export default class ProgressAnimation {
         this._animationContext = animation.getAnimationContext();
         this._logStartFrameIndexes = logStartFrameIndexes;
         this._logEndFrameIndexes = logEndFrameIndexes;
+        this._containerId = uiTopContainerId;
         this._svgProgressPaths = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainerId, 1.0);
         this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainerId, uiPopupContainerId);
         this._currentSpeedLevel = 1.0;
+    }
+
+    destroy() {
+        $j('#' + this._containerId).empty();
     }
 
     updateProgress(frameIndex) {

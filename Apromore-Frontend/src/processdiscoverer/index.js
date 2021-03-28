@@ -6,7 +6,6 @@ let PD = function(pluginExecutionId,
                   interactiveViewContainerId,
                   animationViewContainerId,
                   animationModelContainerId,
-                  tokenAnimationContainerId,
                   timelineContainerId,
                   speedControlContainerId,
                   progressContainerId,
@@ -20,7 +19,6 @@ let PD = function(pluginExecutionId,
         'interactiveViewContainerId': interactiveViewContainerId,
         'animationViewContainerId': animationViewContainerId,
         'animationModelContainerId': animationModelContainerId,
-        'tokenAnimationContainerId': tokenAnimationContainerId,
         'timelineContainerId': timelineContainerId,
         'speedControlContainerId': speedControlContainerId,
         'progressContainerId': progressContainerId,
@@ -28,7 +26,8 @@ let PD = function(pluginExecutionId,
         'clockContainerId': clockContainerId,
         'buttonsContainerId': buttonsContainerId,
         'playClassName': playClassName,
-        'pauseClassName': pauseClassName
+        'pauseClassName': pauseClassName,
+        'logAnimation': undefined
     }
 }
 

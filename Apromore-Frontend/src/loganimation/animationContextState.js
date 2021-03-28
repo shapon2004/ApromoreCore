@@ -79,14 +79,17 @@ export class AnimationContext {
  * Represent different states of TokenAnimation
  */
 export class AnimationState {
-    static get PLAYING() { // playing animation frame by frame
+    static get INITIALIZED() {
         return 0;
     }
-    static get JUMPING() { // jumping backward or forward to a new frame
+    static get PLAYING() { // playing animation frame by frame
         return 1;
     }
-    static get PAUSING() { // pausing
+    static get JUMPING() { // jumping backward or forward to a new frame
         return 2;
+    }
+    static get PAUSING() { // pausing
+        return 3;
     }
 }
 

@@ -650,8 +650,10 @@ PDp.switchToAnimationView = function(setupDataJSON) {
     $j('#' + pd._private.animationViewContainerId).show();
 
     let processMapController = new GraphModelWrapper(cy);
-    let logAnimation = new LogAnimation(pd._private.pluginExecutionId, processMapController,
-                                        pd._private.tokenAnimationContainerId,
+    let logAnimation = this._private.logAnimation = new LogAnimation(
+                                        pd._private.pluginExecutionId,
+                                        processMapController,
+                                        pd._private.animationModelContainerId,
                                         pd._private.timelineContainerId,
                                         pd._private.speedControlContainerId,
                                         pd._private.progressContainerId,
@@ -665,7 +667,9 @@ PDp.switchToAnimationView = function(setupDataJSON) {
 
 PDp.switchToInteractiveView = function() {
     let pd = this;
-    cy.unmount();
+    let la = pd._private.logAnimation;
+    if (la) la.destroy();
+    //cy.unmount();
     $j('#' + pd._private.animationViewContainerId).hide();
     cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
     $j('#' + pd._private.interactiveViewContainerId).show();

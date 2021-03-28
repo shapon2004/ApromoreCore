@@ -11,6 +11,7 @@ export default class SpeedControl{
      */
     constructor(animation, uiContainerId) {
         this._animation = animation;
+        this._containerId = uiContainerId;
         let speedControl = $j('#' + uiContainerId);
         this._speedSlider = speedControl.slider({
             orientation: "horizontal",
@@ -21,7 +22,7 @@ export default class SpeedControl{
         });
 
         let STEP_VALUES = [10, 20, 30, 40, 60, 70, 80, 90, 120, 240];
-        speedControl.slider("float", {
+        this._speedSlider.slider("float", {
             handle: true,
             pips: true,
             labels: true,
@@ -42,5 +43,10 @@ export default class SpeedControl{
 
     unFreezeControls() {
         this._speedSlider.css('pointer-events','auto');
+    }
+
+    destroy() {
+        this._speedSlider.slider("float", "destroy");
+        //$j('#' + this._containerId).empty();
     }
 }

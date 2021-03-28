@@ -117,24 +117,45 @@ export default class LogAnimation {
             totalEngineS, slotEngineUnit, recordingFrameRate);
 
         this.processMapController.initialize(elementIndexIDMap);
-        this.tokenAnimation = new TokenAnimation(this, this.tokenAnimationContainerId, this.processMapController, this.colorPalette);
-        this.timeline = new TimelineAnimation(this, this.timelineContainerId, caseCountsByFrames);
-        this.speedControl = new SpeedControl(this, this.speedControlContainerId);
+        this.processMapController.registerListener(this);
+
+        if (this.tokenAnimationContainerId) {
+            this.tokenAnimation = new TokenAnimation(this, this.tokenAnimationContainerId, this.processMapController, this.colorPalette);
+            this.tokenAnimation.registerListener(this);
+        }
+        if (this.timelineContainerId) {
+            this.timeline = new TimelineAnimation(this, this.timelineContainerId, caseCountsByFrames);
+            this.timeline.registerListener(this);
+        }
+        if (this.speedControlContainerId) {
+            this.speedControl = new SpeedControl(this, this.speedControlContainerId);
+        }
         if (this.progressContainerId) {
             this.progress = new ProgressAnimation(this, logStartFrameIndexes, logEndFrameIndexes, this.progressContainerId, this.logInfoContainerId);
         }
-        this.clock = new ClockAnimation(this, this.clockContainerId);
-        this.buttonControls = new PlayActionControl(this, this.buttonsContainerId, this.playClassName, this.pauseClassName);
+        if (this.clockContainerId) {
+            this.clock = new ClockAnimation(this, this.clockContainerId);
+            this.clock.setClockTime(this.animationContext.getLogStartTime());
+        }
+        if (this.buttonsContainerId) {
+            this.buttonControls = new PlayActionControl(this, this.buttonsContainerId, this.playClassName, this.pauseClassName);
+        }
 
-        // Register events
-        this.processMapController.registerListener(this);
-        this.tokenAnimation.registerListener(this);
-        this.timeline.registerListener(this);
         this._setKeyboardEvents();
 
-        this.clock.setClockTime(this.animationContext.getLogStartTime());
+        // Start
         this.tokenAnimation.startEngine();
         this.pause();
+    }
+
+    /**
+     * Destroy components with dynamic content creation
+     */
+    destroy() {
+        if (this.tokenAnimation) this.tokenAnimation.destroy();
+        if (this.timeline) this.timeline.destroy();
+        if (this.speedControl) this.speedControl.destroy();
+        if (this.progress) this.progress.destroy();
     }
 
     /**

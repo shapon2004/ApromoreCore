@@ -39,16 +39,22 @@ export default class TimelineAnimation {
         this.textFont = {size: '11', anchor: 'middle'};
 
         // Create the main timeline
+        this.containerId = uiContainerId;
         this.svgTimeline = $j('#' + uiContainerId)[0];
         this.timelineEl = this._createTimelineElement()
         this.timelineCenterLine = this._createTimelineCenterLine()
         this.timelineCenterLineY = this.timelineOffset.y + this.logIntervalMargin;
         this.timelineEl.appendChild(this.timelineCenterLine);
         this.svgTimeline.append(this.timelineEl);
-        this.canvasContext = document.querySelector('#' + uiContainerId + '-canvas').getContext('2d');
 
         this._listeners = [];
+        let canvas = this._createCanvasElement(uiContainerId);
+        this.canvasContext = canvas[0].getContext('2d');
         this._initializeComponents(caseCountsByFrames);
+    }
+
+    destroy() {
+        $j('#' + this.containerId).empty();
     }
 
     _initializeComponents(caseCountsByFrames) {
@@ -178,6 +184,14 @@ export default class TimelineAnimation {
         }
     }
 
+    _createCanvasElement(containerId) {
+        let div = $j('<div style="position:absolute; background:none; width:100%"></div>');
+        let canvas = $j('<canvas style="background:none; pointer-events:none; width:100%"></canvas>');
+        div.append(canvas);
+        $j('#' + containerId).parent().parent().prepend(div);
+        return canvas;
+    }
+
     /**
      * Draw a case distribution on the timeline
      * @param {Array} caseCountsByFrames: data with case count for every frame.
@@ -216,7 +230,6 @@ export default class TimelineAnimation {
                 ctx.stroke();
             }
         }
-
     }
 
     _addCursor() {

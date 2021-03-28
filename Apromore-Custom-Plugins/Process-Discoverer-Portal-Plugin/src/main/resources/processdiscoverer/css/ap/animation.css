@@ -126,11 +126,11 @@
     box-sizing: border-box;
 }
 
-#ap-pd-animation-model > div {
+#ap-pd-la-model > div {
     height: 100% !important;
 }
 
-#ap-pd-animation-model {
+#ap-pd-la-model {
     position: absolute;
     top: 190px;
     left: 0;

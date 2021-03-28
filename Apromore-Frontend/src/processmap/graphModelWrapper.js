@@ -57,11 +57,6 @@ export default class GraphModelWrapper {
 
     getBoundingClientRect() {
         return this._cy.container().getBoundingClientRect();
-        // let box = this._cy.elements().renderedBoundingBox();
-        // return {x: box.x1,
-        //         y: box.y1,
-        //         width: box.w,
-        //         height: box.h};
     }
 
     getTransformMatrix() {
