@@ -50,9 +50,9 @@ import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.commons.item.ItemNameUtils;
 import org.apromore.plugin.portal.FileImporterPlugin;
-import org.apromore.portal.ConfigBean;
 import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.exception.DialogException;

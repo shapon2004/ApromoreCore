@@ -1,0 +1,14 @@
+group = 'org.apromore.plugin'
+version = '1.0'
+description = 'Account management portal plugin'
+
+dependencies {
+	implementation project(':Apromore-Plugins:plugin-core:portal-api')
+	implementation project(':Apromore-Plugins:plugin-core:portal-api')
+	implementation project(':Apromore-Portal')
+	implementation project(':Apromore-Manager')
+	implementation project(':Apromore-Commons')
+	implementation project(':Apromore-Zk')
+}
+
+

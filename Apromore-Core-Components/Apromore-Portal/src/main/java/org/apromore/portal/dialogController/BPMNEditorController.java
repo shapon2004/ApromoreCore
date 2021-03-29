@@ -39,10 +39,14 @@ import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.context.EditorPluginResolver;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
-import org.apromore.portal.model.*;
+import org.apromore.portal.model.EditSessionType;
+import org.apromore.portal.model.ExportFormatResultType;
+import org.apromore.portal.model.PluginMessages;
+import org.apromore.portal.model.ProcessSummaryType;
+import org.apromore.portal.model.UserType;
+import org.apromore.portal.model.VersionSummaryType;
 import org.apromore.portal.util.StreamUtil;
 import org.apromore.util.AccessType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
@@ -237,7 +241,7 @@ public class BPMNEditorController extends BaseController {
                         arg.put("currentUser", UserSessionManager.getCurrentUser());
                         arg.put("autoInherit", true);
                         arg.put("showRelatedArtifacts", true);
-                        arg.put("enablePublish", getConfig().getEnablePublish());
+                        arg.put("enablePublish", getConfig().isEnablePublish());
                         accessControlPlugin.setSimpleParams(arg);
                         accessControlPlugin.execute(portalContext);
                     } catch (Exception e) {

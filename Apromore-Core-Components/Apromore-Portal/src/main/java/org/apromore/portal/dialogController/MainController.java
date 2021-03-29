@@ -25,6 +25,8 @@
 
 package org.apromore.portal.dialogController;
 
+import static org.apromore.portal.common.UserSessionManager.initializeUser;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -40,23 +42,24 @@ import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.commons.item.ItemNameUtils;
+import org.apromore.dao.model.Log;
 import org.apromore.dao.model.Role;
 import org.apromore.dao.model.User;
-import org.apromore.dao.model.Log;
+import org.apromore.plugin.Plugin;
 import org.apromore.plugin.portal.MainControllerInterface;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
-import org.apromore.portal.context.PortalPluginResolver;
 import org.apromore.plugin.portal.SessionTab;
 import org.apromore.plugin.property.RequestParameterType;
-import org.apromore.portal.ConfigBean;
 import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.PortalSession;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.context.PluginPortalContext;
+import org.apromore.portal.context.PortalPluginResolver;
 import org.apromore.portal.custom.gui.tab.PortalTab;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
 import org.apromore.portal.dialogController.dto.VersionDetailType;
@@ -81,6 +84,8 @@ import org.apromore.portal.security.helper.PortalSessionQePair;
 import org.apromore.portal.security.helper.SecuritySsoHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
@@ -88,7 +93,10 @@ import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.EventQueue;
 import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zk.ui.select.annotation.VariableResolver;
+import org.zkoss.zk.ui.select.annotation.WireVariable;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zk.ui.util.Composer;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Hbox;
 import org.zkoss.zul.Html;
@@ -100,17 +108,19 @@ import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Window;
 import org.zkoss.zul.ext.Paginal;
 
-import static org.apromore.portal.common.UserSessionManager.initializeUser;
-
 /**
  * Main Controller for the whole application, most of the UI state is managed here.
  * It is automatically instantiated as index.zul is loaded!
  */
-public class MainController extends BaseController implements MainControllerInterface {
+@VariableResolver(org.zkoss.zkplus.spring.DelegatingVariableResolver.class)
+public class MainController extends BaseController implements MainControllerInterface,Composer<Component>{
 
     private static final long serialVersionUID = 5147685906484044300L;
     private static MainController controller = null;
     private static final Logger LOGGER = LoggerFactory.getLogger(MainController.class);
+    
+    @WireVariable
+    private Map<String, Plugin> plugins;
 
     private static String encKey;
 
@@ -143,7 +153,7 @@ public class MainController extends BaseController implements MainControllerInte
         return controller;
     }
 
-    public MainController() {
+    public  MainController() {
         final boolean usingKeycloak = config.isUseKeycloakSso();
         LOGGER.info("\n\nUsing keycloak: {}", usingKeycloak);
 
@@ -1032,5 +1042,12 @@ public class MainController extends BaseController implements MainControllerInte
         }
         return ItemNameUtils.deriveName(existingNames, processName, suffix);
     }
+
+	@Override
+	public void doAfterCompose(Component comp) throws Exception {
+		onCreate();
+		
+	}
+	
 
 }

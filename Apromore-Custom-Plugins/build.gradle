@@ -1,0 +1,8 @@
+group = 'org.apromore.plugin'
+version = '7.21-SNAPSHOT'
+
+dependencies {
+	
+	runtime project(':Apromore-Custom-Plugins:Apromore-AboutMe')	
+	runtime project(':Apromore-Custom-Plugins:Account-Portal-Plugin')	
+}

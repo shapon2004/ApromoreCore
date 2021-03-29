@@ -50,8 +50,6 @@ import org.apromore.exception.UserNotFoundException;
 import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
 import org.apromore.service.WorkspaceService;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -85,7 +83,6 @@ public class SecurityServiceImpl implements SecurityService {
     private MembershipRepository membershipRepo;
     private WorkspaceService workspaceService;
     private MailSender mailSender;
-    private EventAdmin eventAdmin;
 
 
     /**
@@ -101,8 +98,8 @@ public class SecurityServiceImpl implements SecurityService {
                                final PermissionRepository permissionRepository,
                                final MembershipRepository membershipRepository,
                                final WorkspaceService     wrkSrv,
-                               final MailSender           mailSender,
-                               final EventAdmin           eventAdmin) {
+                               final MailSender           mailSender
+                               ) {
 
         userRepo         = userRepository;
         groupRepo        = groupRepository;
@@ -111,7 +108,7 @@ public class SecurityServiceImpl implements SecurityService {
         membershipRepo   = membershipRepository;
         workspaceService = wrkSrv;
         this.mailSender  = mailSender;
-        this.eventAdmin  = eventAdmin;
+        
     }
 
 
@@ -431,6 +428,6 @@ public class SecurityServiceImpl implements SecurityService {
             properties.put("group.rowGuid", group.getRowGuid());
             properties.put("group.name", group.getName());
         }
-        eventAdmin.postEvent(new Event(EVENT_TOPIC, properties));
+//        eventAdmin.postEvent(new Event(EVENT_TOPIC, properties));
     }
 }

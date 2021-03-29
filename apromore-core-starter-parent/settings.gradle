@@ -1,0 +1,104 @@
+rootProject.name = 'apromore-core-starter-parent'
+
+
+/*
+ * Apromore BootStrap
+ * 
+ */
+include ':Apromore-Boot'
+
+
+/*
+ * Apromore Manager 
+ */
+include ':Apromore-Manager'
+include ':Apromore-Clients:manager-security'
+include ':Apromore-Clients:portal-model'
+include ':Apromore-Extras:APMLogModule'
+include ':Apromore-Extras:OpenXES'
+include ':Apromore-Plugins:plugin-core:core:api'
+include ':Apromore-Plugins:plugin-core:core:provider'
+include ':Event-Log-Plugin-API'
+include ':Apromore-Manager-Client'
+
+/*
+ *  Apromore Commons
+ */
+
+include ':Apromore-Commons'
+
+/*
+ * Apromore Database
+ */
+
+include ':Apromore-Database'
+
+/*
+ * Apromore Cache
+ */
+
+include ':Apromore-Cache'
+
+/*
+ * Apromore Storage
+ */
+
+include ':Apromore-Storage'
+
+/*
+ * Zk dependencies
+ * 
+ */
+include ':Apromore-Zk'
+
+
+project(":Apromore-Manager").projectDir = file("../Apromore-Core-Components/Apromore-Manager")
+project(":Apromore-Manager-Client").projectDir = file("../Apromore-Clients/manager-client")
+project(":Apromore-Zk").projectDir = file("../Apromore-Zk")
+project(":Apromore-Boot").projectDir = file("../Apromore-Boot")
+project(":Apromore-Storage").projectDir = file("../Apromore-Core-Components/apromore-storage")
+project(":Apromore-Cache").projectDir = file("../Apromore-Cache")
+project(":Apromore-Clients:manager-security").projectDir = file("../Apromore-Clients/manager-security")
+project(":Apromore-Clients:portal-model").projectDir = file("../Apromore-Clients/portal-model")
+project(":Apromore-Database").projectDir = file("../Apromore-Database")
+project(":Apromore-Extras:APMLogModule").projectDir = file("../Apromore-Extras/APMLogModule")
+project(":Apromore-Extras:OpenXES").projectDir = file("../Apromore-Extras/OpenXES")
+project(":Apromore-Plugins:plugin-core:core:api").projectDir = file("../Apromore-Plugins/plugin-core/core/api")
+project(":Apromore-Plugins:plugin-core:core:provider").projectDir = file("../Apromore-Plugins/plugin-core/core/provider")
+project(":Event-Log-Plugin-API").projectDir = file("../Event-Log-Plugin-API")
+project(":Apromore-Commons").projectDir = file("../Apromore-Commons")
+
+
+/*
+ *  Apromore Plugins
+ */
+
+include ':Apromore-Plugins:plugin-core:portal-api'
+include ':Apromore-Custom-Plugins:Apromore-AboutMe'
+include ':Apromore-Custom-Plugins'
+include ':Apromore-Portal'
+include ':Apromore-Chiaroscuro-Theme'
+include ':Apromore-Plugins:plugin-core:editor-api'
+include ':Apromore-Plugins:plugin-templates:portal-custom-gui'
+
+
+
+include ':Apromore-Custom-Plugins'
+include ':Apromore-Custom-Plugins:Apromore-AboutMe'
+include ':Apromore-Custom-Plugins:Account-Portal-Plugin'
+
+project(":Apromore-Plugins:plugin-core:portal-api").projectDir = file("../Apromore-Plugins/plugin-core/portal/api")
+
+project(":Apromore-Custom-Plugins").projectDir = file("../Apromore-Custom-Plugins")
+project(":Apromore-Custom-Plugins:Apromore-AboutMe").projectDir = file("../Apromore-Custom-Plugins/About-Portal-Plugin")
+project(":Apromore-Custom-Plugins:Account-Portal-Plugin").projectDir = file("../Apromore-Custom-Plugins/Account-Portal-Plugin")
+
+
+
+project(":Apromore-Portal").projectDir = file("../Apromore-Core-Components/Apromore-Portal")
+project(":Apromore-Plugins:plugin-core:editor-api").projectDir = file("../Apromore-Plugins/plugin-core/editor/api")
+project(":Apromore-Plugins:plugin-templates:portal-custom-gui").projectDir = file("../Apromore-Plugins/plugin-templates/portal-custom-gui")
+project(":Apromore-Chiaroscuro-Theme").projectDir = file("../Apromore-Extras/Chiaroscuro-Theme")
+
+
+

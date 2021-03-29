@@ -32,7 +32,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
-import org.apromore.common.ConfigBean;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.dao.FolderRepository;
 import org.apromore.dao.GroupFolderRepository;
 import org.apromore.dao.GroupLogRepository;
@@ -239,7 +239,7 @@ public class UIHelper implements UserInterfaceHelper {
         assert pageSize != null;
         assert pageIndex != null;
 
-        Page<Process> processes = workspaceService.getProcesses(userId, folderId, new PageRequest(pageIndex, pageSize));
+        Page<Process> processes = workspaceService.getProcesses(userId, folderId,PageRequest.of(pageIndex, pageSize));
 
         SummariesType processSummaries = new SummariesType();
         processSummaries.setTotalCount(pRepository.count());
@@ -257,7 +257,7 @@ public class UIHelper implements UserInterfaceHelper {
         assert pageSize != null;
         assert pageIndex != null;
 
-        Page<Log> logs = workspaceService.getLogs(userId, folderId, new PageRequest(pageIndex, pageSize));
+        Page<Log> logs = workspaceService.getLogs(userId, folderId, PageRequest.of(pageIndex, pageSize));
 
         SummariesType logSummaries = new SummariesType();
         logSummaries.setTotalCount(lRepository.count());

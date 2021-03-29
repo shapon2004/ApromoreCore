@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = false)
     public void writeUser(User user) {
-        User dbUser = userRepo.findOne(user.getId());
+        User dbUser = userRepo.findById(user.getId()).get();
         dbUser.setSearchHistories(user.getSearchHistories());
         userRepo.save(dbUser);
     }

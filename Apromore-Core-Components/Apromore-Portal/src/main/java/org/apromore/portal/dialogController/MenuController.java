@@ -34,34 +34,41 @@ import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apromore.plugin.Plugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
 import org.apromore.portal.common.Constants;
-import org.apromore.portal.common.UserSessionManager;;
+import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.context.PluginPortalContext;
 import org.apromore.portal.context.PortalPluginResolver;
 import org.apromore.portal.exception.ExceptionFormats;
 import org.apromore.portal.util.ExplicitComparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.zkoss.spring.SpringUtil;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zk.ui.select.SelectorComposer;
+import org.zkoss.zk.ui.select.annotation.VariableResolver;
+import org.zkoss.zk.ui.select.annotation.WireVariable;
 import org.zkoss.zul.Menu;
 import org.zkoss.zul.Menubar;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
 import org.zkoss.zul.Menuseparator;
 
+
+@VariableResolver(org.zkoss.zkplus.spring.DelegatingVariableResolver.class)
 public class MenuController extends SelectorComposer<Menubar> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MenuController.class);
 
     private Menuitem aboutMenuitem;
     private Menuitem targetMenuitem;
+    
 
     @Override
     public void doAfterCompose(Menubar menubar) {
@@ -117,7 +124,7 @@ public class MenuController extends SelectorComposer<Menubar> {
                 Menuitem menuitem = new Menuitem();
                 if (plugin.getResourceAsStream(plugin.getIconPath()) != null) {
                     try {
-                        menuitem.setImage("portalPluginResource/"
+                        menuitem.setImage("/portalPluginResource/"
                             + URLEncoder.encode(plugin.getGroupLabel(Locale.getDefault()), "utf-8") + "/"
                             + URLEncoder.encode(plugin.getLabel(Locale.getDefault()), "utf-8") + "/"
                             + plugin.getIconPath());
