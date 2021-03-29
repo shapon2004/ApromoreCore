@@ -23,57 +23,58 @@
 package org.apromore.plugin.portal.account;
 
 import java.util.Locale;
-import org.slf4j.Logger;
-import org.zkoss.spring.SpringUtil;
-
-import org.apromore.portal.ConfigBean;
-import org.apromore.service.SecurityService;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
-import org.apromore.plugin.portal.PortalPlugin.Availability;
+import org.apromore.portal.ConfigBean;
+import org.apromore.service.SecurityService;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import org.zkoss.spring.SpringUtil;
 
+
+@Component
 public class ChangePasswordPlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = PortalLoggerFactory.getLogger(ChangePasswordPlugin.class);
+  private static Logger LOGGER = PortalLoggerFactory.getLogger(ChangePasswordPlugin.class);
 
-    private String label = "Change password";
-    private String groupLabel = "Account";
+  private String label = "Change password";
+  private String groupLabel = "Account";
 
-    private SecurityService securityService;
+  private SecurityService securityService;
 
-    ChangePasswordPlugin(SecurityService newSecurityService) {
-        this.securityService = newSecurityService;
-    }
+  ChangePasswordPlugin(SecurityService newSecurityService) {
+    this.securityService = newSecurityService;
+  }
 
-    // PortalPlugin overrides
+  // PortalPlugin overrides
 
-    @Override
-    public Availability getAvailability() {
-        ConfigBean config = (ConfigBean) SpringUtil.getBean("portalConfig");
-        boolean isUseKeycloakSso = config.isUseKeycloakSso();
-        isUseKeycloakSso = false; // always show  change password for now
+  @Override
+  public Availability getAvailability() {
+    ConfigBean config = (ConfigBean) SpringUtil.getBean("portalConfig");
+    boolean isUseKeycloakSso = config.isUseKeycloakSso();
+    isUseKeycloakSso = false; // always show change password for now
 
-        return isUseKeycloakSso ? Availability.UNAVAILABLE : Availability.AVAILABLE;
-    }
+    return isUseKeycloakSso ? Availability.UNAVAILABLE : Availability.AVAILABLE;
+  }
 
-    @Override
-    public String getLabel(Locale locale) {
-        return label;
-    }
+  @Override
+  public String getLabel(Locale locale) {
+    return label;
+  }
 
-    @Override
-    public String getGroupLabel(Locale locale) {
-        return groupLabel;
-    }
+  @Override
+  public String getGroupLabel(Locale locale) {
+    return groupLabel;
+  }
 
-    @Override
-    public String getIconPath() {
-        return "/change-password-icon.svg";
-    }
+  @Override
+  public String getIconPath() {
+    return "change-password-icon.svg";
+  }
 
-    @Override
-    public void execute(PortalContext portalContext) {
-        new ChangePasswordController(portalContext, securityService);
-    }
+  @Override
+  public void execute(PortalContext portalContext) {
+    new ChangePasswordController(portalContext, securityService);
+  }
 }

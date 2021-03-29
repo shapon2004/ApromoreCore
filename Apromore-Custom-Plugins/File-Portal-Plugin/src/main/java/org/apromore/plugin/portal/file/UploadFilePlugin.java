@@ -25,48 +25,49 @@ import java.util.Locale;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
-import org.slf4j.Logger;
-
 import org.apromore.portal.dialogController.ImportController;
 import org.apromore.portal.dialogController.MainController;
 import org.apromore.portal.exception.DialogException;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 
+@Component
 public class UploadFilePlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = PortalLoggerFactory.getLogger(UploadFilePlugin.class);
+  private static Logger LOGGER = PortalLoggerFactory.getLogger(UploadFilePlugin.class);
 
-    private String label = "Upload";
-    private String groupLabel = "File";
-    private MainController mainC;
+  private String label = "Upload";
+  private String groupLabel = "File";
+  private MainController mainC;
 
-    // PortalPlugin overrides
+  // PortalPlugin overrides
 
-    @Override
-    public String getLabel(Locale locale) {
-        return label;
+  @Override
+  public String getLabel(Locale locale) {
+    return label;
+  }
+
+  @Override
+  public String getGroupLabel(Locale locale) {
+    return groupLabel;
+  }
+
+  @Override
+  public String getIconPath() {
+    return "upload.svg";
+  }
+
+  @Override
+  public void execute(PortalContext portalContext) {
+    MainController mainC = (MainController) portalContext.getMainController();
+
+    mainC.eraseMessage();
+    try {
+      new ImportController(mainC);
+
+    } catch (DialogException e) {
+      Messagebox.show(e.getMessage(), "Attention", Messagebox.OK, Messagebox.ERROR);
     }
-
-    @Override
-    public String getGroupLabel(Locale locale) {
-        return groupLabel;
-    }
-
-    @Override
-    public String getIconPath() {
-        return "upload.svg";
-    }
-
-    @Override
-    public void execute(PortalContext portalContext) {
-        MainController mainC = (MainController) portalContext.getMainController();
-
-        mainC.eraseMessage();
-        try {
-            new ImportController(mainC);
-
-        } catch (DialogException e) {
-            Messagebox.show(e.getMessage(), "Attention", Messagebox.OK, Messagebox.ERROR);
-        }
-    }
+  }
 }

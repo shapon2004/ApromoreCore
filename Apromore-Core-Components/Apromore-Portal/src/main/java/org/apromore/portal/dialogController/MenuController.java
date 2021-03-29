@@ -33,15 +33,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.PortalPlugin;
 import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.UserSessionManager;
-import org.apromore.portal.context.PluginPortalContext;
 import org.apromore.portal.context.PortalPluginResolver;
-import org.apromore.portal.exception.ExceptionFormats;
 import org.apromore.portal.util.ExplicitComparator;
 import org.slf4j.Logger;
 import org.zkoss.spring.SpringUtil;
@@ -50,188 +47,197 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zk.ui.select.SelectorComposer;
+import org.zkoss.zk.ui.select.annotation.VariableResolver;
 import org.zkoss.zul.Menu;
 import org.zkoss.zul.Menubar;
 import org.zkoss.zul.Menuitem;
 import org.zkoss.zul.Menupopup;
 import org.zkoss.zul.Menuseparator;
 
+
+@VariableResolver(org.zkoss.zkplus.spring.DelegatingVariableResolver.class)
 public class MenuController extends SelectorComposer<Menubar> {
 
-    private static final Logger LOGGER = PortalLoggerFactory.getLogger(MenuController.class);
+  private static final Logger LOGGER = PortalLoggerFactory.getLogger(MenuController.class);
 
-    private Menuitem aboutMenuitem;
-    private Menuitem targetMenuitem;
+  private Menuitem aboutMenuitem;
+  private Menuitem targetMenuitem;
 
-    @Override
-    public void doAfterCompose(Menubar menubar) {
 
-        // Recreate the menubar when the authenticated user changes
-        EventQueues.lookup(Constants.EVENT_QUEUE_REFRESH_SCREEN, EventQueues.SESSION, true).subscribe(new EventListener<Event>() {
-            @Override
-            public void onEvent(Event event) throws Exception {
-                if (Constants.EVENT_QUEUE_SESSION_ATTRIBUTES.equals(event.getName())) {
-                    if (UserSessionManager.USER.equals(event.getData())) {
-                        getSelf().getChildren().clear();
-                        populateMenubar(getSelf());
-                    }
-                }
+  @Override
+  public void doAfterCompose(Menubar menubar) {
+
+    // Recreate the menubar when the authenticated user changes
+    EventQueues.lookup(Constants.EVENT_QUEUE_REFRESH_SCREEN, EventQueues.SESSION, true)
+        .subscribe(new EventListener<Event>() {
+          @Override
+          public void onEvent(Event event) throws Exception {
+            if (Constants.EVENT_QUEUE_SESSION_ATTRIBUTES.equals(event.getName())) {
+              if (UserSessionManager.USER.equals(event.getData())) {
+                getSelf().getChildren().clear();
+                populateMenubar(getSelf());
+              }
             }
+          }
         });
 
-        // Create the menubar initially
-        populateMenubar(menubar);
-    }
+    // Create the menubar initially
+    populateMenubar(menubar);
+  }
 
-    private void populateMenubar(Menubar menubar) {
+  private void populateMenubar(Menubar menubar) {
 
-        // If there are portal plugins, create the menus for launching them
-        if (!PortalPluginResolver.resolve().isEmpty()) {
-            
-            // If present, this comparator expresses the preferred ordering for menus along the the menu bar
-            Comparator<String> ordering = (ExplicitComparator) SpringUtil.getBean("portalMenuOrder");
-            Comparator<String> fileMenuitemOrdering = (ExplicitComparator) SpringUtil.getBean("portalFileMenuitemOrder");
+    // If there are portal plugins, create the menus for launching them
+    if (!PortalPluginResolver.resolve().isEmpty()) {
 
-            SortedMap<String, Menu> menuMap = new TreeMap<>(ordering);
-            for (final PortalPlugin plugin: PortalPluginResolver.resolve()) {
-                PortalPlugin.Availability availability = plugin.getAvailability();
-                if (availability == PortalPlugin.Availability.UNAVAILABLE || availability == PortalPlugin.Availability.HIDDEN) {
-                    continue;
-                }
+      // If present, this comparator expresses the preferred ordering for menus along the the menu
+      // bar
+      Comparator<String> ordering = (ExplicitComparator) SpringUtil.getBean("portalMenuOrder");
+      Comparator<String> fileMenuitemOrdering =
+          (ExplicitComparator) SpringUtil.getBean("portalFileMenuitemOrder");
 
-                String menuName = plugin.getGroupLabel(Locale.getDefault());
-
-                if (menuName == "Settings") {
-                    continue;
-                }
-                // Create a new menu if this is the first menu item within it
-                if (!menuMap.containsKey(menuName)) {
-                    Menu menu = new Menu(menuName);
-                    menu.appendChild(new Menupopup());
-                    menuMap.put(menuName, menu);
-                }
-                assert menuMap.containsKey(menuName);
-
-                // Create the menu item
-                Menu menu = menuMap.get(menuName);
-                Menuitem menuitem = new Menuitem();
-                if (plugin.getResourceAsStream(plugin.getIconPath()) != null) {
-                    try {
-                        menuitem.setImage("portalPluginResource/"
-                            + URLEncoder.encode(plugin.getGroupLabel(Locale.getDefault()), "utf-8") + "/"
-                            + URLEncoder.encode(plugin.getLabel(Locale.getDefault()), "utf-8") + "/"
-                            + plugin.getIconPath());
-
-                    } catch (UnsupportedEncodingException e) {
-                        throw new Error("Hardcoded UTF-8 encoding failed", e);
-                    }
-                } else {
-                    menuitem.setImageContent(plugin.getIcon());
-                }
-                String label = plugin.getLabel(Locale.getDefault());
-                menuitem.setLabel(label);
-                menuitem.setDisabled(plugin.getAvailability() == PortalPlugin.Availability.DISABLED);
-                menuitem.addEventListener("onClick", new EventListener<Event>() {
-                    @Override
-                    public void onEvent(Event event) throws Exception {
-                        PortalContext portalContext = (PortalContext) Sessions.getCurrent().getAttribute("portalContext");
-                        plugin.execute(portalContext);
-                    }
-                });
-
-                if ("About".equals(menu.getLabel())) {
-                    aboutMenuitem = menuitem;
-                    continue;
-                }
-                if ("Create folder".equals(menuitem.getLabel())) {
-                    targetMenuitem = menuitem;
-                }
-
-                // Insert the menu item into the appropriate position within the menu
-                // (As configured in site.properties in the case of the File menu, alphabetically otherwise)
-                Menuitem precedingMenuitem = null;
-                List<Menuitem> existingMenuitems = menu.getMenupopup().getChildren();
-                for (Menuitem existingMenuitem: existingMenuitems) {
-                    int comparison = "File".equals(menuName) && (fileMenuitemOrdering != null)
-                        ? fileMenuitemOrdering.compare(menuitem.getLabel(), existingMenuitem.getLabel())
-                        : menuitem.getLabel().compareTo(existingMenuitem.getLabel());
-
-                    if (comparison <= 0) {
-                        precedingMenuitem = existingMenuitem;
-                        break;
-                    }
-                }
-                menu.getMenupopup().insertBefore(menuitem, precedingMenuitem);
-
-            }
-
-            // Add the menus to the menu bar
-            for (final Menu menu: menuMap.values()) {
-                if (!"Account".equals(menu.getLabel()) &&
-                    !"About".equals(menu.getLabel())) {
-                    menubar.appendChild(menu);
-                }
-            }
-
-            for (final Menu menu: menuMap.values()) {
-                if ("Account".equals(menu.getLabel())) {
-                    // ignore; belongs to the user menu
-
-                } else if ("File".equals(menu.getLabel())) {
-                    try {
-                        Menupopup fileMenupopup = menu.getMenupopup();
-
-                        Menuseparator sep = new Menuseparator();
-                        fileMenupopup.insertBefore(sep, targetMenuitem);
-
-                        Menuitem item = new Menuitem();
-                        item.setLabel("Cut");
-                        item.setImage("/themes/ap/common/img/icons/cut.svg");
-                        item.addEventListener("onClick", new EventListener<Event>() {
-                            @Override
-                            public void onEvent(Event event) throws Exception {
-                                getBaseListboxController().cut();
-                            }
-                        });
-                        fileMenupopup.insertBefore(item, targetMenuitem);
-
-                        item = new Menuitem();
-                        item.setLabel("Copy");
-                        item.setImage("/themes/ap/common/img/icons/copy.svg");
-                        item.addEventListener("onClick", new EventListener<Event>() {
-                            @Override
-                            public void onEvent(Event event) throws Exception {
-                                getBaseListboxController().copy();
-                            }
-                        });
-                        fileMenupopup.insertBefore(item, targetMenuitem);
-
-                        item = new Menuitem();
-                        item.setLabel("Paste");
-                        item.setImage("/themes/ap/common/img/icons/paste.svg");
-                        item.addEventListener("onClick", new EventListener<Event>() {
-                            @Override
-                            public void onEvent(Event event) throws Exception {
-                                getBaseListboxController().paste();
-                            }
-                        });
-                        fileMenupopup.insertBefore(item, targetMenuitem);
-
-                        sep = new Menuseparator();
-                        fileMenupopup.insertBefore(sep, targetMenuitem);
-
-                    } catch (Exception e) {
-                        LOGGER.error("Ignored exception during main menu construction", e);
-                    }
-                }
-            }
+      SortedMap<String, Menu> menuMap = new TreeMap<>(ordering);
+      for (final PortalPlugin plugin : PortalPluginResolver.resolve()) {
+        PortalPlugin.Availability availability = plugin.getAvailability();
+        if (availability == PortalPlugin.Availability.UNAVAILABLE
+            || availability == PortalPlugin.Availability.HIDDEN) {
+          continue;
         }
-    }
 
-    private BaseListboxController getBaseListboxController() {
-        PortalContext portalContext = (PortalContext) Sessions.getCurrent().getAttribute("portalContext");
-        MainController mainController = (MainController) portalContext.getMainController();
+        String menuName = plugin.getGroupLabel(Locale.getDefault());
 
-        return mainController.getBaseListboxController();
+        if (menuName == "Settings") {
+          continue;
+        }
+        // Create a new menu if this is the first menu item within it
+        if (!menuMap.containsKey(menuName)) {
+          Menu menu = new Menu(menuName);
+          menu.appendChild(new Menupopup());
+          menuMap.put(menuName, menu);
+        }
+        assert menuMap.containsKey(menuName);
+
+        // Create the menu item
+        Menu menu = menuMap.get(menuName);
+        Menuitem menuitem = new Menuitem();
+        if (plugin.getResourceAsStream(plugin.getIconPath()) != null) {
+          try {
+            menuitem.setImage("/portalPluginResource/"
+                + URLEncoder.encode(plugin.getGroupLabel(Locale.getDefault()), "utf-8") + "/"
+                + URLEncoder.encode(plugin.getLabel(Locale.getDefault()), "utf-8") + "/"
+                + plugin.getIconPath());
+
+          } catch (UnsupportedEncodingException e) {
+            throw new Error("Hardcoded UTF-8 encoding failed", e);
+          }
+        } else {
+          menuitem.setImageContent(plugin.getIcon());
+        }
+        String label = plugin.getLabel(Locale.getDefault());
+        menuitem.setLabel(label);
+        menuitem.setDisabled(plugin.getAvailability() == PortalPlugin.Availability.DISABLED);
+        menuitem.addEventListener("onClick", new EventListener<Event>() {
+          @Override
+          public void onEvent(Event event) throws Exception {
+            PortalContext portalContext =
+                (PortalContext) Sessions.getCurrent().getAttribute("portalContext");
+            plugin.execute(portalContext);
+          }
+        });
+
+        if ("About".equals(menu.getLabel())) {
+          aboutMenuitem = menuitem;
+          continue;
+        }
+        if ("Create folder".equals(menuitem.getLabel())) {
+          targetMenuitem = menuitem;
+        }
+
+        // Insert the menu item into the appropriate position within the menu
+        // (As configured in site.properties in the case of the File menu, alphabetically otherwise)
+        Menuitem precedingMenuitem = null;
+        List<Menuitem> existingMenuitems = menu.getMenupopup().getChildren();
+        for (Menuitem existingMenuitem : existingMenuitems) {
+          int comparison = "File".equals(menuName) && (fileMenuitemOrdering != null)
+              ? fileMenuitemOrdering.compare(menuitem.getLabel(), existingMenuitem.getLabel())
+              : menuitem.getLabel().compareTo(existingMenuitem.getLabel());
+
+          if (comparison <= 0) {
+            precedingMenuitem = existingMenuitem;
+            break;
+          }
+        }
+        menu.getMenupopup().insertBefore(menuitem, precedingMenuitem);
+
+      }
+
+      // Add the menus to the menu bar
+      for (final Menu menu : menuMap.values()) {
+        if (!"Account".equals(menu.getLabel()) && !"About".equals(menu.getLabel())) {
+          menubar.appendChild(menu);
+        }
+      }
+
+      for (final Menu menu : menuMap.values()) {
+        if ("Account".equals(menu.getLabel())) {
+          // ignore; belongs to the user menu
+
+        } else if ("File".equals(menu.getLabel())) {
+          try {
+            Menupopup fileMenupopup = menu.getMenupopup();
+
+            Menuseparator sep = new Menuseparator();
+            fileMenupopup.insertBefore(sep, targetMenuitem);
+
+            Menuitem item = new Menuitem();
+            item.setLabel("Cut");
+            item.setImage("~./themes/ap/common/img/icons/cut.svg");
+            item.addEventListener("onClick", new EventListener<Event>() {
+              @Override
+              public void onEvent(Event event) throws Exception {
+                getBaseListboxController().cut();
+              }
+            });
+            fileMenupopup.insertBefore(item, targetMenuitem);
+
+            item = new Menuitem();
+            item.setLabel("Copy");
+            item.setImage("~./themes/ap/common/img/icons/copy.svg");
+            item.addEventListener("onClick", new EventListener<Event>() {
+              @Override
+              public void onEvent(Event event) throws Exception {
+                getBaseListboxController().copy();
+              }
+            });
+            fileMenupopup.insertBefore(item, targetMenuitem);
+
+            item = new Menuitem();
+            item.setLabel("Paste");
+            item.setImage("~./themes/ap/common/img/icons/paste.svg");
+            item.addEventListener("onClick", new EventListener<Event>() {
+              @Override
+              public void onEvent(Event event) throws Exception {
+                getBaseListboxController().paste();
+              }
+            });
+            fileMenupopup.insertBefore(item, targetMenuitem);
+
+            sep = new Menuseparator();
+            fileMenupopup.insertBefore(sep, targetMenuitem);
+
+          } catch (Exception e) {
+            LOGGER.error("Ignored exception during main menu construction", e);
+          }
+        }
+      }
     }
+  }
+
+  private BaseListboxController getBaseListboxController() {
+    PortalContext portalContext =
+        (PortalContext) Sessions.getCurrent().getAttribute("portalContext");
+    MainController mainController = (MainController) portalContext.getMainController();
+
+    return mainController.getBaseListboxController();
+  }
 }

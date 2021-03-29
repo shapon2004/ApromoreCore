@@ -23,11 +23,9 @@
 package org.apromore.plugin.portal.processdiscoverer.components;
 
 import java.util.ArrayList;
-
 import org.apromore.logman.attribute.log.AttributeInfo;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.data.PerspectiveDetails;
-import org.zkoss.json.JSONObject;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -38,81 +36,84 @@ import org.zkoss.zul.Listheader;
 import org.zkoss.zul.Window;
 
 public class PerspectiveDetailsController extends DataListController {
-    Window perspectiveDetailsWindow;
+  Window perspectiveDetailsWindow;
 
-    public PerspectiveDetailsController(PDController controller) {
-        super(controller);
+  public PerspectiveDetailsController(PDController controller) {
+    super(controller);
+  }
+
+  private void generateData() {
+    records = new ListModelList();
+    rows = new ArrayList<String[]>();
+
+    for (AttributeInfo info : parent.getProcessAnalyst().getAttributeInfoList()) {
+      ArrayList<String> cells = new ArrayList<>();
+
+      String value = info.getAttributeValue();
+      long occurrences = info.getAttributeOccurrenceCount();
+      double freq = info.getAttributeOccurrenceFrequency();
+
+      PerspectiveDetails perspectiveDetails = PerspectiveDetails.valueOf(value, occurrences, freq);
+      records.add(perspectiveDetails);
+      rows.add(new String[] {value, Long.toString(occurrences), perspectiveDetails.getFreqStr()});
     }
+  }
 
-    private void generateData() {
-        records = new ListModelList();
-        rows = new ArrayList<String []>();
+  @Override
+  public String[] getDataHeaders() {
+    return new String[] {"Activity", "Frequency", "Frequency (%)"};
+  }
 
-        for (AttributeInfo info : parent.getProcessAnalyst().getAttributeInfoList()) {
-            ArrayList<String> cells = new ArrayList<>();
+  @Override
+  public String getExportFilename() {
+    String perspectiveName = parent.getPerspectiveName();
+    return parent.getContextData().getLogName() + "-" + perspectiveName + ".csv";
+  }
 
-            String value = info.getAttributeValue();
-            long occurrences = info.getAttributeOccurrenceCount();
-            double freq = info.getAttributeOccurrenceFrequency();
+  @Override
+  public void onEvent(Event event) throws Exception {
+    if (perspectiveDetailsWindow == null) {
+      perspectiveDetailsWindow = (Window) Executions.createComponents(
+          getPageDefination("static/processdiscoverer/zul/perspectiveDetails.zul"), null, null);
+      String perspectiveName = parent.getPerspectiveName();
+      perspectiveDetailsWindow.setTitle(perspectiveName + " Inspector");
 
-            PerspectiveDetails perspectiveDetails = PerspectiveDetails.valueOf(value, occurrences, freq);
-            records.add(perspectiveDetails);
-            rows.add(new String []{value, Long.toString(occurrences), perspectiveDetails.getFreqStr()});
+      Listbox listbox = (Listbox) perspectiveDetailsWindow.getFellow("perspectiveDetailsList");
+      Listheader listheader =
+          (Listheader) perspectiveDetailsWindow.getFellow("perspectiveDetailName");
+      listheader.setLabel(perspectiveName);
+
+      generateData();
+      listbox.setModel(records);
+
+      Button save = (Button) perspectiveDetailsWindow.getFellow("downloadCSV");
+      save.addEventListener("onClick", new EventListener<Event>() {
+        @Override
+        public void onEvent(Event event) throws Exception {
+          exportData();
         }
-    }
+      });
 
-    @Override
-    public String[] getDataHeaders () {
-        return new String[]{"Activity", "Frequency", "Frequency (%)"};
-    }
+      try {
+        org.zkoss.json.JSONObject param = (org.zkoss.json.JSONObject) event.getData();
+        perspectiveDetailsWindow.setPosition("nocenter");
+        perspectiveDetailsWindow.setLeft((String) param.get("left"));
+        perspectiveDetailsWindow.setTop((String) param.get("top"));
+      } catch (Exception e) {
+        // ignore the exception and proceed with default centered window
+      }
+      perspectiveDetailsWindow.doOverlapped();
 
-    @Override
-    public String getExportFilename () {
-        String perspectiveName = parent.getPerspectiveName();
-        return parent.getContextData().getLogName() + "-" + perspectiveName + ".csv";
+      perspectiveDetailsWindow.addEventListener("onClose", new EventListener<Event>() {
+        @Override
+        public void onEvent(Event event) throws Exception {
+          perspectiveDetailsWindow = null;
+        }
+      });
     }
+  }
 
-    @Override
-    public void onEvent(Event event) throws Exception {
-    	if (perspectiveDetailsWindow==null) {
-            perspectiveDetailsWindow = (Window) Executions.createComponents("perspectiveDetails.zul", null, null);
-            String perspectiveName = parent.getPerspectiveName();
-            perspectiveDetailsWindow.setTitle(perspectiveName + " Inspector");
-            Listbox listbox = (Listbox) perspectiveDetailsWindow.getFellow("perspectiveDetailsList");
-            Listheader listheader = (Listheader) perspectiveDetailsWindow.getFellow("perspectiveDetailName");
-            listheader.setLabel(perspectiveName);
-
-            generateData();
-            listbox.setModel(records);
-    
-            Button save = (Button) perspectiveDetailsWindow.getFellow("downloadCSV");
-            save.addEventListener("onClick", new EventListener<Event>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
-                    exportData();
-                }
-            });
-    
-            try {
-                org.zkoss.json.JSONObject param = (org.zkoss.json.JSONObject) event.getData();
-                perspectiveDetailsWindow.setPosition("nocenter");
-                perspectiveDetailsWindow.setLeft((String)param.get("left"));
-                perspectiveDetailsWindow.setTop((String)param.get("top"));
-            } catch (Exception e) {
-                // ignore the exception and proceed with default centered window
-            }
-            perspectiveDetailsWindow.doOverlapped();
-            
-            perspectiveDetailsWindow.addEventListener("onClose", new EventListener<Event>() {
-    			@Override
-    			public void onEvent(Event event) throws Exception {
-    				perspectiveDetailsWindow = null;				
-    			}
-    		});
-    	}
-    }
-
-    public Window getWindow() {
-        return perspectiveDetailsWindow;
-    }
+  public Window getWindow() {
+    return perspectiveDetailsWindow;
+  }
 }

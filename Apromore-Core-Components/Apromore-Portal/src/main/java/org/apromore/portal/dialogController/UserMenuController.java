@@ -33,11 +33,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.manager.client.ManagerService;
 import org.apromore.plugin.portal.PortalContext;
-import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.PortalPlugin;
-import org.apromore.portal.ConfigBean;
 import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.LabelConstants;
 import org.apromore.portal.common.UserSessionManager;
@@ -45,6 +44,7 @@ import org.apromore.portal.context.PortalPluginResolver;
 import org.apromore.portal.model.UserType;
 import org.apromore.portal.util.ExplicitComparator;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.zkoss.spring.SpringUtil;
@@ -64,9 +64,7 @@ import com.google.common.base.Strings;
 
 public class UserMenuController extends SelectorComposer<Menubar> {
 
-  private static final Logger LOGGER = PortalLoggerFactory.getLogger(UserMenuController.class);
-
-  private static final String JWTS_MAP_BY_USER_KEY = TokenHandoffController.JWTS_MAP_BY_USER_KEY;
+  private static final Logger LOGGER = LoggerFactory.getLogger(UserMenuController.class);
 
   private Menuitem aboutMenuitem;
 
@@ -79,7 +77,7 @@ public class UserMenuController extends SelectorComposer<Menubar> {
     beanFactory = WebApplicationContextUtils
         .getWebApplicationContext(Sessions.getCurrent().getWebApp().getServletContext())
         .getAutowireCapableBeanFactory();
-    config = (ConfigBean) beanFactory.getBean("portalConfig");
+    config = (ConfigBean) beanFactory.getBean(ConfigBean.class);
   }
 
   public ManagerService getManagerService() {
@@ -108,6 +106,7 @@ public class UserMenuController extends SelectorComposer<Menubar> {
 
   @Override
   public void doAfterCompose(Menubar menubar) {
+
     // If there are portal plugins, create the menus for launching them
     if (!PortalPluginResolver.resolve().isEmpty()) {
 
@@ -142,7 +141,7 @@ public class UserMenuController extends SelectorComposer<Menubar> {
 
         } else if (plugin.getResourceAsStream(plugin.getIconPath()) != null) {
           try {
-            menuitem.setImage("portalPluginResource/"
+            menuitem.setImage("/portalPluginResource/"
                 + URLEncoder.encode(plugin.getGroupLabel(Locale.getDefault()), "utf-8") + "/"
                 + URLEncoder.encode(plugin.getLabel(Locale.getDefault()), "utf-8") + "/"
                 + plugin.getIconPath());
@@ -153,6 +152,7 @@ public class UserMenuController extends SelectorComposer<Menubar> {
         } else {
           menuitem.setImageContent(plugin.getIcon());
         }
+
         menuitem.setLabel(label);
         menuitem.setDisabled(plugin.getAvailability() == PortalPlugin.Availability.DISABLED);
         menuitem.addEventListener("onClick", new EventListener<Event>() {
@@ -216,7 +216,7 @@ public class UserMenuController extends SelectorComposer<Menubar> {
       });
 
       // Force logout a user that has been deleted by admin
-      EventQueues.lookup("forceSignOutQueue", EventQueues.SESSION, true)
+      EventQueues.lookup("forceSignOutQueue", EventQueues.APPLICATION, true)
           .subscribe(new EventListener() {
             public void onEvent(Event event) {
               Session session = Sessions.getCurrent();

@@ -24,57 +24,58 @@ package org.apromore.plugin.portal.file;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.apromore.portal.dialogController.MainController;
-import org.apromore.portal.model.SummaryType;
-import org.apromore.portal.model.VersionSummaryType;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
+import org.apromore.portal.dialogController.MainController;
+import org.apromore.portal.model.SummaryType;
+import org.apromore.portal.model.VersionSummaryType;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 
+@Component
 public class DeleteSelectionPlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = PortalLoggerFactory.getLogger(DeleteSelectionPlugin.class);
+  private static Logger LOGGER = PortalLoggerFactory.getLogger(DeleteSelectionPlugin.class);
 
-    private String label = "Delete";
-    private String groupLabel = "File";
+  private String label = "Delete";
+  private String groupLabel = "File";
 
 
-    // PortalPlugin overrides
+  // PortalPlugin overrides
 
-    @Override
-    public String getLabel(Locale locale) {
-        return label;
+  @Override
+  public String getLabel(Locale locale) {
+    return label;
+  }
+
+  @Override
+  public String getGroupLabel(Locale locale) {
+    return groupLabel;
+  }
+
+  @Override
+  public String getIconPath() {
+    return "trash.svg";
+  }
+
+  @Override
+  public void execute(PortalContext portalContext) {
+    MainController mainC = (MainController) portalContext.getMainController();
+
+    try {
+      mainC.eraseMessage();
+      Map<SummaryType, List<VersionSummaryType>> elements = mainC.getSelectedElementsAndVersions();
+      if (elements.size() != 0) {
+        mainC.deleteElements(elements);
+        mainC.clearProcessVersions();
+      } else {
+        mainC.displayMessage("No process version selected.");
+      }
+    } catch (Exception e) {
+      LOGGER.error("Unable to delete selection", e);
+      Messagebox.show("Unable to delete selection");
     }
-
-    @Override
-    public String getGroupLabel(Locale locale) {
-        return groupLabel;
-    }
-
-    @Override
-    public String getIconPath() {
-        return "trash.svg";
-    }
-
-    @Override
-    public void execute(PortalContext portalContext) {
-        MainController mainC = (MainController) portalContext.getMainController();
-
-        try {
-            mainC.eraseMessage();
-            Map<SummaryType, List<VersionSummaryType>> elements = mainC.getSelectedElementsAndVersions();
-            if (elements.size() != 0) {
-                mainC.deleteElements(elements);
-                mainC.clearProcessVersions();
-            } else {
-                mainC.displayMessage("No process version selected.");
-            }
-        } catch (Exception e) {
-            LOGGER.error("Unable to delete selection", e);
-            Messagebox.show("Unable to delete selection");
-        }
-    }
+  }
 }

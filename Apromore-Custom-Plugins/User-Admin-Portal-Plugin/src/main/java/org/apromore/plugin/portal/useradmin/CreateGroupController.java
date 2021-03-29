@@ -21,11 +21,14 @@
  */
 package org.apromore.plugin.portal.useradmin;
 
+import java.util.Map;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.service.SecurityService;
 import org.slf4j.Logger;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.EventQueues;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.Wire;
@@ -35,39 +38,50 @@ import org.zkoss.zul.Window;
 
 public class CreateGroupController extends SelectorComposer<Window> {
 
-    private final static Logger LOGGER = PortalLoggerFactory.getLogger(CreateGroupController.class);
 
-    private PortalContext portalContext = (PortalContext) Executions.getCurrent().getArg().get("portalContext");
-    private SecurityService securityService = (SecurityService) /*SpringUtil.getBean("securityService");*/ Executions.getCurrent().getArg().get("securityService");
+  private final static Logger LOGGER = PortalLoggerFactory.getLogger(CreateGroupController.class);
 
-    @Wire("#groupNameTextbox") Textbox groupNameTextbox;
 
-    @Listen("onClick = #createBtn")
-    public void onClickCreateButton() {
-        boolean canEditGroups = securityService.hasAccess(portalContext.getCurrentUser().getId(), Permissions.EDIT_GROUPS.getRowGuid());
-        if (!canEditGroups) {
-            Messagebox.show("You do not have privilege to create group.");
-            return;
-        }
+  private PortalContext portalContext =
+      (PortalContext) Executions.getCurrent().getArg().get("portalContext");
+  private SecurityService securityService =
+      (SecurityService) /* SpringUtil.getBean("securityService"); */ Executions.getCurrent()
+          .getArg().get("securityService");
 
-        try {
-            if(securityService.getGroupByName(groupNameTextbox.getValue())!=null)
-            {
-        	throw new Exception("Group already exists");
-            }
-            securityService.createGroup(groupNameTextbox.getValue());
-            getSelf().detach();
+  @Wire("#groupNameTextbox")
+  Textbox groupNameTextbox;
 
-        } catch (Exception e) {
-            LOGGER.error("Unable to create group", e);
-            Messagebox.show("Unable to create group. The group/user with the same name could have been present in " +
-                    "the system.");
-        }
-        getSelf().detach();
+
+  @Listen("onClick = #createBtn")
+  public void onClickCreateButton() {
+    boolean canEditGroups = securityService.hasAccess(portalContext.getCurrentUser().getId(),
+        Permissions.EDIT_GROUPS.getRowGuid());
+    if (!canEditGroups) {
+      Messagebox.show("You do not have privilege to create group.");
+      return;
     }
 
-    @Listen("onClick = #cancelBtn")
-    public void onClickCancelButton() {
-        getSelf().detach();
+    try {
+      if (securityService.getGroupByName(groupNameTextbox.getValue()) != null) {
+        throw new Exception("Group already exists");
+      }
+      securityService.createGroup(groupNameTextbox.getValue());
+      Map dataMap = Map.of("type", "CREATE_GROUP");
+
+      EventQueues.lookup(SecurityService.EVENT_TOPIC, getSelf().getDesktop().getWebApp(), true)
+          .publish(new Event("Group Create", null, dataMap));
+
+    } catch (Exception e) {
+      LOGGER.error("Unable to create group", e);
+      Messagebox.show(
+          "Unable to create group. The group/user with the same name could have been present in "
+              + "the system.");
     }
+    getSelf().detach();
+  }
+
+  @Listen("onClick = #cancelBtn")
+  public void onClickCancelButton() {
+    getSelf().detach();
+  }
 }

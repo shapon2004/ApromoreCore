@@ -24,72 +24,71 @@ package org.apromore.plugin.portal.file;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.apromore.portal.common.notification.Notification;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
+import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.dialogController.MainController;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.VersionSummaryType;
 import org.slf4j.Logger;
-import org.zkoss.zul.Messagebox;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EditSelectionPlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = PortalLoggerFactory.getLogger(EditSelectionPlugin.class);
+  private static Logger LOGGER = PortalLoggerFactory.getLogger(EditSelectionPlugin.class);
 
-    private String label = "Edit model";
-    private String groupLabel = "Discover";
+  private String label = "Edit model";
+  private String groupLabel = "Discover";
 
 
-    // PortalPlugin overrides
+  // PortalPlugin overrides
 
-    @Override
-    public String getLabel(Locale locale) {
-        return label;
-    }
+  @Override
+  public String getLabel(Locale locale) {
+    return label;
+  }
 
-    @Override
-    public String getGroupLabel(Locale locale) {
-        return groupLabel;
-    }
+  @Override
+  public String getGroupLabel(Locale locale) {
+    return groupLabel;
+  }
 
-    @Override
-    public String getIconPath() {
-        return "model-edit.svg";
-    }
+  @Override
+  public String getIconPath() {
+    return "model-edit.svg";
+  }
 
-    @Override
-    public void execute(PortalContext portalContext) {
-        try {
-            MainController mainC = (MainController) portalContext.getMainController();
-            mainC.eraseMessage();
-            
-            Map<SummaryType, List<VersionSummaryType>> selectedProcesses = mainC.getSelectedElementsAndVersions();
-            if (selectedProcesses.isEmpty()) {
-                Notification.info("Please select one process model.");
-                return;
-            }
-            else if (selectedProcesses.size() > 1) {
-                Notification.info("Please select only one process model.");
-                return;
-            }
-            else {
-                ProcessSummaryType process = (ProcessSummaryType)selectedProcesses.keySet().iterator().next();
-                if (selectedProcesses.get(process).size() > 1) {
-                    Notification.info("Please select only one process model version.");
-                    return;
-                }
-                else {
-                    VersionSummaryType version = selectedProcesses.get(process).get(0);
-                    mainC.openProcess(process, version);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Unable to edit selection", e);
-            Notification.error("Unable to edit selection");
+  @Override
+  public void execute(PortalContext portalContext) {
+    try {
+      MainController mainC = (MainController) portalContext.getMainController();
+      mainC.eraseMessage();
+
+      Map<SummaryType, List<VersionSummaryType>> selectedProcesses =
+          mainC.getSelectedElementsAndVersions();
+      if (selectedProcesses.isEmpty()) {
+        Notification.info("Please select one process model.");
+        return;
+      } else if (selectedProcesses.size() > 1) {
+        Notification.info("Please select only one process model.");
+        return;
+      } else {
+        ProcessSummaryType process =
+            (ProcessSummaryType) selectedProcesses.keySet().iterator().next();
+        if (selectedProcesses.get(process).size() > 1) {
+          Notification.info("Please select only one process model version.");
+          return;
+        } else {
+          VersionSummaryType version = selectedProcesses.get(process).get(0);
+          mainC.openProcess(process, version);
         }
+      }
+    } catch (Exception e) {
+      LOGGER.error("Unable to edit selection", e);
+      Notification.error("Unable to edit selection");
     }
+  }
 }

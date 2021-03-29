@@ -22,47 +22,48 @@
 package org.apromore.plugin.portal.file;
 
 import java.util.Locale;
-
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.portal.dialogController.MainController;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 import org.zkoss.zul.Messagebox;
 
+@Component
 public class CreateProcessPlugin extends DefaultPortalPlugin {
 
-    private static Logger LOGGER = PortalLoggerFactory.getLogger(CreateProcessPlugin.class);
+  private static Logger LOGGER = PortalLoggerFactory.getLogger(CreateProcessPlugin.class);
 
-    private String label = "Create model";
-    private String groupLabel = "Discover";
+  private String label = "Create model";
+  private String groupLabel = "Discover";
 
 
-    // PortalPlugin overrides
+  // PortalPlugin overrides
 
-    @Override
-    public String getLabel(Locale locale) {
-        return label;
+  @Override
+  public String getLabel(Locale locale) {
+    return label;
+  }
+
+  @Override
+  public String getGroupLabel(Locale locale) {
+    return groupLabel;
+  }
+
+  @Override
+  public String getIconPath() {
+    return "bpmn-add.svg";
+  }
+
+  @Override
+  public void execute(PortalContext portalContext) {
+    MainController mainC = (MainController) portalContext.getMainController();
+    mainC.eraseMessage();
+    try {
+      mainC.openNewProcess();
+    } catch (Exception e) {
+      Messagebox.show(e.getMessage(), "Attention", Messagebox.OK, Messagebox.ERROR);
     }
-
-    @Override
-    public String getGroupLabel(Locale locale) {
-        return groupLabel;
-    }
-
-    @Override
-    public String getIconPath() {
-        return "bpmn-add.svg";
-    }
-
-    @Override
-    public void execute(PortalContext portalContext) {
-        MainController mainC = (MainController) portalContext.getMainController();
-        mainC.eraseMessage();
-        try {
-            mainC.openNewProcess();
-        } catch (Exception e) {
-            Messagebox.show(e.getMessage(), "Attention", Messagebox.OK, Messagebox.ERROR);
-        }
-    }
+  }
 }
