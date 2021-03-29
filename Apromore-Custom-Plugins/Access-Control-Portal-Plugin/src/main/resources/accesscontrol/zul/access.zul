@@ -24,24 +24,24 @@
     id="accessContainer"
     vflex="1" hflex="1"
     apply="org.apromore.plugin.portal.accesscontrol.controllers.AccessController">
-    <script type="text/javascript" src="/themes/ap/share/js/index.js"/>
-    <style src="/themes/ap/share/css/index.css"/>
+    <script type="text/javascript" src="~./themes/ap/share/js/index.js"/>
+    <style src="~./themes/ap/share/css/index.css"/>
 
     <vbox vflex="1" hflex="1" spacing="0">
         <button id="editBtn" visible="false"/>
         <div vflex="min">
             <div sclass="ap-share-detail" style="padding: 6px;" height="34px">
                 <span id="selectedIconLog" visible="false" >
-                    <image height="20px" src="/themes/ap/common/img/icons/log.svg" />
+                    <image height="20px" src="~./themes/ap/common/img/icons/log.svg" />
                 </span>
                 <span id="selectedIconModel" visible="false" >
-                    <image height="20px" src="/themes/ap/common/img/icons/bpmn-model.svg" />
+                    <image height="20px" src="~./themes/ap/common/img/icons/bpmn-model.svg" />
                 </span>
                 <span id="selectedIconFolder" visible="false" >
-                    <image height="20px" src="/themes/ap/common/img/icons-2/folder-solid.svg" />
+                    <image height="20px" src="~./themes/ap/common/img/icons-2/folder-solid.svg" />
                 </span>
                 <span id="selectedIconMetadata" visible="false" >
-                    <image height="20px" src="/themes/ap/common/img/icons/metadata.svg" />
+                    <image height="20px" src="~./themes/ap/common/img/icons/metadata.svg" />
                 </span>
                 <label id="selectedName"/>
             </div>

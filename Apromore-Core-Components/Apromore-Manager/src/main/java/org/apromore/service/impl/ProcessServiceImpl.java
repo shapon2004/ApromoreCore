@@ -41,8 +41,9 @@ import javax.mail.util.ByteArrayDataSource;
 import javax.xml.bind.JAXBException;
 import org.apromore.aop.Event;
 import org.apromore.aop.HistoryEnum;
-import org.apromore.common.ConfigBean;
+
 import org.apromore.common.Constants;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.dao.GroupProcessRepository;
 import org.apromore.dao.GroupRepository;
 import org.apromore.dao.NativeRepository;
@@ -187,7 +188,7 @@ public class ProcessServiceImpl implements ProcessService {
             final NativeType nativeType, final InputStream nativeStream) throws ImportException, RepositoryException {
         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String now = dateFormat.format(new Date());
-        Process process = processRepo.findOne(processId);
+        Process process = processRepo.findById(processId).get();
         String processName = process.getName();
 
         try {
@@ -234,7 +235,7 @@ public class ProcessServiceImpl implements ProcessService {
         ProcessModelVersion pmv;
         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         String now = dateFormat.format(new Date());
-        Process process = processRepo.findOne(processId);
+        Process process = processRepo.findById(processId).get();
         String processName = process.getName();
 
         try {
@@ -343,7 +344,7 @@ public class ProcessServiceImpl implements ProcessService {
         try {
             ProcessModelVersion processModelVersion = processModelVersionRepo.getCurrentProcessModelVersion(processId, preVersion.toString());
             ProcessBranch branch = processModelVersion.getProcessBranch();
-            Process process = processRepo.findOne(processId);
+            Process process = processRepo.findById(processId).get();
 
             process.setDomain(domain);
             process.setName(processName);

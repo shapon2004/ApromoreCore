@@ -1,0 +1,15 @@
+group = 'org.apromore'
+version = '1.0'
+description = 'Log Animation service'
+
+dependencies {
+    
+    implementation 'org.apache.servicemix.bundles:org.apache.servicemix.bundles.joda-time:2.3_1'
+    implementation project(':Apromore-Custom-Plugins:Apromore-Editor:bpmn20xmlbasic')
+    implementation project(':Apromore-Plugins:plugin-core:core:api')
+    implementation project(':Apromore-Extras:OpenXES')
+    implementation 'org.jgrapht:jgrapht-core:0.9.1'
+	implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+	
+    
+}

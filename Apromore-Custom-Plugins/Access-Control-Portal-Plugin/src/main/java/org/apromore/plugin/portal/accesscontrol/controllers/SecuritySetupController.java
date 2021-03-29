@@ -56,9 +56,9 @@ public class SecuritySetupController extends BaseController {
         arg.put("currentUser", currentUser);
         arg.put("autoInherit", true);
         arg.put("showRelatedArtifacts", true);
-        arg.put("enablePublish", config.getEnablePublish());
+        arg.put("enablePublish", config.isEnablePublish());
         try {
-            final Window win = (Window) Executions.createComponents("/accesscontrol/zul/securitySetup.zul", null, arg);
+            final Window win = (Window) Executions.createComponents("~./accesscontrol/zul/securitySetup.zul", null, arg);
             FolderType currentFolder = getMainController().getPortalSession().getCurrentFolder();
 
             this.folderTreeController = new SecurityFolderTreeController(this, win, currentFolder.getId());

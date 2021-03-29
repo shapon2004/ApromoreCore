@@ -42,14 +42,13 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.HtmlBasedComponent;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.Window;
-
+import org.apromore.commons.config.ConfigBean;
 // Local classes
 import org.apromore.manager.client.ManagerService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.SecurityService;
 import org.apromore.service.AuthorizationService;
 import org.apromore.service.WorkspaceService;
-import org.apromore.portal.ConfigBean;
 import org.apromore.portal.common.Constants;
 
 /**
@@ -72,7 +71,7 @@ public class BaseController extends Window {
     protected BaseController() {
         beanFactory = WebApplicationContextUtils.getWebApplicationContext(
                 Sessions.getCurrent().getWebApp().getServletContext()).getAutowireCapableBeanFactory();
-        config = (ConfigBean) beanFactory.getBean("portalConfig");
+        config = (ConfigBean) beanFactory.getBean(ConfigBean.class);
     }
 
     /** Unit testing constructor. */

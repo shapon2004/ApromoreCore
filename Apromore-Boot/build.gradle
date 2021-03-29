@@ -1,0 +1,45 @@
+group = 'org.apromore.plugin'
+version = '7.21-SNAPSHOT'
+
+dependencies {
+	
+	implementation project(':Apromore-Portal')	
+	implementation project(':Apromore-Zk')	
+	implementation project(':Apromore-Custom-Plugins')	
+	implementation project(':Apromore-Plugins:plugin-core:core:api')		
+}
+
+bootJar {
+	enabled = true		
+}
+
+processResources {
+	
+	from ('../Apromore-Core-Components/Apromore-Portal/src/main/webapp') {
+		include '*.zul'
+		into 'web'
+	}
+	
+	
+	from ('../Apromore-Core-Components/Apromore-Portal/src/main/webapp') {
+		exclude '*.zul'
+		exclude 'WEB-INF/*'
+		into 'web'
+	}
+	
+	
+	
+	from ('../Apromore-Core-Components/Apromore-Portal/src/main/webapp/WEB-INF') {
+		include 'zk.xml'
+		into 'metainfo/zk'
+	}
+	
+	from ('../Apromore-Core-Components/Apromore-Portal/src/main/webapp/WEB-INF') {
+		include 'zk-label.properties'
+		into 'metainfo'
+	}
+	
+	from '../Apromore-Database/src/main/resources'
+}
+
+
