@@ -21,17 +21,32 @@
  */
 package org.apromore.plugin.portal.useradmin;
 
-import java.util.*;
+// import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.VariableResolver;
 import org.zkoss.zk.ui.select.annotation.Wire;
 import org.zkoss.zk.ui.select.annotation.WireVariable;
-import org.zkoss.zul.*;
+import org.zkoss.zul.Button;
+import org.zkoss.zul.Combobox;
+import org.zkoss.zul.Textbox;
+import org.zkoss.zul.Label;
+import org.zkoss.zul.Listbox;
+import org.zkoss.zul.Radio;
+import org.zkoss.zul.Window;
+import org.zkoss.zul.ListModelList;
+import org.zkoss.zul.ListModels;
 
 import org.apromore.portal.types.EventQueueEvents;
 import org.apromore.portal.types.EventQueueTypes;
@@ -58,6 +73,7 @@ import org.apromore.util.AccessType;
 public class DeleteUserController extends SelectorComposer<Window> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(DeleteUserController.class);
+    private static boolean USE_STRICT_USER_ADDITION = true;
 
     @WireVariable("workspaceService")
     private WorkspaceService workspaceService;
@@ -80,6 +96,7 @@ public class DeleteUserController extends SelectorComposer<Window> {
     private Integer selectedItemId;
     private String selectedItemName;
 
+    private Map<String, User> transferToUserMap;
     private Map<Group, AccessType> groupAccessTypeMap;
     private ListModelList<User> transferToModel;
     private ListModelList<Assignment> assignmentModel;
@@ -91,11 +108,14 @@ public class DeleteUserController extends SelectorComposer<Window> {
     @Wire("#deletedUserLabel")
     Label deletedUserLabel;
 
+    @Wire("#deletedUserLabelPurge")
+    Label deletedUserLabelPurge;
+
     @Wire("#transferToCombobox")
     Combobox transferToCombobox;
 
-    @Wire("#candidateAssigneeAdd")
-    Button candidateAssigneeAdd;
+    @Wire("#transferToTextbox")
+    Textbox transferToTextbox;
 
     @Wire("#btnApply")
     Button btnApply;
@@ -126,8 +146,11 @@ public class DeleteUserController extends SelectorComposer<Window> {
     public void doAfterCompose(Window win) throws Exception {
         super.doAfterCompose(win);
         container = win;
+        transferToTextbox.setVisible(USE_STRICT_USER_ADDITION);
+        transferToCombobox.setVisible(!USE_STRICT_USER_ADDITION);
         transferFromLabel.setValue(selectedUserName);
         deletedUserLabel.setValue(selectedUserName);
+        deletedUserLabelPurge.setValue(selectedUserName);
         loadTransferTo();
         loadOwnedList();
     }
@@ -141,6 +164,12 @@ public class DeleteUserController extends SelectorComposer<Window> {
         List<User> users = userService.findAllUsers();
         transferToModel = new ListModelList<>(users, false);
         transferToModel.setMultiple(false);
+        // transferToUserMap = users.stream().collect(Collectors.toMap(User::getUsername, user -> user));
+        transferToUserMap = new HashMap<String, User>();
+        for (User user : users) {
+            String username = user.getUsername();
+            transferToUserMap.put(username, user);
+        }
         transferToCombobox.setModel(ListModels.toListSubModel(transferToModel, new Comparator() {
             @Override
             public int compare(Object o1, Object o2) {
@@ -242,20 +271,42 @@ public class DeleteUserController extends SelectorComposer<Window> {
         return items;
     }
 
-    private void applyTransfer() {
-        Set<User> users = transferToModel.getSelection();
-        if (users != null && users.size() == 1) {
-            User targetUser = users.iterator().next();
-            try {
-                workspaceService.transferOwnership(selectedUser, targetUser);
-                Notification.info("Transfer ownership is successfully applied");
-                EventQueues.lookup(EventQueueTypes.TRANSFER_OWNERSHIP, EventQueues.DESKTOP, true)
-                    .publish(new Event(EventQueueEvents.ON_TRANSFERRED, null, selectedUser));
-            } catch(Exception e) {
-                Notification.error("An error occurred while trying to transfer ownership");
+    private User getTransferTo() {
+        if (USE_STRICT_USER_ADDITION) {
+            String userName = transferToTextbox.getValue();
+            User user = transferToUserMap.get(userName);
+            if (user == null) {
+                Notification.error("There is no such user or group name");
             }
+            return user;
         } else {
-            Notification.error("No target user is specified");
+            Set<User> users = transferToModel.getSelection();
+            if (users == null || users.size() != 1) {
+                Notification.error("No target user is specified");
+                return null;
+            }
+            return users.iterator().next();
+        }
+    }
+
+    private void applyTransfer() {
+        User targetUser = getTransferTo();
+
+        if (targetUser == null) {
+            return;
+        }
+        if (selectedUser.equals(targetUser)) {
+            Notification.error("You can not transfer to the user being deleted");
+            return;
+        }
+        try {
+            workspaceService.transferOwnership(selectedUser, targetUser);
+            Notification.info("Transfer ownership is successfully applied");
+            EventQueues.lookup(EventQueueTypes.TRANSFER_OWNERSHIP, EventQueues.DESKTOP, true)
+                .publish(new Event(EventQueueEvents.ON_TRANSFERRED, null, selectedUser));
+        } catch(Exception e) {
+            LOGGER.error("Failed to transfer ownership", e);
+            Notification.error("An error occurred while trying to transfer ownership");
         }
     }
 
@@ -266,9 +317,9 @@ public class DeleteUserController extends SelectorComposer<Window> {
             EventQueues.lookup(EventQueueTypes.PURGE_ASSETS, EventQueues.DESKTOP, true)
                 .publish(new Event(EventQueueEvents.ON_PURGED, null, selectedUser));
         } catch(Exception e) {
-            Notification.error("An error occurred while trying to delete all the deleted user's items");
+            LOGGER.error("Failed to purge assets", e);
+            Notification.error("An error occurred while trying to delete all assets owned by " + selectedUser.getUsername());
         }
-
     }
 
     @Listen("onSelect = #ownedListbox")
@@ -290,6 +341,9 @@ public class DeleteUserController extends SelectorComposer<Window> {
         if (deleteOptionPurge.isChecked()) {
             purgeOwnedAssets();
         }
+        // Force logout the deleted user
+        EventQueues.lookup("forceSignOutQueue", EventQueues.APPLICATION, true)
+                .publish(new Event("onSignout", null, selectedUser.getUsername()));
     }
 
     @Listen("onClick = #btnCancel")

@@ -19,21 +19,10 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.csvimporter.model;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import lombok.Data;
-
-import java.io.File;
-import java.util.List;
-
-@Data
-public class ParquetLogMetaData extends LogMetaData {
-    @JsonIgnore
-    private File parquetTempFile;
-
-    public ParquetLogMetaData(List<String> header, File parquetTempFile) throws Exception {
-        super(header);
-        this.parquetTempFile = parquetTempFile;
-    }
+package org.apromore.plugin.portal.logfilter.generic;
+/**
+ * @author Chii Chang (2021-03-15)
+ */
+public interface LogFilterClient {
+    void processResponse(LogFilterResponse logFilterResponse);
 }

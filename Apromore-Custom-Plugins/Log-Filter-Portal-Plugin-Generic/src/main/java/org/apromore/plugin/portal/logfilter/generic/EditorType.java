@@ -1,6 +1,6 @@
 /*-
  * #%L
- * This file is part of "Apromore Core".
+ * This file is part of "Apromore Enterprise Edition".
  * %%
  * Copyright (C) 2018 - 2021 Apromore Pty Ltd.
  * %%
@@ -19,21 +19,14 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.csvimporter.model;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import lombok.Data;
-
-import java.io.File;
-import java.util.List;
-
-@Data
-public class ParquetLogMetaData extends LogMetaData {
-    @JsonIgnore
-    private File parquetTempFile;
-
-    public ParquetLogMetaData(List<String> header, File parquetTempFile) throws Exception {
-        super(header);
-        this.parquetTempFile = parquetTempFile;
-    }
+package org.apromore.plugin.portal.logfilter.generic;
+/**
+ * @author Chii Chang (2021-03-15)
+ */
+public enum EditorType {
+    CASE_VARIANT,CASE_ID,CASE_SECTION_ATTRIBUTE,CASE_TIMEFRAME,PERFORMANCE,PATH,REWORK_REPETITION,
+    EVENT_SECTION_ATTRIBUTE,
+    EVENT_TIMEFRAME,
+    UNKNOWN
 }
+

@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apromore.dao.model.User;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
+import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.ItemHelpers;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.common.notification.Notification;
@@ -724,7 +725,7 @@ public abstract class BaseListboxController extends BaseController {
 
 		getMainController().eraseMessage();
 		try {
-			userMgmtPlugin = portalPluginMap.get("Manage user permissions");
+			userMgmtPlugin = portalPluginMap.get(Constants.USER_ADMIN_PLUGIN);
 			userMgmtPlugin.execute(portalContext);
 		} catch (Exception e) {
 			LOGGER.error("Unable to create user administration dialog", e);
@@ -744,13 +745,14 @@ public abstract class BaseListboxController extends BaseController {
 			} else {
 				selectedItem = getSelection().iterator().next();
 			}
-			accessControlPlugin = portalPluginMap.get("ACCESS_CONTROL_PLUGIN");
+			accessControlPlugin = portalPluginMap.get(Constants.ACCESS_CONTROL_PLUGIN);
 			Map arg = new HashMap<>();
 			arg.put("withFolderTree", true);
 			arg.put("selectedItem", selectedItem);
 			arg.put("currentUser", UserSessionManager.getCurrentUser()); // UserType
 			arg.put("autoInherit", true);
 			arg.put("showRelatedArtifacts", true);
+			arg.put("enablePublish", config.getEnablePublish());
 			accessControlPlugin.setSimpleParams(arg);
 			accessControlPlugin.execute(portalContext);
 		} catch (Exception e) {
@@ -782,6 +784,7 @@ public abstract class BaseListboxController extends BaseController {
 			arg.put("currentUser", UserSessionManager.getCurrentUser()); // UserType
 			arg.put("autoInherit", true);
 			arg.put("showRelatedArtifacts", true);
+			arg.put("enablePublish", config.getEnablePublish());
 			accessControlPlugin.setSimpleParams(arg);
 			accessControlPlugin.execute(portalContext);
 		} catch (Exception e) {

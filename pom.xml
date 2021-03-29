@@ -160,7 +160,7 @@
         <aspectj.version>1.6.12.RELEASE</aspectj.version>
         <commons.fileupload.version>1.4</commons.fileupload.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.7</commons.lang3.version>
+        <commons.lang3.version>3.11</commons.lang3.version>
         <commons.io.version>2.6</commons.io.version>
         <commons.codec.version>1.14</commons.codec.version>
         <commons.httpclient.version>4.2.1</commons.httpclient.version>
@@ -170,11 +170,12 @@
         <joda-time.version>1.6.2</joda-time.version>
         <cglib.version>2.2.0</cglib.version>
         <validation.version>1.0.0.GA</validation.version>
-        <google.guava.version>27.1-jre</google.guava.version>
+        <google.guava.version>29.0-jre</google.guava.version>
         <json.version>20201115</json.version>
         <inject.version>1.0.0</inject.version>
         <jackson.version>1.9.13</jackson.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
+        <xstream.version>1.4.16</xstream.version>
 
         <zk.version>8.6.0.1</zk.version>
         <zk.spring.version>3.1</zk.spring.version>
@@ -204,7 +205,7 @@
 
         <antlr4-runtime.version>4.3</antlr4-runtime.version>
         <themis.version>1.0</themis.version>
-        <postgresql.version>9.3-1101-jdbc41</postgresql.version>
+        <postgresql.version>42.2.10</postgresql.version>
         <hikari.version>4.0.1</hikari.version>
 
         <!-- **** Settings for the building of the projects **** -->
@@ -257,7 +258,7 @@
             <dependency>
                 <groupId>com.thoughtworks.xstream</groupId>
                 <artifactId>xstream</artifactId>
-                <version>1.4.15</version>
+                <version>${xstream.version}</version>
             </dependency>
 
             <dependency>

@@ -39,15 +39,16 @@ import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalPlugin;
+import org.apromore.plugin.portal.loganimation.api.LogAnimationPluginInterface;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
-import org.apromore.plugin.portal.processdiscoverer.actions.LogFilterController;
-import org.apromore.plugin.portal.processdiscoverer.components.CaseDetailsController;
-import org.apromore.plugin.portal.processdiscoverer.components.GraphSettingsController;
-import org.apromore.plugin.portal.processdiscoverer.components.GraphVisController;
-import org.apromore.plugin.portal.processdiscoverer.components.LogStatsController;
-import org.apromore.plugin.portal.processdiscoverer.components.PerspectiveDetailsController;
-import org.apromore.plugin.portal.processdiscoverer.components.TimeStatsController;
-import org.apromore.plugin.portal.processdiscoverer.components.ViewSettingsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.CaseDetailsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.GraphSettingsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.GraphVisController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.LogFilterController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.LogStatsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.PerspectiveDetailsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.TimeStatsController;
+import org.apromore.plugin.portal.processdiscoverer.controllers.ViewSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
 import org.apromore.plugin.portal.processdiscoverer.data.LogData;
@@ -55,13 +56,13 @@ import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
 import org.apromore.plugin.portal.processdiscoverer.impl.factory.PDFactory;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
+import org.apromore.portal.common.Constants;
 import org.apromore.portal.common.UserSessionManager;
+import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.dialogController.BaseController;
 import org.apromore.portal.dialogController.dto.ApromoreSession;
 import org.apromore.portal.model.FolderType;
 import org.apromore.portal.model.LogSummaryType;
-import org.apromore.portal.plugincontrol.PluginExecution;
-import org.apromore.portal.plugincontrol.PluginExecutionManager;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.processdiscoverer.AbstractionParams;
 import org.apromore.processdiscoverer.ProcessDiscoverer;
@@ -78,8 +79,7 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zk.ui.event.EventQueue;
-import org.zkoss.zk.ui.event.EventQueues;
+import org.zkoss.zk.ui.event.Events;
 import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Checkbox;
@@ -227,6 +227,7 @@ public class PDController extends BaseController {
     // Check infrastructure services to be available. They can become unavailable
     // because of system crashes or modules crashed/undeployed
     private boolean prepareSystemServices() {
+        //canoniserService = (CanoniserService) beanFactory.getBean("canoniserService");
         domainService = (DomainService) Sessions.getCurrent().getAttribute("domainService");
         processService = (ProcessService) Sessions.getCurrent().getAttribute("processService");
         eventLogService = (EventLogService) Sessions.getCurrent().getAttribute("eventLogService");
@@ -450,95 +451,15 @@ public class PDController extends BaseController {
                 }
             );
 
-            filterClear.addEventListener("onClick", new EventListener<Event>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
-                    Messagebox.show(
-                        "Are you sure you want to clear all filters?",
-                        "Filter log",
-                        Messagebox.OK | Messagebox.CANCEL,
-                        Messagebox.QUESTION,
-                        new org.zkoss.zk.ui.event.EventListener() {
-                            @Override
-                            public void onEvent(Event evt) {
-                                if (evt.getName().equals("onOK")) {
-                                    try {
-                                        me.clearFilter();
-                                    } catch (Exception e) {
-                                        Messagebox.show("Unable to clear the filter", "Filter error", Messagebox.OK, Messagebox.ERROR);
-                                    }
-                                }
-                            }
-                        }
-                    );
-                }
-            });
+            filterClear.addEventListener("onClick", e -> onClearFilter());
+            filter.addEventListener("onInvoke", e -> logFilterController.onEvent(e));
+            filter.addEventListener("onInvokeExt", e -> logFilterController.onEvent(e));
 
-            filter.addEventListener("onInvoke", new EventListener<Event>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
-                    Clients.showBusy("Launch Filter Dialog ...");
-                    Sessions.getCurrent().setAttribute("sourceLogId", sourceLogId);
-                    String payload = event.getData().toString();
-                    logFilterController.onEvent(event);
-                    EventQueue eqFilteredView = EventQueues.lookup("filter_view_ctrl", EventQueues.DESKTOP, true);
-                    eqFilteredView.publish(new Event("ctrl", null, payload));
-                    Clients.clearBusy();
-                }
-            });
-            filter.addEventListener("onInvokeExt", new EventListener<Event>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
-                    try {
-                        JSONObject param = (JSONObject) event.getData();
-                        String type = (String) param.get("type");
-                        String data, source, target;
-                        UnifiedMap<String, String> parameters = new UnifiedMap<>();
-                        String mainAttribute = me.getUserOptions().getMainAttributeKey();
-                        if (CASE_SECTION_ATTRIBUTE_COMBINATION.equals(type) || EVENT_ATTRIBUTE_DURATION.equals(type)) {
-                            data = (String) param.get("data");
-                            if (EVENT_ATTRIBUTE_DURATION.equals(type) && !me.logData.hasSufficientDurationVariant(mainAttribute, data)) {
-                                Messagebox.show("Unable to filter on node duration as there's only one value.",
-                                        "Filter error", Messagebox.OK, Messagebox.ERROR);
-                                return;
-                            }
-                            parameters.put("filterType", type);
-                            parameters.put("attributeKey", mainAttribute);
-                            parameters.put("attributeValue", data);
-                        } else if (ATTRIBUTE_ARC_DURATION.equals(type)) {
-                            source = (String) param.get("source");
-                            target = (String) param.get("target");
-                            if (!me.logData.hasSufficientDurationVariant(mainAttribute, source, target)) {
-                                Messagebox.show("Unable to filter on arc duration as there's only one value.",
-                                        "Filter error", Messagebox.OK, Messagebox.ERROR);
-                                return;
-                            }
-                            parameters.put("filterType", type);
-                            parameters.put("attributeKey", mainAttribute);
-                            parameters.put("indegreeValue", source);
-                            parameters.put("outdegreeValue", target);
-                        } else {
-                            return;
-                        }
-                        Clients.showBusy("Launch Filter Dialog ...");
-                        Sessions.getCurrent().setAttribute("sourceLogId", sourceLogId);
-                        logFilterController.onEvent(event);
-                        EventQueue eqFilteredView = EventQueues.lookup("filter_view_ctrl", EventQueues.DESKTOP, true);
-                        eqFilteredView.publish(new Event("ctrl", null, parameters));
-                        Clients.clearBusy();
-                    } catch (Exception e) {
-                        LOGGER.error("Error occurred while launching quick filter: " + e.getMessage(), e);
-                    }
-                }
-            });
-            filter.addEventListener("onClick", logFilterController);
-            animate.addEventListener("onClick", new EventListener<Event>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
-                    setPDMode(getPDMode() == PDMode.INTERACTIVE_MODE ? PDMode.ANIMATION_MODE : PDMode.INTERACTIVE_MODE);
-                }
-            });
-            
+            LogFilterController lfc = getFilterController();
+            filter.addEventListener(Events.ON_CLICK, e -> lfc.onEvent(e));
+
+            animate.addEventListener("onClick", pdFactory.createAnimationController(this));
+    
             exportFilteredLog.addEventListener("onExport", pdFactory.createLogExportController(this));
             exportBPMN.addEventListener("onClick", pdFactory.createBPMNExportController(this));
             downloadPDF.addEventListener("onClick", new EventListener<Event>() {
@@ -598,6 +519,32 @@ public class PDController extends BaseController {
             Messagebox.show("Errors occured while initializing event handlers.");
         }
 
+    }
+
+    private void onClearFilter() {
+        Messagebox.show(
+                "Are you sure you want to clear all filters?",
+                "Filter log",
+                Messagebox.OK | Messagebox.CANCEL,
+                Messagebox.QUESTION,
+                e -> proceedClearFilter(e)
+        );
+    }
+
+    private void proceedClearFilter(Event evt) {
+        if (evt.getName().equals("onOK")) {
+            try {
+                clearFilter();
+            } catch (Exception e) {
+                Messagebox.show("Unable to clear the filter", "Filter error",
+                        Messagebox.OK, Messagebox.ERROR);
+            }
+        }
+    }
+
+    private void showSingleDurationFilterError() {
+        Messagebox.show("Unable to filter on duration as there's only one value.",
+                "Filter error", Messagebox.OK, Messagebox.ERROR);
     }
 
     public void clearFilter() throws Exception {
@@ -723,15 +670,16 @@ public class PDController extends BaseController {
 
             timer1 = System.currentTimeMillis();
             String visualizedText = processVisualizer.generateVisualizationText(currentAbstraction);
-            System.out.println("JsonBuilder.generateJSONFromBPMN: " + (System.currentTimeMillis() - timer1) + " ms.");
+            LOGGER.debug("JsonBuilder.generateJSONFromBPMN: " + (System.currentTimeMillis() - timer1) + " ms.");
             outputData = pdFactory.createOutputData(currentAbstraction, visualizedText);
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-            System.out.println("Sent json data to browser at " + formatter.format(new Date()));
+            LOGGER.debug("Sent json data to browser at " + formatter.format(new Date()));
 
             graphVisController.displayDiagram(visualizedText);
+            contextData.setFirstTimeLoadingFinished(true);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Unexpected error while generating visualization.", e);
             Messagebox.show(!e.getMessage().trim().isEmpty() ? e.getMessage() : "Unexpected error has occurred! Check log files.",
                     "Process Discoverer",
                     Messagebox.OK,

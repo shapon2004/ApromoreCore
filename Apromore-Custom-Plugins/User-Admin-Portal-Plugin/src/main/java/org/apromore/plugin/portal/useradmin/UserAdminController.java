@@ -162,7 +162,7 @@ public class UserAdminController extends SelectorComposer<Window> {
     boolean canEditRoles;
 
     private PortalContext portalContext = (PortalContext) Executions.getCurrent().getArg().get("portalContext");
-    private SecurityService securityService = (SecurityService) /*SpringUtil.getBean("securityService");*/ Executions.getCurrent().getArg().get("securityService");
+    private SecurityService securityService = (SecurityService) Executions.getCurrent().getArg().get("securityService");
     private WorkspaceService workspaceService = (WorkspaceService) Executions.getCurrent().getArg().get("workspaceService");
 
     @Wire("#tabbox")
@@ -997,6 +997,9 @@ public class UserAdminController extends SelectorComposer<Window> {
                                     }
                                 } else {
                                     securityService.deleteUser(user);
+                                    // Force logout the deleted user
+                                    EventQueues.lookup("forceSignOutQueue", EventQueues.APPLICATION, true)
+                                            .publish(new Event("onSignout", null, user.getUsername()));
                                 }
                             }
                             setSelectedUsers(null);
