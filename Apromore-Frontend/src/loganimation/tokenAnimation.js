@@ -35,7 +35,7 @@ export default class TokenAnimation {
      * @param {LogAnimation} animation
      * @param {String} containerId: id of the div container
      * @param {Object} processMapController
-     * @param {Array} colorPalette: color palette for tokens
+     * @param {PaletteProvider} colorPalette: color palette for tokens
      */
     constructor(animation, containerId, processMapController, colorPalette) {
         console.log('TokenAnimation - constructor');
@@ -385,6 +385,9 @@ export default class TokenAnimation {
             for (let token of element[elementIndex]) {
                 let caseIndex = Object.keys(token)[0];
                 let logIndex = token[caseIndex][0];
+                if (!this._animationController.isLogEnabled(logIndex)) {
+                    continue;
+                }
                 let distance = token[caseIndex][1];
                 let count = token[caseIndex][2];
                 let point = this._processMapController.getPointAtDistance(elementIndex, distance);
@@ -414,7 +417,7 @@ export default class TokenAnimation {
      * @private
      */
     _getTokenBorderColor(logNo) {
-        return this._colorPalette[logNo][this._colorPalette[logNo].length-1];
+        return this._colorPalette.getSelectedColor(logNo, -1);
     }
 
     /**
@@ -443,7 +446,7 @@ export default class TokenAnimation {
         else {
             colorIndex = 7;
         }
-        return this._colorPalette[logNo][colorIndex];
+        return this._colorPalette.getSelectedColor(logNo, colorIndex);
     }
 
     /**

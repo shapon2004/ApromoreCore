@@ -47,6 +47,5 @@ export default class SpeedControl{
 
     destroy() {
         this._speedSlider.slider("float", "destroy");
-        //$j('#' + this._containerId).empty();
     }
 }

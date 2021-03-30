@@ -1,18 +1,19 @@
 const webpack = require("webpack");
 const path = require('path');
+const LowerCaseNamePlugin = require('webpack-lowercase-name');
 
 module.exports = {
     entry: {
-        LogAnimation: './src/loganimation/index.js',
-        ProcessDiscoverer: './src/processdiscoverer/index.js',
-        BPMNModelWrapper: './src/processmap/bpmnModelWrapper.js'
+        LogAnimationBpmn: './src/loganimation/index.js',
+        ProcessDiscoverer: './src/processdiscoverer/index.js'
     },
     output: {
-        filename: '[name].js',
+        filename: '[lc-name].js',
         path: path.resolve(__dirname, 'dist'),
         library: ['Apromore', '[name]'],   // Important
         libraryTarget: 'umd',   // Important
-        libraryExport: 'default'
+        libraryExport: 'default',
+        umdNamedDefine: true
     },
     mode: 'development',
     devtool: 'source-map',
@@ -36,6 +37,7 @@ module.exports = {
             "jQuery":"jquery",
             "window.jQuery":"jquery"
         }),
+        new LowerCaseNamePlugin()
     ],
 
 };

@@ -310,7 +310,7 @@
             } catch (e) {
                 // pass
             }
-        }, 1000);
+        }, 1000); 
         
         document.addEventListener("click", (evt) => {
             const el = Ap.pd.getSearchOptionEl();

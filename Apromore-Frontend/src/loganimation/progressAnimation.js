@@ -1,4 +1,5 @@
 import * as SVG from "@svgdotjs/svg.js";
+import Sortable from 'sortablejs';
 
 /**
  * ProgressAnimation manages the progress indicator of the animation.
@@ -13,22 +14,20 @@ export default class ProgressAnimation {
      * @param {Array} logStartFrameIndexes: array of log start frame indexes
      * @param {Array} logEndFrameIndexes: array of log end frame indexes
      */
-    constructor(animation, logStartFrameIndexes, logEndFrameIndexes, uiTopContainerId, uiPopupContainerId) {
-        this._ANIMATION_CLASS = 'progress-animation';
+    constructor(animation, logStartFrameIndexes, logEndFrameIndexes, uiTopContainerId, uiPopupContainerId, colorPalette) {
         this._SVG_NS = "http://www.w3.org/2000/svg";
+        this._containerId = uiTopContainerId;
         this._FULLPROGRESSPATH = 126;
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
         this._logStartFrameIndexes = logStartFrameIndexes;
         this._logEndFrameIndexes = logEndFrameIndexes;
-        this._containerId = uiTopContainerId;
+        this._colorPalette = colorPalette;
         this._svgProgressPaths = this._createProgressIndicators(animation.getLogSummaries(), uiTopContainerId, 1.0);
         this._createLogInfoPopups(animation.getLogSummaries(), uiTopContainerId, uiPopupContainerId);
         this._currentSpeedLevel = 1.0;
-    }
-
-    destroy() {
-        $j('#' + this._containerId).empty();
+        this._sortable = null; // sortable object
+        this.initSortable();
     }
 
     updateProgress(frameIndex) {
@@ -41,6 +40,55 @@ export default class ProgressAnimation {
             let svgPathEl = this._svgProgressPaths[logIndex];
             svgPathEl.style.strokeDashoffset = progress;
         }
+    }
+
+    /**
+     * Set up sortable and set a hook to propagate the reordering to timeline positions
+     */
+    initSortable() {
+        let me = this;
+        let el = document.getElementById('ap-la-progress');
+
+        this._sortable = Sortable.create(el, {
+          orientation: 'horizontal',
+          onEnd: function () {
+            let items = jq('.progress-c', el);
+            let logOrder = jq.map(items, (item) => parseInt(jq(item).data('idx')))
+            me._animationController.setLogOrder(logOrder)
+          },
+        });
+    }
+
+    /**
+     * Create log enable/disable
+     */
+    _createLogToggle(logIndex) {
+        let me = this;
+        let toggle = $j(`<input type="checkbox" class="ap-la-enable" id="ap-la-enable-${logIndex}" data-idx="${logIndex}" checked>`);
+        toggle.change(
+            (function (idx) {
+                return function (e) {
+                    e.stopPropagation();
+                    me._animationController.setLogEnabled(idx, $j(`#ap-la-enable-${idx}`)[0].checked);
+                };
+            })(logIndex)
+        );
+        return toggle;
+    }
+
+    /**
+     * Create log label and picker
+     */
+    _createLogLabelAndPicker(logIndex, filename, color) {
+        let me = this;
+        let toggle = me._createLogToggle(logIndex);
+        let name = $j(`<span class="ap-la-logname"> ${filename}</span>`);
+        let picker = $j(`<input class="ap-la-cpicker" id="ap-la-cpicker-${logIndex}" value="${color}" />`);
+        let label = $j(`<div class="label"></div>`)
+            .append(toggle)
+            .append(name)
+            .append(picker);
+        return label;
     }
 
     /**
@@ -64,21 +112,25 @@ export default class ProgressAnimation {
      * @private
      */
     _createProgressIndicators(logSummaries, uiTopContainerId, speedRatio) {
+        let me = this;
         let log;
+        let color;
         let svgProgress, svgProgressPaths = [];
         let progressTopContainer = $j('#'+ uiTopContainerId);
         progressTopContainer.empty();
         for (let logIndex = 0; logIndex < logSummaries.length; logIndex++) {
             log = logSummaries[logIndex];
-            svgProgress = $j(`<svg id="progressbar-${logIndex}  xmlns="${this._SVG_NS}" viewBox="-10 0 20 40" ></svg>`);
+            color = this._colorPalette.getSelectedColor(logIndex);
+            svgProgress = $j(`<svg id="progressbar-${logIndex}" xmlns="${this._SVG_NS}" viewBox="-10 0 20 40"></svg>`);
             let svgProgressPathGroup = this._createProgressIndicatorsForLog(uiTopContainerId, logIndex, log, speedRatio);
             svgProgress.append(svgProgressPathGroup);
             svgProgressPaths.push(svgProgressPathGroup.firstChild); // get the progress path element
-            progressTopContainer.append($j(`<div id="progress-c-${logIndex}"></div>`)
-                                                .append(svgProgress)
-                                                .append($j(`<div class="label">${log.filename}</div>`)));
-            //svgProgress = svgProgress[0];
-            //svgProgresses.push(svgProgress);
+            let label = me._createLogLabelAndPicker(logIndex, log.filename, color);
+            progressTopContainer.append(
+                $j(`<div class="progress-c" id="progress-c-${logIndex}" data-idx="${logIndex}"></div>`)
+                    .append(svgProgress)
+                    .append(label)
+            );
         }
         return svgProgressPaths;
     }
@@ -99,7 +151,7 @@ export default class ProgressAnimation {
      */
     _createProgressIndicatorsForLog(uiTopContainerId, logIndex, log, speedRatio) {
         speedRatio = speedRatio || 1;
-        let color = this._animationController.getLogColor(logIndex);
+        let color = this._colorPalette.getSelectedColor(logIndex);
         let progress = new SVG.G().attr({
             id: uiTopContainerId + '-' + logIndex,
         }).node;
@@ -159,12 +211,42 @@ export default class ProgressAnimation {
 
         let me = this;
         for (let logIndex = 0; logIndex < logSummaries.length; logIndex++) {
-            let pId = '#' + uiTopContainerId + '-' + logIndex; //this element is created in _createProgressIndicatorsForLog()
+            let pId = '#' + uiTopContainerId + '-' + logIndex; // this element is created in _createProgressIndicatorsForLog()
+            $j(`#ap-la-cpicker-${logIndex}`).spectrum({
+                type: "color",
+                showInput: true,
+                showInitial: true,
+                showAlpha: false,
+                allowEmpty: false,
+                palette: me._colorPalette.getPalette(),
+                change: (function (idx) {
+                    return function (color) {
+                        let colorCode = color.toHexString();
+                        me._colorPalette.matchAndSelectColor(idx, colorCode);
+                        $j(`#ap-la-cpicker-${idx}`).spectrum('hide');
+                        // Update progress
+                        let progress = $j(`#ap-la-progress-${idx} path`)[0];
+                        progress.style.fill = colorCode;
+                        progress.style.stroke = colorCode;
+                        // Update timeline
+                        let timeline = $j(`#ap-la-timeline-${idx}`)[0];
+                        timeline.style.stroke = colorCode;
+                    };
+                })(logIndex)
+            });
+            $j(pId).click(
+                (function (idx) {
+                    return function (e) {
+                        e.stopPropagation();
+                        $j(`#ap-la-cpicker-${idx}`).spectrum('show');
+                    };
+                })(logIndex)
+            );
             $j(pId).hover(
                 (function(idx) {
                     let log = logSummaries[idx - 1];
-                    let color = me._animationController.getLogColor(idx-1);
                     return function() {
+                        let color = me._colorPalette.getSelectedColor(idx - 1);
                         getProps(log);
                         let {top, left} = $j(pId).offset();
                         let bottom = `calc(100vh - ${top - 10}px)`;
@@ -172,6 +254,7 @@ export default class ProgressAnimation {
                         logInfo.attr('data-log-idx', idx);
                         logInfo.css({bottom, left});
                         logInfo.css('background-color', color);
+                        $j('.tip-arrow', logInfo).css('border-top-color', color);
                         logInfo.show();
                     };
                 })(logIndex + 1),

@@ -24,6 +24,9 @@
  */
 'use strict';
 
+import { range, repeat } from 'ramda';
+import 'spectrum-colorpicker2/dist/spectrum';
+
 import {AnimationContext} from './animationContextState';
 import {AnimationEvent, AnimationEventType} from './animationEvents';
 import TokenAnimation from './tokenAnimation';
@@ -32,6 +35,7 @@ import SpeedControl from "./speedControl";
 import ProgressAnimation from "./progressAnimation";
 import ClockAnimation from "./clockAnimation";
 import PlayActionControl from "./playActionControl";
+import PaletteProvider from "../commons/paletteProvider";
 
 /**
  * LogAnimation is a Front Controller to manage the animation page.
@@ -72,16 +76,6 @@ export default class LogAnimation {
                 playClassName,
                 pauseClassName) {
         this.pluginExecutionId = pluginExecutionId;
-        this.isPlayingBeforeMovingModel = false;
-        this.colorPalette = [
-            ['#84c7e3', '#76b3cc', '#699fb5', '#5c8b9e', '#4f7788', '#426371', '#344f5a', '#273b44'], //ligh blue
-            ['#bb3a50', '#a83448', '#952e40', '#822838', '#702230', '#5d1d28', '#4a1720', '#381118'], //red
-            ['#ffe066', '#ffdb4d', '#ffd633', '#ffd11a', '#ffcc00', '#e6b800', '#cca300', '#b38f00'], //orange
-            ['#66ff66', '#4dff4d', '#33ff33', '#1aff1a', '#00ff00', '#00e600', '#00cc00', '#00b300'], //green
-            ['#bf80ff', '#b366ff', '#a64dff', '#9933ff', '#8c1aff', '#8000ff', '#7300e6', '#6600cc'], //green
-            ['#6666ff', '#4d4dff', '#3333ff', '#1a1aff', '#0000ff', '#0000e6', '#0000cc', '#0000b3'], //dark blue
-            ['#ff80ff', '#ff66ff', '#ff4dff', '#ff33ff', '#ff1aff', '#ff00ff', '#e600e6', '#cc00cc'] //pink
-        ];
         this.processMapController = processMapController;
         this.tokenAnimationContainerId = tokenAnimationContainerId;
         this.timelineContainerId = timelineContainerId;
@@ -92,6 +86,24 @@ export default class LogAnimation {
         this.buttonsContainerId = buttonsContainerId;
         this.playClassName = playClassName;
         this.pauseClassName = pauseClassName;
+
+        this.isPlayingBeforeMovingModel = false;
+        this.logNum = 0; // number of logs
+        this.logOrder = []; // the order of log indices
+        this.logEnabled = []; // flag for log enable/disable
+    }
+
+    setLogOrder(logOrder) {
+        this.logOrder = logOrder;
+        this.timeline.arrangeLogTimelines(logOrder);
+    }
+
+    setLogEnabled(logIndex, enabled) {
+        this.logEnabled[logIndex] = enabled;
+    }
+
+    isLogEnabled(logIndex) {
+        return this.logEnabled[logIndex];
     }
 
     /**
@@ -106,6 +118,11 @@ export default class LogAnimation {
         }
         let setupData = JSON.parse(setupDataJSON);
         this.logSummaries = setupData.logs;
+        this.logNum = setupData.logs.length;
+        this.logOrder = range(0, this.logNum);
+        this.logEnabled = repeat(true, this.logNum);
+
+        this.colorPalette = new PaletteProvider(null, this.logNum);
         let {recordingFrameRate, logStartFrameIndexes, logEndFrameIndexes, elementIndexIDMap, caseCountsByFrames} = setupData;
         let startMs = new Date(setupData.timeline.startDateLabel).getTime(); // Start date in milliseconds
         let endMs = new Date(setupData.timeline.endDateLabel).getTime(); // End date in milliseconds
@@ -131,7 +148,9 @@ export default class LogAnimation {
             this.speedControl = new SpeedControl(this, this.speedControlContainerId);
         }
         if (this.progressContainerId) {
-            this.progress = new ProgressAnimation(this, logStartFrameIndexes, logEndFrameIndexes, this.progressContainerId, this.logInfoContainerId);
+            this.progress = new ProgressAnimation(this, logStartFrameIndexes, logEndFrameIndexes,
+                                                    this.progressContainerId, this.logInfoContainerId,
+                                                    this.colorPalette);
         }
         if (this.clockContainerId) {
             this.clock = new ClockAnimation(this, this.clockContainerId);
@@ -199,7 +218,7 @@ export default class LogAnimation {
     }
 
     getLogColor(logNo) {
-        return this.colorPalette[logNo][0];
+        return this.colorPalette.getSelectedColor(logNo);
     }
 
     // Seconds

@@ -322,9 +322,10 @@ export default class TimelineAnimation {
             let log = logSummaries[logIndex];
             let x1 = ox + this.slotWidth * log.startDatePos;
             let x2 = ox + this.slotWidth * log.endDatePos;
+            let id = `ap-la-timeline-${logIndex}`;
             let style = 'stroke: ' + this.animation.getLogColor(logIndex) + '; stroke-width: ' + this.logIntervalSize;
             let opacity = 0.8;
-            new SVG.Line().plot(x1, y, x2, y).attr({style, opacity}).addTo(this.timelineEl);
+            new SVG.Line().plot(x1, y, x2, y).attr({id, style, opacity}).addTo(this.timelineEl);
 
             // Display date label at the two ends
             if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 !== 0) {
@@ -332,6 +333,30 @@ export default class TimelineAnimation {
                 let x = ox + this.slotWidth * log.startDatePos - 50;
                 y += 5;
                 new SVG.Text().plain(txt).font(this.textFont).attr({x, y}).addTo(this.timelineEl);
+            }
+            y += this.logIntervalHeight;
+        }
+    }
+
+    /**
+     * Reorder the logs in the timeline
+     *
+     * @param {array} logOrder - A new log order (trigger by sortable)
+     */
+    arrangeLogTimelines(logOrder) {
+        let logSummaries = this.animation.getLogSummaries();
+        let y = this.timelineOffset.y + this.logIntervalMargin
+        for (let i = 0; i < logSummaries.length; i++) {
+            let logIndex = logOrder[i];
+            let id = `ap-la-timeline-${logIndex}`;
+            let timeline = document.getElementById(id);
+            if (timeline) {
+                timeline.setAttribute('y1', y);
+                timeline.setAttribute('y2', y);
+            }
+            let log = logSummaries[logIndex];
+            if (this.SHOW_OTHER_LOGS_TIMESPAN && log.startDatePos % 10 !== 0) {
+                y += 5;
             }
             y += this.logIntervalHeight;
         }
