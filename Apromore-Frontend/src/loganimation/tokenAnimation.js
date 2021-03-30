@@ -66,8 +66,8 @@ export default class TokenAnimation {
         this._TOKEN_LOG_GAP = 3;
         this._backgroundJobsAllowed = false;
 
-        //let mapBox = processMapController.getBoundingClientRect();
-        //this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+        let mapBox = processMapController.getBoundingClientRect();
+        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
     }
 
     _createCanvasElement(containerId) {
