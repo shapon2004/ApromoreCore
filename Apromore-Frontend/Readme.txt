@@ -14,7 +14,9 @@ Folder structure:
 
 Commands
 
-npm install: to install all dependencies
+npm install --production=false: to install all dependencies
+npm i -g webpack-cli: to install webpack-cli
+npm install: to install only production dependencies if the development dependencies have been installed and unchanged.
 npm run build: to build distribution bundles
     - processdiscoverer.js bundle: used for Process Discoverer
     - loganimationbpmn.js: used for Log Animation calling from the Portal.
