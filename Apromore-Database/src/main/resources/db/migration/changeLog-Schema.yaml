@@ -920,3 +920,55 @@ databaseChangeLog:
            referencedColumnNames: id
            referencedTableName: user
            validate: true
+
+ - changeSet:
+     id: 20210327090000
+     author: karthikb
+     changes:
+       - createTable:
+           tableName: external_source_db
+           columns:
+             - column:
+                 name: id
+                 type: INT
+                 autoIncrement: true
+                 constraints:
+                   nullable: false
+                   primaryKey: true
+                   primaryKeyName: pk_external_source_db_id
+             - column:
+                 constraints:
+                   nullable: false
+                 name: username
+                 type: VARCHAR(255)
+                 remarks: 'Username'
+             - column:
+                 constraints:
+                   nullable: false
+                 name: passwd
+                 type: VARCHAR(255)
+                 remarks: 'Password'
+             - column:
+                 constraints:
+                   nullable: false
+                 name: url
+                 type: VARCHAR(255)
+                 remarks: 'URL'
+             - column:
+                 constraints:
+                   nullable: false
+                 name: schema
+                 type: VARCHAR(255)
+                 remarks: 'Database Schema'
+             - column:
+                 constraints:
+                   nullable: false
+                 name: port
+                 type: VARCHAR(255)
+                 remarks: 'port'
+             - column:
+                 constraints:
+                   nullable: false
+                 name: dbType
+                 type: VARCHAR(255)
+                 remarks: 'Database Type'
