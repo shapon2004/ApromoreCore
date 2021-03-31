@@ -1,10 +1,8 @@
-import LogAnimation from '../../src/loganimation';
+import LogAnimation from '../../src/loganimation/logAnimation';
 import {AnimationContext} from "../../src/loganimation/animationContextState";
 import FrameBuffer from "../../src/loganimation/frameBuffer";
-import ProcessModelController from "../../src/processmap/processModelController";
-import processModelController from "../../src/processmap/processModelController";
-import TokenAnimation from "../../src/loganimation/tokenAnimation";
 import {Apromore} from "../../src/bpmneditor/apromoreEditor";
+import BPMNModelWrapper from "../../src/processmap/bpmnModelWrapper";
 
 /**
  * @returns {LogAnimation}
@@ -17,11 +15,24 @@ export function createSimpleLogAnimation() {
 
     //Turn off loading plugins as not in scope of testing
     Apromore.CONFIG.PLUGINS_ENABLED = false;
-
-    let logAnimation = new LogAnimation('101');
-    logAnimation.loadProcessModel(bpmn.default, function() {});
+    let processMapController = new BPMNModelWrapper();
+    console.log('BPMN', bpmn.default);
+    processMapController.loadProcessModel('editorcanvas', bpmn.default, function() {});
+    let logAnimation = new LogAnimation(
+        '101',
+        processMapController,
+        'editorcanvas',
+        'timeline_svg',
+        'speed-control',
+        'ap-la-progress',
+        'ap-la-info-tip',
+        'ap-la-clock',
+        'ap-la-buttons',
+        'ap-mc-icon-play',
+        'ap-mc-icon-pause');
     window.setTimeout(function() {
         logAnimation.initialize(setupData.default);
+        console.log(setupData.default);
         spyOn(logAnimation.getTokenAnimation(), '_loopDraw').and.stub();
         spyOn(logAnimation.getTokenAnimation(), '_loopBufferRead').and.stub();
     }, 1000);
@@ -36,9 +47,20 @@ export function createFullDataLogAnimation() {
 
     //Turn off loading plugins as not in scope of testing
     Apromore.CONFIG.PLUGINS_ENABLED = false;
-
-    let logAnimation = new LogAnimation('101');
-    logAnimation.loadProcessModel(bpmn.default, function() {});
+    let processMapController = new BPMNModelWrapper();
+    processMapController.loadProcessModel('editorcanvas', bpmn.default, function() {});
+    let logAnimation = new LogAnimation(
+        '101',
+        processMapController,
+        'editorcanvas',
+        'timeline_svg',
+        'speed-control',
+        'ap-la-progress',
+        'ap-la-info-tip',
+        'ap-la-clock',
+        'ap-la-buttons',
+        'ap-mc-icon-play',
+        'ap-mc-icon-pause');
     window.setTimeout(function() {
         logAnimation.initialize(setupData.default);
     }, 1000);

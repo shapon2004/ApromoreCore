@@ -19,7 +19,7 @@ export default class LogAnimationBpmn extends LogAnimation {
                   playClassName,
                   pauseClassName) {
         let processMapController = new BPMNModelWrapper();
-        processMapController.loadProcessModel(animationModelContainerId, bpmnXML, );
+        processMapController.loadProcessModel(animationModelContainerId, bpmnXML, function() {});
         super(pluginExecutionId,
             processMapController,
             animationModelContainerId,
