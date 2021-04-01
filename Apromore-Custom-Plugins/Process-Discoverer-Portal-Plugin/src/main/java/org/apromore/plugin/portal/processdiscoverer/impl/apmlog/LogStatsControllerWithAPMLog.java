@@ -28,7 +28,7 @@ import org.apromore.apmlog.filter.PLog;
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.logman.attribute.log.AttributeLogSummary;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
-import org.apromore.plugin.portal.processdiscoverer.controllers.LogStatsController;
+import org.apromore.plugin.portal.processdiscoverer.components.LogStatsController;
 import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

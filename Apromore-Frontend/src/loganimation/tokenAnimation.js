@@ -62,12 +62,14 @@ export default class TokenAnimation {
         this._state = AnimationState.INITIALIZED;
 
         this._listeners = [];
-        this._tokenColors = ['#ff0000','#e50000', '#cc0000', '#b20000', '#990000', '#7f0000'];
-        this._TOKEN_LOG_GAP = 3;
         this._backgroundJobsAllowed = false;
 
+        this._TOKEN_LOG_GAP = 3;
+        this._TOKEN_MAX_RADIUS = 3;
+
+        // BPMNEditor has transformation matrix requiring recalculting the animation canvas position
         let mapBox = processMapController.getBoundingClientRect();
-        this.setPosition(mapBox.x, mapBox.y, mapBox.width, mapBox.height, processMapController.getTransformMatrix());
+        this.setPosition(mapBox, processMapController.getTransformMatrix());
     }
 
     _createCanvasElement(containerId) {
@@ -77,8 +79,6 @@ export default class TokenAnimation {
 
         canvas[0].setAttribute('height', container[0].clientHeight);
         canvas[0].setAttribute('width', container[0].clientWidth);
-        let x = container.css('padding-top');
-        let y = container.css('padding-top');
         Object.assign(canvas[0].style, {
             height: container[0].clientHeight + 'px',
             width: container[0].clientWidth + 'px',
@@ -166,13 +166,20 @@ export default class TokenAnimation {
         return this._playingFrameRate;
     }
 
-    setPosition(x, y, width, height, matrix) {
-        this._canvasContext.canvas.width = width;
-        this._canvasContext.canvas.height = height;
-        this._canvasContext.canvas.x = x;
-        this._canvasContext.canvas.y = y;
+    /**
+     * @param {Object} boundingBox: x, y, width, height, top, left
+     * @param matrix: transformation matrix
+     */
+    setPosition(boundingBox, matrix) {
+        // Must set both the HTML and CSS width and height the same.
+        this._canvasContext.canvas.setAttribute('width', boundingBox.width);
+        this._canvasContext.canvas.setAttribute('height', boundingBox.height);
+        this._canvasContext.canvas.style.width = boundingBox.width + "px";
+        this._canvasContext.canvas.style.height = boundingBox.height + "px";
+        this._canvasContext.canvas.style.top = boundingBox.top + "px";
+        this._canvasContext.canvas.style.left = boundingBox.left + "px";
         if (matrix.a) this._canvasContext.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f);
-        this.setTokenStyle();
+        this.setTokenStyle(); //need to reset token style after the transformation.
         if (!this.isWaitingForData()) this._drawFrame(this.getCurrentFrame());
     }
 
@@ -316,7 +323,7 @@ export default class TokenAnimation {
      */
     _loopDraw(newTime) {
         if (!this._backgroundJobsAllowed) return;
-        console.log('TokenAnimation - loopDraw');
+        //console.log('TokenAnimation - loopDraw');
         window.requestAnimationFrame(this._loopDraw.bind(this));
         if (this._state === AnimationState.PLAYING) { // draw frames in the queue sequentially
             this._now = newTime;
@@ -391,15 +398,18 @@ export default class TokenAnimation {
                 let distance = token[caseIndex][1];
                 let count = token[caseIndex][2];
                 let point = this._processMapController.getPointAtDistance(elementIndex, distance);
-                if (!point) continue;
-                let y = this._getLogYAxis(logIndex, point.y);
-                let radius = count;
-                if (radius > 3) radius = 3;
-                console.log(point.x, point.y, radius);
+                if (!point) {
+                    console.log('Point not found', "elementIndex:" + elementIndex, 'distance:'+ distance, 'caseIndex:' + caseIndex);
+                    continue;
+                }
+                console.log("elementIndex:" + elementIndex, 'distance:'+ distance, 'caseIndex:' + caseIndex);
+                console.log(point.x, point.y);
+                let y = this._animationController.getNumberOfLogs() > 1 ? this._getLogYAxis(logIndex, point.y) : point.y;
+                let radius = count > 3 ? this._TOKEN_MAX_RADIUS : count;
                 this._canvasContext.beginPath();
                 this._canvasContext.strokeStyle = this._getTokenBorderColor(logIndex);
                 this._canvasContext.fillStyle = this._getTokenFillColor(logIndex, count);
-                this._canvasContext.arc(point.x, point.y, 5*radius, 0, 2 * Math.PI);
+                this._canvasContext.arc(point.x, y, 5*radius, 0, 2 * Math.PI);
                 this._canvasContext.stroke();
                 this._canvasContext.fill();
                 this._canvasContext.closePath();
@@ -475,7 +485,7 @@ export default class TokenAnimation {
 
     // Require switching transformation matrix back and forth to clear the canvas properly.
     _clearAnimation() {
-        if (this._processMapController.supportTransformMatrix()) {
+        if (this._processMapController.isBPMNEditor()) {
             let matrix = this._canvasContext.getTransform();
             this._canvasContext.setTransform(1,0,0,1,0,0);
             this._canvasContext.clearRect(0, 0, this._canvasContext.canvas.width, this._canvasContext.canvas.height);

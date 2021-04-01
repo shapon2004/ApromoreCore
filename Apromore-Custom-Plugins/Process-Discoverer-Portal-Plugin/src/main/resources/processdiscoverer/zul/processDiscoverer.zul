@@ -20,20 +20,27 @@
   #L%
   -->
 
-<?component name="menuitem" extends="menuitem" autocheck="true" checkmark="true" ?>
 <?page id="ap-pd2" title="${labels.brand.shortName} - Process Discoverer" contentType="text/html;charset=UTF-8" ?>
+<?component name="menuitem" extends="menuitem" autocheck="true" checkmark="true" ?> 
 <?component name="viewSettings" macroURI="components/viewSettings.zul" ?>
 <?component name="graphSettings" macroURI="components/graphSettings.zul" ?>
 <?component name="logStats" macroURI="components/logStats.zul" ?>
 <?component name="timeStats" macroURI="components/timeStats.zul" ?>
+<?component name="animation" macroURI="components/animation.zul" ?>
+
 <?link rel="shortcut icon" href="../../themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 <?link rel="stylesheet" href="../../css/chiaroscuro.css" type="text/css" ?>
 <?link rel="stylesheet" href="../../themes/${labels.theme}/common/css/index.css" type="text/css" ?>
 <?link rel="stylesheet" href="/processdiscoverer/css/ap/pd.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/ap/animation.css" type="text/css" ?>
 <?link rel="stylesheet" href="../../themes/${labels.theme}/portal/css/portal.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/jquery-ui.css" type="text/css" ?>
+<?link rel="stylesheet" href="/processdiscoverer/css/jquery-ui-slider-pips.css" type="text/css" ?>
+
 <?script src="../../themes/ap/common/js/index.js"?>
+
 <zk xmlns="http://www.zkoss.org/2005/zul"
-    xmlns:h="http://www.w3.org/1999/xhtml"
+    xmlns:h="http://www.w3.org/1999/xhtml" 
     xmlns:w="client"
     xmlns:n="native"
     xmlns:ca="client/attribute"
@@ -44,24 +51,7 @@
   <script><![CDATA[
     Ap.theme = '${labels.theme}';
   ]]></script>
-  <script type="text/javascript" src="/processdiscoverer/js/jquery.js"></script>
-  <script type="text/javascript" src="/processdiscoverer/js/minisearch/index.js"></script>
-  <script type="text/javascript" src="/processdiscoverer/js/file-saver/filesaver.js"></script>
-  <script type="text/javascript" src="/processdiscoverer/js/undoo/undoo.min.js"></script>
-  <script src="/processdiscoverer/js/jspdf.v1.4.1.debug.js"></script>
-  <script src="/processdiscoverer/js/cytoscape.v3.2.18.min.js"></script>
-  <script src="/processdiscoverer/js/cytoscape-svg-convertor.js"></script>
-  <script src="/processdiscoverer/js/dagre.v0.8.2.min.js"></script>
-  <script src="/processdiscoverer/js/cytoscape-dagre.v2.2.2.js"></script>
-  <script src="/processdiscoverer/js/popper.v1.14.7.min.js"></script>
-  <script src="/processdiscoverer/js/cytoscape-popper.v1.0.4.js"></script>
-  <script src="/processdiscoverer/js/tippy.v4.0.1.min.js"></script>
-  <script src="/processdiscoverer/js/cytoscape-undo-redo.js"></script>
-  <script src="/processdiscoverer/js/cytoscape-edge-bend-editing.js"></script>
-  <script src="/processdiscoverer/js/ap/moment.min.js"></script>
-  <script src="/processdiscoverer/js/ap/search.js"></script>
-  <script src="/processdiscoverer/js/ap/graph.js"></script>
-  <script src="/processdiscoverer/js/ap/pd.js"></script>
+  <script src="/processdiscoverer/js/ap/processdiscoverer.js"></script>
 
   <h:div class="ap-header">
     <h:a href="/">
@@ -262,30 +252,56 @@
             <timeStats sclass="ap-pd-drawer-box" hflex="43" />
           </hlayout>
         </div>
-        <!--
-          <n:div class="ap-pd-drawer-splitter" onclick="toggleOptions()">
-            <n:i class="z-icon-caret-up"></n:i>
-            <n:i class="z-icon-caret-down" style="display:none;"></n:i>
-          </n:div>
-        -->
       </div>
+      
       <!-- Graph Area -->
-      <!-- Must use a client div for cytoscape inside a client table -->
+      <!-- PD INTERACTIVE MODEL -->
       <n:div id="ap-pd-process-model" style="background-color:none;"/>
       <div id="vizBridge" visible="false"></div>
+      
+      <!-- PD ANIMATION MODEL -->
+      <animation />
     </n:div>
     <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
   </window>
   <n:script type="text/javascript" defer="defer" src="/themes/ap/common/js/css-browser-selector.js"></n:script>
-  <!-- Use the following to improve the performance of listbox dropdown display time -->
-  <!--
-  <script defer="true"><![CDATA[
-    zul.inp.Combobox.prototype.slideDown_ = function(pp) {
-      pp.style.visibility = "visible";
-      pp.style.display = "block";
-    };
-        zul.inp.Bandbox.prototype.slideDown_ = zul.inp.Combobox.prototype.slideDown_;
+  
+  <n:script defer="true">
+    <![CDATA[
+    
+    Ap.pd = new Apromore.ProcessDiscoverer('${arg.pluginExecutionId}', 
+                        'ap-pd-process-model', 
+                        'ap-pd-la',
+                        'ap-pd-la-model',
+                        'ap-pd-la-timeline',
+                        'ap-pd-la-speed-control',
+                        '',
+                        '',
+                        'ap-pd-la-clock',
+                        'ap-pd-la-buttons',
+                        'ap-mc-icon-play',
+                        'ap-mc-icon-pause');
+    
+    zk.afterMount(function () {
+        zAu.send(new zk.Event(zk.Widget.$('$win'), 'onLoaded'));
+        setTimeout(function () {
+            try {
+                Ap.pd.installComboitemHandlers();
+            } catch (e) {
+                // pass
+            }
+        }, 1000); 
+        
+        document.addEventListener("click", (evt) => {
+            const el = Ap.pd.getSearchOptionEl();
+            const input = Ap.pd.getSearchInputEl();
+            const target = evt.target;
+            if (el !== target && input !== target) {
+                Ap.pd.updateSelectedNodes();
+            }
+        });
+    });
+
     ]]>
-    </script>
-    -->
+  </n:script>
 </zk>

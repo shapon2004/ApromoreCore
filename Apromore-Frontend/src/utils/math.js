@@ -63,7 +63,7 @@ export const getBoxSkipPath = function(startPoint, endPoint, taskRectPoints) {
         (Math.abs(startPoint.y - endPoint.y) < 10 &&
             Math.abs(endPoint.y - taskRectPoints.sw.y) < 10)
     ) {
-        skipPath.push(startPoint, endPoint);
+        skipPath.push(startPoint.x, endPoint);
     } else {
         arrayAbove = []
         arrayBelow = []
@@ -136,6 +136,7 @@ export const getBoxSkipPath = function(startPoint, endPoint, taskRectPoints) {
             }
         }
     }
+    return skipPath;
 }
 
 /**
@@ -211,8 +212,8 @@ export const qbezierAt = function (p0, p1, p2, t) {
 
 /**
  *
- * @param pts: series of points on segments
- * @returns {number}
+ * @param {Array} pts: array, each element is either x or y coordinate, each consecutive x,y pair is a point
+ * @returns {Number}
  */
 export const getTotalLengthSegments = function (pts) {
     //let pts = edge._private.rscratch.allpts;
@@ -229,9 +230,9 @@ export const getTotalLengthSegments = function (pts) {
 
 /**
  *
- * @param pts: series of points on segments
- * @param length: the distance of the point on the segments
- * @returns {number}
+ * @param {Array} pts: array, each element is either x or y coordinate, each consecutive x,y pair is a point
+ * @param {Number} length: the distance of the point on the segments
+ * @returns {Number}
  */
 export const getPointAtLengthSegments = function (pts, length) {
     //let pts = edge._private.rscratch.allpts;

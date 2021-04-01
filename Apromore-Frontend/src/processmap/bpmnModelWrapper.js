@@ -103,14 +103,16 @@ export default class BPMNModelWrapper {
     }
 
     /**
-     * @returns {DOMRect}
+     * @returns {x, y, width, height, top, left}
      */
     getBoundingClientRect() {
         let box = this._svgMain.getBoundingClientRect();
         return {x: box.x,
                 y: box.y,
                 width: box.width,
-                height: box.height};
+                height: box.height,
+                top: box.top,
+                left: box.left};
     }
 
     /**
@@ -120,7 +122,7 @@ export default class BPMNModelWrapper {
         return this._svgViewport.transform.baseVal.consolidate().matrix;
     }
 
-    supportTransformMatrix() {
+    isBPMNEditor() {
         return true;
     }
 
