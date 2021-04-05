@@ -42,7 +42,7 @@ export default class TokenAnimation {
         this._animationController = animation;
         this._animationContext = animation.getAnimationContext();
         this._containerId = containerId;
-        let canvas = this._createCanvasElement(containerId);
+        let canvas = this._canvas = this._createCanvasElement(containerId);
         this._canvasContext = canvas[0].getContext('2d');
         this._colorPalette = colorPalette;
         this._processMapController = processMapController;
@@ -95,7 +95,7 @@ export default class TokenAnimation {
         this._backgroundJobsAllowed = false;
         this._frameBuffer.stopOps();
         this._clearData();
-        $j('#' + this._containerId).empty();
+        $j(this._canvas).remove();
     }
 
     // Set visual styles and start the main loops

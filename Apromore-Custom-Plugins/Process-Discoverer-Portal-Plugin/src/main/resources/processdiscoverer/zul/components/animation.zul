@@ -24,7 +24,7 @@
        xmlns:n="http://www.zkoss.org/2005/zk/native"
        xmlns:z="http://www.zkoss.org/2005/zul"
        sclass="ap-pd-la" id="ap-pd-la" style="display:none;">
-    <n:div id="ap-pd-la-model" style="background:none;" />
+    <!--<n:div id="ap-pd-la-model" style="background:none;" />-->
     <!-- <n:canvas id="ap-pd-la-tokencanvas" style="position:absolute; background:none; z-index:1000; pointer-events:none"></n:canvas> -->
     <n:div id="ap-pd-la-control-panel">
         <n:div sclass="ap-pd-la-left-container">

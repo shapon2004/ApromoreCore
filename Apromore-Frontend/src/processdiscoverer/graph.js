@@ -645,15 +645,15 @@ PDp.showPerspectiveDetails = function() {
 PDp.switchToAnimationView = function(setupDataJSON) {
     let pd = this;
     //cy.unmount(); //not unmount as it will set renderer to NullRenderer.
-    $j('#' + pd._private.interactiveViewContainerId).hide();
-    cy.mount($j('#' + pd._private.animationModelContainerId)[0]);
     $j('#' + pd._private.animationViewContainerId).show();
+    //cy.mount($j('#' + pd._private.animationModelContainerId)[0]);
+    //$j('#' + pd._private.interactiveViewContainerId).hide();
 
     let processMapController = new GraphModelWrapper(cy);
     let logAnimation = this._private.logAnimation = new LogAnimation(
                                         pd._private.pluginExecutionId,
                                         processMapController,
-                                        pd._private.animationModelContainerId,
+                                        pd._private.interactiveViewContainerId,
                                         pd._private.timelineContainerId,
                                         pd._private.speedControlContainerId,
                                         pd._private.progressContainerId,
@@ -669,10 +669,9 @@ PDp.switchToInteractiveView = function() {
     let pd = this;
     let la = pd._private.logAnimation;
     if (la) la.destroy();
-    //cy.unmount();
     $j('#' + pd._private.animationViewContainerId).hide();
-    cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
-    $j('#' + pd._private.interactiveViewContainerId).show();
+    //cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
+    //$j('#' + pd._private.interactiveViewContainerId).show();
 }
 
 export default PDp;

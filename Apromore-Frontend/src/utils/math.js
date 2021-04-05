@@ -185,6 +185,7 @@ export const getPointAtLengthBezier = function(pts, length) {
     return {x: pts[pts.length - 2], y: pts[pts.length - 1]};
 }
 
+//https://gist.github.com/tunght13488/6744e77c242cc7a94859
 export const quadraticBezierLength = function(x1, y1, x2, y2, x3, y3) {
     let a, b, e, c, d, u, a1, e1, c1, d1, u1, v1x, v1y;
 
@@ -202,7 +203,9 @@ export const quadraticBezierLength = function(x1, y1, x2, y2, x3, y3) {
     u1 = b / u;
     a = 4 * c * a - b * b;
     c = 2 * Math.sqrt(c);
-    return (a1 * c1 + u * b * (c1 - c) + a * Math.log((2 * u + u1 + c1) / (u1 + c))) / (4 * a1);
+
+    let Y = (u1 + c) > 0 ? Math.log((2 * u + u1 + c1) / (u1 + c)) : 0;
+    return a1===0 ? 0 : (a1 * c1 + u * b * (c1 - c) + a * Y) / (4 * a1);
 }
 
 // from http://en.wikipedia.org/wiki/Bézier_curve#Quadratic_curves
