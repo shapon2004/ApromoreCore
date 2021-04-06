@@ -48,25 +48,6 @@ public class AnimationController extends AbstractController {
             throw new MissingLayoutException("Missing layout of the process map for animating");
         }
         
-        /*
-        if (parent.getBPMNMode()) {
-            parent.getLogAnimationPlugin().execute(
-                    parent.getContextData().getPortalContext(), 
-                    getBPMN(abs.getValidBPMNDiagram(), abs.getLayout().getGraphLayout()), 
-                    parent.getLogData().getLog().getActualXLog(), 
-                    parent.getContextData().getLogName());
-        }
-        else {
-            parent.getLogAnimationPlugin().execute(
-                    parent.getContextData().getPortalContext(), 
-                    getBPMN(abs.getValidBPMNDiagram(), null), 
-                    getBPMN(abs.getDiagram(), abs.getLayout().getGraphLayout()), 
-                    parent.getLogData().getLog().getActualXLog(), 
-                    parent.getContextData().getLogName());
-        }
-        */
-        
-        // Call animation logic to align the current log and BPMN diagram
         if (parent.getPDMode() == PDMode.INTERACTIVE_MODE) {
             parent.setPDMode(PDMode.ANIMATION_MODE);
         }

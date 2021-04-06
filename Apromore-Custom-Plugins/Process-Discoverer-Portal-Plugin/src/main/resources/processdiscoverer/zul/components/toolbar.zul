@@ -162,7 +162,7 @@
         <n:div id="ap-pd-search-graph-wrapper">
           <n:div id="ap-pd-search-graph">
             <n:i class="z-icon-search" />
-            <n:input type="text" placeholder="Search node" />
+            <textbox id="searchText" placeholder="Search node" />
             <n:span>
               <n:i class="z-icon-times-circle" />
             </n:span>

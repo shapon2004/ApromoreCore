@@ -28,7 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Label;
+import org.zkoss.zul.Span;
 
 /**
  * @author Ivo Widjaja
@@ -36,6 +38,12 @@ import org.zkoss.zul.Label;
  */
 public class TimeStatsController extends AbstractController {
     private static final Logger LOGGER = LoggerFactory.getLogger(TimeStatsController.class);
+    
+    private Span spnCaseHeading;
+    private Label lblCaseHeading;
+    
+    private Span spnLogHeading;
+    private Label lblLogHeading;
 
     // Graph settings
     private Label meanDuration;
@@ -44,6 +52,8 @@ public class TimeStatsController extends AbstractController {
     private Label minDuration;
     private Label logStartTime;
     private Label logEndTime;
+    
+    private boolean disabled = false;
 
     public TimeStatsController(PDController parent) {
         super(parent);
@@ -55,6 +65,11 @@ public class TimeStatsController extends AbstractController {
 
         LOGGER.info("TimeSettingsController");
         Component compTimeStats = parent.query(".ap-pd-timestats");
+        
+        spnCaseHeading = (Span) compTimeStats.getFellow("spnCaseHeading");
+        lblCaseHeading = (Label) compTimeStats.getFellow("lblCaseHeading");
+        spnLogHeading = (Span) compTimeStats.getFellow("spnLogHeading");
+        lblLogHeading = (Label) compTimeStats.getFellow("lblLogHeading");
 
         // Time statistics
         meanDuration = (Label) compTimeStats.getFellow("meanDuration");
@@ -70,6 +85,41 @@ public class TimeStatsController extends AbstractController {
         logStartTime.setValue("-");
         logEndTime = (Label) compTimeStats.getFellow("endTime");
         logEndTime.setValue("-");
+    }
+    
+    @Override
+    public void initializeEventListeners(Object data) throws Exception {
+        spnCaseHeading.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                if (disabled) return;
+                parent.openLogFilter(new Event("", null, "CaseTabPerformance"));
+            }
+        });
+        
+        lblCaseHeading.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                if (disabled) return;
+                parent.openLogFilter(new Event("", null, "CaseTabPerformance"));
+            }
+        });
+        
+        spnLogHeading.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                if (disabled) return;
+                parent.openLogFilter(new Event("", null, "CaseTabTimeframe"));
+            }
+        });
+        
+        lblLogHeading.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                if (disabled) return;
+                parent.openLogFilter(new Event("", null, "CaseTabTimeframe"));
+            }
+        });
     }
 
     @Override
@@ -88,5 +138,10 @@ public class TimeStatsController extends AbstractController {
     @Override
     public void onEvent(Event event) throws Exception {
         throw new Exception("Unsupported interactive Event Handler");
+    }
+    
+    @Override
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 }

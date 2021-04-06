@@ -79,6 +79,8 @@ public class GraphSettingsController extends VisualController {
     private boolean isNormalOrdering = true;
 
     private UserOptionsData userOptions;
+    
+    private boolean disabled = false;
 
     public GraphSettingsController(PDController parent) {
         super(parent);
@@ -151,6 +153,10 @@ public class GraphSettingsController extends VisualController {
         this.nodeSlider.addEventListener("onScroll", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) {
+                    nodeSlider.setCurpos(userOptions.getNodeFilterValue());
+                    return;
+                }
                 nodeInput.setValue(nodeSlider.getCurpos());
                 userOptions.setNodeFilterValue(nodeSlider.getCurpos());
                 parent.generateViz();
@@ -160,6 +166,10 @@ public class GraphSettingsController extends VisualController {
         this.arcSlider.addEventListener("onScroll", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) {
+                    arcSlider.setCurpos(userOptions.getArcFilterValue());
+                    return;
+                }
                 arcInput.setValue(arcSlider.getCurpos());
                 userOptions.setArcFilterValue(arcSlider.getCurpos());
                 parent.generateViz();
@@ -169,14 +179,16 @@ public class GraphSettingsController extends VisualController {
         this.parallelismSlider.addEventListener("onScrolling", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
-                if (!userOptions.getBPMNMode()) parallelismSlider.setCurpos(userOptions.getParallelismFilterValue());
+                if (!userOptions.getBPMNMode() || disabled) {
+                    parallelismSlider.setCurpos(userOptions.getParallelismFilterValue());
+                }
             }
         });
 
         this.parallelismSlider.addEventListener("onScroll", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
-                if (parent.getUserOptions().getBPMNMode()) { // if BPMN mode
+                if (parent.getUserOptions().getBPMNMode() && !disabled) { // if BPMN mode
                     parallelismInput.setValue(parallelismSlider.getCurpos());
                     userOptions.setParallelismFilterValue(parallelismSlider.getCurpos());
                     parent.generateViz();
@@ -225,6 +237,16 @@ public class GraphSettingsController extends VisualController {
         this.parallelismInput.addEventListener("onChange", parallelismChangeListener);
         this.parallelismInput.addEventListener("onChanging", parallelismChangingListener);
 
+    }
+    
+    @Override
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+        metricSelector.setDisabled(disabled);
+        swapOrdering.setDisabled(disabled);
+        nodeInput.setDisabled(disabled);
+        arcInput.setDisabled(disabled);
+        parallelismInput.setDisabled(disabled);
     }
 
     private void setMetric(String metric) {

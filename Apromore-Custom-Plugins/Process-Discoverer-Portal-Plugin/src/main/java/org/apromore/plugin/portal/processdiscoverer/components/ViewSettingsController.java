@@ -125,6 +125,7 @@ public class ViewSettingsController extends VisualController {
     private final String FREQ_LABEL = "frequency";
     private final String DURATION_LABEL = "duration";
     private String perspectiveName = "";
+    private boolean disabled = false;
 
     public ViewSettingsController(PDController parent) {
         super(parent);
@@ -170,7 +171,7 @@ public class ViewSettingsController extends VisualController {
         primaryTypeLabel = FREQ_LABEL;
         primaryAggregateCode = "case";
     }
-
+    
     @Override
     public void initializeEventListeners(Object data) { 
         perspectiveSelector.addEventListener("onSelect", new EventListener<Event>() {
@@ -194,6 +195,7 @@ public class ViewSettingsController extends VisualController {
         defaultPerspective.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) return;
                 String value = "concept:name";
                 perspectiveName = "Activities";
                 selectComboboxByKey(perspectiveSelector, value);
@@ -204,6 +206,7 @@ public class ViewSettingsController extends VisualController {
         defaultFrequency.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) return;
                 String key = "case";
                 selectComboboxByKey(frequencyAggSelector, key);
                 userOptions.setRetainZoomPan(true);
@@ -214,6 +217,7 @@ public class ViewSettingsController extends VisualController {
         defaultDuration.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) return;
                 String key = "mean";
                 selectComboboxByKey(durationAggSelector, key);
                 userOptions.setRetainZoomPan(true);
@@ -224,6 +228,7 @@ public class ViewSettingsController extends VisualController {
         freqShow.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) return;
                 boolean isShown = !includeSecondary.isChecked();
                 userOptions.setIncludeSecondary(isShown);
                 includeSecondary.setChecked(isShown);
@@ -237,6 +242,7 @@ public class ViewSettingsController extends VisualController {
         durationShow.addEventListener("onClick", new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
+                if (disabled) return;
                 boolean isShown = !includeSecondary.isChecked();
                 userOptions.setIncludeSecondary(isShown);
                 includeSecondary.setChecked(isShown);
@@ -272,6 +278,16 @@ public class ViewSettingsController extends VisualController {
         this.durationAggSelector.addEventListener("onSelect", durationAggSelectorListener);
         this.durationAggSelector.addEventListener("onForceSelect", durationAggSelectorListener);
 
+    }
+    
+    @Override
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+        bpmnMode.setDisabled(disabled);
+        perspectiveSelector.setDisabled(disabled);
+        frequencyAggSelector.setDisabled(disabled);
+        durationAggSelector.setDisabled(disabled);
+        includeSecondary.setDisabled(disabled);
     }
 
     @Override
@@ -434,10 +450,4 @@ public class ViewSettingsController extends VisualController {
         return perspectiveName;
     }
     
-    public void disable(boolean disabled) {
-        bpmnMode.setDisabled(disabled);
-        perspectiveSelector.setDisabled(disabled);
-        includeSecondary.setDisabled(disabled);
-    }
-
 }

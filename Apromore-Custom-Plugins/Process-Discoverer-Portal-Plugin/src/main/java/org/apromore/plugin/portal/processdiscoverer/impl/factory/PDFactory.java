@@ -32,6 +32,7 @@ import org.apromore.plugin.portal.processdiscoverer.components.GraphVisControlle
 import org.apromore.plugin.portal.processdiscoverer.components.LogStatsController;
 import org.apromore.plugin.portal.processdiscoverer.components.PerspectiveDetailsController;
 import org.apromore.plugin.portal.processdiscoverer.components.TimeStatsController;
+import org.apromore.plugin.portal.processdiscoverer.components.ToolbarController;
 import org.apromore.plugin.portal.processdiscoverer.components.ViewSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
@@ -56,6 +57,6 @@ public interface PDFactory {
     AnimationController createAnimationController(PDController pdController) throws Exception;
     BPMNExportController createBPMNExportController(PDController pdController) throws Exception;
     LogExportController createLogExportController(PDController pdController) throws Exception;
-    
+    ToolbarController createToolbarController(PDController controller) throws Exception; 
     ProcessVisualizer createProcessVisualizer(PDController pdController) throws Exception;
 }

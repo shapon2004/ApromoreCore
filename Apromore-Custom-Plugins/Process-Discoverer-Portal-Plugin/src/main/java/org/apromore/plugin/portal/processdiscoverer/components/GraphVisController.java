@@ -239,7 +239,7 @@ public class GraphVisController extends VisualController {
         Clients.evalJavaScript(javascript);
     }
 
-    public void changeLayout() throws InterruptedException {
+    public void changeLayout() {
         if (parent.getUserOptions().getLayoutHierarchy()) {
             parent.getUserOptions().setSelectedLayout(0);
         }

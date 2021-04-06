@@ -33,6 +33,7 @@ import org.apromore.plugin.portal.processdiscoverer.components.GraphVisControlle
 import org.apromore.plugin.portal.processdiscoverer.components.LogStatsController;
 import org.apromore.plugin.portal.processdiscoverer.components.PerspectiveDetailsController;
 import org.apromore.plugin.portal.processdiscoverer.components.TimeStatsController;
+import org.apromore.plugin.portal.processdiscoverer.components.ToolbarController;
 import org.apromore.plugin.portal.processdiscoverer.components.ViewSettingsController;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
@@ -121,6 +122,11 @@ public class PDStandardFactory implements PDFactory {
     @Override
     public ProcessVisualizer createProcessVisualizer(PDController pdController) throws Exception {
         return new ProcessJSONVisualizer();
+    }
+    
+    @Override
+    public ToolbarController createToolbarController(PDController controller) throws Exception {
+        return new ToolbarController(controller);
     }
 
 }

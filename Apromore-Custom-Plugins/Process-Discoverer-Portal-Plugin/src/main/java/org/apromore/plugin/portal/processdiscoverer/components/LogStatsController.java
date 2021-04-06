@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Button;
 import org.zkoss.zul.Label;
 
 /**
@@ -42,6 +44,8 @@ import org.zkoss.zul.Label;
  */
 public class LogStatsController extends AbstractController {
     private Component wdLogStats;
+    private Button btnCaseStats;
+    private Label lblCaseStats;
     private Label lblCasePercent, lblVariantPercent, lblEventPercent;
     private Label lblCaseNumberFiltered, lblCaseNumberTotal, lblVariantNumberFiltered, lblVariantNumberTotal, lblEventNumberFiltered, lblEventNumberTotal;
     private Label lblNodePercent, lblNodeNumberFiltered, lblNodeNumberTotal;
@@ -53,6 +57,8 @@ public class LogStatsController extends AbstractController {
     private long totalCaseCount;
     private long totalVariantCount;
     private long totalNodeCount;
+    
+    private boolean disabled = false;
 
     public LogStatsController(PDController parent) {
         super(parent);
@@ -80,6 +86,23 @@ public class LogStatsController extends AbstractController {
 
         AttributeLogSummary oriLogSummary = parent.getLogData().getAttributeLog().getOriginalLogSummary();
         updateFromLogSummary(oriLogSummary, oriLogSummary);
+    }
+    
+    @Override
+    public void initializeEventListeners(Object data) throws Exception {
+        btnCaseStats.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.openLogFilter(new Event("", null, "CaseTabID"));
+            }
+        });
+        
+        lblCaseStats.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.openLogFilter(new Event("", null, "CaseTabID"));
+            }
+        });
     }
 
     private void updateFromLogSummary(AttributeLogSummary filtered, AttributeLogSummary total) {

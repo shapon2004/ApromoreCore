@@ -22,9 +22,175 @@
 package org.apromore.plugin.portal.processdiscoverer.components;
 
 import org.apromore.plugin.portal.processdiscoverer.PDController;
+import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.event.Event;
+import org.zkoss.zk.ui.event.EventListener;
+import org.zkoss.zk.ui.event.Events;
+import org.zkoss.zul.Button;
+import org.zkoss.zul.Checkbox;
+import org.zkoss.zul.Messagebox;
+import org.zkoss.zul.Textbox;
 
 public class ToolbarController extends AbstractController {
+    private final String LAYOUT_HIERARCHY = "layoutHierarchy";
+    private final String LAYOUT_DAGRE_TB = "layoutDagreTopBottom";
+    private Checkbox layoutHierarchy;
+    private Checkbox layoutDagreTopBottom;
+
+    private Button filter;
+    private Button filterClear;
+    private Button animate;
+    private Button fitScreen;
+    private Button share;
+
+    private Button exportFilteredLog;
+    private Button downloadPDF;
+    private Button downloadPNG;
+    private Button exportBPMN;
+    
+    private Textbox searchText;
+    private Button shortcutButton;
+    
+    private UserOptionsData userOptions;
+    
     public ToolbarController(PDController parent) {
         super(parent);
+        userOptions = parent.getUserOptions();
+    }
+    
+    @Override
+    public void initializeControls(Object data) throws Exception {
+        
+        Component toolbar = parent.getFellow("toolbar");
+        filter = (Button) toolbar.getFellow("filter");
+        filterClear = (Button) toolbar.getFellow("filterClear");
+        animate = (Button) toolbar.getFellow("animate");
+        fitScreen = (Button) toolbar.getFellow("fitScreen");
+        share = (Button) toolbar.getFellow("share");
+
+        exportFilteredLog = (Button) toolbar.getFellow("exportUnfitted");
+        downloadPDF = (Button) toolbar.getFellow("downloadPDF");
+        downloadPNG = (Button) toolbar.getFellow("downloadPNG");
+        exportBPMN = (Button) toolbar.getFellow("exportBPMN");
+
+        layoutHierarchy = (Checkbox) toolbar.getFellow(LAYOUT_HIERARCHY);
+        layoutHierarchy.setChecked(userOptions.getLayoutHierarchy());
+        layoutDagreTopBottom = (Checkbox) toolbar.getFellow(LAYOUT_DAGRE_TB);
+        layoutDagreTopBottom.setChecked(userOptions.getLayoutDagre());
+
+        searchText = (Textbox) toolbar.getFellow("searchText");
+        shortcutButton = (Button) toolbar.getFellow("shortcutButton");
+    }
+    
+    @Override
+    public void initializeEventListeners(Object data) throws Exception {
+        // Layout
+        EventListener<Event> layoutListener = new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                String compId = ((Checkbox) event.getTarget()).getId();
+                switch (compId) {
+                case LAYOUT_HIERARCHY:
+                    userOptions.setLayoutHierarchy(true);
+                    userOptions.setLayoutDagre(false);
+                    break;
+                case LAYOUT_DAGRE_TB:
+                    userOptions.setLayoutHierarchy(false);
+                    userOptions.setLayoutDagre(true);
+                    break;
+                }
+                parent.changeLayout();
+            }
+        };
+        
+        layoutHierarchy.addEventListener("onClick", layoutListener);
+        
+        layoutDagreTopBottom.addEventListener("onClick", layoutListener);
+
+        fitScreen.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.fitVisualizationToWindow();
+            }
+        });
+
+        filterClear.addEventListener("onClick", e -> onClearFilter());
+        
+        filter.addEventListener("onInvoke", e -> parent.openLogFilter(e));
+        filter.addEventListener("onInvokeExt", e -> parent.openLogFilter(e));
+        filter.addEventListener(Events.ON_CLICK, e -> parent.openLogFilter(e));
+        
+        animate.addEventListener("onClick", e -> parent.openAnimation(e));
+
+        exportFilteredLog.addEventListener("onExport", e -> parent.openLogExport(e));
+        
+        exportBPMN.addEventListener("onClick", e -> parent.openBPMNExport(e));
+        
+        downloadPDF.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.exportPDF();
+            }
+        });
+        
+        downloadPNG.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.exportPNG();
+            }
+        });
+
+        share.addEventListener("onClick", event -> {
+            parent.showSharingWindow();
+        });
+    }
+    
+    @Override
+    public void setDisabled(boolean disabled) {
+        layoutHierarchy.setDisabled(disabled);
+        layoutDagreTopBottom.setDisabled(disabled);
+        filter.setDisabled(disabled);
+        filterClear.setDisabled(disabled);
+        searchText.setDisabled(disabled);
+        shortcutButton.setDisabled(disabled);
+    }
+    
+    @Override
+    public void updateUI(Object data) throws Exception {
+        //
+    }
+    
+    public void setEnabledAnimation(boolean enabled) {
+        animate.setDisabled(!enabled);
+    }
+    
+    public void setEnabledFilterClear(boolean enabled) {
+        filterClear.setDisabled(!enabled);
+    }
+    
+    private void onClearFilter() {
+        Messagebox.show(
+                "Are you sure you want to clear all filters?",
+                "Filter log",
+                Messagebox.OK | Messagebox.CANCEL,
+                Messagebox.QUESTION,
+                e -> proceedClearFilter(e)
+        );
+    }
+
+    private void proceedClearFilter(Event evt) {
+        if (evt.getName().equals("onOK")) {
+            try {
+                clearFilter();
+            } catch (Exception e) {
+                Messagebox.show("Unable to clear the filter", "Filter error",
+                        Messagebox.OK, Messagebox.ERROR);
+            }
+        }
+    }
+
+    private void clearFilter() throws Exception {
+        parent.clearFilter();
     }
 }

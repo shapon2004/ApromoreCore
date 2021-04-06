@@ -49,4 +49,8 @@ public abstract class AbstractController implements EventListener<Event> {
     public void updateUI(Object data) throws Exception {
         //
     }
+    
+    public void setDisabled(boolean disabled) {
+        //
+    }
 }
