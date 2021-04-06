@@ -670,8 +670,6 @@ PDp.switchToInteractiveView = function() {
     let la = pd._private.logAnimation;
     if (la) la.destroy();
     $j('#' + pd._private.animationViewContainerId).hide();
-    //cy.mount($j('#' + pd._private.interactiveViewContainerId)[0]);
-    //$j('#' + pd._private.interactiveViewContainerId).show();
 }
 
 export default PDp;

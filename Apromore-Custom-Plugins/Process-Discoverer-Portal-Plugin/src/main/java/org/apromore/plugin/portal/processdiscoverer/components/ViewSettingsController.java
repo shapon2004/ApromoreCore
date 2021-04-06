@@ -433,5 +433,11 @@ public class ViewSettingsController extends VisualController {
     public String getPerspectiveName() {
         return perspectiveName;
     }
+    
+    public void disable(boolean disabled) {
+        bpmnMode.setDisabled(disabled);
+        perspectiveSelector.setDisabled(disabled);
+        includeSecondary.setDisabled(disabled);
+    }
 
 }

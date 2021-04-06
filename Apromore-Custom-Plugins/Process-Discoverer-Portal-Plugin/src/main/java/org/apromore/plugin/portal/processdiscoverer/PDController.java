@@ -72,6 +72,7 @@ import org.apromore.service.loganimation.LogAnimationService2;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
@@ -371,21 +372,22 @@ public class PDController extends BaseController {
             casesDetails = (Button) mainWindow.getFellow("caseDetails");
             perspectiveDetails = (Button) mainWindow.getFellow("perspectiveDetails");
 
-            filter = (Button) mainWindow.getFellow("filter");
-            filterClear = (Button) mainWindow.getFellow("filterClear");
-            animate = (Button) mainWindow.getFellow("animate");
-            fitScreen = (Button) mainWindow.getFellow("fitScreen");
-            share = (Button) mainWindow.getFellow("share");
+            Component toolbar = mainWindow.getFellow("toolbar");
+            filter = (Button) toolbar.getFellow("filter");
+            filterClear = (Button) toolbar.getFellow("filterClear");
+            animate = (Button) toolbar.getFellow("animate");
+            fitScreen = (Button) toolbar.getFellow("fitScreen");
+            share = (Button) toolbar.getFellow("share");
     
-            exportFilteredLog = (Button) mainWindow.getFellow("exportUnfitted");
-            downloadPDF = (Button) mainWindow.getFellow("downloadPDF");
-            downloadPNG = (Button) mainWindow.getFellow("downloadPNG");
-            exportBPMN = (Button) mainWindow.getFellow("exportBPMN");
+            exportFilteredLog = (Button) toolbar.getFellow("exportUnfitted");
+            downloadPDF = (Button) toolbar.getFellow("downloadPDF");
+            downloadPNG = (Button) toolbar.getFellow("downloadPNG");
+            exportBPMN = (Button) toolbar.getFellow("exportBPMN");
     
             // Layout
-            layoutHierarchy = (Checkbox) mainWindow.getFellow(LAYOUT_HIERARCHY);
+            layoutHierarchy = (Checkbox) toolbar.getFellow(LAYOUT_HIERARCHY);
             layoutHierarchy.setChecked(userOptions.getLayoutHierarchy());
-            layoutDagreTopBottom = (Checkbox) mainWindow.getFellow(LAYOUT_DAGRE_TB);
+            layoutDagreTopBottom = (Checkbox) toolbar.getFellow(LAYOUT_DAGRE_TB);
             layoutDagreTopBottom.setChecked(userOptions.getLayoutDagre());
 
 
@@ -511,6 +513,7 @@ public class PDController extends BaseController {
         }
         catch (Exception ex) {
             Messagebox.show("Errors occured while initializing event handlers.");
+            LOGGER.error("Errors occured while initializing event handlers.", ex);
         }
 
     }
