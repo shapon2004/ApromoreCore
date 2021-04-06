@@ -368,6 +368,7 @@ public class PDController extends BaseController {
             graphVisController.initializeEventListeners(contextData);
             toolbarController.initializeEventListeners(contextData);
             logStatsController.initializeEventListeners(contextData);
+            timeStatsController.initializeEventListeners(contextData);
     
             casesDetails.addEventListener("onApShow",
                 new EventListener<Event>() {
@@ -399,10 +400,8 @@ public class PDController extends BaseController {
             mainWindow.addEventListener("onZIndex", new EventListener<Event>() {
                 @Override
                 public void onEvent(Event event) throws Exception {
-                    Window cases_window = caseDetailsController.getWindow();
-                    if (cases_window != null && cases_window.inOverlapped()) {
-                        cases_window.setZindex(mainWindow.getZIndex() + 1);
-                    }
+                    putWindowAtTop(caseDetailsController.getWindow());
+                    putWindowAtTop(perspectiveDetailsController.getWindow());
                 }
             });
             
@@ -412,6 +411,12 @@ public class PDController extends BaseController {
             LOGGER.error("Errors occured while initializing event handlers.", ex);
         }
 
+    }
+    
+    private void putWindowAtTop(Window window) {
+        if (window != null && window.inOverlapped() && mainWindow != null) {
+            window.setZindex(mainWindow.getZIndex() + 1);
+        }
     }
     
     public void exportPDF() {
@@ -656,6 +661,7 @@ public class PDController extends BaseController {
                 logStatsController.setDisabled(true);
                 timeStatsController.setDisabled(true);
                 toolbarController.setDisabled(true);
+                caseDetailsController.setDisabled(true);
             }
             else if (newMode == PDMode.INTERACTIVE_MODE) {
                 graphVisController.switchToInteractiveView();
@@ -664,6 +670,7 @@ public class PDController extends BaseController {
                 logStatsController.setDisabled(false);
                 timeStatsController.setDisabled(false);
                 toolbarController.setDisabled(false);
+                caseDetailsController.setDisabled(false);
             }
             this.mode = newMode;
         }

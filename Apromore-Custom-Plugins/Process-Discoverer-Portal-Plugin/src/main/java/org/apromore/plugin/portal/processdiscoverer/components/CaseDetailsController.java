@@ -46,6 +46,7 @@ import org.zkoss.zul.Window;
 public class CaseDetailsController extends DataListController {
 	private Window caseDetailsWindow;
 	private GraphVisController visController;
+	private boolean disabled = false;
 
 	public CaseDetailsController(PDController controller) {
 		super(controller);
@@ -83,6 +84,7 @@ public class CaseDetailsController extends DataListController {
 		if (caseDetailsWindow == null) {
 			caseDetailsWindow = (Window) Executions.createComponents("caseDetails.zul", null, null);
 			caseDetailsWindow.setTitle("Cases");
+			caseDetailsWindow.getFellow("lblClickACase").setVisible(!this.disabled);
 
 			caseDetailsWindow.addEventListener("onClose", new EventListener<Event>() {
 				@Override
@@ -94,11 +96,11 @@ public class CaseDetailsController extends DataListController {
 
 			Listbox listbox = (Listbox) caseDetailsWindow.getFellow("caseDetailsList");
 			populateCasesBasedOnActivities(listbox);
-			// populateCasesBasedOnPerspective (Listbox listbox);
 
 			listbox.addEventListener("onSelect", new EventListener<Event>() {
 				@Override
 				public void onEvent(Event event) throws Exception {
+				    if (disabled) return;
 					try {
 						String traceID = ((Listcell) (listbox.getSelectedItem()).getChildren().get(0)).getLabel();
 						AbstractionParams params = parent.genAbstractionParamsSimple(false, true, false,
@@ -135,5 +137,10 @@ public class CaseDetailsController extends DataListController {
 	public Window getWindow() {
 		return caseDetailsWindow;
 	}
+	
+    @Override
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
 
 }

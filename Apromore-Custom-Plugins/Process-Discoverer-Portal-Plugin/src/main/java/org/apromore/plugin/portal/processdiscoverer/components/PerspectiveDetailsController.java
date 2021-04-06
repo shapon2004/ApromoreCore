@@ -72,39 +72,38 @@ public class PerspectiveDetailsController extends DataListController {
 
     @Override
     public void onEvent(Event event) throws Exception {
-    	if(perspectiveDetailsWindow==null)
-    	{
-        perspectiveDetailsWindow = (Window) Executions.createComponents("perspectiveDetails.zul", null, null);
-        perspectiveDetailsWindow.setTitle(parent.getPerspective());
-        Listbox listbox = (Listbox) perspectiveDetailsWindow.getFellow("perspectiveDetailsList");
-
-        generateData();
-        listbox.setModel(records);
-
-        Button save = (Button) perspectiveDetailsWindow.getFellow("downloadCSV");
-        save.addEventListener("onClick", new EventListener<Event>() {
-            @Override
-            public void onEvent(Event event) throws Exception {
-                exportData();
+    	if (perspectiveDetailsWindow==null) {
+            perspectiveDetailsWindow = (Window) Executions.createComponents("perspectiveDetails.zul", null, null);
+            perspectiveDetailsWindow.setTitle(parent.getPerspective());
+            Listbox listbox = (Listbox) perspectiveDetailsWindow.getFellow("perspectiveDetailsList");
+    
+            generateData();
+            listbox.setModel(records);
+    
+            Button save = (Button) perspectiveDetailsWindow.getFellow("downloadCSV");
+            save.addEventListener("onClick", new EventListener<Event>() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    exportData();
+                }
+            });
+    
+            try {
+                JSONObject param = (JSONObject) event.getData();
+                perspectiveDetailsWindow.setPosition("nocenter");
+                perspectiveDetailsWindow.setLeft((String)param.get("left"));
+                perspectiveDetailsWindow.setTop((String)param.get("top"));
+            } catch (Exception e) {
+                // ignore the exception and proceed with default centered window
             }
-        });
-
-        try {
-            JSONObject param = (JSONObject) event.getData();
-            perspectiveDetailsWindow.setPosition("nocenter");
-            perspectiveDetailsWindow.setLeft((String)param.get("left"));
-            perspectiveDetailsWindow.setTop((String)param.get("top"));
-        } catch (Exception e) {
-            // ignore the exception and proceed with default centered window
-        }
-        perspectiveDetailsWindow.doOverlapped();
-        
-        perspectiveDetailsWindow.addEventListener("onClose", new EventListener<Event>() {
-			@Override
-			public void onEvent(Event event) throws Exception {
-				perspectiveDetailsWindow = null;				
-			}
-		});
+            perspectiveDetailsWindow.doOverlapped();
+            
+            perspectiveDetailsWindow.addEventListener("onClose", new EventListener<Event>() {
+    			@Override
+    			public void onEvent(Event event) throws Exception {
+    				perspectiveDetailsWindow = null;				
+    			}
+    		});
     	}
     }
 
