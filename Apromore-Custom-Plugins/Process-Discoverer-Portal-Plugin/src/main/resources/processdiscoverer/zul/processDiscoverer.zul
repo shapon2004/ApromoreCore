@@ -125,7 +125,6 @@
     Ap.pd = new Apromore.ProcessDiscoverer('${arg.pluginExecutionId}', 
                         'ap-pd-process-model', 
                         'ap-pd-la',
-                        'ap-pd-la-model',
                         'ap-pd-la-timeline',
                         'ap-pd-la-speed-control',
                         '',
