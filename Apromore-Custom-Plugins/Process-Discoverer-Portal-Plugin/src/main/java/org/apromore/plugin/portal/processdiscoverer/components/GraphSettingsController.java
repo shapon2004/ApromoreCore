@@ -248,7 +248,7 @@ public class GraphSettingsController extends VisualController {
         arcInput.setDisabled(disabled);
         parallelismInput.setDisabled(disabled);
     }
-
+    
     private void setMetric(String metric) {
         switch (metric) {
             case METRIC_CASE_FREQ:

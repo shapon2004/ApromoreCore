@@ -74,28 +74,38 @@ public class ViewSettingsController extends VisualController {
             "org:resource",
             "org:role"
     );
+    
+    private String[] measures = {
+            "case_count",
+            "case_relative",
+            "total",
+            "mean",
+            "median",
+            "max",
+            "min"
+    };
 
     private Map<String, MeasureAggregation> measureAggMap = new HashMap<String, MeasureAggregation>() {
         {
-            put("case", MeasureAggregation.CASES);
-            put("case_relative", MeasureAggregation.CASES);
-            put("total", MeasureAggregation.TOTAL);
-            put("mean", MeasureAggregation.MEAN);
-            put("median", MeasureAggregation.MEDIAN);
-            put("max", MeasureAggregation.MAX);
-            put("min", MeasureAggregation.MIN);
+            put(measures[0], MeasureAggregation.CASES);
+            put(measures[1], MeasureAggregation.CASES);
+            put(measures[2], MeasureAggregation.TOTAL);
+            put(measures[3], MeasureAggregation.MEAN);
+            put(measures[4], MeasureAggregation.MEDIAN);
+            put(measures[5], MeasureAggregation.MAX);
+            put(measures[6], MeasureAggregation.MIN);
         }
     };
     
     private Map<String, MeasureRelation> measureRelationMap = new HashMap<String, MeasureRelation>() {
         {
-            put("case", MeasureRelation.ABSOLUTE);
-            put("case_relative", MeasureRelation.RELATIVE);
-            put("total", MeasureRelation.ABSOLUTE);
-            put("mean", MeasureRelation.ABSOLUTE);
-            put("median", MeasureRelation.ABSOLUTE);
-            put("max", MeasureRelation.ABSOLUTE);
-            put("min", MeasureRelation.ABSOLUTE);
+            put(measures[0], MeasureRelation.ABSOLUTE);
+            put(measures[1], MeasureRelation.RELATIVE);
+            put(measures[2], MeasureRelation.ABSOLUTE);
+            put(measures[3], MeasureRelation.ABSOLUTE);
+            put(measures[4], MeasureRelation.ABSOLUTE);
+            put(measures[5], MeasureRelation.ABSOLUTE);
+            put(measures[6], MeasureRelation.ABSOLUTE);
         }
     };
 
@@ -169,7 +179,7 @@ public class ViewSettingsController extends VisualController {
         durationAggSelector = (Combobox) compViewSettings.getFellow("durationAggSelector");
         
         primaryTypeLabel = FREQ_LABEL;
-        primaryAggregateCode = "case";
+        primaryAggregateCode = measures[0];
     }
     
     @Override

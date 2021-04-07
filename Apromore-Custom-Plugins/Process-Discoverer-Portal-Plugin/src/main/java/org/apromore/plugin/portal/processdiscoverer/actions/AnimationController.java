@@ -22,8 +22,8 @@
 
 package org.apromore.plugin.portal.processdiscoverer.actions;
 
+import org.apromore.plugin.portal.processdiscoverer.InteractiveMode;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
-import org.apromore.plugin.portal.processdiscoverer.PDMode;
 import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
 import org.apromore.plugin.portal.processdiscoverer.vis.MissingLayoutException;
 import org.apromore.processdiscoverer.Abstraction;
@@ -48,11 +48,12 @@ public class AnimationController extends AbstractController {
             throw new MissingLayoutException("Missing layout of the process map for animating");
         }
         
-        if (parent.getPDMode() == PDMode.INTERACTIVE_MODE) {
-            parent.setPDMode(PDMode.ANIMATION_MODE);
+        // Toggle between model and animation views
+        if (parent.getInteractiveMode() == InteractiveMode.MODEL_MODE) {
+            parent.switchToAnimationView();
         }
         else {
-            parent.setPDMode(PDMode.INTERACTIVE_MODE);;
+            parent.switchToModelView();
         }
     }
     

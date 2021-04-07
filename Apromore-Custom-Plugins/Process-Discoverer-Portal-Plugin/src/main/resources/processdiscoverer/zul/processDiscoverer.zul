@@ -67,10 +67,6 @@
       <div id="utilityTools" sclass="ap-pd-tools"/>
     </caption>
     <menubar sclass="ap-user-menu" id="userMenu" style="position: absolute;" apply="org.apromore.portal.dialogController.UserMenuController" />
-    
-    <label visible="false" sclass="ap-pd-log-title" id="logTitle"></label>
-    <button id="caseDetails" sclass="ap-icon ap-icon-table-list" height="26px" visible="false"/>
-    <button id="perspectiveDetails" sclass="ap-icon ap-icon-table-list" height="26px" visible="false"/>
 
     <!-- Toolbar of the page -->
     <pdtoolbar id="toolbar" />

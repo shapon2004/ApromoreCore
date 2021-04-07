@@ -66,6 +66,7 @@ public class ToolbarController extends AbstractController {
         Component toolbar = parent.getFellow("toolbar");
         filter = (Button) toolbar.getFellow("filter");
         filterClear = (Button) toolbar.getFellow("filterClear");
+        filterClear.setDisabled(true);
         animate = (Button) toolbar.getFellow("animate");
         fitScreen = (Button) toolbar.getFellow("fitScreen");
         share = (Button) toolbar.getFellow("share");
@@ -165,17 +166,17 @@ public class ToolbarController extends AbstractController {
         shortcutButton.setDisabled(disabled);
     }
     
+    public void setDisabledAnimation(boolean disabled) {
+        animate.setDisabled(disabled);
+    }
+    
     @Override
     public void updateUI(Object data) throws Exception {
         //
     }
     
-    public void setEnabledAnimation(boolean enabled) {
-        animate.setDisabled(!enabled);
-    }
-    
-    public void setEnabledFilterClear(boolean enabled) {
-        filterClear.setDisabled(!enabled);
+    public void setDisabledFilterClear(boolean disabled) {
+        filterClear.setDisabled(disabled);
     }
     
     private void onClearFilter() {

@@ -102,6 +102,10 @@ import org.zkoss.zul.Window;
  * <p>
  * Starting point: first, the window will be created which fires onCreate(), then ZK client engine sends an 
  * onLoaded event to the main window triggering windowListener().
+ * <p>
+ * PD has three <b>modes</b>: MODEL view, ANIMATION view and TRACE view. Initially it is in MODEL mode. 
+ * Each <b>action</b> will change PD to different modes. There are transition rules between modes
+ * and active state of UI controls in each mode.
  * 
  */
 public class PDController extends BaseController {
@@ -152,7 +156,7 @@ public class PDController extends BaseController {
 
     private int sourceLogId; // plugin maintain log ID for Filter; Filter remove value to avoid conflic from multiple plugins
     
-    private PDMode mode = PDMode.INTERACTIVE_MODE;
+    private InteractiveMode mode = InteractiveMode.MODEL_MODE; //initial mode
     private String pluginExecutionId;
 
     /////////////////////////////////////////////////////////////////////////
@@ -415,11 +419,12 @@ public class PDController extends BaseController {
     }
 
     public void clearFilter() throws Exception {
-        if (this.mode != PDMode.INTERACTIVE_MODE) return;
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
         logFilterController.clearFilter();
     }
     
     public void changeLayout() throws Exception {
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
         graphVisController.changeLayout();
     }
     
@@ -495,7 +500,7 @@ public class PDController extends BaseController {
      * @param reset: true to reset the graph zoom and panning
      */
     public void updateUI(boolean reset) {
-        if (this.mode != PDMode.INTERACTIVE_MODE) return;
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
         try {
             logStatsController.updateUI(contextData);
             timeStatsController.updateUI(contextData);
@@ -503,7 +508,7 @@ public class PDController extends BaseController {
             userOptions.setRetainZoomPan(!reset);
             generateViz();
             if (!reset) graphVisController.centerToWindow();
-            toolbarController.setEnabledFilterClear(!this.getLogData().isCurrentFilterCriteriaEmpty());
+            toolbarController.setDisabledFilterClear(this.getLogData().isCurrentFilterCriteriaEmpty());
         }
         catch (Exception ex) {
             Messagebox.show("Errors occured while updating UI: " + ex.getMessage());
@@ -542,7 +547,7 @@ public class PDController extends BaseController {
     public void generateViz() {
         long timer1 = System.currentTimeMillis();
         
-        if (this.mode != PDMode.INTERACTIVE_MODE) return;
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
 
         if (logData.getAttributeLog() == null) {
             Messagebox.show("Cannot create data for visualization. Please check the log!",
@@ -611,6 +616,7 @@ public class PDController extends BaseController {
             LOGGER.debug("Sent json data to browser at " + formatter.format(new Date()));
 
             graphVisController.displayDiagram(visualizedText);
+            this.setInteractiveMode(InteractiveMode.MODEL_MODE);
 
         } catch (Exception e) {
             LOGGER.error("Unexpected error while generating visualization.", e);
@@ -626,44 +632,82 @@ public class PDController extends BaseController {
     }
 
     public void setBPMNView(boolean mode) {
-        if (this.mode != PDMode.INTERACTIVE_MODE) return;
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
         userOptions.setBPMNMode(mode);
         graphSettingsController.updateParallelism(mode);
         generateViz();
     }
     
-    public PDMode getPDMode() {
-        return this.mode;
-    }
-    
-    public void setPDMode(PDMode newMode) {
+    public void switchToAnimationView() {
         try {
-            if (newMode == this.mode) {
-                return;
-            }
-            else if (newMode == PDMode.ANIMATION_MODE) {
+            if (this.setInteractiveMode(InteractiveMode.ANIMATION_MODE)) {
                 graphVisController.switchToAnimationView();
-                viewSettingsController.setDisabled(true);
-                graphSettingsController.setDisabled(true);
-                logStatsController.setDisabled(true);
-                timeStatsController.setDisabled(true);
-                toolbarController.setDisabled(true);
-                caseDetailsController.setDisabled(true);
             }
-            else if (newMode == PDMode.INTERACTIVE_MODE) {
-                graphVisController.switchToInteractiveView();
-                viewSettingsController.setDisabled(false);
-                graphSettingsController.setDisabled(false);
-                logStatsController.setDisabled(false);
-                timeStatsController.setDisabled(false);
-                toolbarController.setDisabled(false);
-                caseDetailsController.setDisabled(false);
-            }
-            this.mode = newMode;
         }
         catch (Exception ex) {
             Messagebox.show(ex.getMessage());
         }
+    }
+    
+    public void switchToModelView() {
+        if (this.setInteractiveMode(InteractiveMode.MODEL_MODE)) {
+            graphVisController.switchToModelView();
+        }
+    }
+    
+    public void restoreModelView() {
+        if (this.setInteractiveMode(InteractiveMode.MODEL_MODE)) {
+            graphVisController.displayDiagram(outputData.getVisualizedText());
+        }
+    }
+    
+    public void showTrace(String traceVisualContent) {
+        if (this.setInteractiveMode(InteractiveMode.TRACE_MODE)) {
+            graphVisController.displayTraceDiagram(traceVisualContent);
+        }
+    }
+    
+    /**
+     * Mode represents an overall state of PD. It is used to set relevant status for UI controls
+     * without having to consider state of each control.
+     * This method updates the UI in accordance with the current mode.
+     * @param newMode
+     * @return: true if the mode has been changed
+     */
+    public boolean setInteractiveMode(InteractiveMode newMode) {
+        if (newMode == InteractiveMode.ANIMATION_MODE) {
+            if (this.mode == InteractiveMode.TRACE_MODE) return false; //invalid move
+            viewSettingsController.setDisabled(true);
+            graphSettingsController.setDisabled(true);
+            logStatsController.setDisabled(true);
+            timeStatsController.setDisabled(true);
+            toolbarController.setDisabled(true);
+            caseDetailsController.setDisabled(true);
+        }
+        else if (newMode == InteractiveMode.MODEL_MODE) {                
+            viewSettingsController.setDisabled(false);
+            graphSettingsController.setDisabled(false);
+            logStatsController.setDisabled(false);
+            timeStatsController.setDisabled(false);
+            toolbarController.setDisabled(false);
+            toolbarController.setDisabledAnimation(false);
+            caseDetailsController.setDisabled(false);
+        }
+        else if (newMode == InteractiveMode.TRACE_MODE) {
+            if (this.mode == InteractiveMode.ANIMATION_MODE) return false; //invalid move
+            viewSettingsController.setDisabled(true);
+            graphSettingsController.setDisabled(true);
+            logStatsController.setDisabled(true);
+            timeStatsController.setDisabled(true);
+            toolbarController.setDisabled(true);
+            toolbarController.setDisabledAnimation(true);
+        }
+        this.mode = newMode;
+        return true;
+    }
+    
+    public InteractiveMode getInteractiveMode() {
+        return this.mode;
     }
 
     public String getPerspective() {
@@ -671,9 +715,9 @@ public class PDController extends BaseController {
     }
 
     public void setPerspective(String value) throws Exception {
-        if (this.mode != PDMode.INTERACTIVE_MODE) return;
+        if (this.mode != InteractiveMode.MODEL_MODE) return;
         if (!value.equals(userOptions.getMainAttributeKey())) {
-            toolbarController.setEnabledAnimation(value.equals(configData.getDefaultAttribute()));
+            toolbarController.setDisabledAnimation(!value.equals(configData.getDefaultAttribute()));
             userOptions.setMainAttributeKey(value);
             logData.setMainAttribute(value);
             timeStatsController.updateUI(contextData);

@@ -245,12 +245,12 @@ PDp.init = function() {
 
     cy.on('cxttap', 'edge', function (source) {
         if (!isTraceMode) {
-            this.removeEdge(source);
+            pd.removeEdge(source);
         }
     });
     cy.on('cxttap', 'node', function (source) {
         if (!isTraceMode) {
-            this.removeNode(source);
+            pd.removeNode(source);
         }
     });
     cy.on('pan', function (event) {
@@ -385,10 +385,11 @@ PDp.loadLog = function(json, layoutType, retain) {
 }
 
 PDp.loadTrace = function(json) {
-    let cy = this._private.cy;
     isTraceMode = true;
     this.reset();
     this.init();
+
+    let cy = this._private.cy;
     const source = $.parseJSON(json);
     cy.add(source);
     this.layout(LAYOUT_MANUAL_BEZIER);

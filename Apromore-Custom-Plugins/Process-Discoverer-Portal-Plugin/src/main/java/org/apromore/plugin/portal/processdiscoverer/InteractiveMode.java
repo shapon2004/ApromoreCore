@@ -21,6 +21,6 @@
  */
 package org.apromore.plugin.portal.processdiscoverer;
 
-public enum PDMode {
-    INTERACTIVE_MODE, ANIMATION_MODE
+public enum InteractiveMode {
+    MODEL_MODE, ANIMATION_MODE, TRACE_MODE
 }

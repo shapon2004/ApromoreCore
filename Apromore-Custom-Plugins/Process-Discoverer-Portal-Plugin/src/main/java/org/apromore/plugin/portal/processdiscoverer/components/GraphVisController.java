@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apromore.plugin.portal.processdiscoverer.InteractiveMode;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.animation.AnimationContext;
 import org.apromore.plugin.portal.processdiscoverer.animation.AnimationIndex;
@@ -77,6 +78,8 @@ public class GraphVisController extends VisualController {
     private Component vizBridge;
     
     private Movie animationMovie;
+    
+    private InteractiveMode mode;
 
     public GraphVisController(PDController controller) {
         super(controller);
@@ -215,8 +218,10 @@ public class GraphVisController extends VisualController {
             return null;
         }
     }
-
+    
     /**
+     * Display a new diagram.
+     * 
      * String values go from Java -> JSON -> Javascript, thus they must conform to three Java, JSON and Javascript rules
      * in the same order. Special characters such as ', " and \ must be escaped according to these three rules.
      * In Java and Javascript, special characters must be escaped (i.e. adding "\")
@@ -240,12 +245,10 @@ public class GraphVisController extends VisualController {
         Clients.evalJavaScript(javascript);
         parent.getUserOptions().setRetainZoomPan(false);
     }
-    
-    public void displayTraceDiagram(String visualizedText) {
-        String javascript = "Ap.pd.loadTrace('" + visualizedText + "');";
-        Clients.evalJavaScript(javascript);
-    }
 
+    /*
+     * Change layout, the same diagram.
+     */
     public void changeLayout() {
         if (parent.getUserOptions().getLayoutHierarchy()) {
             parent.getUserOptions().setSelectedLayout(0);
@@ -285,11 +288,18 @@ public class GraphVisController extends VisualController {
         throw new Exception("Unsupported interactive Event Handler");
     }
     
-    public void switchToInteractiveView() {
+    /**
+     * Display the model from the current view
+     */
+    public void switchToModelView() {
         String javascript = "Ap.pd.switchToInteractiveView()"; 
         Clients.evalJavaScript(javascript);
     }
     
+    /**
+     * Switch to the animation view from the current view
+     * @throws Exception
+     */
     public void switchToAnimationView() throws Exception {
         // Align log and model
         BPMNDiagram oriDiagram = parent.getOutputData().getAbstraction().getDiagram();
@@ -327,6 +337,15 @@ public class GraphVisController extends VisualController {
         
         // Show animation view
         String javascript = "Ap.pd.switchToAnimationView('" + setupData.toString() + "')";
+        Clients.evalJavaScript(javascript);
+    }
+    
+    /**
+     * Display the trace 
+     * @param visualizedText
+     */
+    public void displayTraceDiagram(String visualizedText) {
+        String javascript = "Ap.pd.loadTrace('" + visualizedText + "');";
         Clients.evalJavaScript(javascript);
     }
     

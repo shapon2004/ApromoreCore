@@ -28,6 +28,7 @@ import java.util.List;
 import org.apromore.logman.attribute.graph.MeasureAggregation;
 import org.apromore.logman.attribute.graph.MeasureRelation;
 import org.apromore.logman.attribute.graph.MeasureType;
+import org.apromore.plugin.portal.processdiscoverer.InteractiveMode;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.data.CaseDetails;
 import org.apromore.processdiscoverer.Abstraction;
@@ -45,12 +46,10 @@ import org.zkoss.zul.Window;
 
 public class CaseDetailsController extends DataListController {
 	private Window caseDetailsWindow;
-	private GraphVisController visController;
 	private boolean disabled = false;
 
 	public CaseDetailsController(PDController controller) {
 		super(controller);
-		visController = new GraphVisController(controller);
 	}
 
 	private void generateData() {
@@ -90,7 +89,9 @@ public class CaseDetailsController extends DataListController {
 				@Override
 				public void onEvent(Event event) throws Exception {
 					caseDetailsWindow = null;
-					visController.displayDiagram(parent.getOutputData().getVisualizedText());
+					if (parent.getInteractiveMode() == InteractiveMode.TRACE_MODE) {
+					    parent.restoreModelView();
+					}
 				}
 			});
 
@@ -108,7 +109,7 @@ public class CaseDetailsController extends DataListController {
 								MeasureType.FREQUENCY, MeasureAggregation.CASES, MeasureRelation.ABSOLUTE);
 						Abstraction traceAbs = parent.getProcessDiscoverer().generateTraceAbstraction(traceID, params);
 						String visualizedText = parent.getProcessVisualizer().generateVisualizationText(traceAbs);
-						visController.displayTraceDiagram(visualizedText);
+						parent.showTrace(visualizedText);
 					} catch (Exception e) {
 						Messagebox.show(e.getMessage());
 					}
