@@ -256,8 +256,8 @@ public class PDController extends BaseController {
             
             configData = ConfigData.DEFAULT;
             contextData = ContextData.valueOf(
-                    portalContext.getCurrentUser().getUsername(),
                     logSummary.getDomain(),
+                    portalContext.getCurrentUser().getUsername(),
                     logSummary.getId(),
                     logSummary.getName(),
                     portalContext.getCurrentFolder() == null ? 0 : portalContext.getCurrentFolder().getId(),

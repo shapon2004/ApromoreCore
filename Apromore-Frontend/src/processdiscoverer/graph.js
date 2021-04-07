@@ -18,6 +18,7 @@ import GraphModelWrapper from "../processmap/graphModelWrapper";
 import LogAnimation from "../loganimation/logAnimation";
 import tippy from "tippy.js";
 import * as jsPDF from "jspdf";
+import { saveAs } from 'file-saver';
 const Undoo = require('undoo');
 
 
@@ -628,7 +629,7 @@ PDp.saveAsFile = function(t, f, m) {
         var b = new Blob([t], {type: m});
         saveAs(b, f);
     } catch (e) {
-        window.open("data:" + m + "," + encodeURIComponent(t), '_blank', '');
+        window.alert('Error in exporting JSON: ' + e.message);
     }
 }
 
