@@ -168,7 +168,7 @@ public class PDController extends BaseController {
         pageParams.put("pluginExecutionId", pluginExecutionId);
         Executions.getCurrent().pushArg(pageParams);
     }
-    
+
     //Note: this method is only valid inside onCreate() as it calls ZK current Execution
     private boolean preparePluginSessionId() {
         pluginSessionId = Executions.getCurrent().getParameter("id");
@@ -176,9 +176,9 @@ public class PDController extends BaseController {
         if (UserSessionManager.getEditSession(pluginSessionId) == null) return false;
         return true;
     }
-    
+
     // True means the current portal session is not valid to go ahead any more
-    // It could be the Apromore Portal session has timed out or user has logged off, or 
+    // It could be the Apromore Portal session has timed out or user has logged off, or
     // or something has made it crashed
     private boolean preparePortalSession(String pluginSessionId) {
         portalSession = UserSessionManager.getEditSession(pluginSessionId);
@@ -196,10 +196,10 @@ public class PDController extends BaseController {
         catch (Exception ex) {
             return false;
         }
-        
+
         return true;
-    } 
-    
+    }
+
     // Check infrastructure services to be available. They can become unavailable
     // because of system crashes or modules crashed/undeployed
     private boolean prepareSystemServices() {
@@ -236,18 +236,18 @@ public class PDController extends BaseController {
         
         return true;
     }
-     
+
     public void onCreate() throws InterruptedException {
         try {
             if (!preparePluginSessionId()) {
                 Messagebox.show("Process Discoverer session has not been initialized. Please open it again properly!");
                 return;
             }
-            
+
             if (!prepareCriticalServices()) {
                 return;
             }
-            
+
             // Prepare data
             ApromoreSession session = UserSessionManager.getEditSession(pluginSessionId);
             PortalContext portalContext = (PortalContext) session.get("context");
@@ -271,7 +271,7 @@ public class PDController extends BaseController {
             userOptions.setFixedAggregation(MeasureAggregation.CASES);
             userOptions.setInvertedNodesMode(false);
             userOptions.setInvertedArcsMode(false);
-    
+
             // Prepare log data
             logData = pdFactory.createLogData(contextData, configData, eventLogService);
             IndexableAttribute mainAttribute = logData.getAttribute(configData.getDefaultAttribute());
