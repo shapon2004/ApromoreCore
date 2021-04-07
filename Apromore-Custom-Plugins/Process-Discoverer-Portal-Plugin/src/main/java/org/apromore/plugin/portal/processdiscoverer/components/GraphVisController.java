@@ -274,6 +274,11 @@ public class GraphVisController extends VisualController {
         String command = String.format("Ap.pd.exportPNG('%s');", name);
         Clients.evalJavaScript(command);
     }
+    
+    public void exportJSON(String name) {
+        String command = String.format("Ap.pd.exportJSON('%s');", name);
+        Clients.evalJavaScript(command);
+    }
 
     @Override
     public void onEvent(Event event) throws Exception {

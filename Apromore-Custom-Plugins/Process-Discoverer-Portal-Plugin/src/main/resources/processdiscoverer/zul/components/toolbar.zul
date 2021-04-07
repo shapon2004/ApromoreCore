@@ -135,7 +135,6 @@
         <button ca:data-t="downloadPNG" id="downloadPNG" tooltiptext="${labels.e.pd.downloadPNG.text}"
                 sclass="ap-icon ap-icon-export-image"/>
         <button ca:data-t="downloadJSON" id="downloadJSON" tooltiptext="Download JSON"
-                w:onClick="Ap.pd.exportJSON()"
                 sclass="ap-icon ap-icon-export-json"/>
         <n:span class="ap-action-sep"></n:span>
         <checkbox sclass="ap-stateful-button" id="layoutHierarchy"

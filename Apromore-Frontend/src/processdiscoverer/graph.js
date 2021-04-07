@@ -629,15 +629,14 @@ PDp.saveAsFile = function(t, f, m) {
         var b = new Blob([t], {type: m});
         saveAs(b, f);
     } catch (e) {
-        window.alert('Error in exporting JSON: ' + e.message);
+        window.alert('Error in saving file: ' + e.message);
     }
 }
 
 PDp.exportJSON = function(filename) {
     if (!sourceJSON) {
-        return;
+        window.alert('Process model doesn\'t exist or it has no associated JSON file!');
     }
-    filename = filename || $('.ap-pd-log-title').text();
     this.saveAsFile(
         JSON.stringify(sourceJSON, null, 2),
         filename + ".json",
@@ -648,13 +647,13 @@ PDp.exportJSON = function(filename) {
 PDp.showCaseDetails = function() {
     let {left, top} = $('.ap-pd-logstats').offset();
     left -= 700; // width of caseDetail window
-    this.zkSendEvent('$caseDetails', 'onApShow', {top: top + 'px', left: left + 'px'});
+    this.zkSendEvent('$win', 'onCaseDetails', {top: 0 + 'px', left: left + 'px'});
 }
 
 PDp.showPerspectiveDetails = function() {
     let {left, top} = $('.ap-pd-logstats').offset();
     left -= 700; // width of perspectiveDetail window
-    this.zkSendEvent('$perspectiveDetails', 'onApShow', {top: top + 'px', left: left + 'px'});
+    this.zkSendEvent('$win', 'onPerspectiveDetails', {top: 0 + 'px', left: left + 'px'});
 }
 
 PDp.switchToAnimationView = function(setupDataJSON) {

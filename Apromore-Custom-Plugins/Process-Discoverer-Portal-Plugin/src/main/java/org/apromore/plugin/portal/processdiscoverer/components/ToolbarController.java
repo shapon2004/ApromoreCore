@@ -47,6 +47,7 @@ public class ToolbarController extends AbstractController {
     private Button exportFilteredLog;
     private Button downloadPDF;
     private Button downloadPNG;
+    private Button downloadJSON;
     private Button exportBPMN;
     
     private Textbox searchText;
@@ -72,6 +73,7 @@ public class ToolbarController extends AbstractController {
         exportFilteredLog = (Button) toolbar.getFellow("exportUnfitted");
         downloadPDF = (Button) toolbar.getFellow("downloadPDF");
         downloadPNG = (Button) toolbar.getFellow("downloadPNG");
+        downloadJSON = (Button) toolbar.getFellow("downloadJSON");
         exportBPMN = (Button) toolbar.getFellow("exportBPMN");
 
         layoutHierarchy = (Checkbox) toolbar.getFellow(LAYOUT_HIERARCHY);
@@ -140,9 +142,16 @@ public class ToolbarController extends AbstractController {
                 parent.exportPNG();
             }
         });
+        
+        downloadJSON.addEventListener("onClick", new EventListener<Event>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                parent.exportJSON();
+            }
+        });
 
         share.addEventListener("onClick", event -> {
-            parent.showSharingWindow();
+            parent.openSharingWindow();
         });
     }
     

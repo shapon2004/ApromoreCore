@@ -80,8 +80,6 @@ import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zul.Button;
-import org.zkoss.zul.Label;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 
@@ -111,8 +109,6 @@ public class PDController extends BaseController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PDController.class);
 
     ///////////////////// UI CONTROLS /////////////////////////////
-    private Button perspectiveDetails;
-    private Button casesDetails;
     private Window mainWindow;
 
     //////////////////// SUPPORT SERVICES ///////////////////////////////////
@@ -341,20 +337,13 @@ public class PDController extends BaseController {
     private void initializeControls() {
         try {
             mainWindow = (Window) this.getFellow("win");
-            Label logTitle = (Label) mainWindow.getFellow("logTitle");
             mainWindow.setTitle(contextData.getLogName());
-            logTitle.setValue(contextData.getLogName());
-    
             viewSettingsController.initializeControls(contextData);
             graphSettingsController.initializeControls(contextData);
             timeStatsController.initializeControls(contextData);
             logStatsController.initializeControls(contextData);
             graphVisController.initializeControls(contextData);
             toolbarController.initializeControls(contextData);
-    
-            // Main action buttons
-            casesDetails = (Button) mainWindow.getFellow("caseDetails");
-            perspectiveDetails = (Button) mainWindow.getFellow("perspectiveDetails");
         }
         catch (Exception ex) {
             Messagebox.show("An error occurred while initializing UI: " + ex.getMessage());
@@ -369,24 +358,6 @@ public class PDController extends BaseController {
             toolbarController.initializeEventListeners(contextData);
             logStatsController.initializeEventListeners(contextData);
             timeStatsController.initializeEventListeners(contextData);
-    
-            casesDetails.addEventListener("onApShow",
-                new EventListener<Event>() {
-                    @Override
-                    public void onEvent(Event event) throws Exception {
-                        caseDetailsController.onEvent(event);
-                    }
-                }
-            );
-            
-            perspectiveDetails.addEventListener("onApShow",
-                new EventListener<Event>() {
-                    @Override
-                    public void onEvent(Event event) throws Exception {
-                        perspectiveDetailsController.onEvent(event);
-                    }
-                }
-            );
 
             EventListener<Event> windowListener = new EventListener<Event>() {
                 @Override
@@ -402,6 +373,18 @@ public class PDController extends BaseController {
                 public void onEvent(Event event) throws Exception {
                     putWindowAtTop(caseDetailsController.getWindow());
                     putWindowAtTop(perspectiveDetailsController.getWindow());
+                }
+            });
+            mainWindow.addEventListener("onCaseDetails", new EventListener<Event>() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    caseDetailsController.onEvent(event);
+                }
+            });
+            mainWindow.addEventListener("onPerspectiveDetails", new EventListener<Event>() {
+                @Override
+                public void onEvent(Event event) throws Exception {
+                    perspectiveDetailsController.onEvent(event);
                 }
             });
             
@@ -426,6 +409,10 @@ public class PDController extends BaseController {
     public void exportPNG() {
         graphVisController.exportPNG(viewSettingsController.getOutputName());
     }
+    
+    public void exportJSON() {
+        graphVisController.exportJSON(viewSettingsController.getOutputName());
+    }
 
     public void clearFilter() throws Exception {
         if (this.mode != PDMode.INTERACTIVE_MODE) return;
@@ -440,7 +427,7 @@ public class PDController extends BaseController {
         graphVisController.fitToWindow();
     }
     
-    public void showSharingWindow() {
+    public void openSharingWindow() {
         PortalPlugin accessControlPlugin;
         try {
             Map<String, PortalPlugin> portalPluginMap = portalContext.getPortalPluginMap();
