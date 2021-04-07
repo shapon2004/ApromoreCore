@@ -306,11 +306,12 @@ PDp.init = function() {
 }
 
 PDp.undo = function() {
+    let pd = this;
     let cy = this._private.cy;
     if (cy.undoRedo().isUndoStackEmpty()) {
         history.undo((hist) => {
             if (hist) {
-                this.zkSendEvent(vizBridgeId, hist.event, hist.payload);
+                pd.zkSendEvent(vizBridgeId, hist.event, hist.payload);
             }
         });
     } else {
@@ -319,11 +320,12 @@ PDp.undo = function() {
 }
 
 PDp.redo = function() {
+    let pd = this;
     let cy = this._private.cy;
     if (cy.undoRedo().isRedoStackEmpty()) {
         let hist = history.redo((hist) => {
             if (hist) {
-                this.zkSendEvent(vizBridgeId, hist.event, hist.payload);
+                pd.zkSendEvent(vizBridgeId, hist.event, hist.payload);
             }
         });
     } else {
@@ -532,7 +534,7 @@ PDp.removeNode = function(evt) {
       } else {
         graphEvent = 'onNodeRemovedTrace'
       }
-      zkSendEvent(vizBridgeId, graphEvent, payload);
+      this.zkSendEvent(vizBridgeId, graphEvent, payload);
       history.save({
         compId,
         event: graphEvent,

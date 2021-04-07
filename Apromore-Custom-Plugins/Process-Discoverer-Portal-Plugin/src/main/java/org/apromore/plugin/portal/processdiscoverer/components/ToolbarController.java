@@ -161,7 +161,7 @@ public class ToolbarController extends AbstractController {
         layoutHierarchy.setDisabled(disabled);
         layoutDagreTopBottom.setDisabled(disabled);
         filter.setDisabled(disabled);
-        filterClear.setDisabled(disabled);
+        filterClear.setDisabled(disabled || parent.getLogData().isCurrentFilterCriteriaEmpty());
         searchText.setDisabled(disabled);
         shortcutButton.setDisabled(disabled);
     }
@@ -170,13 +170,13 @@ public class ToolbarController extends AbstractController {
         animate.setDisabled(disabled);
     }
     
+    public void setDisabledFilterClear(boolean disabled) {
+        filterClear.setDisabled(disabled);
+    }
+    
     @Override
     public void updateUI(Object data) throws Exception {
         //
-    }
-    
-    public void setDisabledFilterClear(boolean disabled) {
-        filterClear.setDisabled(disabled);
     }
     
     private void onClearFilter() {
