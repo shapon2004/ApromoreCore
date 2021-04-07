@@ -124,7 +124,7 @@ public class ViewSettingsController extends VisualController {
     private String primaryAggregateCode;
     private final String FREQ_LABEL = "frequency";
     private final String DURATION_LABEL = "duration";
-    private String perspectiveName = "";
+    
     private boolean disabled = false;
 
     public ViewSettingsController(PDController parent) {
@@ -178,7 +178,6 @@ public class ViewSettingsController extends VisualController {
             @Override
             public void onEvent(Event event) throws Exception {
                 String value = perspectiveSelector.getSelectedItem().getValue();
-                perspectiveName = perspectiveSelector.getSelectedItem().getLabel();
                 if (value.equals("-")) return;
                 parent.setPerspective(value);
             }
@@ -197,7 +196,6 @@ public class ViewSettingsController extends VisualController {
             public void onEvent(Event event) throws Exception {
                 if (disabled) return;
                 String value = "concept:name";
-                perspectiveName = "Activities";
                 selectComboboxByKey(perspectiveSelector, value);
                 parent.setPerspective(value);
             }
@@ -447,7 +445,7 @@ public class ViewSettingsController extends VisualController {
     }
     
     public String getPerspectiveName() {
-        return perspectiveName;
+        return (perspectiveSelector != null) ? perspectiveSelector.getSelectedItem().getLabel() : "";
     }
     
 }

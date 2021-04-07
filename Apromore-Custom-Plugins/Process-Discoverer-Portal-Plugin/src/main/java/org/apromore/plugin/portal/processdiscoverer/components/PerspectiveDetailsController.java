@@ -67,14 +67,18 @@ public class PerspectiveDetailsController extends DataListController {
 
     @Override
     public String getExportFilename () {
-        return parent.getContextData().getLogName() + "-" + parent.getPerspective() + ".csv";
+        String perspective = parent.getPerspective();
+        return parent.getContextData().getLogName() + "-" + 
+                    (perspective.isEmpty() ? "EmptyPerspectiveName" : perspective) + 
+                    ".csv";
     }
 
     @Override
     public void onEvent(Event event) throws Exception {
     	if (perspectiveDetailsWindow==null) {
             perspectiveDetailsWindow = (Window) Executions.createComponents("perspectiveDetails.zul", null, null);
-            perspectiveDetailsWindow.setTitle(parent.getPerspective());
+            String perspective = parent.getPerspective();
+            perspectiveDetailsWindow.setTitle(!perspective.isEmpty() ? perspective : "EmptyPerspective");
             Listbox listbox = (Listbox) perspectiveDetailsWindow.getFellow("perspectiveDetailsList");
     
             generateData();
