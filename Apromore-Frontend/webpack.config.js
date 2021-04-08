@@ -1,6 +1,33 @@
 const webpack = require("webpack");
 const path = require('path');
 const LowerCaseNamePlugin = require('webpack-lowercase-name');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const debug = process.env.NODE_ENV !== "production";
+
+let plugins = [
+    new webpack.ProvidePlugin({
+        "$":"jquery",
+        "$j":"jquery",
+        "jQuery":"jquery",
+        "window.jQuery":"jquery"
+    }),
+    new LowerCaseNamePlugin(),
+];
+
+if (!debug) {
+    plugins.push(
+        new UglifyJsPlugin({
+            uglifyOptions: {
+                output: {
+                    // comments: false, // removing comments
+                },
+                compress: {
+                    drop_console: true, // remove console.logs
+                },
+            },
+        })
+    );
+}
 
 module.exports = {
     entry: {
@@ -29,15 +56,5 @@ module.exports = {
             'main'
         ]
     },
-
-    plugins: [
-        new webpack.ProvidePlugin({
-            "$":"jquery",
-            "$j":"jquery",
-            "jQuery":"jquery",
-            "window.jQuery":"jquery"
-        }),
-        new LowerCaseNamePlugin()
-    ],
-
+    plugins: plugins
 };
