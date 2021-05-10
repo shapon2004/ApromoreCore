@@ -32,5 +32,5 @@
     
     <bean name="storageFactory" class="org.apromore.storage.factory.StorageManagementFactoryImpl">       
     </bean>
-
+storageFactory
 </beans>

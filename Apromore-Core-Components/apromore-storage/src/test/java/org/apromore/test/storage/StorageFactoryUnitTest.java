@@ -61,4 +61,11 @@ public class StorageFactoryUnitTest {
 	
     }
 
+    @Test
+    public void testListObjects() {
+//        StorageClient client = storageManagementFactory.getStorageClient("S3::mayank-test-databucket::ap-southeast-2::https://s3.ap-southeast-2.amazonaws.com");
+//        System.out.println("client: " + client);
+        //        System.out.println(client.listObjects("apromore/etl/portal/users/admin/activity_label_translation_1"));
+    }
+
 }
