@@ -24,7 +24,6 @@ package org.apromore.apmlog;
 
 import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.PTrace;
-import org.apromore.service.impl.EventLogServiceImpl;
 import org.deckfour.xes.in.XesXmlGZIPParser;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
@@ -416,7 +415,6 @@ public class APMLogUnitTest {
     @Test
     public void testNoErrorByCalling0WaitingTime() throws Exception {
         XLog xLog = getXLog("files/A2_overlap_mixed.xes");
-        xLog = EventLogServiceImpl.validateLog(xLog);
         APMLog apmLog = LogFactory.convertXLog(xLog);
         PLog pLog = new PLog(apmLog);
         for (PTrace pTrace : pLog.getPTraceList()) {
