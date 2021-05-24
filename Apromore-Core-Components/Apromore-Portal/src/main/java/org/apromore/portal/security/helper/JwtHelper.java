@@ -21,9 +21,20 @@
  */
 package org.apromore.portal.security.helper;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.JWTParser;
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
 import org.apromore.dao.model.Membership;
 import org.apromore.dao.model.User;
 import org.apromore.manager.client.ManagerService;
@@ -36,24 +47,16 @@ import org.apromore.security.util.SecurityUtil;
 import org.apromore.service.SecurityService;
 import org.slf4j.Logger;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 
 public class JwtHelper {
 
     public static final String JWT_KEY_SUBJECT_USERNAME = "sub";
     public static final String STR_JWT_KEY_ISSUED_AT = "striat";
     public static final String STR_JWT_EXPIRY_TIME = "strexp";
-    public static final Duration WEBAPP_SSO_SESSION_TIMEOUT = Duration.ofMinutes(30);
+    public static final Duration WEBAPP_SSO_SESSION_TIMEOUT = Duration.ofMinutes(5);
 
     private static final Logger LOGGER = PortalLoggerFactory.getLogger(JwtHelper.class);
 
