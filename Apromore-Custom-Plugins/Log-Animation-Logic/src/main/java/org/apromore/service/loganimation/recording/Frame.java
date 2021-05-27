@@ -161,21 +161,22 @@ public class Frame {
         // Group tokens with close distances
         Set<MutableIntList> tokenGroups = new HashSet<>();
         MutableIntList tokenGroup = IntLists.mutable.empty();
-        double tokenGroupTotalDist = 0;
-        double tokenGroupRadius = 0;
-        for (IntDoublePair tokenPair : tokenDistances) {
-            double tokenDistance = tokenPair.getTwo();
-            double diff = tokenGroup.isEmpty() ? 0 : Math.abs(tokenDistance - tokenGroupRadius);
-            if (diff <= 100) { //tokens within 1 second apart can be merged
-                tokenGroup.add(tokenPair.getOne());
-                tokenGroupTotalDist += tokenDistance;
-                tokenGroupRadius = tokenGroupTotalDist/tokenGroup.size();
-                if (tokenPair == tokenDistances.getLast()) tokenGroups.add(tokenGroup);
+        double tokenGroupDistance = 0;
+        boolean newGroup = true;
+        for (IntDoublePair token : tokenDistances) {
+            double tokenDistance = token.getTwo();
+            if (newGroup) {
+                tokenGroupDistance = tokenDistance;
+                newGroup = false;
+            }
+            if (Math.abs(tokenDistance - tokenGroupDistance) <= 100) { //tokens within 1 second apart can be merged
+                tokenGroup.add(token.getOne());
+                if (token == tokenDistances.getLast()) tokenGroups.add(tokenGroup);
             }
             else {
                 tokenGroups.add(tokenGroup);
+                newGroup = true;
                 tokenGroup = IntLists.mutable.empty();
-                tokenGroupTotalDist = 0;
             }
         }
         
