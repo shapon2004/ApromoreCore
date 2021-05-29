@@ -156,8 +156,8 @@ export function  bpmnDiffApp() {
   function showDiff(viewerOld, viewerNew) {
 console.log("viewerOld", viewerOld);
 console.log("viewerNew", viewerNew);
-console.log("definitions", viewerOld.definitions, viewerNew.definitions);
-    var result = Diffing.diff (viewerOld.definitions, viewerNew.definitions);
+console.log("definitions", viewerOld._definitions, viewerNew._definitions);
+    var result = Diffing.diff (viewerOld._definitions, viewerNew._definitions);
     
    // var result = sampleDiff;
     console.log("diff result", result);
@@ -199,10 +199,9 @@ console.log("definitions", viewerOld.definitions, viewerNew.definitions);
       });
 
       details = details + '</table></div>';
-
-      viewerOld.get('elementRegistry').getGraphicsByElement(i).click (function (event) {
-        $('#changeDetailsOld_' + i).toggle();
-      });
+console.log("viewerOld.get('elementRegistry')", viewerOld.get('elementRegistry'));
+viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { $('#changeDetailsOld_' + i).toggle();});
+      
 
       var detailsOld = '<div id="changeDetailsOld_' + i + '" class="changeDetails">' + details;
 
@@ -216,11 +215,8 @@ console.log("definitions", viewerOld.definitions, viewerNew.definitions);
       });
 
       $('#changeDetailsOld_' + i).toggle();
-
-      viewerNew.get('elementRegistry').getGraphicsByElement(i).click (function (event) {
-         $('#changeDetailsNew_' + i).toggle();
-      });
-
+      viewerNew.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { $('#changeDetailsNew_' + i).toggle();});
+   
       var detailsNew = '<div id="changeDetailsNew_' + i + '" class="changeDetails">' + details;
 
       // attach an overlay to a node
@@ -420,7 +416,7 @@ console.log("definitions", viewerOld.definitions, viewerNew.definitions);
 
         var viewer = (changed == 'removed' ? viewerOld : viewerNew);
 
-        var element = viewer.get('elementRegistry').getById(id);
+        var element = viewer.get('elementRegistry').get(id);
 
         var x, y;
 
