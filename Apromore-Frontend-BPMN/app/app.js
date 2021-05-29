@@ -156,10 +156,10 @@ export function  bpmnDiffApp() {
   function showDiff(viewerOld, viewerNew) {
 console.log("viewerOld", viewerOld);
 console.log("viewerNew", viewerNew);
-console.log("defenitions", viewerOld.definitions, viewerNew.definitions);
-  //  var result = Diffing.diff (viewerOld.definitions, viewerNew.definitions);
+console.log("definitions", viewerOld.definitions, viewerNew.definitions);
+    var result = Diffing.diff (viewerOld.definitions, viewerNew.definitions);
     
-    var result = sampleDiff;
+   // var result = sampleDiff;
     console.log("diff result", result);
     $.each(result._removed, function(i, obj) {
       highlight(viewerOld, i, 'diff-removed');
