@@ -1,16 +1,24 @@
-(function() {
+
+import * as Diffing from './differ';
+import * as _ from 'lodash';
+import * as $ from 'jquery';
+import CustomViewer from './custom-viewer';
+import * as sampleDiff from './diff.json'
+export function  bpmnDiffApp() {
+
+  
 
   'use strict';
 
 
-  var $ = require('jquery'),
-      _ = require('lodash'),
-      BpmnViewer = require('bpmn-js'),
-      Diffing = require('bpmn-js-diffing');
+  // var $ = require('jquery'),
+  //     _ = require('lodash'),
+  //     BpmnViewer = require('bpmn-js'),
+     // Diffing = require('bpmn-js-diffing');
 
 
   function createViewer(side) {
-    return new BpmnViewer({
+    return new CustomViewer({
       container: '#canvas-' + side,
       height: '100%',
       width: '100%'
@@ -146,10 +154,13 @@
 
 
   function showDiff(viewerOld, viewerNew) {
-
-    var result = Diffing.diff (viewerOld.definitions, viewerNew.definitions);
-
-
+console.log("viewerOld", viewerOld);
+console.log("viewerNew", viewerNew);
+console.log("defenitions", viewerOld.definitions, viewerNew.definitions);
+  //  var result = Diffing.diff (viewerOld.definitions, viewerNew.definitions);
+    
+    var result = sampleDiff;
+    console.log("diff result", result);
     $.each(result._removed, function(i, obj) {
       highlight(viewerOld, i, 'diff-removed');
       addMarker(viewerOld, i, 'marker-removed', '&minus;');
@@ -432,4 +443,5 @@
     });
   }
 
-})();
+}
+bpmnDiffApp();
