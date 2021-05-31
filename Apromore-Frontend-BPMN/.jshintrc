@@ -8,7 +8,7 @@
   "browser" : true,
   "node" : true,
   "debug": true,
-  "strict": false,
+  "strict": true,
   "globals": {
     "describe": false,
     "it": false,

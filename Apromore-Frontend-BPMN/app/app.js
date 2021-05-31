@@ -6,7 +6,7 @@ import CustomViewer from './custom-viewer';
 import * as sampleDiff from './diff.json'
 export function  bpmnDiffApp() {
 
-  
+
 
   'use strict';
 
@@ -18,11 +18,17 @@ export function  bpmnDiffApp() {
 
 
   function createViewer(side) {
-    return new CustomViewer({
+    let viewer = new CustomViewer({
       container: '#canvas-' + side,
       height: '100%',
       width: '100%'
     });
+    let canvasObj = viewer.get('canvas');
+    canvasObj._viewboxChanged = function() {
+      canvasObj._eventBus.fire('canvas.viewbox.changed',
+          { viewbox: canvasObj.viewbox(false) });
+    };
+    return viewer;
   }
 
   function syncViewers(a, b) {
@@ -158,7 +164,7 @@ console.log("viewerOld", viewerOld);
 console.log("viewerNew", viewerNew);
 console.log("definitions", viewerOld._definitions, viewerNew._definitions);
     var result = Diffing.diff (viewerOld._definitions, viewerNew._definitions);
-    
+
    // var result = sampleDiff;
     console.log("diff result", result);
     $.each(result._removed, function(i, obj) {
@@ -201,7 +207,7 @@ console.log("definitions", viewerOld._definitions, viewerNew._definitions);
       details = details + '</table></div>';
 console.log("viewerOld.get('elementRegistry')", viewerOld.get('elementRegistry'));
 viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { $('#changeDetailsOld_' + i).toggle();});
-      
+
 
       var detailsOld = '<div id="changeDetailsOld_' + i + '" class="changeDetails">' + details;
 
@@ -216,7 +222,7 @@ viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", functi
 
       $('#changeDetailsOld_' + i).toggle();
       viewerNew.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { $('#changeDetailsNew_' + i).toggle();});
-   
+
       var detailsNew = '<div id="changeDetailsNew_' + i + '" class="changeDetails">' + details;
 
       // attach an overlay to a node
@@ -237,8 +243,8 @@ viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", functi
   }
 
 
-  loadDiagram('left', { url: '../resources/pizza-collaboration/old.bpmn' });
-  loadDiagram('right', { url: '../resources/pizza-collaboration/new.bpmn' });
+  // loadDiagram('left', { url: '../resources/pizza-collaboration/old.bpmn' });
+  // loadDiagram('right', { url: '../resources/pizza-collaboration/new.bpmn' });
 
 
   function openDiagram(xml, side) {
