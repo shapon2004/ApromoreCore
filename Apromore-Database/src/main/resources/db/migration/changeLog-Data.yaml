@@ -176,3 +176,23 @@ databaseChangeLog:
               - column:
                   name: description
                   value: "Allowed access to all log management endpoints"
+
+  - changeSet:
+      id:  20210531091000
+      author:  frankma
+      changes:
+        - insert:
+            tableName: usermetadata_type
+            columns:
+              - column:
+                  name: id
+                  value: "7"
+              - column:
+                  name: type
+                  value: "LOG_ATTRIBUTES"
+              - column:
+                  name: version
+                  value: "1"
+              - column:
+                  name: is_valid
+                  value: "1"

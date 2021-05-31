@@ -37,7 +37,9 @@ public enum UserMetadataTypeEnum {
     CSV_IMPORTER(3),
     LOG_ANIMATION(4),
     DASH_TEMPLATE(5),
-    SIMULATOR(6);
+    SIMULATOR(6),
+    LOG_ATTRIBUTES(7);
+
 
     private final Integer userMetadataTypeId;
 
