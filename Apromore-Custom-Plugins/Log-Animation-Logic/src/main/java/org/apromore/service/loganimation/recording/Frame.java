@@ -32,11 +32,13 @@ import java.util.stream.IntStream;
 import org.eclipse.collections.api.list.MutableList;
 import org.eclipse.collections.api.list.primitive.IntList;
 import org.eclipse.collections.api.list.primitive.MutableIntList;
-import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
+import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
+import org.eclipse.collections.api.set.primitive.IntSet;
 import org.eclipse.collections.api.tuple.primitive.IntDoublePair;
 import org.eclipse.collections.impl.factory.Lists;
-import org.eclipse.collections.impl.factory.primitive.IntIntMaps;
 import org.eclipse.collections.impl.factory.primitive.IntLists;
+import org.eclipse.collections.impl.factory.primitive.IntObjectMaps;
+import org.eclipse.collections.impl.factory.primitive.IntSets;
 import org.eclipse.collections.impl.tuple.primitive.PrimitiveTuples;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -65,17 +67,17 @@ public class Frame {
     // Each bitmap: a true value at index ith is a replay element on this frame, also called a token index
     private List<RoaringBitmap> replayElementMaps = new ArrayList<>();
     
-    // One count map for each log
-    // Each map: map from a token index to the number of tokens in a cluster that it represents
-    private List<MutableIntIntMap> tokenCountMaps = new ArrayList<>();
+    // Each element corresponds to a log
+    // Each element structure: tokenIndex => Set of merged tokens;
+    private List<MutableIntObjectMap<IntSet>> tokenMergingMap = new ArrayList<>();
     
     public Frame(int frameIndex, List<AnimationIndex> animationIndexes) {
         this.frameIndex = frameIndex;
         this.animationIndexes = animationIndexes;
-        animationIndexes.forEach(animationIndex -> {
+        for (int i=0; i< animationIndexes.size(); i++) {
             replayElementMaps.add(new RoaringBitmap());
-            tokenCountMaps.add(IntIntMaps.mutable.empty());
-        });
+            tokenMergingMap.add(IntObjectMaps.mutable.empty());
+        };
     }
     
     public int getIndex() {
@@ -94,31 +96,62 @@ public class Frame {
         replayElementMaps.get(logIndex).add(tokenIndexes);
     }
     
+    public boolean contains(int logIndex, int token) {
+        return replayElementMaps.get(logIndex).contains(token);
+    }
+    
+    /*
     public void removeToken(int logIndex, int tokenIndex) {
         replayElementMaps.get(logIndex).remove(tokenIndex);
         if (tokenCountMaps.get(logIndex).containsKey(tokenIndex)) tokenCountMaps.get(logIndex).remove(tokenIndex);
     }
+    */
     
     public int[] getElementIndexes(int logIndex) {
-        return Arrays.stream(getTokenIndexes(logIndex))
+        return Arrays.stream(getTokens(logIndex))
                 .map(tokenIndex -> animationIndexes.get(logIndex).getElementIndex(tokenIndex))
                 .distinct().toArray();
     }
     
     public int[] getCaseIndexes(int logIndex) {
-        return Arrays.stream(getTokenIndexes(logIndex))
+        return Arrays.stream(getTokens(logIndex))
                 .map(tokenIndex -> animationIndexes.get(logIndex).getTraceIndex(tokenIndex))
                 .distinct().toArray();
     }
     
-    public int[] getTokenIndexes(int logIndex) {
+    public int[] getTokens(int logIndex) {
         return replayElementMaps.get(logIndex).toArray();
     }
     
-    public int[] getTokenIndexesByElement(int logIndex, int elementIndex) {
-        return Arrays.stream(getTokenIndexes(logIndex))
-                .filter(tokenIndex -> animationIndexes.get(logIndex).getElementIndex(tokenIndex) == elementIndex)
-                .toArray();
+    private IntSet getTokensByElement(int logIndex, int elementIndex) {
+        return IntSets.immutable.of(getTokens(logIndex))
+                .select(tokenIndex -> animationIndexes.get(logIndex).getElementIndex(tokenIndex) == elementIndex);
+    }
+    
+    public IntSet getCentralTokens(int logIndex) {
+        if (logIndex < 0 || logIndex >= tokenMergingMap.size()) return IntSets.mutable.empty();
+        return tokenMergingMap.get(logIndex).keySet();
+    }
+    
+    /**
+     * Get a set of merged tokens by a central token
+     * @param logIndex: log index
+     * @param tokenIndex: central token
+     * @return: set of merged token doesn't contain the central token
+     */
+    public IntSet getMergedTokens(int logIndex, int tokenIndex) {;
+        if (logIndex < 0 || logIndex >= tokenMergingMap.size()) return IntSets.immutable.empty();
+        return tokenMergingMap.get(logIndex).containsKey(tokenIndex)
+                    ? tokenMergingMap.get(logIndex).get(tokenIndex).toImmutable()
+                    : IntSets.immutable.empty();
+    }
+    
+    public IntSet getNonMergedTokensByElement(int logIndex, int elementIndex) {
+        this.getTokensByElement(logIndex, elementIndex).reject(predicate)
+    }
+    
+    public int getTokenCount(int logIndex, int tokenIndex) {
+        return this.getMergedTokens(logIndex, tokenIndex).size() + 1;
     }
     
     /**
@@ -141,8 +174,12 @@ public class Frame {
         return frameIndex - animationIndexes.get(logIndex).getStartFrameIndex(tokenIndex);
     }
     
-    public int getTokenCount(int logIndex, int tokenIndex) {
-        return tokenCountMaps.get(logIndex).containsKey(tokenIndex) ? tokenCountMaps.get(logIndex).get(tokenIndex) : 1;
+    private void mergeTokensOnElement(int logIndex, int elementIndex, Frame precedingFrame) {
+        IntSet preCentralTokens = precedingFrame.getCentralTokens(logIndex);
+        for (int token : preCentralTokens.toArray()) {
+            if (elementIndex != animationIndexes.get(logIndex).getElementIndex(token)) continue;
+            
+        }
     }
     
     /**
@@ -150,10 +187,10 @@ public class Frame {
      * cannot be clustered. The token count will be updated.
      * @param elementIndex
      */
-    private void clusterTokensOnElement(int logIndex, int elementIndex) {
+    private void mergeTokensOnElement(int logIndex, int elementIndex) {
         // Collect tokens and their distances
         MutableList<IntDoublePair> tokenDistances = Lists.mutable.empty();
-        for (int token : getTokenIndexesByElement(logIndex, elementIndex)) {
+        for (int token : getTokens(logIndex, elementIndex)) {
             tokenDistances.add(PrimitiveTuples.pair(token, getFrameIndexAbsoluteTokenDistance(logIndex, token)));
         }
         tokenDistances.sortThisBy(pair -> pair.getTwo()); // sort by distance
@@ -183,15 +220,15 @@ public class Frame {
         // Collect representative token for each group: take the first one in a group.
         for (IntList group : tokenGroups) {
             if (group.size() > 1) {
-                tokenCountMaps.get(logIndex).put(group.get(0), group.size());
-                group.forEach(token -> {if (token != group.get(0)) removeToken(logIndex, token);});
+                tokenMergingMap.get(logIndex).put(group.get(0), group.toSet());
+                //group.forEach(token -> {if (token != group.get(0)) removeToken(logIndex, token);});
             }
         }
     }
     
-    public void clusterTokens(int logIndex) {
+    public void mergeTokens(int logIndex) {
         for (int elementIndex : getElementIndexes(logIndex)) {
-            clusterTokensOnElement(logIndex, elementIndex);
+            mergeTokensOnElement(logIndex, elementIndex);
         }
     }
     
@@ -214,7 +251,7 @@ public class Frame {
         for (int logIndex: getLogIndexes()) {
             for (int elementIndex : getElementIndexes(logIndex)) {
                 JSONArray casesJSON = new JSONArray();
-                for (int tokenIndex : getTokenIndexesByElement(logIndex, elementIndex)) {
+                for (int tokenIndex : getCentralTokens(logIndex).toArray()) {
                     casesJSON.put((new JSONObject()).put(animationIndexes.get(logIndex).getTraceIndex(tokenIndex)+"",
                                                         getTokenJSON(logIndex, tokenIndex)));
                 }

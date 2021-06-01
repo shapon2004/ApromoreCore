@@ -64,7 +64,7 @@ public class FrameTest extends TestDataSetup {
         Assert.assertEquals(0, frame0.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame0.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {13}, frame0.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {0}, frame0.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame0.getTokens(0));
         Assert.assertArrayEquals(new int[] {}, frame0.getTokenIndexesByElement(0,0));
         Assert.assertArrayEquals(new int[] {0}, frame0.getTokenIndexesByElement(0, 13));
         
@@ -72,7 +72,7 @@ public class FrameTest extends TestDataSetup {
         Assert.assertEquals(299, frame299.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame299.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {13}, frame299.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {0}, frame299.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame299.getTokens(0));
         Assert.assertArrayEquals(new int[] {}, frame299.getTokenIndexesByElement(0,0));
         Assert.assertArrayEquals(new int[] {0}, frame299.getTokenIndexesByElement(0,13));
        
@@ -80,7 +80,7 @@ public class FrameTest extends TestDataSetup {
         Assert.assertEquals(35999, frame35999.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame35999.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {11}, frame35999.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokens(0));
         Assert.assertArrayEquals(new int[] {}, frame35999.getTokenIndexesByElement(0,0));
         Assert.assertArrayEquals(new int[] {3}, frame35999.getTokenIndexesByElement(0,11));
     }
@@ -113,20 +113,20 @@ public class FrameTest extends TestDataSetup {
         // This frame only has one token for the 2nd log
         Frame firstFrame = animationMovie.get(0);
         Assert.assertEquals(0, firstFrame.getIndex());
-        Assert.assertEquals(true, firstFrame.getTokenIndexes(0).length > 0);
-        Assert.assertEquals(true, firstFrame.getTokenIndexes(1).length == 0); // no token for the 2nd log in this frame
+        Assert.assertEquals(true, firstFrame.getTokens(0).length > 0);
+        Assert.assertEquals(true, firstFrame.getTokens(1).length == 0); // no token for the 2nd log in this frame
         
         // This frame has one token for both logs
         Frame frameTwoTokens = animationMovie.get(19036);
         Assert.assertEquals(19036, frameTwoTokens.getIndex());
-        Assert.assertEquals(true, frameTwoTokens.getTokenIndexes(0).length > 0);
-        Assert.assertEquals(true, frameTwoTokens.getTokenIndexes(1).length > 0);
+        Assert.assertEquals(true, frameTwoTokens.getTokens(0).length > 0);
+        Assert.assertEquals(true, frameTwoTokens.getTokens(1).length > 0);
        
         // This frame only has one token for the 1st log
         Frame lastFrame = animationMovie.get(35999);
         Assert.assertEquals(35999, lastFrame.getIndex());
-        Assert.assertEquals(true, lastFrame.getTokenIndexes(1).length > 0);
-        Assert.assertEquals(true, lastFrame.getTokenIndexes(0).length == 0); // no token for the 1st log in this frame
+        Assert.assertEquals(true, lastFrame.getTokens(1).length > 0);
+        Assert.assertEquals(true, lastFrame.getTokens(0).length == 0); // no token for the 1st log in this frame
     }
     
     @Test

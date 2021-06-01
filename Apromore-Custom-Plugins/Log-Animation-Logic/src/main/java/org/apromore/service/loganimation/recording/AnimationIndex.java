@@ -49,7 +49,7 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 /**
  * An <b>AnimationIndex</b> is an index of an AnimationLog.<br>
- * Note that each replay element is given a unique sequential number (called replay element index, or token index)
+ * Note that each replay element is given a unique sequential number (called replay element index, or token index or token for short)
  * The animation index is built for each replay element to point to its modelling elements, replay trace and frame indexes.
  * 
  * @see FrameRecorder

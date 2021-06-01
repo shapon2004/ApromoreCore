@@ -32,15 +32,15 @@ public class TokenClusteringTest extends FrameTest {
         Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_Graph();
         
         Frame frame0 = animationMovie.get(0);
-        Assert.assertArrayEquals(new int[] {0}, frame0.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame0.getTokens(0));
         Assert.assertEquals(1, frame0.getTokenCount(0,0), 0.0);
         
         Frame frame299 = animationMovie.get(299);
-        Assert.assertArrayEquals(new int[] {0}, frame299.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame299.getTokens(0));
         Assert.assertEquals(1, frame299.getTokenCount(0,0), 0.0);
        
         Frame frame35999 = animationMovie.get(35999);
-        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokens(0));
         Assert.assertEquals(1, frame35999.getTokenCount(0,3), 0.0);
     }
     
@@ -52,15 +52,15 @@ public class TokenClusteringTest extends FrameTest {
         Movie animationMovie = createAnimationMovie_TwoTraceAndCompleteEvents_Graph();
         
         Frame frame0 = animationMovie.get(0);
-        Assert.assertArrayEquals(new int[] {0}, frame0.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame0.getTokens(0));
         Assert.assertEquals(2, frame0.getTokenCount(0,0), 0.0);
         
         Frame frame299 = animationMovie.get(299);
-        Assert.assertArrayEquals(new int[] {0}, frame299.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {0}, frame299.getTokens(0));
         Assert.assertEquals(2, frame299.getTokenCount(0,0), 0.0);
        
         Frame frame35999 = animationMovie.get(35999);
-        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokenIndexes(0));
+        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokens(0));
         Assert.assertEquals(2, frame35999.getTokenCount(0,3), 0.0);
     }
 }
