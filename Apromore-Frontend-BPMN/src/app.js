@@ -13,11 +13,14 @@ import * as sampleDiff from './diff.json';
  * @param changesContainerId: the div container id for the list of changes box
  * @constructor
  */
-export default function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
+export default function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId,
+                                    leftDiagramXML, rightDiagramXML) {
 
     //////////// INITIALIZE /////////////////////////////////////
 
     let viewers = createViewers(leftContainerId, rightContainerId);
+
+    loadDiagrams(leftDiagramXML, rightDiagramXML);
 
     $('#' + changesContainerId + ' .show-hide-toggle').click(function () {
         $('#' + changesContainerId).toggleClass('collapsed');
@@ -75,7 +78,7 @@ export default function BpmnDiffApp(leftContainerId, rightContainerId, changesCo
 
     function loadDiagrams(leftDiagramXML, rightDiagramXML) {
         loadDiagram(leftContainerId, {xml: leftDiagramXML});
-        loadDiagram(rightContainerId, {url: rightDiagramXML});
+        loadDiagram(rightContainerId, {xml: rightDiagramXML});
     }
 
     function createViewer(containerId) {
