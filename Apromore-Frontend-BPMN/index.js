@@ -1,1 +1,1 @@
-module.exports = require('./lib/differ');
+module.exports = require('./src/differ');

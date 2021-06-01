@@ -2,253 +2,119 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("Apromore", [], factory);
+		define("BpmnDiffApp", [], factory);
 	else if(typeof exports === 'object')
-		exports["Apromore"] = factory();
+		exports["BpmnDiffApp"] = factory();
 	else
-		root["Apromore"] = root["Apromore"] || {}, root["Apromore"]["main"] = factory();
-})(self, function() {
-return /******/ (() => { // webpackBootstrap
-/******/ 	var __webpack_modules__ = ({
-
-/***/ "./app/change-handler.js":
-/*!*******************************!*\
-  !*** ./app/change-handler.js ***!
-  \*******************************/
-/***/ ((module) => {
-
-"use strict";
-
-
-
-function isTracked(element) {
-  return element.$instanceOf('bpmn:FlowElement') ||
-         element.$instanceOf('bpmn:MessageFlow') ||
-         element.$instanceOf('bpmn:Participant') ||
-         element.$instanceOf('bpmn:Lane');
-}
-
-function ChangeHandler() {
-  this._layoutChanged = {};
-  this._changed = {};
-  this._removed = {};
-  this._added = {};
-}
-
-module.exports = ChangeHandler;
-
-
-ChangeHandler.prototype.removed = function(model, property, element, idx) {
-  console.log("removed property", property);
-  if (isTracked(element)) {
-    this._removed[element.id] = element;
-  }
-};
-
-ChangeHandler.prototype.changed = function(model, property, newValue, oldValue) {
-  console.log("changed property", property);
-  if (model.$instanceOf('bpmndi:BPMNEdge') || model.$instanceOf('bpmndi:BPMNShape')) {
-    this._layoutChanged[model.bpmnElement.id] = model.bpmnElement;
-  }
-
-  if (isTracked(model)) {
-    var changed = this._changed[model.id];
-
-    if (!changed) {
-      changed = this._changed[model.id] = { model: model, attrs: { } };
-    }
-
-    if (oldValue !== undefined || newValue !== undefined) {
-      changed.attrs[property] = { oldValue: oldValue, newValue: newValue };
-    }
-  }
-};
-
-ChangeHandler.prototype.added = function(model, property, element, idx) {
-  console.log("added property", property);
-  if (isTracked(element)) {
-    this._added[element.id] = element;
-  }
-};
-
-ChangeHandler.prototype.moved = function(model, property, oldIndex, newIndex) { };
-
-
-/***/ }),
-
-/***/ "./app/custom-viewer.js":
-/*!******************************!*\
-  !*** ./app/custom-viewer.js ***!
-  \******************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ CustomViewer)
-/* harmony export */ });
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bpmn-js/lib/Viewer */ "./node_modules/bpmn-js/lib/Viewer.js");
-/* harmony import */ var diagram_js_lib_navigation_zoomscroll__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! diagram-js/lib/navigation/zoomscroll */ "./node_modules/diagram-js/lib/navigation/zoomscroll/index.js");
-/* harmony import */ var diagram_js_lib_navigation_movecanvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js/lib/navigation/movecanvas */ "./node_modules/diagram-js/lib/navigation/movecanvas/index.js");
-
-
-
-
-
-
-
-;
-
-
-/**
- * A viewer that includes mouse navigation and other goodies.
- *
- * @param {Object} options
- */
-function CustomViewer(options) {
-  bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__.default.call(this, options);
-}
-
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(CustomViewer, bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__.default);
-
-CustomViewer.prototype._customModules = [
-  diagram_js_lib_navigation_zoomscroll__WEBPACK_IMPORTED_MODULE_2__.default,
-  diagram_js_lib_navigation_movecanvas__WEBPACK_IMPORTED_MODULE_3__.default
-];
-
-CustomViewer.prototype._modules = [].concat(
-  bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__.default.prototype._modules,
-  CustomViewer.prototype._customModules
-);
-
-/***/ }),
-
-/***/ "./app/diff.json":
-/*!***********************!*\
-  !*** ./app/diff.json ***!
-  \***********************/
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"removed":["_6-74","_6-674","_6-125","_6-178","_6-746","_6-691","_6-748"],"added":["ExclusiveGateway_1","ManualTask_1"],"moved":["_6-61"],"edited":{"_6-127":{"Name":{"old":"Order a pizza","new":"Order Pasta!"}}}}');
-
-/***/ }),
-
-/***/ "./app/differ.js":
-/*!***********************!*\
-  !*** ./app/differ.js ***!
-  \***********************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-
-var jsondiffpatch = __webpack_require__(/*! jsondiffpatch */ "./node_modules/jsondiffpatch/dist/jsondiffpatch.umd.js");
-
-
-var ChangeHandler = __webpack_require__(/*! ./change-handler */ "./app/change-handler.js");
-
-
-function Differ() { }
-
-module.exports = Differ;
-
-
-Differ.prototype.createDiff = function(a, b) {
-console.log("createDiff..",a,b);
-  // create a configured instance, match objects by name
-  var diffpatcher = jsondiffpatch.create({
-    objectHash: function(obj) {
-      return obj.id || JSON.stringify(obj);
-    }
-  });
-
-  return diffpatcher.diff(a, b);
-};
-
-
-Differ.prototype.diff = function(a, b, handler) {
-
-  handler = handler || new ChangeHandler();
-
-  function walk(diff, model) {
-    console.log("calling walk", diff, model);
-
-    _.forEach(diff, function(d, key) {
-
-      // is array
-      if (d._t === 'a') {
-
-        _.forEach(d, function(val, idx) {
-
-          if (idx === '_t') {
-            return;
-          }
-
-          var removed = /^_/.test(idx),
-              added = !removed && _.isArray(val),
-              moved = removed && val[0] === '';
-
-          idx = parseInt(removed ? idx.slice(1) : idx, 10);
-
-          if (added || (removed && !moved)) {
-            handler[removed ? 'removed' : 'added'](model, key, val[0], idx);
-          } else
-          if (moved) {
-            handler.moved(model, key, val[1], val[2]);
-          } else {
-            walk(val, model[key][idx]);
-          }
-        });
-      } else {
-        if (_.isArray(d)) {
-          handler.changed(model, key, d[0], d[1]);
-        } else {
-          handler.changed(model, key);
-          walk(d, model[key]);
-        }
-      }
-    });
-  }
-
-  var diff = this.createDiff(a, b);
-  console.log('create diff response', diff);
-  walk(diff, b, handler);
-
-  return handler;
-};
-
-
-module.exports.diff = function(a, b, handler) {
-  return new Differ().diff(a, b, handler);
-};
-
-/***/ }),
+		root["Apromore"] = root["Apromore"] || {}, root["Apromore"]["BpmnDiffApp"] = factory();
+})(window, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/app.js");
+/******/ })
+/************************************************************************/
+/******/ ({
 
 /***/ "./node_modules/bpmn-js/lib/BaseViewer.js":
 /*!************************************************!*\
   !*** ./node_modules/bpmn-js/lib/BaseViewer.js ***!
   \************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ BaseViewer)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
-/* harmony import */ var diagram_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! diagram-js */ "./node_modules/diagram-js/lib/Diagram.js");
-/* harmony import */ var bpmn_moddle__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! bpmn-moddle */ "./node_modules/bpmn-moddle/dist/index.esm.js");
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _import_Importer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./import/Importer */ "./node_modules/bpmn-js/lib/import/Importer.js");
-/* harmony import */ var _util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util/CompatibilityUtil */ "./node_modules/bpmn-js/lib/util/CompatibilityUtil.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseViewer; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony import */ var diagram_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js */ "./node_modules/diagram-js/index.js");
+/* harmony import */ var bpmn_moddle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! bpmn-moddle */ "./node_modules/bpmn-moddle/dist/index.esm.js");
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _import_Importer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./import/Importer */ "./node_modules/bpmn-js/lib/import/Importer.js");
+/* harmony import */ var _util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./util/CompatibilityUtil */ "./node_modules/bpmn-js/lib/util/CompatibilityUtil.js");
 /* harmony import */ var _util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./util/PoweredByUtil */ "./node_modules/bpmn-js/lib/util/PoweredByUtil.js");
 /**
  * The code in the <project-logo></project-logo> area
@@ -287,7 +153,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 function BaseViewer(options) {
 
-  options = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({}, DEFAULT_OPTIONS, options);
+  options = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, DEFAULT_OPTIONS, options);
 
   this._moddle = this._createModdle(options);
 
@@ -302,7 +168,7 @@ function BaseViewer(options) {
   this._init(this._container, this._moddle, options);
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(BaseViewer, diagram_js__WEBPACK_IMPORTED_MODULE_2__.default);
+inherits__WEBPACK_IMPORTED_MODULE_5___default()(BaseViewer, diagram_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
 
 /**
 * The importXML result.
@@ -343,7 +209,7 @@ inherits__WEBPACK_IMPORTED_MODULE_0___default()(BaseViewer, diagram_js__WEBPACK_
  *
  * Returns {Promise<ImportXMLResult, ImportXMLError>}
  */
-BaseViewer.prototype.importXML = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__.wrapForCompatibility)(function importXML(xml, bpmnDiagram) {
+BaseViewer.prototype.importXML = Object(_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__["wrapForCompatibility"])(function importXML(xml, bpmnDiagram) {
 
   var self = this;
 
@@ -458,7 +324,7 @@ BaseViewer.prototype.importXML = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MO
  *
  * Returns {Promise<ImportDefinitionsResult, ImportDefinitionsError>}
  */
-BaseViewer.prototype.importDefinitions = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__.wrapForCompatibility)(function importDefinitions(definitions, bpmnDiagram) {
+BaseViewer.prototype.importDefinitions = Object(_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__["wrapForCompatibility"])(function importDefinitions(definitions, bpmnDiagram) {
 
   var self = this;
 
@@ -513,7 +379,7 @@ BaseViewer.prototype.importDefinitions = (0,_util_CompatibilityUtil__WEBPACK_IMP
  *
  * Returns {Promise<OpenResult, OpenError>}
  */
-BaseViewer.prototype.open = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__.wrapForCompatibility)(function open(bpmnDiagramOrId) {
+BaseViewer.prototype.open = Object(_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__["wrapForCompatibility"])(function open(bpmnDiagramOrId) {
 
   var definitions = this._definitions;
   var bpmnDiagram = bpmnDiagramOrId;
@@ -547,7 +413,7 @@ BaseViewer.prototype.open = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_
     }
 
     // perform graphical import
-    (0,_import_Importer__WEBPACK_IMPORTED_MODULE_4__.importBpmnDiagram)(self, definitions, bpmnDiagram).then(function(result) {
+    Object(_import_Importer__WEBPACK_IMPORTED_MODULE_6__["importBpmnDiagram"])(self, definitions, bpmnDiagram).then(function(result) {
 
       var warnings = result.warnings;
 
@@ -587,7 +453,7 @@ BaseViewer.prototype.open = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_
  *
  * Returns {Promise<SaveXMLResult, Error>}
  */
-BaseViewer.prototype.saveXML = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__.wrapForCompatibility)(function saveXML(options) {
+BaseViewer.prototype.saveXML = Object(_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__["wrapForCompatibility"])(function saveXML(options) {
 
   options = options || {};
 
@@ -661,7 +527,7 @@ BaseViewer.prototype.saveXML = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODU
  *
  * Returns {Promise<SaveSVGResult, Error>}
  */
-BaseViewer.prototype.saveSVG = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_3__.wrapForCompatibility)(function saveSVG(options) {
+BaseViewer.prototype.saveSVG = Object(_util_CompatibilityUtil__WEBPACK_IMPORTED_MODULE_7__["wrapForCompatibility"])(function saveSVG(options) {
 
   options = options || {};
 
@@ -677,10 +543,10 @@ BaseViewer.prototype.saveSVG = (0,_util_CompatibilityUtil__WEBPACK_IMPORTED_MODU
       var canvas = self.get('canvas');
 
       var contentNode = canvas.getDefaultLayer(),
-          defsNode = (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.query)('defs', canvas._svg);
+          defsNode = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["query"])('defs', canvas._svg);
 
-      var contents = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_6__.innerSVG)(contentNode),
-          defs = defsNode ? '<defs>' + (0,tiny_svg__WEBPACK_IMPORTED_MODULE_6__.innerSVG)(defsNode) + '</defs>' : '';
+      var contents = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_2__["innerSVG"])(contentNode),
+          defs = defsNode ? '<defs>' + Object(tiny_svg__WEBPACK_IMPORTED_MODULE_2__["innerSVG"])(defsNode) + '</defs>' : '';
 
       var bbox = contentNode.getBBox();
 
@@ -779,7 +645,7 @@ BaseViewer.prototype.clear = function() {
   });
 
   // remove drawn elements
-  diagram_js__WEBPACK_IMPORTED_MODULE_2__.default.prototype.clear.call(this);
+  diagram_js__WEBPACK_IMPORTED_MODULE_3__["default"].prototype.clear.call(this);
 };
 
 /**
@@ -789,10 +655,10 @@ BaseViewer.prototype.clear = function() {
 BaseViewer.prototype.destroy = function() {
 
   // diagram destroy
-  diagram_js__WEBPACK_IMPORTED_MODULE_2__.default.prototype.destroy.call(this);
+  diagram_js__WEBPACK_IMPORTED_MODULE_3__["default"].prototype.destroy.call(this);
 
   // dom detach
-  (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.remove)(this._container);
+  Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["remove"])(this._container);
 };
 
 /**
@@ -835,7 +701,7 @@ BaseViewer.prototype.attachTo = function(parentNode) {
   }
 
   if (typeof parentNode === 'string') {
-    parentNode = (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.query)(parentNode);
+    parentNode = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["query"])(parentNode);
   }
 
   parentNode.appendChild(this._container);
@@ -876,13 +742,13 @@ BaseViewer.prototype._init = function(container, moddle, options) {
 
   var diagramModules = [].concat(staticModules, baseModules, additionalModules);
 
-  var diagramOptions = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.omit)(options, [ 'additionalModules' ]), {
-    canvas: (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({}, options.canvas, { container: container }),
+  var diagramOptions = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["omit"])(options, [ 'additionalModules' ]), {
+    canvas: Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, options.canvas, { container: container }),
     modules: diagramModules
   });
 
   // invoke diagram constructor
-  diagram_js__WEBPACK_IMPORTED_MODULE_2__.default.call(this, diagramOptions);
+  diagram_js__WEBPACK_IMPORTED_MODULE_3__["default"].call(this, diagramOptions);
 
   if (options && options.container) {
     this.attachTo(options.container);
@@ -903,9 +769,9 @@ BaseViewer.prototype._emit = function(type, event) {
 
 BaseViewer.prototype._createContainer = function(options) {
 
-  var container = (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.domify)('<div class="bjs-container"></div>');
+  var container = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])('<div class="bjs-container"></div>');
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)(container.style, {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(container.style, {
     width: ensureUnit(options.width),
     height: ensureUnit(options.height),
     position: options.position
@@ -915,9 +781,9 @@ BaseViewer.prototype._createContainer = function(options) {
 };
 
 BaseViewer.prototype._createModdle = function(options) {
-  var moddleOptions = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({}, this._moddleExtensions, options.moddleExtensions);
+  var moddleOptions = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, this._moddleExtensions, options.moddleExtensions);
 
-  return new bpmn_moddle__WEBPACK_IMPORTED_MODULE_7__.default(moddleOptions);
+  return new bpmn_moddle__WEBPACK_IMPORTED_MODULE_4__["default"](moddleOptions);
 };
 
 BaseViewer.prototype._modules = [];
@@ -957,7 +823,7 @@ var DEFAULT_OPTIONS = {
  * Ensure the passed argument is a proper unit (defaulting to px)
  */
 function ensureUnit(val) {
-  return val + ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isNumber)(val) ? 'px' : '');
+  return val + (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(val) ? 'px' : '');
 }
 
 
@@ -974,7 +840,7 @@ function findBPMNDiagram(definitions, diagramId) {
     return null;
   }
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.find)(definitions.diagrams, function(element) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(definitions.diagrams, function(element) {
     return element.id === diagramId;
   }) || null;
 }
@@ -995,23 +861,23 @@ function findBPMNDiagram(definitions, diagramId) {
  * @param {Element} container
  */
 function addProjectLogo(container) {
-  var img = _util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__.BPMNIO_IMG;
+  var img = _util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__["BPMNIO_IMG"];
 
   var linkMarkup =
     '<a href="http://bpmn.io" ' +
        'target="_blank" ' +
        'class="bjs-powered-by" ' +
        'title="Powered by bpmn.io" ' +
-       'style="position: absolute; bottom: 15px; right: 15px; z-index: 100; ' + _util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__.LINK_STYLES + '">' +
+       'style="position: absolute; bottom: 15px; right: 15px; z-index: 100; ' + _util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__["LINK_STYLES"] + '">' +
       img +
     '</a>';
 
-  var linkElement = (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.domify)(linkMarkup);
+  var linkElement = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])(linkMarkup);
 
   container.appendChild(linkElement);
 
-  min_dom__WEBPACK_IMPORTED_MODULE_5__.event.bind(linkElement, 'click', function(event) {
-    (0,_util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__.open)();
+  min_dom__WEBPACK_IMPORTED_MODULE_1__["event"].bind(linkElement, 'click', function(event) {
+    Object(_util_PoweredByUtil__WEBPACK_IMPORTED_MODULE_8__["open"])();
 
     event.preventDefault();
   });
@@ -1026,20 +892,19 @@ function addProjectLogo(container) {
 /*!********************************************!*\
   !*** ./node_modules/bpmn-js/lib/Viewer.js ***!
   \********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Viewer)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Viewer; });
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./core */ "./node_modules/bpmn-js/lib/core/index.js");
-/* harmony import */ var diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js/lib/i18n/translate */ "./node_modules/diagram-js/lib/i18n/translate/index.js");
-/* harmony import */ var diagram_js_lib_features_selection__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! diagram-js/lib/features/selection */ "./node_modules/diagram-js/lib/features/selection/index.js");
-/* harmony import */ var diagram_js_lib_features_overlays__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! diagram-js/lib/features/overlays */ "./node_modules/diagram-js/lib/features/overlays/index.js");
-/* harmony import */ var _BaseViewer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseViewer */ "./node_modules/bpmn-js/lib/BaseViewer.js");
+/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core */ "./node_modules/bpmn-js/lib/core/index.js");
+/* harmony import */ var diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! diagram-js/lib/i18n/translate */ "./node_modules/diagram-js/lib/i18n/translate/index.js");
+/* harmony import */ var diagram_js_lib_features_selection__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js/lib/features/selection */ "./node_modules/diagram-js/lib/features/selection/index.js");
+/* harmony import */ var diagram_js_lib_features_overlays__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! diagram-js/lib/features/overlays */ "./node_modules/diagram-js/lib/features/overlays/index.js");
+/* harmony import */ var _BaseViewer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./BaseViewer */ "./node_modules/bpmn-js/lib/BaseViewer.js");
 
 
 
@@ -1098,17 +963,17 @@ __webpack_require__.r(__webpack_exports__);
  * @param {Array<didi.Module>} [options.additionalModules] a list of modules to use with the default modules
  */
 function Viewer(options) {
-  _BaseViewer__WEBPACK_IMPORTED_MODULE_1__.default.call(this, options);
+  _BaseViewer__WEBPACK_IMPORTED_MODULE_5__["default"].call(this, options);
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(Viewer, _BaseViewer__WEBPACK_IMPORTED_MODULE_1__.default);
+inherits__WEBPACK_IMPORTED_MODULE_0___default()(Viewer, _BaseViewer__WEBPACK_IMPORTED_MODULE_5__["default"]);
 
 // modules the viewer is composed of
 Viewer.prototype._modules = [
-  _core__WEBPACK_IMPORTED_MODULE_2__.default,
-  diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_3__.default,
-  diagram_js_lib_features_selection__WEBPACK_IMPORTED_MODULE_4__.default,
-  diagram_js_lib_features_overlays__WEBPACK_IMPORTED_MODULE_5__.default
+  _core__WEBPACK_IMPORTED_MODULE_1__["default"],
+  diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_2__["default"],
+  diagram_js_lib_features_selection__WEBPACK_IMPORTED_MODULE_3__["default"],
+  diagram_js_lib_features_overlays__WEBPACK_IMPORTED_MODULE_4__["default"]
 ];
 
 // default moddle extensions the viewer is composed of
@@ -1120,22 +985,20 @@ Viewer.prototype._moddleExtensions = {};
 /*!************************************************!*\
   !*** ./node_modules/bpmn-js/lib/core/index.js ***!
   \************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../draw */ "./node_modules/bpmn-js/lib/draw/index.js");
 /* harmony import */ var _import__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../import */ "./node_modules/bpmn-js/lib/import/index.js");
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __depends__: [
-    _draw__WEBPACK_IMPORTED_MODULE_0__.default,
-    _import__WEBPACK_IMPORTED_MODULE_1__.default
+    _draw__WEBPACK_IMPORTED_MODULE_0__["default"],
+    _import__WEBPACK_IMPORTED_MODULE_1__["default"]
   ]
 });
 
@@ -1145,23 +1008,22 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./node_modules/bpmn-js/lib/draw/BpmnRenderUtil.js ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: isTypedEvent, isThrowEvent, isCollection, getDi, getSemantic, getFillColor, getStrokeColor, getCirclePath, getRoundRectPath, getDiamondPath, getRectPath */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isTypedEvent": () => (/* binding */ isTypedEvent),
-/* harmony export */   "isThrowEvent": () => (/* binding */ isThrowEvent),
-/* harmony export */   "isCollection": () => (/* binding */ isCollection),
-/* harmony export */   "getDi": () => (/* binding */ getDi),
-/* harmony export */   "getSemantic": () => (/* binding */ getSemantic),
-/* harmony export */   "getFillColor": () => (/* binding */ getFillColor),
-/* harmony export */   "getStrokeColor": () => (/* binding */ getStrokeColor),
-/* harmony export */   "getCirclePath": () => (/* binding */ getCirclePath),
-/* harmony export */   "getRoundRectPath": () => (/* binding */ getRoundRectPath),
-/* harmony export */   "getDiamondPath": () => (/* binding */ getDiamondPath),
-/* harmony export */   "getRectPath": () => (/* binding */ getRectPath)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isTypedEvent", function() { return isTypedEvent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isThrowEvent", function() { return isThrowEvent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isCollection", function() { return isCollection; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDi", function() { return getDi; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getSemantic", function() { return getSemantic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFillColor", function() { return getFillColor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStrokeColor", function() { return getStrokeColor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCirclePath", function() { return getCirclePath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRoundRectPath", function() { return getRoundRectPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getDiamondPath", function() { return getDiamondPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRectPath", function() { return getRectPath; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 /* harmony import */ var diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! diagram-js/lib/util/RenderUtil */ "./node_modules/diagram-js/lib/util/RenderUtil.js");
 
@@ -1179,7 +1041,7 @@ __webpack_require__.r(__webpack_exports__);
 function isTypedEvent(event, eventDefinitionType, filter) {
 
   function matches(definition, filter) {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.every)(filter, function(val, key) {
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["every"])(filter, function(val, key) {
 
       // we want a == conversion here, to be able to catch
       // undefined == false and friends
@@ -1188,7 +1050,7 @@ function isTypedEvent(event, eventDefinitionType, filter) {
     });
   }
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.some)(event.eventDefinitions, function(definition) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["some"])(event.eventDefinitions, function(definition) {
     return definition.$type === eventDefinitionType && matches(event, filter);
   });
 }
@@ -1239,7 +1101,7 @@ function getCirclePath(shape) {
     ['z']
   ];
 
-  return (0,diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__.componentsToPath)(circlePath);
+  return Object(diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__["componentsToPath"])(circlePath);
 }
 
 function getRoundRectPath(shape, borderRadius) {
@@ -1262,7 +1124,7 @@ function getRoundRectPath(shape, borderRadius) {
     ['z']
   ];
 
-  return (0,diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__.componentsToPath)(roundRectPath);
+  return Object(diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__["componentsToPath"])(roundRectPath);
 }
 
 function getDiamondPath(shape) {
@@ -1282,7 +1144,7 @@ function getDiamondPath(shape) {
     ['z']
   ];
 
-  return (0,diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__.componentsToPath)(diamondPath);
+  return Object(diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__["componentsToPath"])(diamondPath);
 }
 
 function getRectPath(shape) {
@@ -1299,7 +1161,7 @@ function getRectPath(shape) {
     ['z']
   ];
 
-  return (0,diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__.componentsToPath)(rectPath);
+  return Object(diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_1__["componentsToPath"])(rectPath);
 }
 
 /***/ }),
@@ -1308,26 +1170,25 @@ function getRectPath(shape) {
 /*!*******************************************************!*\
   !*** ./node_modules/bpmn-js/lib/draw/BpmnRenderer.js ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ BpmnRenderer)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BpmnRenderer; });
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 /* harmony import */ var diagram_js_lib_draw_BaseRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! diagram-js/lib/draw/BaseRenderer */ "./node_modules/diagram-js/lib/draw/BaseRenderer.js");
-/* harmony import */ var _util_DiUtil__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../util/DiUtil */ "./node_modules/bpmn-js/lib/util/DiUtil.js");
-/* harmony import */ var _features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../features/label-editing/LabelUtil */ "./node_modules/bpmn-js/lib/features/label-editing/LabelUtil.js");
-/* harmony import */ var _util_ModelUtil__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
+/* harmony import */ var _util_DiUtil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../util/DiUtil */ "./node_modules/bpmn-js/lib/util/DiUtil.js");
+/* harmony import */ var _features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../features/label-editing/LabelUtil */ "./node_modules/bpmn-js/lib/features/label-editing/LabelUtil.js");
+/* harmony import */ var _util_ModelUtil__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
 /* harmony import */ var diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! diagram-js/lib/util/RenderUtil */ "./node_modules/diagram-js/lib/util/RenderUtil.js");
 /* harmony import */ var _BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./BpmnRenderUtil */ "./node_modules/bpmn-js/lib/draw/BpmnRenderUtil.js");
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
-/* harmony import */ var diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! diagram-js/lib/util/SvgTransformUtil */ "./node_modules/diagram-js/lib/util/SvgTransformUtil.js");
-/* harmony import */ var ids__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ids */ "./node_modules/ids/dist/index.esm.js");
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony import */ var diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! diagram-js/lib/util/SvgTransformUtil */ "./node_modules/diagram-js/lib/util/SvgTransformUtil.js");
+/* harmony import */ var ids__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ids */ "./node_modules/ids/dist/index.esm.js");
 
 
 
@@ -1352,7 +1213,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var RENDERER_IDS = new ids__WEBPACK_IMPORTED_MODULE_1__.default();
+var RENDERER_IDS = new ids__WEBPACK_IMPORTED_MODULE_11__["default"]();
 
 var TASK_BORDER_RADIUS = 10;
 var INNER_OUTER_DIST = 3;
@@ -1366,7 +1227,7 @@ function BpmnRenderer(
     config, eventBus, styles, pathMap,
     canvas, textRenderer, priority) {
 
-  diagram_js_lib_draw_BaseRenderer__WEBPACK_IMPORTED_MODULE_2__.default.call(this, eventBus, priority);
+  diagram_js_lib_draw_BaseRenderer__WEBPACK_IMPORTED_MODULE_2__["default"].call(this, eventBus, priority);
 
   var defaultFillColor = config && config.defaultFillColor,
       defaultStrokeColor = config && config.defaultStrokeColor;
@@ -1378,7 +1239,7 @@ function BpmnRenderer(
   var computeStyle = styles.computeStyle;
 
   function addMarker(id, options) {
-    var attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({
+    var attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({
       fill: 'black',
       strokeWidth: 1,
       strokeLinecap: 'round',
@@ -1395,13 +1256,13 @@ function BpmnRenderer(
       attrs.strokeDasharray = [10000, 1];
     }
 
-    var marker = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('marker');
+    var marker = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('marker');
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(options.element, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(options.element, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(marker, options.element);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(marker, options.element);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(marker, {
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(marker, {
       id: id,
       viewBox: '0 0 20 20',
       refX: ref.x,
@@ -1411,15 +1272,15 @@ function BpmnRenderer(
       orient: 'auto'
     });
 
-    var defs = (0,min_dom__WEBPACK_IMPORTED_MODULE_5__.query)('defs', canvas._svg);
+    var defs = Object(min_dom__WEBPACK_IMPORTED_MODULE_8__["query"])('defs', canvas._svg);
 
     if (!defs) {
-      defs = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('defs');
+      defs = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('defs');
 
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(canvas._svg, defs);
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(canvas._svg, defs);
     }
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(defs, marker);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(defs, marker);
 
     markers[id] = marker;
   }
@@ -1443,8 +1304,8 @@ function BpmnRenderer(
   function createMarker(id, type, fill, stroke) {
 
     if (type === 'sequenceflow-end') {
-      var sequenceflowEnd = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(sequenceflowEnd, { d: 'M 1 5 L 11 10 L 1 15 Z' });
+      var sequenceflowEnd = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(sequenceflowEnd, { d: 'M 1 5 L 11 10 L 1 15 Z' });
 
       addMarker(id, {
         element: sequenceflowEnd,
@@ -1458,8 +1319,8 @@ function BpmnRenderer(
     }
 
     if (type === 'messageflow-start') {
-      var messageflowStart = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('circle');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(messageflowStart, { cx: 6, cy: 6, r: 3.5 });
+      var messageflowStart = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('circle');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(messageflowStart, { cx: 6, cy: 6, r: 3.5 });
 
       addMarker(id, {
         element: messageflowStart,
@@ -1472,8 +1333,8 @@ function BpmnRenderer(
     }
 
     if (type === 'messageflow-end') {
-      var messageflowEnd = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(messageflowEnd, { d: 'm 1 5 l 0 -3 l 7 3 l -7 3 z' });
+      var messageflowEnd = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(messageflowEnd, { d: 'm 1 5 l 0 -3 l 7 3 l -7 3 z' });
 
       addMarker(id, {
         element: messageflowEnd,
@@ -1487,8 +1348,8 @@ function BpmnRenderer(
     }
 
     if (type === 'association-start') {
-      var associationStart = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(associationStart, { d: 'M 11 5 L 1 10 L 11 15' });
+      var associationStart = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(associationStart, { d: 'M 11 5 L 1 10 L 11 15' });
 
       addMarker(id, {
         element: associationStart,
@@ -1503,8 +1364,8 @@ function BpmnRenderer(
     }
 
     if (type === 'association-end') {
-      var associationEnd = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(associationEnd, { d: 'M 1 5 L 11 10 L 1 15' });
+      var associationEnd = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(associationEnd, { d: 'M 1 5 L 11 10 L 1 15' });
 
       addMarker(id, {
         element: associationEnd,
@@ -1519,8 +1380,8 @@ function BpmnRenderer(
     }
 
     if (type === 'conditional-flow-marker') {
-      var conditionalflowMarker = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(conditionalflowMarker, { d: 'M 0 10 L 8 6 L 16 10 L 8 14 Z' });
+      var conditionalflowMarker = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(conditionalflowMarker, { d: 'M 0 10 L 8 6 L 16 10 L 8 14 Z' });
 
       addMarker(id, {
         element: conditionalflowMarker,
@@ -1534,8 +1395,8 @@ function BpmnRenderer(
     }
 
     if (type === 'conditional-default-flow-marker') {
-      var conditionaldefaultflowMarker = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(conditionaldefaultflowMarker, { d: 'M 6 4 L 10 16' });
+      var conditionaldefaultflowMarker = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(conditionaldefaultflowMarker, { d: 'M 6 4 L 10 16' });
 
       addMarker(id, {
         element: conditionaldefaultflowMarker,
@@ -1550,7 +1411,7 @@ function BpmnRenderer(
 
   function drawCircle(parentGfx, width, height, offset, attrs) {
 
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_3__.isObject)(offset)) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["isObject"])(offset)) {
       attrs = offset;
       offset = 0;
     }
@@ -1570,22 +1431,22 @@ function BpmnRenderer(
     var cx = width / 2,
         cy = height / 2;
 
-    var circle = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('circle');
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(circle, {
+    var circle = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('circle');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(circle, {
       cx: cx,
       cy: cy,
       r: Math.round((width + height) / 4 - offset)
     });
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(circle, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(circle, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, circle);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, circle);
 
     return circle;
   }
 
   function drawRect(parentGfx, width, height, r, offset, attrs) {
 
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_3__.isObject)(offset)) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["isObject"])(offset)) {
       attrs = offset;
       offset = 0;
     }
@@ -1598,8 +1459,8 @@ function BpmnRenderer(
       fill: 'white'
     });
 
-    var rect = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('rect');
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(rect, {
+    var rect = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('rect');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(rect, {
       x: offset,
       y: offset,
       width: width - offset * 2,
@@ -1607,9 +1468,9 @@ function BpmnRenderer(
       rx: r,
       ry: r
     });
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(rect, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(rect, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, rect);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, rect);
 
     return rect;
   }
@@ -1631,13 +1492,13 @@ function BpmnRenderer(
       fill: 'white'
     });
 
-    var polygon = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('polygon');
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(polygon, {
+    var polygon = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('polygon');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(polygon, {
       points: pointsString
     });
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(polygon, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(polygon, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, polygon);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, polygon);
 
     return polygon;
   }
@@ -1649,9 +1510,9 @@ function BpmnRenderer(
       fill: 'none'
     });
 
-    var line = (0,diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_6__.createLine)(waypoints, attrs);
+    var line = Object(diagram_js_lib_util_RenderUtil__WEBPACK_IMPORTED_MODULE_6__["createLine"])(waypoints, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, line);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, line);
 
     return line;
   }
@@ -1663,17 +1524,17 @@ function BpmnRenderer(
       stroke: 'black'
     });
 
-    var path = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.create)('path');
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(path, { d: d });
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(path, attrs);
+    var path = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["create"])('path');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(path, { d: d });
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(path, attrs);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, path);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, path);
 
     return path;
   }
 
   function drawMarker(type, parentGfx, path, attrs) {
-    return drawPath(parentGfx, path, (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({ 'data-marker': type }, attrs));
+    return drawPath(parentGfx, path, Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({ 'data-marker': type }, attrs));
   }
 
   function as(type) {
@@ -1688,8 +1549,8 @@ function BpmnRenderer(
 
   function renderEventContent(element, parentGfx) {
 
-    var event = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
-    var isThrowing = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isThrowEvent)(event);
+    var event = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
+    var isThrowing = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isThrowEvent"])(event);
 
     if (event.eventDefinitions && event.eventDefinitions.length>1) {
       if (event.parallelMultiple) {
@@ -1700,43 +1561,43 @@ function BpmnRenderer(
       }
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:MessageEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:MessageEventDefinition')) {
       return renderer('bpmn:MessageEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:TimerEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:TimerEventDefinition')) {
       return renderer('bpmn:TimerEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:ConditionalEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:ConditionalEventDefinition')) {
       return renderer('bpmn:ConditionalEventDefinition')(parentGfx, element);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:SignalEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:SignalEventDefinition')) {
       return renderer('bpmn:SignalEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:EscalationEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:EscalationEventDefinition')) {
       return renderer('bpmn:EscalationEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:LinkEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:LinkEventDefinition')) {
       return renderer('bpmn:LinkEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:ErrorEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:ErrorEventDefinition')) {
       return renderer('bpmn:ErrorEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:CancelEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:CancelEventDefinition')) {
       return renderer('bpmn:CancelEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:CompensateEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:CompensateEventDefinition')) {
       return renderer('bpmn:CompensateEventDefinition')(parentGfx, element, isThrowing);
     }
 
-    if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isTypedEvent)(event, 'bpmn:TerminateEventDefinition')) {
+    if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isTypedEvent"])(event, 'bpmn:TerminateEventDefinition')) {
       return renderer('bpmn:TerminateEventDefinition')(parentGfx, element, isThrowing);
     }
 
@@ -1745,7 +1606,7 @@ function BpmnRenderer(
 
   function renderLabel(parentGfx, label, options) {
 
-    options = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({
+    options = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({
       size: {
         width: 100
       }
@@ -1753,22 +1614,22 @@ function BpmnRenderer(
 
     var text = textRenderer.createText(label || '', options);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.classes)(text).add('djs-label');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["classes"])(text).add('djs-label');
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.append)(parentGfx, text);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["append"])(parentGfx, text);
 
     return text;
   }
 
   function renderEmbeddedLabel(parentGfx, element, align) {
-    var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+    var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
     return renderLabel(parentGfx, semantic.name, {
       box: element,
       align: align,
       padding: 5,
       style: {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       }
     });
   }
@@ -1782,14 +1643,14 @@ function BpmnRenderer(
       y: element.height / 2 + element.y
     };
 
-    return renderLabel(parentGfx, (0,_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_8__.getLabel)(element), {
+    return renderLabel(parentGfx, Object(_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_4__["getLabel"])(element), {
       box: box,
       fitBox: true,
-      style: (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)(
+      style: Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])(
         {},
         textRenderer.getExternalStyle(),
         {
-          fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         }
       )
     });
@@ -1803,13 +1664,13 @@ function BpmnRenderer(
       },
       align: 'center-middle',
       style: {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       }
     });
 
     var top = -1 * element.height;
 
-    (0,diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_9__.transform)(textBox, 0, -top, 270);
+    Object(diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_10__["transform"])(textBox, 0, -top, 270);
   }
 
   function createPathFromConnection(connection) {
@@ -1833,18 +1694,18 @@ function BpmnRenderer(
     },
     'bpmn:StartEvent': function(parentGfx, element) {
       var attrs = {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
       if (!semantic.isInterrupting) {
         attrs = {
           strokeDasharray: '6',
           strokeLinecap: 'round',
-          fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         };
       }
 
@@ -1866,8 +1727,8 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor) : (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor);
-      var stroke = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor) : (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor) : Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor);
+      var stroke = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor) : Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
       var messagePath = drawPath(parentGfx, pathData, {
         strokeWidth: 1,
@@ -1880,8 +1741,8 @@ function BpmnRenderer(
     'bpmn:TimerEventDefinition': function(parentGfx, element) {
       var circle = drawCircle(parentGfx, element.width, element.height, 0.2 * element.height, {
         strokeWidth: 2,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var pathData = pathMap.getScaledPath('EVENT_TIMER_WH', {
@@ -1898,7 +1759,7 @@ function BpmnRenderer(
       drawPath(parentGfx, pathData, {
         strokeWidth: 2,
         strokeLinecap: 'square',
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       for (var i = 0;i < 12; i++) {
@@ -1921,7 +1782,7 @@ function BpmnRenderer(
           strokeWidth: 1,
           strokeLinecap: 'square',
           transform: 'rotate(' + (i * 30) + ',' + height + ',' + width + ')',
-          stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         });
       }
 
@@ -1939,12 +1800,12 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:ConditionalEventDefinition': function(parentGfx, event) {
@@ -1961,7 +1822,7 @@ function BpmnRenderer(
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:LinkEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1976,12 +1837,12 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:ErrorEventDefinition': function(parentGfx, event, isThrowing) {
@@ -1996,12 +1857,12 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:CancelEventDefinition': function(parentGfx, event, isThrowing) {
@@ -2016,15 +1877,15 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       var path = drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
 
-      (0,diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_9__.rotate)(path, 45);
+      Object(diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_10__["rotate"])(path, 45);
 
       return path;
     },
@@ -2040,12 +1901,12 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:SignalEventDefinition': function(parentGfx, event, isThrowing) {
@@ -2060,12 +1921,12 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
         fill: fill,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:MultipleEventDefinition': function(parentGfx, event, isThrowing) {
@@ -2080,7 +1941,7 @@ function BpmnRenderer(
         }
       });
 
-      var fill = isThrowing ? (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor) : 'none';
+      var fill = isThrowing ? Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor) : 'none';
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
@@ -2101,15 +1962,15 @@ function BpmnRenderer(
 
       return drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(event, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(event, defaultStrokeColor)
       });
     },
     'bpmn:EndEvent': function(parentGfx, element) {
       var circle = renderer('bpmn:Event')(parentGfx, element, {
         strokeWidth: 4,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       renderEventContent(element, parentGfx, true);
@@ -2119,8 +1980,8 @@ function BpmnRenderer(
     'bpmn:TerminateEventDefinition': function(parentGfx, element) {
       var circle = drawCircle(parentGfx, element.width, element.height, 8, {
         strokeWidth: 4,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return circle;
@@ -2128,15 +1989,15 @@ function BpmnRenderer(
     'bpmn:IntermediateEvent': function(parentGfx, element) {
       var outer = renderer('bpmn:Event')(parentGfx, element, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       /* inner */
       drawCircle(parentGfx, element.width, element.height, INNER_OUTER_DIST, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, 'none'),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, 'none'),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       renderEventContent(element, parentGfx);
@@ -2159,8 +2020,8 @@ function BpmnRenderer(
 
     'bpmn:Task': function(parentGfx, element) {
       var attrs = {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       var rect = renderer('bpmn:Activity')(parentGfx, element, attrs);
@@ -2182,8 +2043,8 @@ function BpmnRenderer(
 
       /* service bg */ drawPath(parentGfx, pathDataBG, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var fillPathData = pathMap.getScaledPath('TASK_TYPE_SERVICE_FILL', {
@@ -2195,7 +2056,7 @@ function BpmnRenderer(
 
       /* service fill */ drawPath(parentGfx, fillPathData, {
         strokeWidth: 0,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor)
       });
 
       var pathData = pathMap.getScaledPath('TASK_TYPE_SERVICE', {
@@ -2207,8 +2068,8 @@ function BpmnRenderer(
 
       /* service */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
@@ -2228,8 +2089,8 @@ function BpmnRenderer(
 
       /* user path */ drawPath(parentGfx, pathData, {
         strokeWidth: 0.5,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var pathData2 = pathMap.getScaledPath('TASK_TYPE_USER_2', {
@@ -2241,8 +2102,8 @@ function BpmnRenderer(
 
       /* user2 path */ drawPath(parentGfx, pathData2, {
         strokeWidth: 0.5,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var pathData3 = pathMap.getScaledPath('TASK_TYPE_USER_3', {
@@ -2254,8 +2115,8 @@ function BpmnRenderer(
 
       /* user3 path */ drawPath(parentGfx, pathData3, {
         strokeWidth: 0.5,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
@@ -2272,8 +2133,8 @@ function BpmnRenderer(
 
       /* manual path */ drawPath(parentGfx, pathData, {
         strokeWidth: 0.5, // 0.25,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
@@ -2294,14 +2155,14 @@ function BpmnRenderer(
 
       /* send path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor)
       });
 
       return task;
     },
     'bpmn:ReceiveTask' : function(parentGfx, element) {
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
       var task = renderer('bpmn:Task')(parentGfx, element);
       var pathData;
@@ -2331,8 +2192,8 @@ function BpmnRenderer(
 
       /* receive path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
@@ -2349,7 +2210,7 @@ function BpmnRenderer(
 
       /* script path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
@@ -2365,10 +2226,10 @@ function BpmnRenderer(
       });
 
       var businessHeaderPath = drawPath(parentGfx, headerPathData);
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(businessHeaderPath, {
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(businessHeaderPath, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, '#aaaaaa'),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, '#aaaaaa'),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var headerData = pathMap.getScaledPath('TASK_TYPE_BUSINESS_RULE_MAIN', {
@@ -2379,25 +2240,25 @@ function BpmnRenderer(
       });
 
       var businessPath = drawPath(parentGfx, headerData);
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(businessPath, {
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(businessPath, {
         strokeWidth: 1,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return task;
     },
     'bpmn:SubProcess': function(parentGfx, element, attrs) {
-      attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+      attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       }, attrs);
 
       var rect = renderer('bpmn:Activity')(parentGfx, element, attrs);
 
-      var expanded = (0,_util_DiUtil__WEBPACK_IMPORTED_MODULE_10__.isExpanded)(element);
+      var expanded = Object(_util_DiUtil__WEBPACK_IMPORTED_MODULE_3__["isExpanded"])(element);
 
-      if ((0,_util_DiUtil__WEBPACK_IMPORTED_MODULE_10__.isEventSubProcess)(element)) {
-        (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(rect, {
+      if (Object(_util_DiUtil__WEBPACK_IMPORTED_MODULE_3__["isEventSubProcess"])(element)) {
+        Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(rect, {
           strokeDasharray: '1,2'
         });
       }
@@ -2419,7 +2280,7 @@ function BpmnRenderer(
       var outer = renderer('bpmn:SubProcess')(parentGfx, element);
 
       var innerAttrs = styles.style([ 'no-fill', 'no-events' ], {
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       /* inner path */ drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS - 2, INNER_OUTER_DIST, innerAttrs);
@@ -2435,36 +2296,36 @@ function BpmnRenderer(
 
       var attrs = {
         fillOpacity: DEFAULT_FILL_OPACITY,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       var lane = renderer('bpmn:Lane')(parentGfx, element, attrs);
 
-      var expandedPool = (0,_util_DiUtil__WEBPACK_IMPORTED_MODULE_10__.isExpanded)(element);
+      var expandedPool = Object(_util_DiUtil__WEBPACK_IMPORTED_MODULE_3__["isExpanded"])(element);
 
       if (expandedPool) {
         drawLine(parentGfx, [
           { x: 30, y: 0 },
           { x: 30, y: element.height }
         ], {
-          stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         });
-        var text = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element).name;
+        var text = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element).name;
         renderLaneLabel(parentGfx, text, element);
       } else {
 
         // Collapsed pool draw text inline
-        var text2 = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element).name;
+        var text2 = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element).name;
         renderLabel(parentGfx, text2, {
           box: element, align: 'center-middle',
           style: {
-            fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+            fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
           }
         });
       }
 
-      var participantMultiplicity = !!((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element).participantMultiplicity);
+      var participantMultiplicity = !!(Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element).participantMultiplicity);
 
       if (participantMultiplicity) {
         renderer('ParticipantMultiplicityMarker')(parentGfx, element);
@@ -2473,13 +2334,13 @@ function BpmnRenderer(
       return lane;
     },
     'bpmn:Lane': function(parentGfx, element, attrs) {
-      var rect = drawRect(parentGfx, element.width, element.height, 0, (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
+      var rect = drawRect(parentGfx, element.width, element.height, 0, Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
         fillOpacity: HIGH_FILL_OPACITY,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       }, attrs));
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
       if (semantic.$type === 'bpmn:Lane') {
         var text = semantic.name;
@@ -2494,8 +2355,8 @@ function BpmnRenderer(
       /* circle path */
       drawCircle(parentGfx, element.width, element.height, element.height * 0.24, {
         strokeWidth: 2.5,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return diamond;
@@ -2514,11 +2375,11 @@ function BpmnRenderer(
         }
       });
 
-      if (((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getDi)(element).isMarkerVisible)) {
+      if ((Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getDi"])(element).isMarkerVisible)) {
         drawPath(parentGfx, pathData, {
           strokeWidth: 1,
-          fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-          stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+          stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         });
       }
 
@@ -2540,8 +2401,8 @@ function BpmnRenderer(
 
       /* complex path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return diamond;
@@ -2562,22 +2423,22 @@ function BpmnRenderer(
 
       /* parallel path */ drawPath(parentGfx, pathData, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return diamond;
     },
     'bpmn:EventBasedGateway': function(parentGfx, element) {
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
       var diamond = renderer('bpmn:Gateway')(parentGfx, element);
 
       /* outer circle path */ drawCircle(parentGfx, element.width, element.height, element.height * 0.20, {
         strokeWidth: 1,
         fill: 'none',
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       var type = semantic.eventGatewayType;
@@ -2598,8 +2459,8 @@ function BpmnRenderer(
 
         var attrs = {
           strokeWidth: 2,
-          fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, 'none'),
-          stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, 'none'),
+          stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         };
 
         /* event path */ drawPath(parentGfx, pathData, attrs);
@@ -2619,7 +2480,7 @@ function BpmnRenderer(
         });
 
         var parallelPath = drawPath(parentGfx, pathData);
-        (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(parallelPath, {
+        Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(parallelPath, {
           strokeWidth: 1,
           fill: 'none'
         });
@@ -2627,10 +2488,10 @@ function BpmnRenderer(
 
         if (!instantiate) {
           var innerCircle = drawCircle(parentGfx, element.width, element.height, element.height * 0.26);
-          (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(innerCircle, {
+          Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(innerCircle, {
             strokeWidth: 1,
             fill: 'none',
-            stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+            stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
           });
         }
 
@@ -2642,9 +2503,9 @@ function BpmnRenderer(
     },
     'bpmn:Gateway': function(parentGfx, element) {
       var attrs = {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
         fillOpacity: DEFAULT_FILL_OPACITY,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       return drawDiamond(parentGfx, element.width, element.height, attrs);
@@ -2652,18 +2513,18 @@ function BpmnRenderer(
     'bpmn:SequenceFlow': function(parentGfx, element) {
       var pathData = createPathFromConnection(element);
 
-      var fill = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
       var attrs = {
         strokeLinejoin: 'round',
         markerEnd: marker('sequenceflow-end', fill, stroke),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       var path = drawPath(parentGfx, pathData, attrs);
 
-      var sequenceFlow = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var sequenceFlow = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
       var source;
 
@@ -2672,7 +2533,7 @@ function BpmnRenderer(
 
         // conditional flow marker
         if (sequenceFlow.conditionExpression && source.$instanceOf('bpmn:Activity')) {
-          (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(path, {
+          Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(path, {
             markerStart: marker('conditional-flow-marker', fill, stroke)
           });
         }
@@ -2680,7 +2541,7 @@ function BpmnRenderer(
         // default marker
         if (source.default && (source.$instanceOf('bpmn:Gateway') || source.$instanceOf('bpmn:Activity')) &&
             source.default === sequenceFlow) {
-          (0,tiny_svg__WEBPACK_IMPORTED_MODULE_4__.attr)(path, {
+          Object(tiny_svg__WEBPACK_IMPORTED_MODULE_9__["attr"])(path, {
             markerStart: marker('conditional-default-flow-marker', fill, stroke)
           });
         }
@@ -2690,16 +2551,16 @@ function BpmnRenderer(
     },
     'bpmn:Association': function(parentGfx, element, attrs) {
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
-      var fill = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
-      attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({
+      attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({
         strokeDasharray: '0.5, 5',
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       }, attrs || {});
 
       if (semantic.associationDirection === 'One' ||
@@ -2714,16 +2575,16 @@ function BpmnRenderer(
       return drawLine(parentGfx, element.waypoints, attrs);
     },
     'bpmn:DataInputAssociation': function(parentGfx, element) {
-      var fill = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
       return renderer('bpmn:Association')(parentGfx, element, {
         markerEnd: marker('association-end', fill, stroke)
       });
     },
     'bpmn:DataOutputAssociation': function(parentGfx, element) {
-      var fill = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
       return renderer('bpmn:Association')(parentGfx, element, {
         markerEnd: marker('association-end', fill, stroke)
@@ -2731,11 +2592,11 @@ function BpmnRenderer(
     },
     'bpmn:MessageFlow': function(parentGfx, element) {
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element),
-          di = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getDi)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element),
+          di = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getDi"])(element);
 
-      var fill = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-          stroke = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor);
+      var fill = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+          stroke = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor);
 
       var pathData = createPathFromConnection(element);
 
@@ -2746,7 +2607,7 @@ function BpmnRenderer(
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
         strokeWidth: '1.5px',
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       var path = drawPath(parentGfx, pathData, attrs);
@@ -2778,7 +2639,7 @@ function BpmnRenderer(
           align: 'center-top',
           fitBox: true,
           style: {
-            fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+            fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
           }
         });
 
@@ -2788,7 +2649,7 @@ function BpmnRenderer(
         var translateX = midPoint.x - labelBounds.width / 2,
             translateY = midPoint.y + messageBounds.height / 2 + ELEMENT_LABEL_DISTANCE;
 
-        (0,diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_9__.transform)(label, translateX, translateY, 0);
+        Object(diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_10__["transform"])(label, translateX, translateY, 0);
 
       }
 
@@ -2807,14 +2668,14 @@ function BpmnRenderer(
       });
 
       var elementObject = drawPath(parentGfx, pathData, {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
         fillOpacity: DEFAULT_FILL_OPACITY,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
-      if ((0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.isCollection)(semantic)) {
+      if (Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["isCollection"])(semantic)) {
         renderDataItemCollection(parentGfx, element);
       }
 
@@ -2859,22 +2720,22 @@ function BpmnRenderer(
 
       var elementStore = drawPath(parentGfx, DATA_STORE_PATH, {
         strokeWidth: 2,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
         fillOpacity: DEFAULT_FILL_OPACITY,
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       return elementStore;
     },
     'bpmn:BoundaryEvent': function(parentGfx, element) {
 
-      var semantic = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element),
+      var semantic = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element),
           cancel = semantic.cancelActivity;
 
       var attrs = {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       };
 
       if (!cancel) {
@@ -2883,12 +2744,12 @@ function BpmnRenderer(
       }
 
       // apply fillOpacity
-      var outerAttrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({}, attrs, {
+      var outerAttrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({}, attrs, {
         fillOpacity: 1
       });
 
       // apply no-fill
-      var innerAttrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.assign)({}, attrs, {
+      var innerAttrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({}, attrs, {
         fill: 'none'
       });
 
@@ -2903,7 +2764,7 @@ function BpmnRenderer(
     'bpmn:Group': function(parentGfx, element) {
 
       var group = drawRect(parentGfx, element.width, element.height, TASK_BORDER_RADIUS, {
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
         strokeWidth: 1,
         strokeDasharray: '8,3,1,3',
         fill: 'none',
@@ -2935,16 +2796,16 @@ function BpmnRenderer(
       });
 
       drawPath(parentGfx, textPathData, {
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
-      var text = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element).text || '';
+      var text = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element).text || '';
       renderLabel(parentGfx, text, {
         box: element,
         align: 'left-top',
         padding: 5,
         style: {
-          fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+          fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
         }
       });
 
@@ -2964,20 +2825,20 @@ function BpmnRenderer(
 
       drawMarker('participant-multiplicity', parentGfx, markerPath, {
         strokeWidth: 2,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     },
     'SubProcessMarker': function(parentGfx, element) {
       var markerRect = drawRect(parentGfx, 14, 14, 0, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
 
       // Process marker is placed in the middle of the box
       // therefore fixed values can be used here
-      (0,diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_9__.translate)(markerRect, element.width / 2 - 7.5, element.height - 20);
+      Object(diagram_js_lib_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_10__["translate"])(markerRect, element.width / 2 - 7.5, element.height - 20);
 
       var markerPath = pathMap.getScaledPath('MARKER_SUB_PROCESS', {
         xScaleFactor: 1.5,
@@ -2991,8 +2852,8 @@ function BpmnRenderer(
       });
 
       drawMarker('sub-process', parentGfx, markerPath, {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     },
     'ParallelMarker': function(parentGfx, element, position) {
@@ -3008,8 +2869,8 @@ function BpmnRenderer(
       });
 
       drawMarker('parallel', parentGfx, markerPath, {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     },
     'SequentialMarker': function(parentGfx, element, position) {
@@ -3025,8 +2886,8 @@ function BpmnRenderer(
       });
 
       drawMarker('sequential', parentGfx, markerPath, {
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     },
     'CompensationMarker': function(parentGfx, element, position) {
@@ -3043,8 +2904,8 @@ function BpmnRenderer(
 
       drawMarker('compensation', parentGfx, markerMath, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     },
     'LoopMarker': function(parentGfx, element, position) {
@@ -3061,8 +2922,8 @@ function BpmnRenderer(
 
       drawMarker('loop', parentGfx, markerPath, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getFillColor)(element, defaultFillColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getFillColor"])(element, defaultFillColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
         strokeLinecap: 'round',
         strokeMiterlimit: 0.5
       });
@@ -3081,14 +2942,14 @@ function BpmnRenderer(
 
       drawMarker('adhoc', parentGfx, markerPath, {
         strokeWidth: 1,
-        fill: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor),
-        stroke: (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getStrokeColor)(element, defaultStrokeColor)
+        fill: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor),
+        stroke: Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getStrokeColor"])(element, defaultStrokeColor)
       });
     }
   };
 
   function attachTaskMarkers(parentGfx, element, taskMarkers) {
-    var obj = (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getSemantic)(element);
+    var obj = Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getSemantic"])(element);
 
     var subprocess = taskMarkers && taskMarkers.indexOf('SubProcessMarker') !== -1;
     var position;
@@ -3111,7 +2972,7 @@ function BpmnRenderer(
       };
     }
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_3__.forEach)(taskMarkers, function(marker) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["forEach"])(taskMarkers, function(marker) {
       renderer(marker)(parentGfx, element, position);
     });
 
@@ -3169,7 +3030,7 @@ function BpmnRenderer(
 }
 
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(BpmnRenderer, diagram_js_lib_draw_BaseRenderer__WEBPACK_IMPORTED_MODULE_2__.default);
+inherits__WEBPACK_IMPORTED_MODULE_0___default()(BpmnRenderer, diagram_js_lib_draw_BaseRenderer__WEBPACK_IMPORTED_MODULE_2__["default"]);
 
 BpmnRenderer.$inject = [
   'config.bpmnRenderer',
@@ -3182,7 +3043,7 @@ BpmnRenderer.$inject = [
 
 
 BpmnRenderer.prototype.canRender = function(element) {
-  return (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_11__.is)(element, 'bpmn:BaseElement');
+  return Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_5__["is"])(element, 'bpmn:BaseElement');
 };
 
 BpmnRenderer.prototype.drawShape = function(parentGfx, element) {
@@ -3203,19 +3064,19 @@ BpmnRenderer.prototype.drawConnection = function(parentGfx, element) {
 
 BpmnRenderer.prototype.getShapePath = function(element) {
 
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_11__.is)(element, 'bpmn:Event')) {
-    return (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getCirclePath)(element);
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_5__["is"])(element, 'bpmn:Event')) {
+    return Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getCirclePath"])(element);
   }
 
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_11__.is)(element, 'bpmn:Activity')) {
-    return (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getRoundRectPath)(element, TASK_BORDER_RADIUS);
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_5__["is"])(element, 'bpmn:Activity')) {
+    return Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getRoundRectPath"])(element, TASK_BORDER_RADIUS);
   }
 
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_11__.is)(element, 'bpmn:Gateway')) {
-    return (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getDiamondPath)(element);
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_5__["is"])(element, 'bpmn:Gateway')) {
+    return Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getDiamondPath"])(element);
   }
 
-  return (0,_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__.getRectPath)(element);
+  return Object(_BpmnRenderUtil__WEBPACK_IMPORTED_MODULE_7__["getRectPath"])(element);
 };
 
 
@@ -3225,13 +3086,12 @@ BpmnRenderer.prototype.getShapePath = function(element) {
 /*!**************************************************!*\
   !*** ./node_modules/bpmn-js/lib/draw/PathMap.js ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ PathMap)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PathMap; });
 /**
  * Map containing SVG paths needed by BpmnRenderer.
  */
@@ -3711,13 +3571,12 @@ function format(str, obj) {
 /*!*******************************************************!*\
   !*** ./node_modules/bpmn-js/lib/draw/TextRenderer.js ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ TextRenderer)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextRenderer; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 /* harmony import */ var diagram_js_lib_util_Text__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! diagram-js/lib/util/Text */ "./node_modules/diagram-js/lib/util/Text.js");
 
@@ -3732,7 +3591,7 @@ var MIN_TEXT_ANNOTATION_HEIGHT = 30;
 
 function TextRenderer(config) {
 
-  var defaultStyle = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({
+  var defaultStyle = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
     fontFamily: 'Arial, sans-serif',
     fontSize: DEFAULT_FONT_SIZE,
     fontWeight: 'normal',
@@ -3741,11 +3600,11 @@ function TextRenderer(config) {
 
   var fontSize = parseInt(defaultStyle.fontSize, 10) - 1;
 
-  var externalStyle = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, defaultStyle, {
+  var externalStyle = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, defaultStyle, {
     fontSize: fontSize
   }, config && config.externalStyle || {});
 
-  var textUtil = new diagram_js_lib_util_Text__WEBPACK_IMPORTED_MODULE_1__.default({
+  var textUtil = new diagram_js_lib_util_Text__WEBPACK_IMPORTED_MODULE_1__["default"]({
     style: defaultStyle
   });
 
@@ -3843,13 +3702,11 @@ TextRenderer.$inject = [
 /*!************************************************!*\
   !*** ./node_modules/bpmn-js/lib/draw/index.js ***!
   \************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _BpmnRenderer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BpmnRenderer */ "./node_modules/bpmn-js/lib/draw/BpmnRenderer.js");
 /* harmony import */ var _TextRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TextRenderer */ "./node_modules/bpmn-js/lib/draw/TextRenderer.js");
 /* harmony import */ var _PathMap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./PathMap */ "./node_modules/bpmn-js/lib/draw/PathMap.js");
@@ -3858,11 +3715,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'bpmnRenderer' ],
-  bpmnRenderer: [ 'type', _BpmnRenderer__WEBPACK_IMPORTED_MODULE_0__.default ],
-  textRenderer: [ 'type', _TextRenderer__WEBPACK_IMPORTED_MODULE_1__.default ],
-  pathMap: [ 'type', _PathMap__WEBPACK_IMPORTED_MODULE_2__.default ]
+  bpmnRenderer: [ 'type', _BpmnRenderer__WEBPACK_IMPORTED_MODULE_0__["default"] ],
+  textRenderer: [ 'type', _TextRenderer__WEBPACK_IMPORTED_MODULE_1__["default"] ],
+  pathMap: [ 'type', _PathMap__WEBPACK_IMPORTED_MODULE_2__["default"] ]
 });
 
 
@@ -3872,35 +3729,34 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************************************************************!*\
   !*** ./node_modules/bpmn-js/lib/features/label-editing/LabelUtil.js ***!
   \**********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getLabel, setLabel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getLabel": () => (/* binding */ getLabel),
-/* harmony export */   "setLabel": () => (/* binding */ setLabel)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getLabel", function() { return getLabel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setLabel", function() { return setLabel; });
 /* harmony import */ var _util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
 
 
 function getLabelAttr(semantic) {
   if (
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:FlowElement') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Participant') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Lane') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:SequenceFlow') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:MessageFlow') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataInput') ||
-    (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataOutput')
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:FlowElement') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:Participant') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:Lane') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:SequenceFlow') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:MessageFlow') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:DataInput') ||
+    Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:DataOutput')
   ) {
     return 'name';
   }
 
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:TextAnnotation')) {
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:TextAnnotation')) {
     return 'text';
   }
 
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Group')) {
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(semantic, 'bpmn:Group')) {
     return 'categoryValueRef';
   }
 }
@@ -3955,20 +3811,19 @@ function setLabel(element, text, isExternal) {
 /*!*********************************************************!*\
   !*** ./node_modules/bpmn-js/lib/import/BpmnImporter.js ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ BpmnImporter)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BpmnImporter; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var _util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
-/* harmony import */ var _util_LabelUtil__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../util/LabelUtil */ "./node_modules/bpmn-js/lib/util/LabelUtil.js");
-/* harmony import */ var diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! diagram-js/lib/layout/LayoutUtil */ "./node_modules/diagram-js/lib/layout/LayoutUtil.js");
+/* harmony import */ var _util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
+/* harmony import */ var _util_LabelUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/LabelUtil */ "./node_modules/bpmn-js/lib/util/LabelUtil.js");
+/* harmony import */ var diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js/lib/layout/LayoutUtil */ "./node_modules/diagram-js/lib/layout/LayoutUtil.js");
 /* harmony import */ var _util_DiUtil__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../util/DiUtil */ "./node_modules/bpmn-js/lib/util/DiUtil.js");
-/* harmony import */ var _features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../features/label-editing/LabelUtil */ "./node_modules/bpmn-js/lib/features/label-editing/LabelUtil.js");
-/* harmony import */ var _Util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Util */ "./node_modules/bpmn-js/lib/import/Util.js");
+/* harmony import */ var _features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../features/label-editing/LabelUtil */ "./node_modules/bpmn-js/lib/features/label-editing/LabelUtil.js");
+/* harmony import */ var _Util__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Util */ "./node_modules/bpmn-js/lib/import/Util.js");
 
 
 
@@ -3985,7 +3840,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function elementData(semantic, attrs) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
     id: semantic.id,
     type: semantic.$type,
     businessObject: semantic
@@ -3997,7 +3852,7 @@ function getWaypoints(bo, source, target) {
   var waypoints = bo.di.waypoint;
 
   if (!waypoints || waypoints.length < 2) {
-    return [ (0,diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_1__.getMid)(source), (0,diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_1__.getMid)(target) ];
+    return [ Object(diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__["getMid"])(source), Object(diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__["getMid"])(target) ];
   }
 
   return waypoints.map(function(p) {
@@ -4007,8 +3862,8 @@ function getWaypoints(bo, source, target) {
 
 function notYetDrawn(translate, semantic, refSemantic, property) {
   return new Error(translate('element {element} referenced by {referenced}#{property} not yet drawn', {
-    element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(refSemantic),
-    referenced: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(semantic),
+    element: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(refSemantic),
+    referenced: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(semantic),
     property: property
   }));
 }
@@ -4062,7 +3917,7 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
   // ROOT ELEMENT
   // handle the special case that we deal with a
   // invisible root element (process or collaboration)
-  if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(di, 'bpmndi:BPMNPlane')) {
+  if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(di, 'bpmndi:BPMNPlane')) {
 
     // add a virtual element (not being drawn)
     element = this._elementFactory.createRoot(elementData(semantic));
@@ -4071,9 +3926,9 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
   }
 
   // SHAPE
-  else if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(di, 'bpmndi:BPMNShape')) {
+  else if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(di, 'bpmndi:BPMNShape')) {
 
-    var collapsed = !(0,_util_DiUtil__WEBPACK_IMPORTED_MODULE_4__.isExpanded)(semantic),
+    var collapsed = !Object(_util_DiUtil__WEBPACK_IMPORTED_MODULE_4__["isExpanded"])(semantic),
         isFrame = isFrameElement(semantic);
     hidden = parentElement && (parentElement.hidden || parentElement.collapsed);
 
@@ -4089,19 +3944,19 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       isFrame: isFrame
     }));
 
-    if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:BoundaryEvent')) {
+    if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:BoundaryEvent')) {
       this._attachBoundary(semantic, element);
     }
 
     // insert lanes behind other flow nodes (cf. #727)
-    if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:Lane')) {
+    if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:Lane')) {
       parentIndex = 0;
     }
 
-    if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:DataStoreReference')) {
+    if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataStoreReference')) {
 
       // check whether data store is inside our outside of its semantic parent
-      if (!isPointInsideBBox(parentElement, (0,diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_1__.getMid)(bounds))) {
+      if (!isPointInsideBBox(parentElement, Object(diagram_js_lib_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__["getMid"])(bounds))) {
         parentElement = this._canvas.getRootElement();
       }
     }
@@ -4110,7 +3965,7 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
   }
 
   // CONNECTION
-  else if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(di, 'bpmndi:BPMNEdge')) {
+  else if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(di, 'bpmndi:BPMNEdge')) {
 
     var source = this._getSource(semantic),
         target = this._getTarget(semantic);
@@ -4124,7 +3979,7 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
       waypoints: getWaypoints(semantic, source, target)
     }));
 
-    if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:DataAssociation')) {
+    if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataAssociation')) {
 
       // render always on top; this ensures DataAssociations
       // are rendered correctly across different "hacks" people
@@ -4134,20 +3989,20 @@ BpmnImporter.prototype.add = function(semantic, parentElement) {
     }
 
     // insert sequence flows behind other flow nodes (cf. #727)
-    if ((0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:SequenceFlow')) {
+    if (Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:SequenceFlow')) {
       parentIndex = 0;
     }
 
     this._canvas.addConnection(element, parentElement, parentIndex);
   } else {
     throw new Error(translate('unknown di {di} for element {semantic}', {
-      di: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(di),
-      semantic: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(semantic)
+      di: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(di),
+      semantic: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(semantic)
     }));
   }
 
   // (optional) LABEL
-  if ((0,_util_LabelUtil__WEBPACK_IMPORTED_MODULE_5__.isLabelExternal)(semantic) && (0,_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_6__.getLabel)(element)) {
+  if (Object(_util_LabelUtil__WEBPACK_IMPORTED_MODULE_2__["isLabelExternal"])(semantic) && Object(_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_5__["getLabel"])(element)) {
     this.addLabel(semantic, element);
   }
 
@@ -4170,7 +4025,7 @@ BpmnImporter.prototype._attachBoundary = function(boundarySemantic, boundaryElem
 
   if (!hostSemantic) {
     throw new Error(translate('missing {semantic}#attachedToRef', {
-      semantic: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(boundarySemantic)
+      semantic: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(boundarySemantic)
     }));
   }
 
@@ -4202,9 +4057,9 @@ BpmnImporter.prototype.addLabel = function(semantic, element) {
       text,
       label;
 
-  bounds = (0,_util_LabelUtil__WEBPACK_IMPORTED_MODULE_5__.getExternalLabelBounds)(semantic, element);
+  bounds = Object(_util_LabelUtil__WEBPACK_IMPORTED_MODULE_2__["getExternalLabelBounds"])(semantic, element);
 
-  text = (0,_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_6__.getLabel)(element);
+  text = Object(_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_5__["getLabel"])(element);
 
   if (text) {
 
@@ -4216,7 +4071,7 @@ BpmnImporter.prototype.addLabel = function(semantic, element) {
     id: semantic.id + '_label',
     labelTarget: element,
     type: 'label',
-    hidden: element.hidden || !(0,_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_6__.getLabel)(element),
+    hidden: element.hidden || !Object(_features_label_editing_LabelUtil__WEBPACK_IMPORTED_MODULE_5__["getLabel"])(element),
     x: Math.round(bounds.x),
     y: Math.round(bounds.y),
     width: Math.round(bounds.width),
@@ -4262,7 +4117,7 @@ BpmnImporter.prototype._getEnd = function(semantic, side) {
     throw notYetDrawn(translate, semantic, refSemantic, side + 'Ref');
   } else {
     throw new Error(translate('{semantic}#{side} Ref not specified', {
-      semantic: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(semantic),
+      semantic: Object(_Util__WEBPACK_IMPORTED_MODULE_6__["elementToString"])(semantic),
       side: side
     }));
   }
@@ -4295,7 +4150,7 @@ function isPointInsideBBox(bbox, point) {
 }
 
 function isFrameElement(semantic) {
-  return (0,_util_ModelUtil__WEBPACK_IMPORTED_MODULE_3__.is)(semantic, 'bpmn:Group');
+  return Object(_util_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:Group');
 }
 
 /***/ }),
@@ -4304,16 +4159,15 @@ function isFrameElement(semantic) {
 /*!***********************************************************!*\
   !*** ./node_modules/bpmn-js/lib/import/BpmnTreeWalker.js ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ BpmnTreeWalker)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! object-refs */ "./node_modules/object-refs/index.js");
-/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(object_refs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BpmnTreeWalker; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! object-refs */ "./node_modules/object-refs/index.js");
+/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(object_refs__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _Util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Util */ "./node_modules/bpmn-js/lib/import/Util.js");
 
 
@@ -4321,7 +4175,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var diRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_0___default())(
+var diRefs = new object_refs__WEBPACK_IMPORTED_MODULE_1___default.a(
   { name: 'bpmnElement', enumerable: true },
   { name: 'di', configurable: true }
 );
@@ -4344,7 +4198,7 @@ function is(element, type) {
  * correctly specify one.
  */
 function findDisplayCandidate(definitions) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.find)(definitions.rootElements, function(e) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(definitions.rootElements, function(e) {
     return is(e, 'bpmn:Process') || is(e, 'bpmn:Collaboration');
   });
 }
@@ -4382,7 +4236,7 @@ function BpmnTreeWalker(handler, translate) {
     // avoid multiple rendering of elements
     if (gfx) {
       throw new Error(
-        translate('already rendered {element}', { element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(element) })
+        translate('already rendered {element}', { element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(element) })
       );
     }
 
@@ -4405,7 +4259,7 @@ function BpmnTreeWalker(handler, translate) {
     } catch (e) {
       logError(e.message, { element: element, error: e });
 
-      console.error(translate('failed to import {element}', { element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(element) }));
+      console.error(translate('failed to import {element}', { element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(element) }));
       console.error(e);
     }
   }
@@ -4423,7 +4277,7 @@ function BpmnTreeWalker(handler, translate) {
       if (bpmnElement.di) {
         logError(
           translate('multiple DI elements defined for {element}', {
-            element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(bpmnElement)
+            element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(bpmnElement)
           }),
           { element: bpmnElement }
         );
@@ -4434,7 +4288,7 @@ function BpmnTreeWalker(handler, translate) {
     } else {
       logError(
         translate('no bpmnElement referenced in {element}', {
-          element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(di)
+          element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(di)
         }),
         { element: di }
       );
@@ -4448,7 +4302,7 @@ function BpmnTreeWalker(handler, translate) {
   function handlePlane(plane) {
     registerDi(plane);
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(plane.planeElement, handlePlaneElement);
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(plane.planeElement, handlePlaneElement);
   }
 
   function handlePlaneElement(planeElement) {
@@ -4494,7 +4348,7 @@ function BpmnTreeWalker(handler, translate) {
     if (!plane) {
       throw new Error(translate(
         'no plane for {element}',
-        { element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(diagram) }
+        { element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(diagram) }
       ));
     }
 
@@ -4511,8 +4365,8 @@ function BpmnTreeWalker(handler, translate) {
 
         logError(
           translate('correcting missing bpmnElement on {plane} to {rootElement}', {
-            plane: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(plane),
-            rootElement: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(rootElement)
+            plane: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(plane),
+            rootElement: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(rootElement)
           })
         );
 
@@ -4535,8 +4389,8 @@ function BpmnTreeWalker(handler, translate) {
     } else {
       throw new Error(
         translate('unsupported bpmnElement for {plane}: {rootElement}', {
-          plane: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(plane),
-          rootElement: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(rootElement)
+          plane: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(plane),
+          rootElement: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(rootElement)
         })
       );
     }
@@ -4572,7 +4426,7 @@ function BpmnTreeWalker(handler, translate) {
     // walk through all processes that have not yet been drawn and draw them
     // if they contain lanes with DI information.
     // we do this to pass the free-floating lane test cases in the MIWG test suite
-    var processes = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.filter)(rootElements, function(e) {
+    var processes = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(rootElements, function(e) {
       return !isHandled(e) && is(e, 'bpmn:Process') && e.laneSets;
     });
 
@@ -4584,7 +4438,7 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleMessageFlows(messageFlows, context) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(messageFlows, contextual(handleMessageFlow, context));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(messageFlows, contextual(handleMessageFlow, context));
   }
 
   function handleDataAssociation(association, context) {
@@ -4610,7 +4464,7 @@ function BpmnTreeWalker(handler, translate) {
 
   function handleArtifacts(artifacts, context) {
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(artifacts, function(e) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(artifacts, function(e) {
       if (is(e, 'bpmn:Association')) {
         deferred.push(function() {
           handleArtifact(e, context);
@@ -4627,8 +4481,8 @@ function BpmnTreeWalker(handler, translate) {
       return;
     }
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(ioSpecification.dataInputs, contextual(handleDataInput, context));
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(ioSpecification.dataOutputs, contextual(handleDataOutput, context));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(ioSpecification.dataInputs, contextual(handleDataInput, context));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(ioSpecification.dataOutputs, contextual(handleDataOutput, context));
   }
 
   function handleSubProcess(subProcess, context) {
@@ -4655,8 +4509,8 @@ function BpmnTreeWalker(handler, translate) {
     //   * bpmn:CatchEvent
     //
     deferred.push(function() {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(flowNode.dataInputAssociations, contextual(handleDataAssociation, context));
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(flowNode.dataOutputAssociations, contextual(handleDataAssociation, context));
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(flowNode.dataInputAssociations, contextual(handleDataAssociation, context));
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(flowNode.dataOutputAssociations, contextual(handleDataAssociation, context));
     });
   }
 
@@ -4683,11 +4537,11 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleLaneSet(laneSet, context) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(laneSet.lanes, contextual(handleLane, context));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(laneSet.lanes, contextual(handleLane, context));
   }
 
   function handleLaneSets(laneSets, context) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(laneSets, contextual(handleLaneSet, context));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(laneSets, contextual(handleLaneSet, context));
   }
 
   function handleFlowElementsContainer(container, context) {
@@ -4699,7 +4553,7 @@ function BpmnTreeWalker(handler, translate) {
   }
 
   function handleFlowElements(flowElements, context) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(flowElements, function(e) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(flowElements, function(e) {
       if (is(e, 'bpmn:SequenceFlow')) {
         deferred.push(function() {
           handleSequenceFlow(e, context);
@@ -4720,8 +4574,8 @@ function BpmnTreeWalker(handler, translate) {
       } else {
         logError(
           translate('unrecognized flowElement {element} in context {context}', {
-            element: (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(e),
-            context: (context ? (0,_Util__WEBPACK_IMPORTED_MODULE_2__.elementToString)(context.businessObject) : 'null')
+            element: Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(e),
+            context: (context ? Object(_Util__WEBPACK_IMPORTED_MODULE_2__["elementToString"])(context.businessObject) : 'null')
           }),
           { element: e, context: context }
         );
@@ -4740,7 +4594,7 @@ function BpmnTreeWalker(handler, translate) {
 
   function handleCollaboration(collaboration) {
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(collaboration.participants, contextual(handleParticipant));
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(collaboration.participants, contextual(handleParticipant));
 
     handleArtifacts(collaboration.artifacts);
 
@@ -4754,7 +4608,7 @@ function BpmnTreeWalker(handler, translate) {
   function wireFlowNodeRefs(lane) {
 
     // wire the virtual flowNodeRefs <-> relationship
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(lane.flowNodeRef, function(flowNode) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(lane.flowNodeRef, function(flowNode) {
       var lanes = flowNode.get('lanes');
 
       if (lanes) {
@@ -4779,13 +4633,12 @@ function BpmnTreeWalker(handler, translate) {
 /*!*****************************************************!*\
   !*** ./node_modules/bpmn-js/lib/import/Importer.js ***!
   \*****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: importBpmnDiagram */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "importBpmnDiagram": () => (/* binding */ importBpmnDiagram)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "importBpmnDiagram", function() { return importBpmnDiagram; });
 /* harmony import */ var _BpmnTreeWalker__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./BpmnTreeWalker */ "./node_modules/bpmn-js/lib/import/BpmnTreeWalker.js");
 
 
@@ -4851,7 +4704,7 @@ function importBpmnDiagram(diagram, definitions, bpmnDiagram) {
       }
     };
 
-    var walker = new _BpmnTreeWalker__WEBPACK_IMPORTED_MODULE_0__.default(visitor, translate);
+    var walker = new _BpmnTreeWalker__WEBPACK_IMPORTED_MODULE_0__["default"](visitor, translate);
 
     // traverse BPMN 2.0 document model,
     // starting at definitions
@@ -4889,13 +4742,12 @@ function importBpmnDiagram(diagram, definitions, bpmnDiagram) {
 /*!*************************************************!*\
   !*** ./node_modules/bpmn-js/lib/import/Util.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: elementToString */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "elementToString": () => (/* binding */ elementToString)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "elementToString", function() { return elementToString; });
 function elementToString(e) {
   if (!e) {
     return '<null>';
@@ -4910,24 +4762,22 @@ function elementToString(e) {
 /*!**************************************************!*\
   !*** ./node_modules/bpmn-js/lib/import/index.js ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! diagram-js/lib/i18n/translate */ "./node_modules/diagram-js/lib/i18n/translate/index.js");
 /* harmony import */ var _BpmnImporter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BpmnImporter */ "./node_modules/bpmn-js/lib/import/BpmnImporter.js");
 
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __depends__: [
-    diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_0__.default
+    diagram_js_lib_i18n_translate__WEBPACK_IMPORTED_MODULE_0__["default"]
   ],
-  bpmnImporter: [ 'type', _BpmnImporter__WEBPACK_IMPORTED_MODULE_1__.default ]
+  bpmnImporter: [ 'type', _BpmnImporter__WEBPACK_IMPORTED_MODULE_1__["default"] ]
 });
 
 /***/ }),
@@ -4936,13 +4786,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************************************!*\
   !*** ./node_modules/bpmn-js/lib/util/CompatibilityUtil.js ***!
   \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: wrapForCompatibility */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "wrapForCompatibility": () => (/* binding */ wrapForCompatibility)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "wrapForCompatibility", function() { return wrapForCompatibility; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -4965,7 +4814,7 @@ function wrapForCompatibility(api) {
     }
 
     var argLen = arguments.length;
-    if (argLen >= 1 && (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isFunction)(arguments[argLen - 1])) {
+    if (argLen >= 1 && Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isFunction"])(arguments[argLen - 1])) {
 
       var callback = arguments[argLen - 1];
 
@@ -5005,19 +4854,18 @@ function wrapForCompatibility(api) {
 /*!*************************************************!*\
   !*** ./node_modules/bpmn-js/lib/util/DiUtil.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: isExpanded, isInterrupting, isEventSubProcess, hasEventDefinition, hasErrorEventDefinition, hasEscalationEventDefinition, hasCompensateEventDefinition */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isExpanded": () => (/* binding */ isExpanded),
-/* harmony export */   "isInterrupting": () => (/* binding */ isInterrupting),
-/* harmony export */   "isEventSubProcess": () => (/* binding */ isEventSubProcess),
-/* harmony export */   "hasEventDefinition": () => (/* binding */ hasEventDefinition),
-/* harmony export */   "hasErrorEventDefinition": () => (/* binding */ hasErrorEventDefinition),
-/* harmony export */   "hasEscalationEventDefinition": () => (/* binding */ hasEscalationEventDefinition),
-/* harmony export */   "hasCompensateEventDefinition": () => (/* binding */ hasCompensateEventDefinition)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isExpanded", function() { return isExpanded; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isInterrupting", function() { return isInterrupting; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isEventSubProcess", function() { return isEventSubProcess; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasEventDefinition", function() { return hasEventDefinition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasErrorEventDefinition", function() { return hasErrorEventDefinition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasEscalationEventDefinition", function() { return hasEscalationEventDefinition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasCompensateEventDefinition", function() { return hasCompensateEventDefinition; });
 /* harmony import */ var _ModelUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
@@ -5027,36 +4875,36 @@ __webpack_require__.r(__webpack_exports__);
 
 function isExpanded(element) {
 
-  if ((0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(element, 'bpmn:CallActivity')) {
+  if (Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(element, 'bpmn:CallActivity')) {
     return false;
   }
 
-  if ((0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(element, 'bpmn:SubProcess')) {
-    return (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element).di && !!(0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element).di.isExpanded;
+  if (Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(element, 'bpmn:SubProcess')) {
+    return Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element).di && !!Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element).di.isExpanded;
   }
 
-  if ((0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(element, 'bpmn:Participant')) {
-    return !!(0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element).processRef;
+  if (Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(element, 'bpmn:Participant')) {
+    return !!Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element).processRef;
   }
 
   return true;
 }
 
 function isInterrupting(element) {
-  return element && (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element).isInterrupting !== false;
+  return element && Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element).isInterrupting !== false;
 }
 
 function isEventSubProcess(element) {
-  return element && !!(0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element).triggeredByEvent;
+  return element && !!Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element).triggeredByEvent;
 }
 
 function hasEventDefinition(element, eventType) {
-  var bo = (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.getBusinessObject)(element),
+  var bo = Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["getBusinessObject"])(element),
       hasEventDefinition = false;
 
   if (bo.eventDefinitions) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(bo.eventDefinitions, function(event) {
-      if ((0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(event, eventType)) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["forEach"])(bo.eventDefinitions, function(event) {
+      if (Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_0__["is"])(event, eventType)) {
         hasEventDefinition = true;
       }
     });
@@ -5084,23 +4932,22 @@ function hasCompensateEventDefinition(element) {
 /*!****************************************************!*\
   !*** ./node_modules/bpmn-js/lib/util/LabelUtil.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: DEFAULT_LABEL_SIZE, FLOW_LABEL_INDENT, isLabelExternal, hasExternalLabel, getFlowLabelPosition, getWaypointsMid, getExternalLabelMid, getExternalLabelBounds, isLabel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "DEFAULT_LABEL_SIZE": () => (/* binding */ DEFAULT_LABEL_SIZE),
-/* harmony export */   "FLOW_LABEL_INDENT": () => (/* binding */ FLOW_LABEL_INDENT),
-/* harmony export */   "isLabelExternal": () => (/* binding */ isLabelExternal),
-/* harmony export */   "hasExternalLabel": () => (/* binding */ hasExternalLabel),
-/* harmony export */   "getFlowLabelPosition": () => (/* binding */ getFlowLabelPosition),
-/* harmony export */   "getWaypointsMid": () => (/* binding */ getWaypointsMid),
-/* harmony export */   "getExternalLabelMid": () => (/* binding */ getExternalLabelMid),
-/* harmony export */   "getExternalLabelBounds": () => (/* binding */ getExternalLabelBounds),
-/* harmony export */   "isLabel": () => (/* binding */ isLabel)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var _ModelUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DEFAULT_LABEL_SIZE", function() { return DEFAULT_LABEL_SIZE; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FLOW_LABEL_INDENT", function() { return FLOW_LABEL_INDENT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isLabelExternal", function() { return isLabelExternal; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasExternalLabel", function() { return hasExternalLabel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFlowLabelPosition", function() { return getFlowLabelPosition; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getWaypointsMid", function() { return getWaypointsMid; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getExternalLabelMid", function() { return getExternalLabelMid; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getExternalLabelBounds", function() { return getExternalLabelBounds; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isLabel", function() { return isLabel; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var _ModelUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js");
 
 
 
@@ -5121,15 +4968,15 @@ var FLOW_LABEL_INDENT = 15;
  * @return {boolean} true if has label
  */
 function isLabelExternal(semantic) {
-  return (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Event') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Gateway') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataStoreReference') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataObjectReference') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataInput') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:DataOutput') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:SequenceFlow') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:MessageFlow') ||
-         (0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(semantic, 'bpmn:Group');
+  return Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:Event') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:Gateway') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataStoreReference') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataObjectReference') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataInput') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:DataOutput') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:SequenceFlow') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:MessageFlow') ||
+         Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(semantic, 'bpmn:Group');
 }
 
 /**
@@ -5199,7 +5046,7 @@ function getExternalLabelMid(element) {
 
   if (element.waypoints) {
     return getFlowLabelPosition(element.waypoints);
-  } else if ((0,_ModelUtil__WEBPACK_IMPORTED_MODULE_0__.is)(element, 'bpmn:Group')) {
+  } else if (Object(_ModelUtil__WEBPACK_IMPORTED_MODULE_1__["is"])(element, 'bpmn:Group')) {
     return {
       x: element.x + element.width / 2,
       y: element.y + DEFAULT_LABEL_SIZE.height / 2
@@ -5247,7 +5094,7 @@ function getExternalLabelBounds(semantic, element) {
     size = DEFAULT_LABEL_SIZE;
   }
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
     x: mid.x - size.width / 2,
     y: mid.y - size.height / 2
   }, size);
@@ -5264,14 +5111,13 @@ function isLabel(element) {
 /*!****************************************************!*\
   !*** ./node_modules/bpmn-js/lib/util/ModelUtil.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: is, getBusinessObject */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "is": () => (/* binding */ is),
-/* harmony export */   "getBusinessObject": () => (/* binding */ getBusinessObject)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "is", function() { return is; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getBusinessObject", function() { return getBusinessObject; });
 /**
  * Is an element of the given BPMN type?
  *
@@ -5304,15 +5150,14 @@ function getBusinessObject(element) {
 /*!********************************************************!*\
   !*** ./node_modules/bpmn-js/lib/util/PoweredByUtil.js ***!
   \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: BPMNIO_IMG, LINK_STYLES, open */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "BPMNIO_IMG": () => (/* binding */ BPMNIO_IMG),
-/* harmony export */   "LINK_STYLES": () => (/* binding */ LINK_STYLES),
-/* harmony export */   "open": () => (/* binding */ open)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BPMNIO_IMG", function() { return BPMNIO_IMG; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LINK_STYLES", function() { return LINK_STYLES; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "open", function() { return open; });
 /* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
 /**
  * This file must not be changed or exchanged.
@@ -5386,9 +5231,9 @@ var lightbox;
 function open() {
 
   if (!lightbox) {
-    lightbox = (0,min_dom__WEBPACK_IMPORTED_MODULE_0__.domify)(LIGHTBOX_MARKUP);
+    lightbox = Object(min_dom__WEBPACK_IMPORTED_MODULE_0__["domify"])(LIGHTBOX_MARKUP);
 
-    min_dom__WEBPACK_IMPORTED_MODULE_0__.delegate.bind(lightbox, '.backdrop', 'click', function(event) {
+    min_dom__WEBPACK_IMPORTED_MODULE_0__["delegate"].bind(lightbox, '.backdrop', 'click', function(event) {
       document.body.removeChild(lightbox);
     });
   }
@@ -5403,15 +5248,13 @@ function open() {
 /*!****************************************************!*\
   !*** ./node_modules/bpmn-moddle/dist/index.esm.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var moddle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! moddle */ "./node_modules/moddle/dist/index.esm.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var moddle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moddle */ "./node_modules/moddle/dist/index.esm.js");
 /* harmony import */ var moddle_xml__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! moddle-xml */ "./node_modules/moddle-xml/dist/index.esm.js");
 
 
@@ -5427,10 +5270,10 @@ __webpack_require__.r(__webpack_exports__);
  * @param {Object} [options] additional options to pass over
  */
 function BpmnModdle(packages, options) {
-  moddle__WEBPACK_IMPORTED_MODULE_0__.Moddle.call(this, packages, options);
+  moddle__WEBPACK_IMPORTED_MODULE_1__["Moddle"].call(this, packages, options);
 }
 
-BpmnModdle.prototype = Object.create(moddle__WEBPACK_IMPORTED_MODULE_0__.Moddle.prototype);
+BpmnModdle.prototype = Object.create(moddle__WEBPACK_IMPORTED_MODULE_1__["Moddle"].prototype);
 
 /**
  * The fromXML result.
@@ -5462,12 +5305,12 @@ BpmnModdle.prototype = Object.create(moddle__WEBPACK_IMPORTED_MODULE_0__.Moddle.
  */
 BpmnModdle.prototype.fromXML = function(xmlStr, typeName, options) {
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isString)(typeName)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(typeName)) {
     options = typeName;
     typeName = 'bpmn:Definitions';
   }
 
-  var reader = new moddle_xml__WEBPACK_IMPORTED_MODULE_2__.Reader((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({ model: this, lax: true }, options));
+  var reader = new moddle_xml__WEBPACK_IMPORTED_MODULE_2__["Reader"](Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ model: this, lax: true }, options));
   var rootHandler = reader.handler(typeName);
 
   return reader.fromXML(xmlStr, rootHandler);
@@ -5492,7 +5335,7 @@ BpmnModdle.prototype.fromXML = function(xmlStr, typeName, options) {
  */
 BpmnModdle.prototype.toXML = function(element, options) {
 
-  var writer = new moddle_xml__WEBPACK_IMPORTED_MODULE_2__.Writer(options);
+  var writer = new moddle_xml__WEBPACK_IMPORTED_MODULE_2__["Writer"](options);
 
   return new Promise(function(resolve, reject) {
     try {
@@ -9153,12 +8996,28 @@ var packages = {
 };
 
 function simple(additionalPackages, options) {
-  var pks = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({}, packages, additionalPackages);
+  var pks = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, packages, additionalPackages);
 
   return new BpmnModdle(pks, options);
 }
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (simple);
+/* harmony default export */ __webpack_exports__["default"] = (simple);
+
+
+/***/ }),
+
+/***/ "./node_modules/diagram-js/index.js":
+/*!******************************************!*\
+  !*** ./node_modules/diagram-js/index.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _lib_Diagram__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/Diagram */ "./node_modules/diagram-js/lib/Diagram.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "default", function() { return _lib_Diagram__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
 
 
 /***/ }),
@@ -9167,13 +9026,12 @@ function simple(additionalPackages, options) {
 /*!************************************************!*\
   !*** ./node_modules/diagram-js/lib/Diagram.js ***!
   \************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Diagram)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Diagram; });
 /* harmony import */ var didi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! didi */ "./node_modules/didi/dist/index.esm.js");
 /* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./core */ "./node_modules/diagram-js/lib/core/index.js");
 
@@ -9222,7 +9080,7 @@ function bootstrap(bootstrapModules) {
 
   bootstrapModules.forEach(visit);
 
-  var injector = new didi__WEBPACK_IMPORTED_MODULE_0__.Injector(modules);
+  var injector = new didi__WEBPACK_IMPORTED_MODULE_0__["Injector"](modules);
 
   components.forEach(function(c) {
 
@@ -9256,7 +9114,7 @@ function createInjector(options) {
     'config': ['value', options]
   };
 
-  var modules = [ configModule, _core__WEBPACK_IMPORTED_MODULE_1__.default ].concat(options.modules || []);
+  var modules = [ configModule, _core__WEBPACK_IMPORTED_MODULE_1__["default"] ].concat(options.modules || []);
 
   return bootstrap(modules);
 }
@@ -9387,18 +9245,17 @@ Diagram.prototype.clear = function() {
 /*!****************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/Canvas.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Canvas)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Canvas; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var _util_Collections__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../util/Collections */ "./node_modules/diagram-js/lib/util/Collections.js");
+/* harmony import */ var _util_Collections__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/Collections */ "./node_modules/diagram-js/lib/util/Collections.js");
 /* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
-/* harmony import */ var _layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../layout/LayoutUtil */ "./node_modules/diagram-js/lib/layout/LayoutUtil.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony import */ var _layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../layout/LayoutUtil */ "./node_modules/diagram-js/lib/layout/LayoutUtil.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 
 
 
@@ -9417,7 +9274,7 @@ function round(number, resolution) {
 }
 
 function ensurePx(number) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(number) ? number + 'px' : number;
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(number) ? number + 'px' : number;
 }
 
 /**
@@ -9429,7 +9286,7 @@ function ensurePx(number) {
  */
 function createContainer(options) {
 
-  options = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, { width: '100%', height: '100%' }, options);
+  options = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, { width: '100%', height: '100%' }, options);
 
   var container = options.container || document.body;
 
@@ -9439,7 +9296,7 @@ function createContainer(options) {
   var parent = document.createElement('div');
   parent.setAttribute('class', 'djs-container');
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(parent.style, {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(parent.style, {
     position: 'relative',
     overflow: 'hidden',
     width: ensurePx(options.width),
@@ -9452,8 +9309,8 @@ function createContainer(options) {
 }
 
 function createGroup(parent, cls, childIndex) {
-  var group = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('g');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(group).add(cls);
+  var group = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('g');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(group).add(cls);
 
   var index = childIndex !== undefined ? childIndex : parent.childNodes.length - 1;
 
@@ -9521,10 +9378,10 @@ Canvas.prototype._init = function(config) {
   // html container
   var container = this._container = createContainer(config);
 
-  var svg = this._svg = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('svg');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(svg, { width: '100%', height: '100%' });
+  var svg = this._svg = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('svg');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["attr"])(svg, { width: '100%', height: '100%' });
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(container, svg);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["append"])(container, svg);
 
   var viewport = this._viewport = createGroup(svg, 'viewport');
 
@@ -9533,7 +9390,7 @@ Canvas.prototype._init = function(config) {
   // debounce canvas.viewbox.changed events
   // for smoother diagram interaction
   if (config.deferUpdate !== false) {
-    this._viewboxChanged = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.debounce)((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(this._viewboxChanged, this), 300);
+    this._viewboxChanged = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["debounce"])(Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(this._viewboxChanged, this), 300);
   }
 
   eventBus.on('diagram.init', function() {
@@ -9599,7 +9456,7 @@ Canvas.prototype._clear = function() {
 
   // remove all elements
   allElements.forEach(function(element) {
-    var type = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_2__.getType)(element);
+    var type = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_2__["getType"])(element);
 
     if (type === 'root') {
       self.setRootElement(null, true);
@@ -9672,7 +9529,7 @@ Canvas.prototype._createLayer = function(name, index) {
     index = 0;
   }
 
-  var childIndex = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.reduce)(this._layers, function(childIndex, layer) {
+  var childIndex = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["reduce"])(this._layers, function(childIndex, layer) {
     if (index >= layer.index) {
       childIndex++;
     }
@@ -9714,14 +9571,14 @@ Canvas.prototype._updateMarker = function(element, marker, add) {
     return;
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)([ container.gfx, container.secondaryGfx ], function(gfx) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])([ container.gfx, container.secondaryGfx ], function(gfx) {
     if (gfx) {
 
       // invoke either addClass or removeClass based on mode
       if (add) {
-        (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).add(marker);
+        Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).add(marker);
       } else {
-        (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).remove(marker);
+        Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).remove(marker);
       }
     }
   });
@@ -9787,7 +9644,7 @@ Canvas.prototype.hasMarker = function(element, marker) {
 
   var gfx = this.getGraphics(element);
 
-  return (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).has(marker);
+  return Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).has(marker);
 };
 
 /**
@@ -9881,7 +9738,7 @@ Canvas.prototype._ensureValid = function(type, element) {
 
   var requiredAttrs = REQUIRED_MODEL_ATTRS[type];
 
-  var valid = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.every)(requiredAttrs, function(attr) {
+  var valid = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["every"])(requiredAttrs, function(attr) {
     return typeof element[attr] !== 'undefined';
   });
 
@@ -9892,7 +9749,7 @@ Canvas.prototype._ensureValid = function(type, element) {
 };
 
 Canvas.prototype._setParent = function(element, parent, parentIndex) {
-  (0,_util_Collections__WEBPACK_IMPORTED_MODULE_3__.add)(parent.children, element, parentIndex);
+  Object(_util_Collections__WEBPACK_IMPORTED_MODULE_1__["add"])(parent.children, element, parentIndex);
   element.parent = parent;
 };
 
@@ -9991,7 +9848,7 @@ Canvas.prototype._removeElement = function(element, type) {
   graphicsFactory.remove(element);
 
   // unset parent <-> child relationship
-  (0,_util_Collections__WEBPACK_IMPORTED_MODULE_3__.remove)(element.parent && element.parent.children, element);
+  Object(_util_Collections__WEBPACK_IMPORTED_MODULE_1__["remove"])(element.parent && element.parent.children, element);
   element.parent = null;
 
   eventBus.fire(type + '.removed', { element: element });
@@ -10177,8 +10034,8 @@ Canvas.prototype.viewbox = function(box) {
     // external components, such as overlays
     innerBox = this.getDefaultLayer().getBBox();
 
-    transform = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.transform)(viewport);
-    matrix = transform ? transform.matrix : (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.createMatrix)();
+    transform = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["transform"])(viewport);
+    matrix = transform ? transform.matrix : Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["createMatrix"])();
     scale = round(matrix.a, 1000);
 
     x = round(-matrix.e || 0, 1000);
@@ -10209,7 +10066,7 @@ Canvas.prototype.viewbox = function(box) {
         .scale(scale)
         .translate(-box.x, -box.y);
 
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.transform)(viewport, matrix);
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["transform"])(viewport, matrix);
     });
   }
 
@@ -10232,7 +10089,7 @@ Canvas.prototype.scroll = function(delta) {
 
   if (delta) {
     this._changeViewbox(function() {
-      delta = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({ dx: 0, dy: 0 }, delta || {});
+      delta = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ dx: 0, dy: 0 }, delta || {});
 
       matrix = this._svg.createSVGMatrix().translate(delta.dx, delta.dy).multiply(matrix);
 
@@ -10267,8 +10124,8 @@ Canvas.prototype.scrollToElement = function(element, padding) {
     left: padding.left || defaultPadding
   };
 
-  var elementBounds = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_2__.getBBox)(element),
-      elementTrbl = (0,_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_4__.asTRBL)(elementBounds),
+  var elementBounds = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_2__["getBBox"])(element),
+      elementTrbl = Object(_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__["asTRBL"])(elementBounds),
       viewboxBounds = this.viewbox(),
       zoom = this.zoom(),
       dx, dy;
@@ -10279,7 +10136,7 @@ Canvas.prototype.scrollToElement = function(element, padding) {
   viewboxBounds.width -= (padding.right + padding.left) / zoom;
   viewboxBounds.height -= (padding.bottom + padding.top) / zoom;
 
-  var viewboxTrbl = (0,_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_4__.asTRBL)(viewboxBounds);
+  var viewboxTrbl = Object(_layout_LayoutUtil__WEBPACK_IMPORTED_MODULE_3__["asTRBL"])(viewboxBounds);
 
   var canFit = elementBounds.width < viewboxBounds.width && elementBounds.height < viewboxBounds.height;
 
@@ -10415,7 +10272,7 @@ Canvas.prototype._setZoom = function(scale, center) {
   var currentScale = currentMatrix.a;
 
   if (center) {
-    centerPoint = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(point, center);
+    centerPoint = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(point, center);
 
     // revert applied viewport transformations
     originalPoint = centerPoint.matrixTransform(currentMatrix.inverse());
@@ -10511,15 +10368,14 @@ Canvas.prototype.resized = function() {
 /*!************************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/ElementFactory.js ***!
   \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ ElementFactory)
-/* harmony export */ });
-/* harmony import */ var _model__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../model */ "./node_modules/diagram-js/lib/model/index.js");
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ElementFactory; });
+/* harmony import */ var _model__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../model */ "./node_modules/diagram-js/lib/model/index.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
 
@@ -10558,13 +10414,13 @@ ElementFactory.prototype.createConnection = function(attrs) {
  */
 ElementFactory.prototype.create = function(type, attrs) {
 
-  attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, attrs || {});
+  attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["assign"])({}, attrs || {});
 
   if (!attrs.id) {
     attrs.id = type + '_' + (this._uid++);
   }
 
-  return (0,_model__WEBPACK_IMPORTED_MODULE_1__.create)(type, attrs);
+  return Object(_model__WEBPACK_IMPORTED_MODULE_0__["create"])(type, attrs);
 };
 
 /***/ }),
@@ -10573,13 +10429,12 @@ ElementFactory.prototype.create = function(type, attrs) {
 /*!*************************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/ElementRegistry.js ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ ElementRegistry)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ElementRegistry; });
 /* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 var ELEMENT_ID = 'data-element-id';
 
@@ -10613,10 +10468,10 @@ ElementRegistry.prototype.add = function(element, gfx, secondaryGfx) {
   this._validateId(id);
 
   // associate dom node with element
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(gfx, ELEMENT_ID, id);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(gfx, ELEMENT_ID, id);
 
   if (secondaryGfx) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(secondaryGfx, ELEMENT_ID, id);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(secondaryGfx, ELEMENT_ID, id);
   }
 
   this._elements[id] = { element: element, gfx: gfx, secondaryGfx: secondaryGfx };
@@ -10635,10 +10490,10 @@ ElementRegistry.prototype.remove = function(element) {
   if (container) {
 
     // unset element id on gfx
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(container.gfx, ELEMENT_ID, '');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(container.gfx, ELEMENT_ID, '');
 
     if (container.secondaryGfx) {
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(container.secondaryGfx, ELEMENT_ID, '');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(container.secondaryGfx, ELEMENT_ID, '');
     }
 
     delete elements[id];
@@ -10693,7 +10548,7 @@ ElementRegistry.prototype.get = function(filter) {
   if (typeof filter === 'string') {
     id = filter;
   } else {
-    id = filter && (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(filter, ELEMENT_ID);
+    id = filter && Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(filter, ELEMENT_ID);
   }
 
   var container = this._elements[id];
@@ -10817,13 +10672,12 @@ ElementRegistry.prototype._validateId = function(id) {
 /*!******************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/EventBus.js ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ EventBus)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return EventBus; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -10944,22 +10798,22 @@ function EventBus() {
  */
 EventBus.prototype.on = function(events, priority, callback, that) {
 
-  events = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(events) ? events : [ events ];
+  events = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(events) ? events : [ events ];
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isFunction)(priority)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isFunction"])(priority)) {
     that = callback;
     callback = priority;
     priority = DEFAULT_PRIORITY;
   }
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(priority)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(priority)) {
     throw new Error('priority must be a number');
   }
 
   var actualCallback = callback;
 
   if (that) {
-    actualCallback = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(callback, that);
+    actualCallback = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(callback, that);
 
     // make sure we remember and are able to remove
     // bound callbacks via {@link #off} using the original
@@ -10990,13 +10844,13 @@ EventBus.prototype.on = function(events, priority, callback, that) {
 EventBus.prototype.once = function(event, priority, callback, that) {
   var self = this;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isFunction)(priority)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isFunction"])(priority)) {
     that = callback;
     callback = priority;
     priority = DEFAULT_PRIORITY;
   }
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(priority)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(priority)) {
     throw new Error('priority must be a number');
   }
 
@@ -11029,7 +10883,7 @@ EventBus.prototype.once = function(event, priority, callback, that) {
  */
 EventBus.prototype.off = function(events, callback) {
 
-  events = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(events) ? events : [ events ];
+  events = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(events) ? events : [ events ];
 
   var self = this;
 
@@ -11325,7 +11179,7 @@ InternalEvent.prototype.preventDefault = function() {
 };
 
 InternalEvent.prototype.init = function(data) {
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(this, data || {});
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(this, data || {});
 };
 
 
@@ -11348,19 +11202,18 @@ function invokeFunction(fn, args) {
 /*!*************************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/GraphicsFactory.js ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ GraphicsFactory)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var _util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util/GraphicsUtil */ "./node_modules/diagram-js/lib/util/GraphicsUtil.js");
-/* harmony import */ var _util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../util/SvgTransformUtil */ "./node_modules/diagram-js/lib/util/SvgTransformUtil.js");
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
-/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GraphicsFactory; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var _util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/GraphicsUtil */ "./node_modules/diagram-js/lib/util/GraphicsUtil.js");
+/* harmony import */ var _util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/SvgTransformUtil */ "./node_modules/diagram-js/lib/util/SvgTransformUtil.js");
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
 
 
 
@@ -11397,12 +11250,12 @@ GraphicsFactory.prototype._getChildrenContainer = function(element) {
   if (!element.parent) {
     childrenGfx = gfx;
   } else {
-    childrenGfx = (0,_util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_0__.getChildren)(gfx);
+    childrenGfx = Object(_util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_1__["getChildren"])(gfx);
     if (!childrenGfx) {
-      childrenGfx = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('g');
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(childrenGfx).add('djs-children');
+      childrenGfx = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('g');
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(childrenGfx).add('djs-children');
 
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(gfx.parentNode, childrenGfx);
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["append"])(gfx.parentNode, childrenGfx);
     }
   }
 
@@ -11414,9 +11267,9 @@ GraphicsFactory.prototype._getChildrenContainer = function(element) {
  * cleared visual (the <g class="djs-visual" /> element).
  */
 GraphicsFactory.prototype._clear = function(gfx) {
-  var visual = (0,_util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_0__.getVisual)(gfx);
+  var visual = Object(_util_GraphicsUtil__WEBPACK_IMPORTED_MODULE_1__["getVisual"])(gfx);
 
-  (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.clear)(visual);
+  Object(min_dom__WEBPACK_IMPORTED_MODULE_3__["clear"])(visual);
 
   return visual;
 };
@@ -11451,38 +11304,38 @@ GraphicsFactory.prototype._clear = function(gfx) {
 GraphicsFactory.prototype._createContainer = function(
     type, childrenGfx, parentIndex, isFrame
 ) {
-  var outerGfx = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('g');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(outerGfx).add('djs-group');
+  var outerGfx = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('g');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(outerGfx).add('djs-group');
 
   // insert node at position
   if (typeof parentIndex !== 'undefined') {
     prependTo(outerGfx, childrenGfx, childrenGfx.childNodes[parentIndex]);
   } else {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(childrenGfx, outerGfx);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["append"])(childrenGfx, outerGfx);
   }
 
-  var gfx = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('g');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).add('djs-element');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).add('djs-' + type);
+  var gfx = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('g');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).add('djs-element');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).add('djs-' + type);
 
   if (isFrame) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(gfx).add('djs-frame');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(gfx).add('djs-frame');
   }
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(outerGfx, gfx);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["append"])(outerGfx, gfx);
 
   // create visual
-  var visual = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('g');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.classes)(visual).add('djs-visual');
+  var visual = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["create"])('g');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["classes"])(visual).add('djs-visual');
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(gfx, visual);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["append"])(gfx, visual);
 
   return gfx;
 };
 
 GraphicsFactory.prototype.create = function(type, element, parentIndex) {
   var childrenGfx = this._getChildrenContainer(element.parent);
-  return this._createContainer(type, childrenGfx, parentIndex, (0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.isFrameElement)(element));
+  return this._createContainer(type, childrenGfx, parentIndex, Object(_util_Elements__WEBPACK_IMPORTED_MODULE_5__["isFrameElement"])(element));
 };
 
 GraphicsFactory.prototype.updateContainments = function(elements) {
@@ -11491,7 +11344,7 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
       elementRegistry = this._elementRegistry,
       parents;
 
-  parents = (0,min_dash__WEBPACK_IMPORTED_MODULE_4__.reduce)(elements, function(map, e) {
+  parents = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["reduce"])(elements, function(map, e) {
 
     if (e.parent) {
       map[e.parent.id] = e.parent;
@@ -11502,7 +11355,7 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
 
   // update all parents of changed and reorganized their children
   // in the correct order (as indicated in our model)
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_4__.forEach)(parents, function(parent) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(parents, function(parent) {
 
     var children = parent.children;
 
@@ -11512,7 +11365,7 @@ GraphicsFactory.prototype.updateContainments = function(elements) {
 
     var childrenGfx = self._getChildrenContainer(parent);
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_4__.forEach)(children.slice().reverse(), function(child) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(children.slice().reverse(), function(child) {
       var childGfx = elementRegistry.getGraphics(child);
 
       prependTo(childGfx.parentNode, childrenGfx);
@@ -11558,7 +11411,7 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
     this.drawShape(visual, element);
 
     // update positioning
-    (0,_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_5__.translate)(gfx, element.x, element.y);
+    Object(_util_SvgTransformUtil__WEBPACK_IMPORTED_MODULE_2__["translate"])(gfx, element.x, element.y);
   } else
   if (type === 'connection') {
     this.drawConnection(visual, element);
@@ -11567,9 +11420,9 @@ GraphicsFactory.prototype.update = function(type, element, gfx) {
   }
 
   if (element.hidden) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(gfx, 'display', 'none');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["attr"])(gfx, 'display', 'none');
   } else {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(gfx, 'display', 'block');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["attr"])(gfx, 'display', 'block');
   }
 };
 
@@ -11577,7 +11430,7 @@ GraphicsFactory.prototype.remove = function(element) {
   var gfx = this._elementRegistry.getGraphics(element);
 
   // remove
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.remove)(gfx.parentNode);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_4__["remove"])(gfx.parentNode);
 };
 
 
@@ -11602,13 +11455,11 @@ function prependTo(newNode, parentNode, siblingNode) {
 /*!***************************************************!*\
   !*** ./node_modules/diagram-js/lib/core/index.js ***!
   \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _draw__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../draw */ "./node_modules/diagram-js/lib/draw/index.js");
 /* harmony import */ var _Canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Canvas */ "./node_modules/diagram-js/lib/core/Canvas.js");
 /* harmony import */ var _ElementRegistry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ElementRegistry */ "./node_modules/diagram-js/lib/core/ElementRegistry.js");
@@ -11623,14 +11474,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  __depends__: [ _draw__WEBPACK_IMPORTED_MODULE_0__.default ],
+/* harmony default export */ __webpack_exports__["default"] = ({
+  __depends__: [ _draw__WEBPACK_IMPORTED_MODULE_0__["default"] ],
   __init__: [ 'canvas' ],
-  canvas: [ 'type', _Canvas__WEBPACK_IMPORTED_MODULE_1__.default ],
-  elementRegistry: [ 'type', _ElementRegistry__WEBPACK_IMPORTED_MODULE_2__.default ],
-  elementFactory: [ 'type', _ElementFactory__WEBPACK_IMPORTED_MODULE_3__.default ],
-  eventBus: [ 'type', _EventBus__WEBPACK_IMPORTED_MODULE_4__.default ],
-  graphicsFactory: [ 'type', _GraphicsFactory__WEBPACK_IMPORTED_MODULE_5__.default ]
+  canvas: [ 'type', _Canvas__WEBPACK_IMPORTED_MODULE_1__["default"] ],
+  elementRegistry: [ 'type', _ElementRegistry__WEBPACK_IMPORTED_MODULE_2__["default"] ],
+  elementFactory: [ 'type', _ElementFactory__WEBPACK_IMPORTED_MODULE_3__["default"] ],
+  eventBus: [ 'type', _EventBus__WEBPACK_IMPORTED_MODULE_4__["default"] ],
+  graphicsFactory: [ 'type', _GraphicsFactory__WEBPACK_IMPORTED_MODULE_5__["default"] ]
 });
 
 /***/ }),
@@ -11639,13 +11490,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************************************************!*\
   !*** ./node_modules/diagram-js/lib/draw/BaseRenderer.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ BaseRenderer)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseRenderer; });
 var DEFAULT_RENDER_PRIORITY = 1000;
 
 /**
@@ -11739,19 +11589,18 @@ BaseRenderer.prototype.getConnectionPath = function() {};
 /*!*************************************************************!*\
   !*** ./node_modules/diagram-js/lib/draw/DefaultRenderer.js ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ DefaultRenderer)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return DefaultRenderer; });
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
 /* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _BaseRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./BaseRenderer */ "./node_modules/diagram-js/lib/draw/BaseRenderer.js");
-/* harmony import */ var _util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../util/RenderUtil */ "./node_modules/diagram-js/lib/util/RenderUtil.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
-/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
+/* harmony import */ var _util_RenderUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/RenderUtil */ "./node_modules/diagram-js/lib/util/RenderUtil.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
 
 
 
@@ -11775,14 +11624,14 @@ var DEFAULT_RENDER_PRIORITY = 1;
 function DefaultRenderer(eventBus, styles) {
 
   //
-  _BaseRenderer__WEBPACK_IMPORTED_MODULE_1__.default.call(this, eventBus, DEFAULT_RENDER_PRIORITY);
+  _BaseRenderer__WEBPACK_IMPORTED_MODULE_1__["default"].call(this, eventBus, DEFAULT_RENDER_PRIORITY);
 
   this.CONNECTION_STYLE = styles.style([ 'no-fill' ], { strokeWidth: 5, stroke: 'fuchsia' });
   this.SHAPE_STYLE = styles.style({ fill: 'white', stroke: 'fuchsia', strokeWidth: 2 });
   this.FRAME_STYLE = styles.style([ 'no-fill' ], { stroke: 'fuchsia', strokeDasharray: 4, strokeWidth: 2 });
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(DefaultRenderer, _BaseRenderer__WEBPACK_IMPORTED_MODULE_1__.default);
+inherits__WEBPACK_IMPORTED_MODULE_0___default()(DefaultRenderer, _BaseRenderer__WEBPACK_IMPORTED_MODULE_1__["default"]);
 
 
 DefaultRenderer.prototype.canRender = function() {
@@ -11790,30 +11639,30 @@ DefaultRenderer.prototype.canRender = function() {
 };
 
 DefaultRenderer.prototype.drawShape = function drawShape(visuals, element) {
-  var rect = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.create)('rect');
+  var rect = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["create"])('rect');
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.attr)(rect, {
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(rect, {
     x: 0,
     y: 0,
     width: element.width || 0,
     height: element.height || 0
   });
 
-  if ((0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.isFrameElement)(element)) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.attr)(rect, this.FRAME_STYLE);
+  if (Object(_util_Elements__WEBPACK_IMPORTED_MODULE_4__["isFrameElement"])(element)) {
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(rect, this.FRAME_STYLE);
   } else {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.attr)(rect, this.SHAPE_STYLE);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(rect, this.SHAPE_STYLE);
   }
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.append)(visuals, rect);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["append"])(visuals, rect);
 
   return rect;
 };
 
 DefaultRenderer.prototype.drawConnection = function drawConnection(visuals, connection) {
 
-  var line = (0,_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__.createLine)(connection.waypoints, this.CONNECTION_STYLE);
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_2__.append)(visuals, line);
+  var line = Object(_util_RenderUtil__WEBPACK_IMPORTED_MODULE_2__["createLine"])(connection.waypoints, this.CONNECTION_STYLE);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["append"])(visuals, line);
 
   return line;
 };
@@ -11833,7 +11682,7 @@ DefaultRenderer.prototype.getShapePath = function getShapePath(shape) {
     ['z']
   ];
 
-  return (0,_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__.componentsToPath)(shapePath);
+  return Object(_util_RenderUtil__WEBPACK_IMPORTED_MODULE_2__["componentsToPath"])(shapePath);
 };
 
 DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connection) {
@@ -11850,7 +11699,7 @@ DefaultRenderer.prototype.getConnectionPath = function getConnectionPath(connect
     connectionPath.push([ idx === 0 ? 'M' : 'L', point.x, point.y ]);
   }
 
-  return (0,_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__.componentsToPath)(connectionPath);
+  return Object(_util_RenderUtil__WEBPACK_IMPORTED_MODULE_2__["componentsToPath"])(connectionPath);
 };
 
 
@@ -11863,13 +11712,12 @@ DefaultRenderer.$inject = [ 'eventBus', 'styles' ];
 /*!****************************************************!*\
   !*** ./node_modules/diagram-js/lib/draw/Styles.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Styles)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Styles; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -11906,7 +11754,7 @@ function Styles() {
   this.cls = function(className, traits, additionalAttrs) {
     var attrs = this.style(traits, additionalAttrs);
 
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(attrs, { 'class': className });
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(attrs, { 'class': className });
   };
 
   /**
@@ -11919,25 +11767,25 @@ function Styles() {
    */
   this.style = function(traits, additionalAttrs) {
 
-    if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(traits) && !additionalAttrs) {
+    if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(traits) && !additionalAttrs) {
       additionalAttrs = traits;
       traits = [];
     }
 
-    var attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.reduce)(traits, function(attrs, t) {
-      return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(attrs, defaultTraits[t] || {});
+    var attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["reduce"])(traits, function(attrs, t) {
+      return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(attrs, defaultTraits[t] || {});
     }, {});
 
-    return additionalAttrs ? (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(attrs, additionalAttrs) : attrs;
+    return additionalAttrs ? Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(attrs, additionalAttrs) : attrs;
   };
 
   this.computeStyle = function(custom, traits, defaultStyles) {
-    if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(traits)) {
+    if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(traits)) {
       defaultStyles = traits;
       traits = [];
     }
 
-    return self.style(traits || [], (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, defaultStyles, custom || {}));
+    return self.style(traits || [], Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, defaultStyles, custom || {}));
   };
 }
 
@@ -11948,22 +11796,20 @@ function Styles() {
 /*!***************************************************!*\
   !*** ./node_modules/diagram-js/lib/draw/index.js ***!
   \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _DefaultRenderer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./DefaultRenderer */ "./node_modules/diagram-js/lib/draw/DefaultRenderer.js");
 /* harmony import */ var _Styles__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Styles */ "./node_modules/diagram-js/lib/draw/Styles.js");
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'defaultRenderer' ],
-  defaultRenderer: [ 'type', _DefaultRenderer__WEBPACK_IMPORTED_MODULE_0__.default ],
-  styles: [ 'type', _Styles__WEBPACK_IMPORTED_MODULE_1__.default ]
+  defaultRenderer: [ 'type', _DefaultRenderer__WEBPACK_IMPORTED_MODULE_0__["default"] ],
+  styles: [ 'type', _Styles__WEBPACK_IMPORTED_MODULE_1__["default"] ]
 });
 
 
@@ -11973,16 +11819,15 @@ __webpack_require__.r(__webpack_exports__);
 /*!**************************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/interaction-events/InteractionEvents.js ***!
   \**************************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ InteractionEvents)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InteractionEvents; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 /* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var _util_Mouse__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Mouse */ "./node_modules/diagram-js/lib/util/Mouse.js");
+/* harmony import */ var _util_Mouse__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/Mouse */ "./node_modules/diagram-js/lib/util/Mouse.js");
 /* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 /* harmony import */ var _util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../util/RenderUtil */ "./node_modules/diagram-js/lib/util/RenderUtil.js");
 
@@ -11998,7 +11843,7 @@ __webpack_require__.r(__webpack_exports__);
 function allowAll(event) { return true; }
 
 function allowPrimaryAndAuxiliary(event) {
-  return (0,_util_Mouse__WEBPACK_IMPORTED_MODULE_0__.isPrimaryButton)(event) || (0,_util_Mouse__WEBPACK_IMPORTED_MODULE_0__.isAuxiliaryButton)(event);
+  return Object(_util_Mouse__WEBPACK_IMPORTED_MODULE_2__["isPrimaryButton"])(event) || Object(_util_Mouse__WEBPACK_IMPORTED_MODULE_2__["isAuxiliaryButton"])(event);
 }
 
 var LOW_PRIORITY = 500;
@@ -12081,7 +11926,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
 
   function isIgnored(localEventName, event) {
 
-    var filter = ignoredFilters[localEventName] || _util_Mouse__WEBPACK_IMPORTED_MODULE_0__.isPrimaryButton;
+    var filter = ignoredFilters[localEventName] || _util_Mouse__WEBPACK_IMPORTED_MODULE_2__["isPrimaryButton"];
 
     // only react on left mouse button interactions
     // except for interaction events that are enabled
@@ -12146,7 +11991,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
       ignoredFilters[localEvent] = ignoredFilter;
     }
 
-    handler.$delegate = min_dom__WEBPACK_IMPORTED_MODULE_1__.delegate.bind(node, ELEMENT_SELECTOR, event, handler);
+    handler.$delegate = min_dom__WEBPACK_IMPORTED_MODULE_1__["delegate"].bind(node, ELEMENT_SELECTOR, event, handler);
   }
 
   function unregisterEvent(node, event, localEvent) {
@@ -12157,17 +12002,17 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
       return;
     }
 
-    min_dom__WEBPACK_IMPORTED_MODULE_1__.delegate.unbind(node, event, handler.$delegate);
+    min_dom__WEBPACK_IMPORTED_MODULE_1__["delegate"].unbind(node, event, handler.$delegate);
   }
 
   function registerEvents(svg) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(bindings, function(val, key) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(bindings, function(val, key) {
       registerEvent(svg, key, val);
     });
   }
 
   function unregisterEvents(svg) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(bindings, function(val, key) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(bindings, function(val, key) {
       unregisterEvent(svg, key, val);
     });
   }
@@ -12235,7 +12080,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
 
   function createHitStyle(classNames, attrs) {
 
-    attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({
+    attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
       stroke: 'white',
       strokeWidth: 15
     }, attrs || {});
@@ -12254,13 +12099,13 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
       throw new Error('invalid hit type <' + type + '>');
     }
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_3__.attr)(hit, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(hit, attrs);
 
     return hit;
   }
 
   function appendHit(gfx, hit) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_3__.append)(gfx, hit);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["append"])(gfx, hit);
   }
 
 
@@ -12272,9 +12117,9 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
    * @param {SVGElement} gfx
    */
   this.removeHits = function(gfx) {
-    var hits = (0,min_dom__WEBPACK_IMPORTED_MODULE_1__.queryAll)('.djs-hit', gfx);
+    var hits = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["queryAll"])('.djs-hit', gfx);
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(hits, tiny_svg__WEBPACK_IMPORTED_MODULE_3__.remove);
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(hits, tiny_svg__WEBPACK_IMPORTED_MODULE_3__["remove"]);
   };
 
   /**
@@ -12313,7 +12158,7 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
    */
   this.createWaypointsHit = function(gfx, waypoints) {
 
-    var hit = (0,_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__.createLine)(waypoints);
+    var hit = Object(_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__["createLine"])(waypoints);
 
     applyStyle(hit, 'stroke');
 
@@ -12333,16 +12178,16 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
    */
   this.createBoxHit = function(gfx, type, attrs) {
 
-    attrs = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({
+    attrs = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
       x: 0,
       y: 0
     }, attrs);
 
-    var hit = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_3__.create)('rect');
+    var hit = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["create"])('rect');
 
     applyStyle(hit, type);
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_3__.attr)(hit, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(hit, attrs);
 
     appendHit(gfx, hit);
 
@@ -12359,16 +12204,16 @@ function InteractionEvents(eventBus, elementRegistry, styles) {
    */
   this.updateDefaultHit = function(element, gfx) {
 
-    var hit = (0,min_dom__WEBPACK_IMPORTED_MODULE_1__.query)('.djs-hit', gfx);
+    var hit = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["query"])('.djs-hit', gfx);
 
     if (!hit) {
       return;
     }
 
     if (element.waypoints) {
-      (0,_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__.updateLine)(hit, element.waypoints);
+      Object(_util_RenderUtil__WEBPACK_IMPORTED_MODULE_4__["updateLine"])(hit, element.waypoints);
     } else {
-      (0,tiny_svg__WEBPACK_IMPORTED_MODULE_3__.attr)(hit, {
+      Object(tiny_svg__WEBPACK_IMPORTED_MODULE_3__["attr"])(hit, {
         width: element.width,
         height: element.height
       });
@@ -12479,19 +12324,17 @@ InteractionEvents.$inject = [
 /*!**************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/interaction-events/index.js ***!
   \**************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _InteractionEvents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./InteractionEvents */ "./node_modules/diagram-js/lib/features/interaction-events/InteractionEvents.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'interactionEvents' ],
-  interactionEvents: [ 'type', _InteractionEvents__WEBPACK_IMPORTED_MODULE_0__.default ]
+  interactionEvents: [ 'type', _InteractionEvents__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -12500,17 +12343,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/outline/Outline.js ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Outline)
-/* harmony export */ });
-/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
-/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Outline; });
+/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
+/* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 /* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
 var LOW_PRIORITY = 500;
@@ -12541,16 +12383,16 @@ function Outline(eventBus, styles, elementRegistry) {
   var self = this;
 
   function createOutline(gfx, bounds) {
-    var outline = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.create)('rect');
+    var outline = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["create"])('rect');
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(outline, (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(outline, Object(min_dash__WEBPACK_IMPORTED_MODULE_3__["assign"])({
       x: 10,
       y: 10,
       width: 100,
       height: 100
     }, OUTLINE_STYLE));
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.append)(gfx, outline);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["append"])(gfx, outline);
 
     return outline;
   }
@@ -12561,7 +12403,7 @@ function Outline(eventBus, styles, elementRegistry) {
     var element = event.element,
         gfx = event.gfx;
 
-    var outline = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.query)('.djs-outline', gfx);
+    var outline = Object(min_dom__WEBPACK_IMPORTED_MODULE_2__["query"])('.djs-outline', gfx);
 
     if (!outline) {
       outline = createOutline(gfx, element);
@@ -12574,7 +12416,7 @@ function Outline(eventBus, styles, elementRegistry) {
     var element = event.element,
         gfx = event.gfx;
 
-    var outline = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.query)('.djs-outline', gfx);
+    var outline = Object(min_dom__WEBPACK_IMPORTED_MODULE_2__["query"])('.djs-outline', gfx);
 
     if (!outline) {
       outline = createOutline(gfx, element);
@@ -12594,7 +12436,7 @@ function Outline(eventBus, styles, elementRegistry) {
  */
 Outline.prototype.updateShapeOutline = function(outline, element) {
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(outline, {
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(outline, {
     x: -this.offset,
     y: -this.offset,
     width: element.width + this.offset * 2,
@@ -12613,9 +12455,9 @@ Outline.prototype.updateShapeOutline = function(outline, element) {
  */
 Outline.prototype.updateConnectionOutline = function(outline, connection) {
 
-  var bbox = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.getBBox)(connection);
+  var bbox = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_0__["getBBox"])(connection);
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(outline, {
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(outline, {
     x: bbox.x - this.offset,
     y: bbox.y - this.offset,
     width: bbox.width + this.offset * 2,
@@ -12633,19 +12475,17 @@ Outline.$inject = ['eventBus', 'styles', 'elementRegistry'];
 /*!***************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/outline/index.js ***!
   \***************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _Outline__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Outline */ "./node_modules/diagram-js/lib/features/outline/Outline.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'outline' ],
-  outline: [ 'type', _Outline__WEBPACK_IMPORTED_MODULE_0__.default ]
+  outline: [ 'type', _Outline__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -12654,17 +12494,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/overlays/Overlays.js ***!
   \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Overlays)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
-/* harmony import */ var _util_IdGenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/IdGenerator */ "./node_modules/diagram-js/lib/util/IdGenerator.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Overlays; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony import */ var _util_Elements__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/Elements */ "./node_modules/diagram-js/lib/util/Elements.js");
+/* harmony import */ var _util_IdGenerator__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../util/IdGenerator */ "./node_modules/diagram-js/lib/util/IdGenerator.js");
 
 
 
@@ -12674,7 +12513,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 // document wide unique overlay ids
-var ids = new _util_IdGenerator__WEBPACK_IMPORTED_MODULE_0__.default('ov');
+var ids = new _util_IdGenerator__WEBPACK_IMPORTED_MODULE_3__["default"]('ov');
 
 var LOW_PRIORITY = 500;
 
@@ -12751,7 +12590,7 @@ function Overlays(config, eventBus, canvas, elementRegistry) {
 
   this._ids = ids;
 
-  this._overlayDefaults = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({
+  this._overlayDefaults = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({
 
     // no show constraints
     show: null,
@@ -12813,11 +12652,11 @@ Overlays.$inject = [
  */
 Overlays.prototype.get = function(search) {
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isString)(search)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(search)) {
     search = { id: search };
   }
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isString)(search.element)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(search.element)) {
     search.element = this._elementRegistry.get(search.element);
   }
 
@@ -12826,13 +12665,13 @@ Overlays.prototype.get = function(search) {
 
     // return a list of overlays when searching by element (+type)
     if (container) {
-      return search.type ? (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.filter)(container.overlays, (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.matchPattern)({ type: search.type })) : container.overlays.slice();
+      return search.type ? Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(container.overlays, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["matchPattern"])({ type: search.type })) : container.overlays.slice();
     } else {
       return [];
     }
   } else
   if (search.type) {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.filter)(this._overlays, (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.matchPattern)({ type: search.type }));
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(this._overlays, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["matchPattern"])({ type: search.type }));
   } else {
 
     // return single element when searching by id
@@ -12865,7 +12704,7 @@ Overlays.prototype.get = function(search) {
  */
 Overlays.prototype.add = function(element, type, overlay) {
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isObject)(type)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isObject"])(type)) {
     overlay = type;
     type = null;
   }
@@ -12888,7 +12727,7 @@ Overlays.prototype.add = function(element, type, overlay) {
 
   var id = this._ids.next();
 
-  overlay = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)({}, this._overlayDefaults, overlay, {
+  overlay = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, this._overlayDefaults, overlay, {
     id: id,
     type: type,
     element: element,
@@ -12913,19 +12752,19 @@ Overlays.prototype.remove = function(filter) {
 
   var overlays = this.get(filter) || [];
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isArray)(overlays)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(overlays)) {
     overlays = [ overlays ];
   }
 
   var self = this;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(overlays, function(overlay) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(overlays, function(overlay) {
 
     var container = self._getOverlayContainer(overlay.element, true);
 
     if (overlay) {
-      (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.remove)(overlay.html);
-      (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.remove)(overlay.htmlContainer);
+      Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["remove"])(overlay.html);
+      Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["remove"])(overlay.htmlContainer);
 
       delete overlay.htmlContainer;
       delete overlay.element;
@@ -12958,7 +12797,7 @@ Overlays.prototype.clear = function() {
 
   this._overlayContainers = [];
 
-  (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.clear)(this._overlayRoot);
+  Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["clear"])(this._overlayRoot);
 };
 
 Overlays.prototype._updateOverlayContainer = function(container) {
@@ -12972,14 +12811,14 @@ Overlays.prototype._updateOverlayContainer = function(container) {
       y = element.y;
 
   if (element.waypoints) {
-    var bbox = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.getBBox)(element);
+    var bbox = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_2__["getBBox"])(element);
     x = bbox.x;
     y = bbox.y;
   }
 
   setPosition(html, x, y);
 
-  (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.attr)(container.html, 'data-container-id', element.id);
+  Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["attr"])(container.html, 'data-container-id', element.id);
 };
 
 
@@ -13001,7 +12840,7 @@ Overlays.prototype._updateOverlay = function(overlay) {
     var width;
 
     if (element.waypoints) {
-      width = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.getBBox)(element).width;
+      width = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_2__["getBBox"])(element).width;
     } else {
       width = element.width;
     }
@@ -13014,7 +12853,7 @@ Overlays.prototype._updateOverlay = function(overlay) {
     var height;
 
     if (element.waypoints) {
-      height = (0,_util_Elements__WEBPACK_IMPORTED_MODULE_3__.getBBox)(element).height;
+      height = Object(_util_Elements__WEBPACK_IMPORTED_MODULE_2__["getBBox"])(element).height;
     } else {
       height = element.height;
     }
@@ -13027,7 +12866,7 @@ Overlays.prototype._updateOverlay = function(overlay) {
 
 
 Overlays.prototype._createOverlayContainer = function(element) {
-  var html = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.domify)('<div class="djs-overlays" style="position: absolute" />');
+  var html = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])('<div class="djs-overlays" style="position: absolute" />');
 
   this._overlayRoot.appendChild(html);
 
@@ -13064,7 +12903,7 @@ Overlays.prototype._updateRoot = function(viewbox) {
 
 
 Overlays.prototype._getOverlayContainer = function(element, raw) {
-  var container = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.find)(this._overlayContainers, function(c) {
+  var container = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(this._overlayContainers, function(c) {
     return c.element === element;
   });
 
@@ -13092,18 +12931,18 @@ Overlays.prototype._addOverlay = function(overlay) {
 
   // create proper html elements from
   // overlay HTML strings
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isString)(html)) {
-    html = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.domify)(html);
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(html)) {
+    html = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])(html);
   }
 
   overlayContainer = this._getOverlayContainer(element);
 
-  htmlContainer = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.domify)('<div class="djs-overlay" data-overlay-id="' + id + '" style="position: absolute">');
+  htmlContainer = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])('<div class="djs-overlay" data-overlay-id="' + id + '" style="position: absolute">');
 
   htmlContainer.appendChild(html);
 
   if (overlay.type) {
-    (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.classes)(htmlContainer).add('djs-overlay-' + overlay.type);
+    Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["classes"])(htmlContainer).add('djs-overlay-' + overlay.type);
   }
 
   overlay.htmlContainer = htmlContainer;
@@ -13127,8 +12966,8 @@ Overlays.prototype._updateOverlayVisibilty = function(overlay, viewbox) {
 
   if (show) {
     if (
-      ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isDefined)(minZoom) && minZoom > viewbox.scale) ||
-      ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isDefined)(maxZoom) && maxZoom < viewbox.scale)
+      (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isDefined"])(minZoom) && minZoom > viewbox.scale) ||
+      (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isDefined"])(maxZoom) && maxZoom < viewbox.scale)
     ) {
       visible = false;
     }
@@ -13158,16 +12997,16 @@ Overlays.prototype._updateOverlayScale = function(overlay, viewbox) {
       maxScale = shouldScale.max;
     }
 
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isDefined)(minScale) && viewbox.scale < minScale) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isDefined"])(minScale) && viewbox.scale < minScale) {
       scale = (1 / viewbox.scale || 1) * minScale;
     }
 
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isDefined)(maxScale) && viewbox.scale > maxScale) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isDefined"])(maxScale) && viewbox.scale > maxScale) {
       scale = (1 / viewbox.scale || 1) * maxScale;
     }
   }
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isDefined)(scale)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isDefined"])(scale)) {
     transform = 'scale(' + scale + ',' + scale + ')';
   }
 
@@ -13179,7 +13018,7 @@ Overlays.prototype._updateOverlaysVisibilty = function(viewbox) {
 
   var self = this;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(this._overlays, function(overlay) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(this._overlays, function(overlay) {
     self._updateOverlayVisibilty(overlay, viewbox);
   });
 };
@@ -13216,14 +13055,14 @@ Overlays.prototype._init = function() {
     var element = e.element;
     var overlays = self.get({ element: element });
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(overlays, function(o) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(overlays, function(o) {
       self.remove(o.id);
     });
 
     var container = self._getOverlayContainer(element);
 
     if (container) {
-      (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.remove)(container.html);
+      Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["remove"])(container.html);
       var i = self._overlayContainers.indexOf(container);
       if (i !== -1) {
         self._overlayContainers.splice(i, 1);
@@ -13240,7 +13079,7 @@ Overlays.prototype._init = function() {
     var container = self._getOverlayContainer(element, true);
 
     if (container) {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.forEach)(container.overlays, function(overlay) {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(container.overlays, function(overlay) {
         self._updateOverlay(overlay);
       });
 
@@ -13254,7 +13093,7 @@ Overlays.prototype._init = function() {
   eventBus.on('element.marker.update', function(e) {
     var container = self._getOverlayContainer(e.element, true);
     if (container) {
-      (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.classes)(container.html)[e.add ? 'add' : 'remove'](e.marker);
+      Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["classes"])(container.html)[e.add ? 'add' : 'remove'](e.marker);
     }
   });
 
@@ -13269,7 +13108,7 @@ Overlays.prototype._init = function() {
 // helpers /////////////////////////////
 
 function createRoot(parentNode) {
-  var root = (0,min_dom__WEBPACK_IMPORTED_MODULE_2__.domify)(
+  var root = Object(min_dom__WEBPACK_IMPORTED_MODULE_1__["domify"])(
     '<div class="djs-overlay-container" style="position: absolute; width: 0; height: 0;" />'
   );
 
@@ -13279,7 +13118,7 @@ function createRoot(parentNode) {
 }
 
 function setPosition(el, x, y) {
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.assign)(el.style, { left: x + 'px', top: y + 'px' });
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(el.style, { left: x + 'px', top: y + 'px' });
 }
 
 function setVisible(el, visible) {
@@ -13301,19 +13140,17 @@ function setTransform(el, transform) {
 /*!****************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/overlays/index.js ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _Overlays__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Overlays */ "./node_modules/diagram-js/lib/features/overlays/Overlays.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'overlays' ],
-  overlays: [ 'type', _Overlays__WEBPACK_IMPORTED_MODULE_0__.default ]
+  overlays: [ 'type', _Overlays__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -13322,13 +13159,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/selection/Selection.js ***!
   \*********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Selection)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Selection; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -13401,14 +13237,14 @@ Selection.prototype.select = function(elements, add) {
   var selectedElements = this._selectedElements,
       oldSelection = selectedElements.slice();
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(elements)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(elements)) {
     elements = elements ? [ elements ] : [];
   }
 
   // selection may be cleared by passing an empty array or null
   // to the method
   if (add) {
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(elements, function(element) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(elements, function(element) {
       if (selectedElements.indexOf(element) !== -1) {
 
         // already selected
@@ -13431,15 +13267,14 @@ Selection.prototype.select = function(elements, add) {
 /*!*****************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/selection/SelectionBehavior.js ***!
   \*****************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ SelectionBehavior)
-/* harmony export */ });
-/* harmony import */ var _util_Mouse__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/Mouse */ "./node_modules/diagram-js/lib/util/Mouse.js");
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SelectionBehavior; });
+/* harmony import */ var _util_Mouse__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Mouse */ "./node_modules/diagram-js/lib/util/Mouse.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
 
@@ -13462,7 +13297,7 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
         return;
       }
 
-      if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(autoSelect)) {
+      if (Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["isArray"])(autoSelect)) {
         selection.select(autoSelect);
       } else {
 
@@ -13490,7 +13325,7 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
     var shape = elementRegistry.get(event.context.shape.id);
 
     // Always select main shape on move
-    var isSelected = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.find)(previousSelection, function(selectedShape) {
+    var isSelected = Object(min_dash__WEBPACK_IMPORTED_MODULE_1__["find"])(previousSelection, function(selectedShape) {
       return shape.id === selectedShape.id;
     });
 
@@ -13502,7 +13337,7 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
   // Select elements on click
   eventBus.on('element.click', function(event) {
 
-    if (!(0,_util_Mouse__WEBPACK_IMPORTED_MODULE_1__.isPrimaryButton)(event)) {
+    if (!Object(_util_Mouse__WEBPACK_IMPORTED_MODULE_0__["isPrimaryButton"])(event)) {
       return;
     }
 
@@ -13516,7 +13351,7 @@ function SelectionBehavior(eventBus, selection, canvas, elementRegistry) {
         isMultiSelect = selection.get().length > 1;
 
     // Add to selection if CTRL or SHIFT pressed
-    var add = (0,_util_Mouse__WEBPACK_IMPORTED_MODULE_1__.hasPrimaryModifier)(event) || (0,_util_Mouse__WEBPACK_IMPORTED_MODULE_1__.hasSecondaryModifier)(event);
+    var add = Object(_util_Mouse__WEBPACK_IMPORTED_MODULE_0__["hasPrimaryModifier"])(event) || Object(_util_Mouse__WEBPACK_IMPORTED_MODULE_0__["hasSecondaryModifier"])(event);
 
     if (isSelected && isMultiSelect) {
       if (add) {
@@ -13559,13 +13394,12 @@ function isShown(element) {
 /*!****************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/selection/SelectionVisuals.js ***!
   \****************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ SelectionVisuals)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SelectionVisuals; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -13618,13 +13452,13 @@ function SelectionVisuals(events, canvas, selection, styles) {
     var oldSelection = event.oldSelection,
         newSelection = event.newSelection;
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(oldSelection, function(e) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(oldSelection, function(e) {
       if (newSelection.indexOf(e) === -1) {
         deselect(e);
       }
     });
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(newSelection, function(e) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(newSelection, function(e) {
       if (oldSelection.indexOf(e) === -1) {
         select(e);
       }
@@ -13645,13 +13479,11 @@ SelectionVisuals.$inject = [
 /*!*****************************************************************!*\
   !*** ./node_modules/diagram-js/lib/features/selection/index.js ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _interaction_events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../interaction-events */ "./node_modules/diagram-js/lib/features/interaction-events/index.js");
 /* harmony import */ var _outline__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../outline */ "./node_modules/diagram-js/lib/features/outline/index.js");
 /* harmony import */ var _Selection__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Selection */ "./node_modules/diagram-js/lib/features/selection/Selection.js");
@@ -13665,15 +13497,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'selectionVisuals', 'selectionBehavior' ],
   __depends__: [
-    _interaction_events__WEBPACK_IMPORTED_MODULE_0__.default,
-    _outline__WEBPACK_IMPORTED_MODULE_1__.default
+    _interaction_events__WEBPACK_IMPORTED_MODULE_0__["default"],
+    _outline__WEBPACK_IMPORTED_MODULE_1__["default"]
   ],
-  selection: [ 'type', _Selection__WEBPACK_IMPORTED_MODULE_2__.default ],
-  selectionVisuals: [ 'type', _SelectionVisuals__WEBPACK_IMPORTED_MODULE_3__.default ],
-  selectionBehavior: [ 'type', _SelectionBehavior__WEBPACK_IMPORTED_MODULE_4__.default ]
+  selection: [ 'type', _Selection__WEBPACK_IMPORTED_MODULE_2__["default"] ],
+  selectionVisuals: [ 'type', _SelectionVisuals__WEBPACK_IMPORTED_MODULE_3__["default"] ],
+  selectionBehavior: [ 'type', _SelectionBehavior__WEBPACK_IMPORTED_MODULE_4__["default"] ]
 });
 
 
@@ -13683,18 +13515,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************************!*\
   !*** ./node_modules/diagram-js/lib/i18n/translate/index.js ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _translate__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./translate */ "./node_modules/diagram-js/lib/i18n/translate/translate.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  translate: [ 'value', _translate__WEBPACK_IMPORTED_MODULE_0__.default ]
+/* harmony default export */ __webpack_exports__["default"] = ({
+  translate: [ 'value', _translate__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -13703,13 +13533,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************************!*\
   !*** ./node_modules/diagram-js/lib/i18n/translate/translate.js ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ translate)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return translate; });
 /**
  * A simple translation stub to be used for multi-language support
  * in diagrams. Can be easily replaced with a more sophisticated
@@ -13743,25 +13572,24 @@ function translate(template, replacements) {
 /*!**********************************************************!*\
   !*** ./node_modules/diagram-js/lib/layout/LayoutUtil.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: roundBounds, roundPoint, asTRBL, asBounds, getMid, getOrientation, getElementLineIntersection, getIntersections, filterRedundantWaypoints */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "roundBounds": () => (/* binding */ roundBounds),
-/* harmony export */   "roundPoint": () => (/* binding */ roundPoint),
-/* harmony export */   "asTRBL": () => (/* binding */ asTRBL),
-/* harmony export */   "asBounds": () => (/* binding */ asBounds),
-/* harmony export */   "getMid": () => (/* binding */ getMid),
-/* harmony export */   "getOrientation": () => (/* binding */ getOrientation),
-/* harmony export */   "getElementLineIntersection": () => (/* binding */ getElementLineIntersection),
-/* harmony export */   "getIntersections": () => (/* binding */ getIntersections),
-/* harmony export */   "filterRedundantWaypoints": () => (/* binding */ filterRedundantWaypoints)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var _util_Geometry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../util/Geometry */ "./node_modules/diagram-js/lib/util/Geometry.js");
-/* harmony import */ var path_intersection__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path-intersection */ "./node_modules/path-intersection/intersect.js");
-/* harmony import */ var path_intersection__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path_intersection__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "roundBounds", function() { return roundBounds; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "roundPoint", function() { return roundPoint; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "asTRBL", function() { return asTRBL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "asBounds", function() { return asBounds; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getMid", function() { return getMid; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOrientation", function() { return getOrientation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getElementLineIntersection", function() { return getElementLineIntersection; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getIntersections", function() { return getIntersections; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "filterRedundantWaypoints", function() { return filterRedundantWaypoints; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var _util_Geometry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util/Geometry */ "./node_modules/diagram-js/lib/util/Geometry.js");
+/* harmony import */ var path_intersection__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! path-intersection */ "./node_modules/path-intersection/intersect.js");
+/* harmony import */ var path_intersection__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path_intersection__WEBPACK_IMPORTED_MODULE_2__);
 
 
 
@@ -13858,7 +13686,7 @@ function getOrientation(rect, reference, padding) {
 
   // make sure we can use an object, too
   // for individual { x, y } padding
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_1__.isObject)(padding)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isObject"])(padding)) {
     padding = { x: padding, y: padding };
   }
 
@@ -13904,13 +13732,13 @@ function getElementLineIntersection(elementPath, linePath, cropStart) {
   // none -> ok (fallback to point itself)
   if (intersections.length === 1) {
     return roundPoint(intersections[0]);
-  } else if (intersections.length === 2 && (0,_util_Geometry__WEBPACK_IMPORTED_MODULE_2__.pointDistance)(intersections[0], intersections[1]) < 1) {
+  } else if (intersections.length === 2 && Object(_util_Geometry__WEBPACK_IMPORTED_MODULE_1__["pointDistance"])(intersections[0], intersections[1]) < 1) {
     return roundPoint(intersections[0]);
   } else if (intersections.length > 1) {
 
     // sort by intersections based on connection segment +
     // distance from start
-    intersections = (0,min_dash__WEBPACK_IMPORTED_MODULE_1__.sortBy)(intersections, function(i) {
+    intersections = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["sortBy"])(intersections, function(i) {
       var distance = Math.floor(i.t2 * 100) || 1;
 
       distance = 100 - distance;
@@ -13931,7 +13759,7 @@ function getElementLineIntersection(elementPath, linePath, cropStart) {
 
 
 function getIntersections(a, b) {
-  return path_intersection__WEBPACK_IMPORTED_MODULE_0___default()(a, b);
+  return path_intersection__WEBPACK_IMPORTED_MODULE_2___default()(a, b);
 }
 
 
@@ -13950,8 +13778,8 @@ function filterRedundantWaypoints(waypoints) {
     previousPoint = waypoints[idx - 1];
     nextPoint = waypoints[idx + 1];
 
-    if ((0,_util_Geometry__WEBPACK_IMPORTED_MODULE_2__.pointDistance)(point, nextPoint) === 0 ||
-        (0,_util_Geometry__WEBPACK_IMPORTED_MODULE_2__.pointsOnLine)(previousPoint, nextPoint, point)) {
+    if (Object(_util_Geometry__WEBPACK_IMPORTED_MODULE_1__["pointDistance"])(point, nextPoint) === 0 ||
+        Object(_util_Geometry__WEBPACK_IMPORTED_MODULE_1__["pointsOnLine"])(previousPoint, nextPoint, point)) {
 
       // remove point, if overlapping with {nextPoint}
       // or on line with {previousPoint} -> {point} -> {nextPoint}
@@ -13971,33 +13799,32 @@ function filterRedundantWaypoints(waypoints) {
 /*!****************************************************!*\
   !*** ./node_modules/diagram-js/lib/model/index.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: Base, Shape, Root, Label, Connection, create */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Base": () => (/* binding */ Base),
-/* harmony export */   "Shape": () => (/* binding */ Shape),
-/* harmony export */   "Root": () => (/* binding */ Root),
-/* harmony export */   "Label": () => (/* binding */ Label),
-/* harmony export */   "Connection": () => (/* binding */ Connection),
-/* harmony export */   "create": () => (/* binding */ create)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
-/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! object-refs */ "./node_modules/object-refs/index.js");
-/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(object_refs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Base", function() { return Base; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Shape", function() { return Shape; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Root", function() { return Root; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Label", function() { return Label; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Connection", function() { return Connection; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! object-refs */ "./node_modules/object-refs/index.js");
+/* harmony import */ var object_refs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(object_refs__WEBPACK_IMPORTED_MODULE_2__);
 
 
 
 
 
-var parentRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_1___default())({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
-    labelRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_1___default())({ name: 'labels', enumerable: true, collection: true }, { name: 'labelTarget' }),
-    attacherRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_1___default())({ name: 'attachers', collection: true }, { name: 'host' }),
-    outgoingRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_1___default())({ name: 'outgoing', collection: true }, { name: 'source' }),
-    incomingRefs = new (object_refs__WEBPACK_IMPORTED_MODULE_1___default())({ name: 'incoming', collection: true }, { name: 'target' });
+var parentRefs = new object_refs__WEBPACK_IMPORTED_MODULE_2___default.a({ name: 'children', enumerable: true, collection: true }, { name: 'parent' }),
+    labelRefs = new object_refs__WEBPACK_IMPORTED_MODULE_2___default.a({ name: 'labels', enumerable: true, collection: true }, { name: 'labelTarget' }),
+    attacherRefs = new object_refs__WEBPACK_IMPORTED_MODULE_2___default.a({ name: 'attachers', collection: true }, { name: 'host' }),
+    outgoingRefs = new object_refs__WEBPACK_IMPORTED_MODULE_2___default.a({ name: 'outgoing', collection: true }, { name: 'source' }),
+    incomingRefs = new object_refs__WEBPACK_IMPORTED_MODULE_2___default.a({ name: 'incoming', collection: true }, { name: 'target' });
 
 /**
  * @namespace djs.model
@@ -14123,7 +13950,7 @@ function Shape() {
   attacherRefs.bind(this, 'attachers');
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(Shape, Base);
+inherits__WEBPACK_IMPORTED_MODULE_1___default()(Shape, Base);
 
 
 /**
@@ -14138,7 +13965,7 @@ function Root() {
   Shape.call(this);
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(Root, Shape);
+inherits__WEBPACK_IMPORTED_MODULE_1___default()(Root, Shape);
 
 
 /**
@@ -14161,7 +13988,7 @@ function Label() {
   labelRefs.bind(this, 'labelTarget');
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(Label, Shape);
+inherits__WEBPACK_IMPORTED_MODULE_1___default()(Label, Shape);
 
 
 /**
@@ -14192,7 +14019,7 @@ function Connection() {
   incomingRefs.bind(this, 'target');
 }
 
-inherits__WEBPACK_IMPORTED_MODULE_0___default()(Connection, Base);
+inherits__WEBPACK_IMPORTED_MODULE_1___default()(Connection, Base);
 
 
 var types = {
@@ -14224,7 +14051,7 @@ function create(type, attrs) {
   if (!Type) {
     throw new Error('unknown type: <' + type + '>');
   }
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)(new Type(), attrs);
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(new Type(), attrs);
 }
 
 /***/ }),
@@ -14233,18 +14060,17 @@ function create(type, attrs) {
 /*!*************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/navigation/movecanvas/MoveCanvas.js ***!
   \*************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ MoveCanvas)
-/* harmony export */ });
-/* harmony import */ var _util_Cursor__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../util/Cursor */ "./node_modules/diagram-js/lib/util/Cursor.js");
-/* harmony import */ var _util_ClickTrap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/ClickTrap */ "./node_modules/diagram-js/lib/util/ClickTrap.js");
-/* harmony import */ var _util_PositionUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/PositionUtil */ "./node_modules/diagram-js/lib/util/PositionUtil.js");
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
-/* harmony import */ var _util_Event__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Event */ "./node_modules/diagram-js/lib/util/Event.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MoveCanvas; });
+/* harmony import */ var _util_Cursor__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Cursor */ "./node_modules/diagram-js/lib/util/Cursor.js");
+/* harmony import */ var _util_ClickTrap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../util/ClickTrap */ "./node_modules/diagram-js/lib/util/ClickTrap.js");
+/* harmony import */ var _util_PositionUtil__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/PositionUtil */ "./node_modules/diagram-js/lib/util/PositionUtil.js");
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony import */ var _util_Event__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../util/Event */ "./node_modules/diagram-js/lib/util/Event.js");
 
 
 
@@ -14282,24 +14108,24 @@ function MoveCanvas(eventBus, canvas) {
 
     var start = context.start,
         button = context.button,
-        position = (0,_util_Event__WEBPACK_IMPORTED_MODULE_0__.toPoint)(event),
-        delta = (0,_util_PositionUtil__WEBPACK_IMPORTED_MODULE_1__.delta)(position, start);
+        position = Object(_util_Event__WEBPACK_IMPORTED_MODULE_4__["toPoint"])(event),
+        delta = Object(_util_PositionUtil__WEBPACK_IMPORTED_MODULE_2__["delta"])(position, start);
 
     if (!context.dragging && length(delta) > THRESHOLD) {
       context.dragging = true;
 
       if (button === 0) {
-        (0,_util_ClickTrap__WEBPACK_IMPORTED_MODULE_2__.install)(eventBus);
+        Object(_util_ClickTrap__WEBPACK_IMPORTED_MODULE_1__["install"])(eventBus);
       }
 
-      (0,_util_Cursor__WEBPACK_IMPORTED_MODULE_3__.set)('grab');
+      Object(_util_Cursor__WEBPACK_IMPORTED_MODULE_0__["set"])('grab');
     }
 
     if (context.dragging) {
 
       var lastPosition = context.last || context.start;
 
-      delta = (0,_util_PositionUtil__WEBPACK_IMPORTED_MODULE_1__.delta)(position, lastPosition);
+      delta = Object(_util_PositionUtil__WEBPACK_IMPORTED_MODULE_2__["delta"])(position, lastPosition);
 
       canvas.scroll({
         dx: delta.x,
@@ -14315,18 +14141,18 @@ function MoveCanvas(eventBus, canvas) {
 
 
   function handleEnd(event) {
-    min_dom__WEBPACK_IMPORTED_MODULE_4__.event.unbind(document, 'mousemove', handleMove);
-    min_dom__WEBPACK_IMPORTED_MODULE_4__.event.unbind(document, 'mouseup', handleEnd);
+    min_dom__WEBPACK_IMPORTED_MODULE_3__["event"].unbind(document, 'mousemove', handleMove);
+    min_dom__WEBPACK_IMPORTED_MODULE_3__["event"].unbind(document, 'mouseup', handleEnd);
 
     context = null;
 
-    (0,_util_Cursor__WEBPACK_IMPORTED_MODULE_3__.unset)();
+    Object(_util_Cursor__WEBPACK_IMPORTED_MODULE_0__["unset"])();
   }
 
   function handleStart(event) {
 
     // event is already handled by '.djs-draggable'
-    if ((0,min_dom__WEBPACK_IMPORTED_MODULE_4__.closest)(event.target, '.djs-draggable')) {
+    if (Object(min_dom__WEBPACK_IMPORTED_MODULE_3__["closest"])(event.target, '.djs-draggable')) {
       return;
     }
 
@@ -14339,11 +14165,11 @@ function MoveCanvas(eventBus, canvas) {
 
     context = {
       button: button,
-      start: (0,_util_Event__WEBPACK_IMPORTED_MODULE_0__.toPoint)(event)
+      start: Object(_util_Event__WEBPACK_IMPORTED_MODULE_4__["toPoint"])(event)
     };
 
-    min_dom__WEBPACK_IMPORTED_MODULE_4__.event.bind(document, 'mousemove', handleMove);
-    min_dom__WEBPACK_IMPORTED_MODULE_4__.event.bind(document, 'mouseup', handleEnd);
+    min_dom__WEBPACK_IMPORTED_MODULE_3__["event"].bind(document, 'mousemove', handleMove);
+    min_dom__WEBPACK_IMPORTED_MODULE_3__["event"].bind(document, 'mouseup', handleEnd);
 
     // we've handled the event
     return true;
@@ -14376,19 +14202,17 @@ function length(point) {
 /*!********************************************************************!*\
   !*** ./node_modules/diagram-js/lib/navigation/movecanvas/index.js ***!
   \********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _MoveCanvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./MoveCanvas */ "./node_modules/diagram-js/lib/navigation/movecanvas/MoveCanvas.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'moveCanvas' ],
-  moveCanvas: [ 'type', _MoveCanvas__WEBPACK_IMPORTED_MODULE_0__.default ]
+  moveCanvas: [ 'type', _MoveCanvas__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -14397,17 +14221,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************************************!*\
   !*** ./node_modules/diagram-js/lib/navigation/zoomscroll/ZoomScroll.js ***!
   \*************************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ ZoomScroll)
-/* harmony export */ });
-/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ZoomScroll; });
+/* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
 /* harmony import */ var _ZoomUtil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ZoomUtil */ "./node_modules/diagram-js/lib/navigation/zoomscroll/ZoomUtil.js");
-/* harmony import */ var _util_Math__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../util/Math */ "./node_modules/diagram-js/lib/util/Math.js");
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var _util_Math__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../util/Math */ "./node_modules/diagram-js/lib/util/Math.js");
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
 
@@ -14449,7 +14272,7 @@ function ZoomScroll(config, eventBus, canvas) {
   this._canvas = canvas;
   this._container = canvas._container;
 
-  this._handleWheel = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(this._handleWheel, this);
+  this._handleWheel = Object(min_dash__WEBPACK_IMPORTED_MODULE_3__["bind"])(this._handleWheel, this);
 
   this._totalDelta = 0;
   this._scale = config.scale || DEFAULT_SCALE;
@@ -14485,7 +14308,7 @@ ZoomScroll.prototype.reset = function reset() {
 ZoomScroll.prototype.zoom = function zoom(delta, position) {
 
   // zoom with half the step size of stepZoom
-  var stepSize = (0,_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__.getStepSize)(RANGE, NUM_STEPS * 2);
+  var stepSize = Object(_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__["getStepSize"])(RANGE, NUM_STEPS * 2);
 
   // add until threshold reached
   this._totalDelta += delta;
@@ -14502,7 +14325,7 @@ ZoomScroll.prototype.zoom = function zoom(delta, position) {
 ZoomScroll.prototype._handleWheel = function handleWheel(event) {
 
   // event is already handled by '.djs-scrollable'
-  if ((0,min_dom__WEBPACK_IMPORTED_MODULE_2__.closest)(event.target, '.djs-scrollable', true)) {
+  if (Object(min_dom__WEBPACK_IMPORTED_MODULE_0__["closest"])(event.target, '.djs-scrollable', true)) {
     return;
   }
 
@@ -14569,7 +14392,7 @@ ZoomScroll.prototype._handleWheel = function handleWheel(event) {
  */
 ZoomScroll.prototype.stepZoom = function stepZoom(delta, position) {
 
-  var stepSize = (0,_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__.getStepSize)(RANGE, NUM_STEPS);
+  var stepSize = Object(_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__["getStepSize"])(RANGE, NUM_STEPS);
 
   this._zoom(delta, position, stepSize);
 };
@@ -14587,7 +14410,7 @@ ZoomScroll.prototype._zoom = function(delta, position, stepSize) {
 
   var direction = delta > 0 ? 1 : -1;
 
-  var currentLinearZoomLevel = (0,_util_Math__WEBPACK_IMPORTED_MODULE_3__.log10)(canvas.zoom());
+  var currentLinearZoomLevel = Object(_util_Math__WEBPACK_IMPORTED_MODULE_2__["log10"])(canvas.zoom());
 
   // snap to a proximate zoom step
   var newLinearZoomLevel = Math.round(currentLinearZoomLevel / stepSize) * stepSize;
@@ -14599,7 +14422,7 @@ ZoomScroll.prototype._zoom = function(delta, position, stepSize) {
   // (e.g. 2 for an absolute x2 zoom)
   var newLogZoomLevel = Math.pow(10, newLinearZoomLevel);
 
-  canvas.zoom((0,_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__.cap)(RANGE, newLogZoomLevel), position);
+  canvas.zoom(Object(_ZoomUtil__WEBPACK_IMPORTED_MODULE_1__["cap"])(RANGE, newLogZoomLevel), position);
 };
 
 
@@ -14624,7 +14447,7 @@ ZoomScroll.prototype.toggle = function toggle(newEnabled) {
 
     // add or remove wheel listener based on
     // changed enabled state
-    min_dom__WEBPACK_IMPORTED_MODULE_2__.event[newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, false);
+    min_dom__WEBPACK_IMPORTED_MODULE_0__["event"][newEnabled ? 'bind' : 'unbind'](element, 'wheel', handleWheel, false);
   }
 
   this._enabled = newEnabled;
@@ -14644,14 +14467,13 @@ ZoomScroll.prototype._init = function(newEnabled) {
 /*!***********************************************************************!*\
   !*** ./node_modules/diagram-js/lib/navigation/zoomscroll/ZoomUtil.js ***!
   \***********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getStepSize, cap */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getStepSize": () => (/* binding */ getStepSize),
-/* harmony export */   "cap": () => (/* binding */ cap)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStepSize", function() { return getStepSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cap", function() { return cap; });
 /* harmony import */ var _util_Math__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../util/Math */ "./node_modules/diagram-js/lib/util/Math.js");
 
 
@@ -14664,8 +14486,8 @@ __webpack_require__.r(__webpack_exports__);
  */
 function getStepSize(range, steps) {
 
-  var minLinearRange = (0,_util_Math__WEBPACK_IMPORTED_MODULE_0__.log10)(range.min),
-      maxLinearRange = (0,_util_Math__WEBPACK_IMPORTED_MODULE_0__.log10)(range.max);
+  var minLinearRange = Object(_util_Math__WEBPACK_IMPORTED_MODULE_0__["log10"])(range.min),
+      maxLinearRange = Object(_util_Math__WEBPACK_IMPORTED_MODULE_0__["log10"])(range.max);
 
   var absoluteLinearRange = Math.abs(minLinearRange) + Math.abs(maxLinearRange);
 
@@ -14683,19 +14505,17 @@ function cap(range, scale) {
 /*!********************************************************************!*\
   !*** ./node_modules/diagram-js/lib/navigation/zoomscroll/index.js ***!
   \********************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _ZoomScroll__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ZoomScroll */ "./node_modules/diagram-js/lib/navigation/zoomscroll/ZoomScroll.js");
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+/* harmony default export */ __webpack_exports__["default"] = ({
   __init__: [ 'zoomScroll' ],
-  zoomScroll: [ 'type', _ZoomScroll__WEBPACK_IMPORTED_MODULE_0__.default ]
+  zoomScroll: [ 'type', _ZoomScroll__WEBPACK_IMPORTED_MODULE_0__["default"] ]
 });
 
 /***/ }),
@@ -14704,13 +14524,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/ClickTrap.js ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: install */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "install": () => (/* binding */ install)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "install", function() { return install; });
 var TRAP_PRIORITY = 5000;
 
 /**
@@ -14739,15 +14558,14 @@ function install(eventBus, eventName) {
 /*!*********************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Collections.js ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: remove, add, indexOf */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "remove": () => (/* binding */ remove),
-/* harmony export */   "add": () => (/* binding */ add),
-/* harmony export */   "indexOf": () => (/* binding */ indexOf)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "remove", function() { return remove; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "add", function() { return add; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "indexOf", function() { return indexOf; });
 /**
  * Failsafe remove an element from a collection
  *
@@ -14848,15 +14666,14 @@ function indexOf(collection, element) {
 /*!****************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Cursor.js ***!
   \****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: set, unset, has */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "set": () => (/* binding */ set),
-/* harmony export */   "unset": () => (/* binding */ unset),
-/* harmony export */   "has": () => (/* binding */ has)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "set", function() { return set; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unset", function() { return unset; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "has", function() { return has; });
 /* harmony import */ var min_dom__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dom */ "./node_modules/min-dom/dist/index.esm.js");
 
 
@@ -14864,7 +14681,7 @@ var CURSOR_CLS_PATTERN = /^djs-cursor-.*$/;
 
 
 function set(mode) {
-  var classes = (0,min_dom__WEBPACK_IMPORTED_MODULE_0__.classes)(document.body);
+  var classes = Object(min_dom__WEBPACK_IMPORTED_MODULE_0__["classes"])(document.body);
 
   classes.removeMatching(CURSOR_CLS_PATTERN);
 
@@ -14878,7 +14695,7 @@ function unset() {
 }
 
 function has(mode) {
-  var classes = (0,min_dom__WEBPACK_IMPORTED_MODULE_0__.classes)(document.body);
+  var classes = Object(min_dom__WEBPACK_IMPORTED_MODULE_0__["classes"])(document.body);
 
   return classes.has('djs-cursor-' + mode);
 }
@@ -14890,23 +14707,22 @@ function has(mode) {
 /*!******************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Elements.js ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getParents, add, eachElement, selfAndChildren, selfAndDirectChildren, selfAndAllChildren, getClosure, getBBox, getEnclosedElements, getType, isFrameElement */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getParents": () => (/* binding */ getParents),
-/* harmony export */   "add": () => (/* binding */ add),
-/* harmony export */   "eachElement": () => (/* binding */ eachElement),
-/* harmony export */   "selfAndChildren": () => (/* binding */ selfAndChildren),
-/* harmony export */   "selfAndDirectChildren": () => (/* binding */ selfAndDirectChildren),
-/* harmony export */   "selfAndAllChildren": () => (/* binding */ selfAndAllChildren),
-/* harmony export */   "getClosure": () => (/* binding */ getClosure),
-/* harmony export */   "getBBox": () => (/* binding */ getBBox),
-/* harmony export */   "getEnclosedElements": () => (/* binding */ getEnclosedElements),
-/* harmony export */   "getType": () => (/* binding */ getType),
-/* harmony export */   "isFrameElement": () => (/* binding */ isFrameElement)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getParents", function() { return getParents; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "add", function() { return add; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eachElement", function() { return eachElement; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selfAndChildren", function() { return selfAndChildren; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selfAndDirectChildren", function() { return selfAndDirectChildren; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selfAndAllChildren", function() { return selfAndAllChildren; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getClosure", function() { return getClosure; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getBBox", function() { return getBBox; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getEnclosedElements", function() { return getEnclosedElements; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getType", function() { return getType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isFrameElement", function() { return isFrameElement; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -14921,8 +14737,8 @@ __webpack_require__.r(__webpack_exports__);
 function getParents(elements) {
 
   // find elements that are not children of any other elements
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.filter)(elements, function(element) {
-    return !(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.find)(elements, function(e) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(elements, function(element) {
+    return !Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(elements, function(e) {
       return e !== element && getParent(element, e);
     });
   });
@@ -14979,14 +14795,14 @@ function eachElement(elements, fn, depth) {
 
   depth = depth || 0;
 
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(elements)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(elements)) {
     elements = [ elements ];
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(elements, function(s, i) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(elements, function(s, i) {
     var filter = fn(s, i, depth);
 
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(filter) && filter.length) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(filter) && filter.length) {
       eachElement(filter, fn, depth + 1);
     }
   });
@@ -15062,11 +14878,11 @@ function selfAndAllChildren(elements, allowDuplicates) {
  */
 function getClosure(elements, isTopLevel, closure) {
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isUndefined)(isTopLevel)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isUndefined"])(isTopLevel)) {
     isTopLevel = true;
   }
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isObject)(isTopLevel)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isObject"])(isTopLevel)) {
     closure = isTopLevel;
     isTopLevel = true;
   }
@@ -15081,7 +14897,7 @@ function getClosure(elements, isTopLevel, closure) {
 
   var topLevel = copyObject(
     closure.topLevel,
-    isTopLevel && (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.groupBy)(elements, function(e) { return e.id; })
+    isTopLevel && Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["groupBy"])(elements, function(e) { return e.id; })
   );
 
 
@@ -15113,9 +14929,9 @@ function getClosure(elements, isTopLevel, closure) {
       allShapes[element.id] = element;
 
       // remember all connections
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(element.incoming, handleConnection);
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(element.incoming, handleConnection);
 
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(element.outgoing, handleConnection);
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(element.outgoing, handleConnection);
 
       // recurse into children
       return element.children;
@@ -15143,7 +14959,7 @@ function getClosure(elements, isTopLevel, closure) {
 function getBBox(elements, stopRecursion) {
 
   stopRecursion = !!stopRecursion;
-  if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(elements)) {
+  if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(elements)) {
     elements = [elements];
   }
 
@@ -15152,7 +14968,7 @@ function getBBox(elements, stopRecursion) {
       maxX,
       maxY;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(elements, function(element) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(elements, function(element) {
 
     // If element is a connection the bbox must be computed first
     var bbox = element;
@@ -15206,7 +15022,7 @@ function getEnclosedElements(elements, bbox) {
 
   var filteredElements = {};
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(elements, function(element) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(elements, function(element) {
 
     var e = element;
 
@@ -15214,19 +15030,19 @@ function getEnclosedElements(elements, bbox) {
       e = getBBox(e);
     }
 
-    if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.y) && (e.x > bbox.x)) {
+    if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.y) && (e.x > bbox.x)) {
       filteredElements[element.id] = element;
     }
-    if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.x) && (e.y > bbox.y)) {
+    if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.x) && (e.y > bbox.y)) {
       filteredElements[element.id] = element;
     }
     if (e.x > bbox.x && e.y > bbox.y) {
-      if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.width) && (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.height) &&
+      if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.width) && Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.height) &&
           e.width + e.x < bbox.width + bbox.x &&
           e.height + e.y < bbox.height + bbox.y) {
 
         filteredElements[element.id] = element;
-      } else if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.width) || !(0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isNumber)(bbox.height)) {
+      } else if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.width) || !Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isNumber"])(bbox.height)) {
         filteredElements[element.id] = element;
       }
     }
@@ -15257,7 +15073,7 @@ function isFrameElement(element) {
 // helpers ///////////////////////////////
 
 function copyObject(src1, src2) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, src1 || {}, src2 || {});
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, src1 || {}, src2 || {});
 }
 
 /***/ }),
@@ -15266,15 +15082,14 @@ function copyObject(src1, src2) {
 /*!***************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Event.js ***!
   \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getOriginal, stopPropagation, toPoint */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getOriginal": () => (/* binding */ getOriginal),
-/* harmony export */   "stopPropagation": () => (/* binding */ stopPropagation),
-/* harmony export */   "toPoint": () => (/* binding */ toPoint)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOriginal", function() { return getOriginal; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopPropagation", function() { return stopPropagation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toPoint", function() { return toPoint; });
 function __stopPropagation(event) {
   if (!event || typeof event.stopPropagation !== 'function') {
     return;
@@ -15317,19 +15132,18 @@ function toPoint(event) {
 /*!******************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Geometry.js ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: pointDistance, pointsOnLine, pointsAligned, pointsAlignedHorizontally, pointsAlignedVertically, pointInRect, getMidPoint */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "pointDistance": () => (/* binding */ pointDistance),
-/* harmony export */   "pointsOnLine": () => (/* binding */ pointsOnLine),
-/* harmony export */   "pointsAligned": () => (/* binding */ pointsAligned),
-/* harmony export */   "pointsAlignedHorizontally": () => (/* binding */ pointsAlignedHorizontally),
-/* harmony export */   "pointsAlignedVertically": () => (/* binding */ pointsAlignedVertically),
-/* harmony export */   "pointInRect": () => (/* binding */ pointInRect),
-/* harmony export */   "getMidPoint": () => (/* binding */ getMidPoint)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointDistance", function() { return pointDistance; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointsOnLine", function() { return pointsOnLine; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointsAligned", function() { return pointsAligned; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointsAlignedHorizontally", function() { return pointsAlignedHorizontally; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointsAlignedVertically", function() { return pointsAlignedVertically; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pointInRect", function() { return pointInRect; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getMidPoint", function() { return getMidPoint; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -15394,7 +15208,7 @@ var ALIGNED_THRESHOLD = 2;
 function pointsAligned(a, b) {
   var points;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(a)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(a)) {
     points = a;
   } else {
     points = [ a, b ];
@@ -15414,7 +15228,7 @@ function pointsAligned(a, b) {
 function pointsAlignedHorizontally(a, b) {
   var points;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(a)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(a)) {
     points = a;
   } else {
     points = [ a, b ];
@@ -15422,7 +15236,7 @@ function pointsAlignedHorizontally(a, b) {
 
   var firstPoint = points.slice().shift();
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.every)(points, function(point) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["every"])(points, function(point) {
     return Math.abs(firstPoint.y - point.y) <= ALIGNED_THRESHOLD;
   });
 }
@@ -15430,7 +15244,7 @@ function pointsAlignedHorizontally(a, b) {
 function pointsAlignedVertically(a, b) {
   var points;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isArray)(a)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isArray"])(a)) {
     points = a;
   } else {
     points = [ a, b ];
@@ -15438,7 +15252,7 @@ function pointsAlignedVertically(a, b) {
 
   var firstPoint = points.slice().shift();
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.every)(points, function(point) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["every"])(points, function(point) {
     return Math.abs(firstPoint.x - point.x) <= ALIGNED_THRESHOLD;
   });
 }
@@ -15485,14 +15299,13 @@ function getMidPoint(p, q) {
 /*!**********************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/GraphicsUtil.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: getVisual, getChildren */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "getVisual": () => (/* binding */ getVisual),
-/* harmony export */   "getChildren": () => (/* binding */ getChildren)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getVisual", function() { return getVisual; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getChildren", function() { return getChildren; });
 /**
  * SVGs for elements are generated by the {@link GraphicsFactory}.
  *
@@ -15527,13 +15340,12 @@ function getChildren(gfx) {
 /*!*********************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/IdGenerator.js ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ IdGenerator)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return IdGenerator; });
 /**
  * Util that provides unique IDs.
  *
@@ -15569,15 +15381,15 @@ IdGenerator.prototype.next = function() {
 /*!**************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Math.js ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: log10, substract */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "log10": () => (/* binding */ log10),
-/* harmony export */   "substract": () => (/* reexport safe */ _PositionUtil__WEBPACK_IMPORTED_MODULE_0__.delta)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "log10", function() { return log10; });
 /* harmony import */ var _PositionUtil__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PositionUtil */ "./node_modules/diagram-js/lib/util/PositionUtil.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "substract", function() { return _PositionUtil__WEBPACK_IMPORTED_MODULE_0__["delta"]; });
+
 /**
  * Get the logarithm of x with base 10
  * @param  {Integer} value
@@ -15595,21 +15407,21 @@ function log10(x) {
 /*!***************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Mouse.js ***!
   \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: isMac, isButton, isPrimaryButton, isAuxiliaryButton, isSecondaryButton, hasPrimaryModifier, hasSecondaryModifier */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isMac": () => (/* reexport safe */ _Platform__WEBPACK_IMPORTED_MODULE_0__.isMac),
-/* harmony export */   "isButton": () => (/* binding */ isButton),
-/* harmony export */   "isPrimaryButton": () => (/* binding */ isPrimaryButton),
-/* harmony export */   "isAuxiliaryButton": () => (/* binding */ isAuxiliaryButton),
-/* harmony export */   "isSecondaryButton": () => (/* binding */ isSecondaryButton),
-/* harmony export */   "hasPrimaryModifier": () => (/* binding */ hasPrimaryModifier),
-/* harmony export */   "hasSecondaryModifier": () => (/* binding */ hasSecondaryModifier)
-/* harmony export */ });
-/* harmony import */ var _Event__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Event */ "./node_modules/diagram-js/lib/util/Event.js");
-/* harmony import */ var _Platform__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Platform */ "./node_modules/diagram-js/lib/util/Platform.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isButton", function() { return isButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isPrimaryButton", function() { return isPrimaryButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isAuxiliaryButton", function() { return isAuxiliaryButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isSecondaryButton", function() { return isSecondaryButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasPrimaryModifier", function() { return hasPrimaryModifier; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasSecondaryModifier", function() { return hasSecondaryModifier; });
+/* harmony import */ var _Event__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Event */ "./node_modules/diagram-js/lib/util/Event.js");
+/* harmony import */ var _Platform__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Platform */ "./node_modules/diagram-js/lib/util/Platform.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isMac", function() { return _Platform__WEBPACK_IMPORTED_MODULE_1__["isMac"]; });
+
 
 
 
@@ -15617,7 +15429,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function isButton(event, button) {
-  return ((0,_Event__WEBPACK_IMPORTED_MODULE_1__.getOriginal)(event) || event).button === button;
+  return (Object(_Event__WEBPACK_IMPORTED_MODULE_0__["getOriginal"])(event) || event).button === button;
 }
 
 function isPrimaryButton(event) {
@@ -15639,14 +15451,14 @@ function isSecondaryButton(event) {
 }
 
 function hasPrimaryModifier(event) {
-  var originalEvent = (0,_Event__WEBPACK_IMPORTED_MODULE_1__.getOriginal)(event) || event;
+  var originalEvent = Object(_Event__WEBPACK_IMPORTED_MODULE_0__["getOriginal"])(event) || event;
 
   if (!isPrimaryButton(event)) {
     return false;
   }
 
   // Use cmd as primary modifier key for mac OS
-  if ((0,_Platform__WEBPACK_IMPORTED_MODULE_0__.isMac)()) {
+  if (Object(_Platform__WEBPACK_IMPORTED_MODULE_1__["isMac"])()) {
     return originalEvent.metaKey;
   } else {
     return originalEvent.ctrlKey;
@@ -15655,7 +15467,7 @@ function hasPrimaryModifier(event) {
 
 
 function hasSecondaryModifier(event) {
-  var originalEvent = (0,_Event__WEBPACK_IMPORTED_MODULE_1__.getOriginal)(event) || event;
+  var originalEvent = Object(_Event__WEBPACK_IMPORTED_MODULE_0__["getOriginal"])(event) || event;
 
   return isPrimaryButton(event) && originalEvent.shiftKey;
 }
@@ -15667,13 +15479,12 @@ function hasSecondaryModifier(event) {
 /*!******************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Platform.js ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: isMac */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "isMac": () => (/* binding */ isMac)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isMac", function() { return isMac; });
 function isMac() {
   return (/mac/i).test(navigator.platform);
 }
@@ -15684,14 +15495,13 @@ function isMac() {
 /*!**********************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/PositionUtil.js ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: center, delta */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "center": () => (/* binding */ center),
-/* harmony export */   "delta": () => (/* binding */ delta)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "center", function() { return center; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "delta", function() { return delta; });
 function center(bounds) {
   return {
     x: bounds.x + (bounds.width / 2),
@@ -15713,16 +15523,15 @@ function delta(a, b) {
 /*!********************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/RenderUtil.js ***!
   \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: componentsToPath, toSVGPoints, createLine, updateLine */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "componentsToPath": () => (/* binding */ componentsToPath),
-/* harmony export */   "toSVGPoints": () => (/* binding */ toSVGPoints),
-/* harmony export */   "createLine": () => (/* binding */ createLine),
-/* harmony export */   "updateLine": () => (/* binding */ updateLine)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "componentsToPath", function() { return componentsToPath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toSVGPoints", function() { return toSVGPoints; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createLine", function() { return createLine; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateLine", function() { return updateLine; });
 /* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 
 
@@ -15743,18 +15552,18 @@ function toSVGPoints(points) {
 
 function createLine(points, attrs) {
 
-  var line = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.create)('polyline');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(line, { points: toSVGPoints(points) });
+  var line = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["create"])('polyline');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(line, { points: toSVGPoints(points) });
 
   if (attrs) {
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(line, attrs);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(line, attrs);
   }
 
   return line;
 }
 
 function updateLine(gfx, points) {
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.attr)(gfx, { points: toSVGPoints(points) });
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["attr"])(gfx, { points: toSVGPoints(points) });
 
   return gfx;
 }
@@ -15766,16 +15575,15 @@ function updateLine(gfx, points) {
 /*!**************************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/SvgTransformUtil.js ***!
   \**************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: transform, translate, rotate, scale */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "transform": () => (/* binding */ transform),
-/* harmony export */   "translate": () => (/* binding */ translate),
-/* harmony export */   "rotate": () => (/* binding */ rotate),
-/* harmony export */   "scale": () => (/* binding */ scale)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "transform", function() { return transform; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "translate", function() { return translate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rotate", function() { return rotate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scale", function() { return scale; });
 /* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 
 
@@ -15788,16 +15596,16 @@ __webpack_require__.r(__webpack_exports__);
  * @param {number} amount
  */
 function transform(gfx, x, y, angle, amount) {
-  var translate = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var translate = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   translate.setTranslate(x, y);
 
-  var rotate = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var rotate = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   rotate.setRotate(angle || 0, 0, 0);
 
-  var scale = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var scale = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   scale.setScale(amount || 1, amount || 1);
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.transform)(gfx, [ translate, rotate, scale ]);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["transform"])(gfx, [ translate, rotate, scale ]);
 }
 
 
@@ -15807,10 +15615,10 @@ function transform(gfx, x, y, angle, amount) {
  * @param {number} y
  */
 function translate(gfx, x, y) {
-  var translate = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var translate = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   translate.setTranslate(x, y);
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.transform)(gfx, translate);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["transform"])(gfx, translate);
 }
 
 
@@ -15819,10 +15627,10 @@ function translate(gfx, x, y) {
  * @param {number} angle
  */
 function rotate(gfx, angle) {
-  var rotate = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var rotate = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   rotate.setRotate(angle, 0, 0);
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.transform)(gfx, rotate);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["transform"])(gfx, rotate);
 }
 
 
@@ -15831,10 +15639,10 @@ function rotate(gfx, angle) {
  * @param {number} amount
  */
 function scale(gfx, amount) {
-  var scale = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.createTransform)();
+  var scale = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["createTransform"])();
   scale.setScale(amount, amount);
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_0__.transform)(gfx, scale);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_0__["transform"])(gfx, scale);
 }
 
 /***/ }),
@@ -15843,13 +15651,12 @@ function scale(gfx, amount) {
 /*!**************************************************!*\
   !*** ./node_modules/diagram-js/lib/util/Text.js ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Text)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Text; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 /* harmony import */ var tiny_svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tiny-svg */ "./node_modules/tiny-svg/dist/index.esm.js");
 
@@ -15876,8 +15683,8 @@ function parseAlign(align) {
 
 function parsePadding(padding) {
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isObject)(padding)) {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({ top: 0, left: 0, right: 0, bottom: 0 }, padding);
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isObject"])(padding)) {
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ top: 0, left: 0, right: 0, bottom: 0 }, padding);
   } else {
     return {
       top: padding,
@@ -16035,9 +15842,9 @@ function getHelperSvg() {
   var helperSvg = document.getElementById('helper-svg');
 
   if (!helperSvg) {
-    helperSvg = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('svg');
+    helperSvg = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["create"])('svg');
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(helperSvg, {
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(helperSvg, {
       id: 'helper-svg',
       width: 0,
       height: 0,
@@ -16062,7 +15869,7 @@ function getHelperSvg() {
  */
 function Text(config) {
 
-  this._config = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, {
+  this._config = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, {
     size: DEFAULT_LABEL_SIZE,
     padding: DEFAULT_BOX_PADDING,
     style: {},
@@ -16111,8 +15918,8 @@ Text.prototype.getDimensions = function(text, options) {
  * @return {Object} { element, dimensions }
  */
 Text.prototype.layoutText = function(text, options) {
-  var box = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, this._config.size, options.box),
-      style = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, this._config.style, options.style),
+  var box = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, this._config.size, options.box),
+      style = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, this._config.style, options.style),
       align = parseAlign(options.align || this._config.align),
       padding = parsePadding(options.padding !== undefined ? options.padding : this._config.padding),
       fitBox = options.fitBox || false;
@@ -16127,13 +15934,13 @@ Text.prototype.layoutText = function(text, options) {
   var maxWidth = box.width - padding.left - padding.right;
 
   // ensure correct rendering by attaching helper text node to invisible SVG
-  var helperText = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('text');
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(helperText, { x: 0, y: 0 });
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(helperText, style);
+  var helperText = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["create"])('text');
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(helperText, { x: 0, y: 0 });
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(helperText, style);
 
   var helperSvg = getHelperSvg();
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(helperSvg, helperText);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["append"])(helperSvg, helperText);
 
   while (lines.length) {
     layouted.push(layoutNext(lines, maxWidth, helperText));
@@ -16143,11 +15950,11 @@ Text.prototype.layoutText = function(text, options) {
     padding.top = padding.bottom = 0;
   }
 
-  var totalHeight = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.reduce)(layouted, function(sum, line, idx) {
+  var totalHeight = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["reduce"])(layouted, function(sum, line, idx) {
     return sum + (lineHeight || line.height);
   }, 0) + padding.top + padding.bottom;
 
-  var maxLineWidth = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.reduce)(layouted, function(sum, line, idx) {
+  var maxLineWidth = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["reduce"])(layouted, function(sum, line, idx) {
     return line.width > sum ? line.width : sum;
   }, 0);
 
@@ -16162,13 +15969,13 @@ Text.prototype.layoutText = function(text, options) {
   y -= (lineHeight || layouted[0].height) / 4;
 
 
-  var textElement = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('text');
+  var textElement = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["create"])('text');
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(textElement, style);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(textElement, style);
 
   // layout each line taking into account that parent
   // shape might resize to fit text size
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(layouted, function(line) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(layouted, function(line) {
 
     var x;
 
@@ -16191,15 +15998,15 @@ Text.prototype.layoutText = function(text, options) {
         - line.width) / 2 + padding.left), 0);
     }
 
-    var tspan = (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.create)('tspan');
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.attr)(tspan, { x: x, y: y });
+    var tspan = Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["create"])('tspan');
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["attr"])(tspan, { x: x, y: y });
 
     tspan.textContent = line.text;
 
-    (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.append)(textElement, tspan);
+    Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["append"])(textElement, tspan);
   });
 
-  (0,tiny_svg__WEBPACK_IMPORTED_MODULE_1__.remove)(helperText);
+  Object(tiny_svg__WEBPACK_IMPORTED_MODULE_1__["remove"])(helperText);
 
   var dimensions = {
     width: maxLineWidth,
@@ -16225,16 +16032,15 @@ function getLineHeight(style) {
 /*!*********************************************!*\
   !*** ./node_modules/didi/dist/index.esm.js ***!
   \*********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: annotate, parseAnnotations, Module, Injector */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "annotate": () => (/* binding */ annotate),
-/* harmony export */   "parseAnnotations": () => (/* binding */ parseAnnotations),
-/* harmony export */   "Module": () => (/* binding */ Module),
-/* harmony export */   "Injector": () => (/* binding */ Injector)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "annotate", function() { return annotate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseAnnotations", function() { return parseAnnotations; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Module", function() { return Module; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Injector", function() { return Injector; });
 var CLASS_PATTERN = /^class /;
 
 function isClass(fn) {
@@ -16579,13 +16385,11 @@ function Injector(modules, parent) {
 /*!********************************************!*\
   !*** ./node_modules/ids/dist/index.esm.js ***!
   \********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
@@ -16749,7 +16553,7 @@ Ids.prototype.clear = function () {
   }
 };
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Ids);
+/* harmony default export */ __webpack_exports__["default"] = (Ids);
 //# sourceMappingURL=index.esm.js.map
 
 
@@ -16759,7 +16563,8 @@ Ids.prototype.clear = function () {
 /*!***************************************************!*\
   !*** ./node_modules/inherits/inherits_browser.js ***!
   \***************************************************/
-/***/ ((module) => {
+/*! no static exports found */
+/***/ (function(module, exports) {
 
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
@@ -16796,7 +16601,8 @@ if (typeof Object.create === 'function') {
 /*!********************************************!*\
   !*** ./node_modules/jquery/dist/jquery.js ***!
   \********************************************/
-/***/ (function(module, exports) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * jQuery JavaScript Library v3.6.0
@@ -27642,7 +27448,7 @@ if ( true ) {
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
 	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
 
@@ -27688,7 +27494,8 @@ return jQuery;
 /*!**************************************************!*\
   !*** ./node_modules/jsondiffpatch/dist/empty.js ***!
   \**************************************************/
-/***/ (() => {
+/*! no static exports found */
+/***/ (function(module, exports) {
 
 
 
@@ -27698,11 +27505,12 @@ return jQuery;
 /*!**************************************************************!*\
   !*** ./node_modules/jsondiffpatch/dist/jsondiffpatch.umd.js ***!
   \**************************************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 (function (global, factory) {
 	 true ? factory(exports, __webpack_require__(/*! ./empty */ "./node_modules/jsondiffpatch/dist/empty.js")) :
-	0;
+	undefined;
 }(this, (function (exports,chalk) { 'use strict';
 
 chalk = chalk && chalk.hasOwnProperty('default') ? chalk['default'] : chalk;
@@ -32626,10 +32434,10 @@ Object.defineProperty(exports, '__esModule', { value: true });
 /*!***************************************!*\
   !*** ./node_modules/lodash/lodash.js ***!
   \***************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* module decorator */ module = __webpack_require__.nmd(module);
-var __WEBPACK_AMD_DEFINE_RESULT__;/**
+/* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_RESULT__;/**
  * @license
  * Lodash <https://lodash.com/>
  * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
@@ -33058,7 +32866,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
       freeParseInt = parseInt;
 
   /** Detect free variable `global` from Node.js. */
-  var freeGlobal = typeof __webpack_require__.g == 'object' && __webpack_require__.g && __webpack_require__.g.Object === Object && __webpack_require__.g;
+  var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
 
   /** Detect free variable `self`. */
   var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -33070,7 +32878,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
   var freeExports =  true && exports && !exports.nodeType && exports;
 
   /** Detect free variable `module`. */
-  var freeModule = freeExports && "object" == 'object' && module && !module.nodeType && module;
+  var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
 
   /** Detect the popular CommonJS extension `module.exports`. */
   var moduleExports = freeModule && freeModule.exports === freeExports;
@@ -49825,12 +49633,13 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
     !(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
       return _;
     }).call(exports, __webpack_require__, exports, module),
-		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
   }
   // Check for `exports` after `define` in case a build optimizer adds it.
   else {}
 }.call(this));
 
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
 
 /***/ }),
 
@@ -49838,49 +49647,48 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 /*!*************************************************!*\
   !*** ./node_modules/min-dash/dist/index.esm.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: assign, bind, debounce, ensureArray, every, filter, find, findIndex, flatten, forEach, get, groupBy, has, isArray, isDefined, isFunction, isNil, isNumber, isObject, isString, isUndefined, keys, map, matchPattern, merge, omit, pick, reduce, set, size, some, sortBy, throttle, unionBy, uniqueBy, values, without */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "assign": () => (/* binding */ assign),
-/* harmony export */   "bind": () => (/* binding */ bind),
-/* harmony export */   "debounce": () => (/* binding */ debounce),
-/* harmony export */   "ensureArray": () => (/* binding */ ensureArray),
-/* harmony export */   "every": () => (/* binding */ every),
-/* harmony export */   "filter": () => (/* binding */ filter),
-/* harmony export */   "find": () => (/* binding */ find),
-/* harmony export */   "findIndex": () => (/* binding */ findIndex),
-/* harmony export */   "flatten": () => (/* binding */ flatten),
-/* harmony export */   "forEach": () => (/* binding */ forEach),
-/* harmony export */   "get": () => (/* binding */ get),
-/* harmony export */   "groupBy": () => (/* binding */ groupBy),
-/* harmony export */   "has": () => (/* binding */ has),
-/* harmony export */   "isArray": () => (/* binding */ isArray),
-/* harmony export */   "isDefined": () => (/* binding */ isDefined),
-/* harmony export */   "isFunction": () => (/* binding */ isFunction),
-/* harmony export */   "isNil": () => (/* binding */ isNil),
-/* harmony export */   "isNumber": () => (/* binding */ isNumber),
-/* harmony export */   "isObject": () => (/* binding */ isObject),
-/* harmony export */   "isString": () => (/* binding */ isString),
-/* harmony export */   "isUndefined": () => (/* binding */ isUndefined),
-/* harmony export */   "keys": () => (/* binding */ keys),
-/* harmony export */   "map": () => (/* binding */ map),
-/* harmony export */   "matchPattern": () => (/* binding */ matchPattern),
-/* harmony export */   "merge": () => (/* binding */ merge),
-/* harmony export */   "omit": () => (/* binding */ omit),
-/* harmony export */   "pick": () => (/* binding */ pick),
-/* harmony export */   "reduce": () => (/* binding */ reduce),
-/* harmony export */   "set": () => (/* binding */ set),
-/* harmony export */   "size": () => (/* binding */ size),
-/* harmony export */   "some": () => (/* binding */ some),
-/* harmony export */   "sortBy": () => (/* binding */ sortBy),
-/* harmony export */   "throttle": () => (/* binding */ throttle),
-/* harmony export */   "unionBy": () => (/* binding */ unionBy),
-/* harmony export */   "uniqueBy": () => (/* binding */ uniqueBy),
-/* harmony export */   "values": () => (/* binding */ values),
-/* harmony export */   "without": () => (/* binding */ without)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "assign", function() { return assign; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "bind", function() { return bind; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "debounce", function() { return debounce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ensureArray", function() { return ensureArray; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "every", function() { return every; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "filter", function() { return filter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "find", function() { return find; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "findIndex", function() { return findIndex; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "flatten", function() { return flatten; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forEach", function() { return forEach; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "groupBy", function() { return groupBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "has", function() { return has; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isArray", function() { return isArray; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDefined", function() { return isDefined; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isFunction", function() { return isFunction; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isNil", function() { return isNil; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isNumber", function() { return isNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isObject", function() { return isObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isString", function() { return isString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isUndefined", function() { return isUndefined; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "keys", function() { return keys; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "map", function() { return map; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "matchPattern", function() { return matchPattern; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "merge", function() { return merge; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "omit", function() { return omit; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return pick; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "reduce", function() { return reduce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "set", function() { return set; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "size", function() { return size; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "some", function() { return some; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sortBy", function() { return sortBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "throttle", function() { return throttle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unionBy", function() { return unionBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uniqueBy", function() { return uniqueBy; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "values", function() { return values; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "without", function() { return without; });
 /**
  * Flatten array, one level deep.
  *
@@ -50536,23 +50344,22 @@ function merge(target) {
 /*!************************************************!*\
   !*** ./node_modules/min-dom/dist/index.esm.js ***!
   \************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: attr, classes, clear, closest, delegate, domify, event, matches, query, queryAll, remove */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "attr": () => (/* binding */ attr),
-/* harmony export */   "classes": () => (/* binding */ classes),
-/* harmony export */   "clear": () => (/* binding */ clear),
-/* harmony export */   "closest": () => (/* binding */ closest),
-/* harmony export */   "delegate": () => (/* binding */ delegate),
-/* harmony export */   "domify": () => (/* binding */ domify),
-/* harmony export */   "event": () => (/* binding */ componentEvent),
-/* harmony export */   "matches": () => (/* binding */ matchesSelector),
-/* harmony export */   "query": () => (/* binding */ query),
-/* harmony export */   "queryAll": () => (/* binding */ all),
-/* harmony export */   "remove": () => (/* binding */ remove)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attr", function() { return attr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "classes", function() { return classes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clear", function() { return clear; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "closest", function() { return closest; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "delegate", function() { return delegate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "domify", function() { return domify; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "event", function() { return componentEvent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "matches", function() { return matchesSelector; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "query", function() { return query; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "queryAll", function() { return all; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "remove", function() { return remove; });
 /**
  * Set attribute `name` to `val`, or get attr `name`.
  *
@@ -51075,17 +50882,16 @@ function remove(el) {
 /*!***************************************************!*\
   !*** ./node_modules/moddle-xml/dist/index.esm.js ***!
   \***************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: Reader, Writer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Reader": () => (/* binding */ Reader),
-/* harmony export */   "Writer": () => (/* binding */ Writer)
-/* harmony export */ });
-/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
-/* harmony import */ var saxen__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! saxen */ "./node_modules/saxen/dist/index.esm.js");
-/* harmony import */ var moddle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moddle */ "./node_modules/moddle/dist/index.esm.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Reader", function() { return Reader; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Writer", function() { return Writer; });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+/* harmony import */ var saxen__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! saxen */ "./node_modules/saxen/dist/index.esm.js");
+/* harmony import */ var moddle__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! moddle */ "./node_modules/moddle/dist/index.esm.js");
 
 
 
@@ -51142,7 +50948,7 @@ function prefixedToName(nameNs, pkg) {
 
 function normalizeXsiTypeName(name, model) {
 
-  var nameNs = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name);
+  var nameNs = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name);
   var pkg = model.getPackage(nameNs.prefix);
 
   return prefixedToName(nameNs, pkg);
@@ -51183,7 +50989,7 @@ function Context(options) {
    * @property {Boolean} lax
    */
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)(this, options);
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(this, options);
 
   this.elementsById = {};
   this.references = [];
@@ -51319,7 +51125,7 @@ ValueHandler.prototype.handleEnd = function() {
       element = this.element,
       propertyDesc = this.propertyDesc;
 
-  value = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.coerceType)(propertyDesc.type, value);
+  value = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["coerceType"])(propertyDesc.type, value);
 
   if (propertyDesc.isMany) {
     element.get(propertyDesc.name).push(value);
@@ -51385,7 +51191,7 @@ ElementHandler.prototype.handleEnd = function() {
       bodyProperty = descriptor.bodyProperty;
 
   if (bodyProperty && value !== undefined) {
-    value = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.coerceType)(bodyProperty.type, value);
+    value = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["coerceType"])(bodyProperty.type, value);
     element.set(bodyProperty.name, value);
   }
 };
@@ -51404,7 +51210,7 @@ ElementHandler.prototype.createElement = function(node) {
       model = this.model,
       propNameNs;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(attributes, function(value, name) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(attributes, function(value, name) {
 
     var prop = descriptor.propertiesByName[name],
         values;
@@ -51422,7 +51228,7 @@ ElementHandler.prototype.createElement = function(node) {
         // IDREFS: parse references as whitespace-separated list
         values = value.split(' ');
 
-        (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(values, function(v) {
+        Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(values, function(v) {
           context.addReference({
             element: instance,
             property: prop.ns.name,
@@ -51433,10 +51239,10 @@ ElementHandler.prototype.createElement = function(node) {
 
     } else {
       if (prop) {
-        value = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.coerceType)(prop.type, value);
+        value = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["coerceType"])(prop.type, value);
       } else
       if (name !== 'xmlns') {
-        propNameNs = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name, descriptor.ns.prefix);
+        propNameNs = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name, descriptor.ns.prefix);
 
         // check whether attribute is defined in a well-known namespace
         // if that is the case we emit a warning to indicate potential misuse
@@ -51461,7 +51267,7 @@ ElementHandler.prototype.createElement = function(node) {
 ElementHandler.prototype.getPropertyForNode = function(node) {
 
   var name = node.name;
-  var nameNs = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name);
+  var nameNs = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name);
 
   var type = this.type,
       model = this.model,
@@ -51489,7 +51295,7 @@ ElementHandler.prototype.getPropertyForNode = function(node) {
 
         elementType = model.getType(elementTypeName);
 
-        return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({}, property, {
+        return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, property, {
           effectiveType: getModdleDescriptor(elementType).name
         });
       }
@@ -51506,19 +51312,19 @@ ElementHandler.prototype.getPropertyForNode = function(node) {
     elementType = model.getType(elementTypeName);
 
     // search for collection members later
-    property = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.find)(descriptor.properties, function(p) {
+    property = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(descriptor.properties, function(p) {
       return !p.isVirtual && !p.isReference && !p.isAttribute && elementType.hasType(p.type);
     });
 
     if (property) {
-      return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({}, property, {
+      return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, property, {
         effectiveType: getModdleDescriptor(elementType).name
       });
     }
   } else {
 
     // parse unknown element (maybe extension)
-    property = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.find)(descriptor.properties, function(p) {
+    property = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["find"])(descriptor.properties, function(p) {
       return !p.isReference && !p.isAttribute && p.type === 'Element';
     });
 
@@ -51563,7 +51369,7 @@ ElementHandler.prototype.handleChild = function(node) {
 
   type = propertyDesc.effectiveType || propertyDesc.type;
 
-  if ((0,moddle__WEBPACK_IMPORTED_MODULE_1__.isSimpleType)(type)) {
+  if (Object(moddle__WEBPACK_IMPORTED_MODULE_2__["isSimpleType"])(type)) {
     return this.valueHandler(propertyDesc, element);
   }
 
@@ -51586,7 +51392,7 @@ ElementHandler.prototype.handleChild = function(node) {
     }
 
     if (propertyDesc.isReference) {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)(newElement, {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(newElement, {
         element: element
       });
 
@@ -51619,7 +51425,7 @@ RootElementHandler.prototype = Object.create(ElementHandler.prototype);
 RootElementHandler.prototype.createElement = function(node) {
 
   var name = node.name,
-      nameNs = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name),
+      nameNs = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name),
       model = this.model,
       type = this.type,
       pkg = model.getPackage(nameNs.prefix),
@@ -51647,7 +51453,7 @@ GenericElementHandler.prototype = Object.create(BaseElementHandler.prototype);
 GenericElementHandler.prototype.createElement = function(node) {
 
   var name = node.name,
-      ns = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name),
+      ns = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name),
       prefix = ns.prefix,
       uri = node.ns[prefix + '$uri'],
       attributes = node.attributes;
@@ -51689,13 +51495,13 @@ GenericElementHandler.prototype.handleEnd = function() {
  */
 function Reader(options) {
 
-  if (options instanceof moddle__WEBPACK_IMPORTED_MODULE_1__.Moddle) {
+  if (options instanceof moddle__WEBPACK_IMPORTED_MODULE_2__["Moddle"]) {
     options = {
       model: options
     };
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)(this, { lax: false }, options);
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(this, { lax: false }, options);
 }
 
 /**
@@ -51750,8 +51556,8 @@ Reader.prototype.fromXML = function(xml, options, done) {
   var model = this.model,
       lax = this.lax;
 
-  var context = new Context((0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({}, options, { rootHandler: rootHandler })),
-      parser = new saxen__WEBPACK_IMPORTED_MODULE_0__.Parser({ proxy: true }),
+  var context = new Context(Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, options, { rootHandler: rootHandler })),
+      parser = new saxen__WEBPACK_IMPORTED_MODULE_1__["Parser"]({ proxy: true }),
       stack = createStack();
 
   rootHandler.context = context;
@@ -52123,7 +51929,7 @@ function inherits(ctor, superCtor) {
 }
 
 function nsName(ns) {
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_2__.isString)(ns)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(ns)) {
     return ns;
   } else {
     return (ns.prefix ? ns.prefix + ':' : '') + ns.localName;
@@ -52145,20 +51951,20 @@ function getNsAttrs(namespaces) {
 
 function getElementNs(ns, descriptor) {
   if (descriptor.isGeneric) {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({ localName: descriptor.ns.localName }, ns);
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ localName: descriptor.ns.localName }, ns);
   } else {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({ localName: nameToAlias(descriptor.ns.localName, descriptor.$pkg) }, ns);
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ localName: nameToAlias(descriptor.ns.localName, descriptor.$pkg) }, ns);
   }
 }
 
 function getPropertyNs(ns, descriptor) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({ localName: descriptor.ns.localName }, ns);
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ localName: descriptor.ns.localName }, ns);
 }
 
 function getSerializableProperties(element) {
   var descriptor = element.$descriptor;
 
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.filter)(descriptor.properties, function(p) {
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(descriptor.properties, function(p) {
     var name = p.name;
 
     if (p.isVirtual) {
@@ -52166,7 +51972,7 @@ function getSerializableProperties(element) {
     }
 
     // do not serialize defaults
-    if (!(0,min_dash__WEBPACK_IMPORTED_MODULE_2__.has)(element, name)) {
+    if (!Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["has"])(element, name)) {
       return false;
     }
 
@@ -52205,7 +52011,7 @@ var ESCAPE_MAP = {
 function escape(str, charPattern, replaceMap) {
 
   // ensure we are handling strings here
-  str = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.isString)(str) ? str : '' + str;
+  str = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(str) ? str : '' + str;
 
   return str.replace(charPattern, function(s) {
     return '&' + replaceMap[s] + ';';
@@ -52227,11 +52033,11 @@ function escapeBody(str) {
 }
 
 function filterAttributes(props) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.filter)(props, function(p) { return p.isAttr; });
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(props, function(p) { return p.isAttr; });
 }
 
 function filterContained(props) {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.filter)(props, function(p) { return !p.isAttr; });
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["filter"])(props, function(p) { return !p.isAttr; });
 }
 
 
@@ -52363,8 +52169,8 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
 
   var ns;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_2__.isString)(element)) {
-    ns = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(element);
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(element)) {
+    ns = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(element);
   } else {
     ns = element.ns;
   }
@@ -52384,7 +52190,7 @@ ElementSerializer.prototype.nsAttributeName = function(element) {
   if (this.isLocalNs(effectiveNs)) {
     return { localName: ns.localName };
   } else {
-    return (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({ localName: ns.localName }, effectiveNs);
+    return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ localName: ns.localName }, effectiveNs);
   }
 };
 
@@ -52395,7 +52201,7 @@ ElementSerializer.prototype.parseGeneric = function(element) {
 
   var attributes = [];
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(element, function(val, key) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(element, function(val, key) {
 
     var nonNsAttr;
 
@@ -52403,7 +52209,7 @@ ElementSerializer.prototype.parseGeneric = function(element) {
       body.push(new BodySerializer().build({ type: 'String' }, val));
     } else
     if (key === '$children') {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(val, function(child) {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(val, function(child) {
         body.push(new ElementSerializer(self).build(child));
       });
     } else
@@ -52422,7 +52228,7 @@ ElementSerializer.prototype.parseGeneric = function(element) {
 ElementSerializer.prototype.parseNsAttribute = function(element, name, value) {
   var model = element.$model;
 
-  var nameNs = (0,moddle__WEBPACK_IMPORTED_MODULE_1__.parseNameNS)(name);
+  var nameNs = Object(moddle__WEBPACK_IMPORTED_MODULE_2__["parseNameNS"])(name);
 
   var ns;
 
@@ -52473,7 +52279,7 @@ ElementSerializer.prototype.parseNsAttributes = function(element, attrs) {
   // parse namespace attributes first
   // and log them. push non namespace attributes to a list
   // and process them later
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(genericAttrs, function(value, name) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(genericAttrs, function(value, name) {
 
     var nonNsAttr = self.parseNsAttribute(element, name, value);
 
@@ -52489,7 +52295,7 @@ ElementSerializer.prototype.parseGenericAttributes = function(element, attribute
 
   var self = this;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(attributes, function(attr) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(attributes, function(attr) {
 
     // do not serialize xsi:type attribute
     // it is set manually based on the actual implementation type
@@ -52514,7 +52320,7 @@ ElementSerializer.prototype.parseContainments = function(properties) {
       body = this.body,
       element = this.element;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(properties, function(p) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(properties, function(p) {
     var value = element.get(p.name),
         isReference = p.isReference,
         isMany = p.isMany;
@@ -52526,13 +52332,13 @@ ElementSerializer.prototype.parseContainments = function(properties) {
     if (p.isBody) {
       body.push(new BodySerializer().build(p, value[0]));
     } else
-    if ((0,moddle__WEBPACK_IMPORTED_MODULE_1__.isSimpleType)(p.type)) {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(value, function(v) {
+    if (Object(moddle__WEBPACK_IMPORTED_MODULE_2__["isSimpleType"])(p.type)) {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(value, function(v) {
         body.push(new ValueSerializer(self.addTagName(self.nsPropertyTagName(p))).build(p, v));
       });
     } else
     if (isReference) {
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(value, function(v) {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(value, function(v) {
         body.push(new ReferenceSerializer(self.addTagName(self.nsPropertyTagName(p))).build(v));
       });
     } else {
@@ -52542,7 +52348,7 @@ ElementSerializer.prototype.parseContainments = function(properties) {
       var asType = serializeAsType(p),
           asProperty = serializeAsProperty(p);
 
-      (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(value, function(v) {
+      Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(value, function(v) {
         var serializer;
 
         if (asType) {
@@ -52650,7 +52456,7 @@ ElementSerializer.prototype.parseAttributes = function(properties) {
   var self = this,
       element = this.element;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(properties, function(p) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(properties, function(p) {
 
     var value = element.get(p.name);
 
@@ -52661,7 +52467,7 @@ ElementSerializer.prototype.parseAttributes = function(properties) {
       }
       else {
         var values = [];
-        (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(value, function(v) {
+        Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(value, function(v) {
           values.push(v.id);
         });
 
@@ -52686,7 +52492,7 @@ ElementSerializer.prototype.addTagName = function(nsTagName) {
 ElementSerializer.prototype.addAttribute = function(name, value) {
   var attrs = this.attrs;
 
-  if ((0,min_dash__WEBPACK_IMPORTED_MODULE_2__.isString)(value)) {
+  if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(value)) {
     value = escapeAttr(value);
   }
 
@@ -52701,7 +52507,7 @@ ElementSerializer.prototype.serializeAttributes = function(writer) {
     attrs = getNsAttrs(namespaces).concat(attrs);
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(attrs, function(a) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(attrs, function(a) {
     writer
       .append(' ')
       .append(nsName(a.name)).append('="').append(a.value).append('"');
@@ -52728,7 +52534,7 @@ ElementSerializer.prototype.serializeTo = function(writer) {
         .indent();
     }
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.forEach)(this.body, function(b) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(this.body, function(b) {
       b.serializeTo(writer);
     });
 
@@ -52838,7 +52644,7 @@ function FormatingWriter(out, format) {
  */
 function Writer(options) {
 
-  options = (0,min_dash__WEBPACK_IMPORTED_MODULE_2__.assign)({ format: false, preamble: true }, options || {});
+  options = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({ format: false, preamble: true }, options || {});
 
   function toXML(tree, writer) {
     var internalWriter = writer || new SavingWriter();
@@ -52869,17 +52675,16 @@ function Writer(options) {
 /*!***********************************************!*\
   !*** ./node_modules/moddle/dist/index.esm.js ***!
   \***********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: Moddle, coerceType, isBuiltInType, isSimpleType, parseNameNS */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Moddle": () => (/* binding */ Moddle),
-/* harmony export */   "coerceType": () => (/* binding */ coerceType),
-/* harmony export */   "isBuiltInType": () => (/* binding */ isBuiltIn),
-/* harmony export */   "isSimpleType": () => (/* binding */ isSimple),
-/* harmony export */   "parseNameNS": () => (/* binding */ parseName)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Moddle", function() { return Moddle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "coerceType", function() { return coerceType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isBuiltInType", function() { return isBuiltIn; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isSimpleType", function() { return isSimple; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseNameNS", function() { return parseName; });
 /* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
 
 
@@ -52916,7 +52721,7 @@ Factory.prototype.createType = function(descriptor) {
       prototype = Object.create(Base.prototype);
 
   // initialize default values
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(descriptor.properties, function(p) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(descriptor.properties, function(p) {
     if (!p.isMany && p.default !== undefined) {
       prototype[p.name] = p.default;
     }
@@ -52935,7 +52740,7 @@ Factory.prototype.createType = function(descriptor) {
     props.define(this, '$attrs', { value: {} });
     props.define(this, '$parent', { writable: true });
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(attrs, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(function(val, key) {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(attrs, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(function(val, key) {
       this.set(key, val);
     }, this));
   }
@@ -53049,7 +52854,7 @@ function DescriptorBuilder(nameNs) {
 
 
 DescriptorBuilder.prototype.build = function() {
-  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.pick)(this, [
+  return Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["pick"])(this, [
     'ns',
     'name',
     'allTypes',
@@ -53224,10 +53029,10 @@ DescriptorBuilder.prototype.addTrait = function(t, inherited) {
     return;
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(t.properties, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(function(p) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(t.properties, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(function(p) {
 
     // clone property to allow extensions
-    p = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, p, {
+    p = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, p, {
       name: p.ns.localName,
       inherited: inherited
     });
@@ -53271,7 +53076,7 @@ function Registry(packages, properties) {
 
   this.properties = properties;
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(packages, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(this.registerPackage, this));
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(packages, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(this.registerPackage, this));
 }
 
 
@@ -53287,7 +53092,7 @@ Registry.prototype.getPackages = function() {
 Registry.prototype.registerPackage = function(pkg) {
 
   // copy package
-  pkg = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, pkg);
+  pkg = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, pkg);
 
   var pkgMap = this.packageMap;
 
@@ -53295,7 +53100,7 @@ Registry.prototype.registerPackage = function(pkg) {
   ensureAvailable(pkgMap, pkg, 'uri');
 
   // register types
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(pkg.types, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(function(descriptor) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(pkg.types, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(function(descriptor) {
     this.registerType(descriptor, pkg);
   }, this));
 
@@ -53309,11 +53114,11 @@ Registry.prototype.registerPackage = function(pkg) {
  */
 Registry.prototype.registerType = function(type, pkg) {
 
-  type = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)({}, type, {
+  type = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])({}, type, {
     superClass: (type.superClass || []).slice(),
     extends: (type.extends || []).slice(),
     properties: (type.properties || []).slice(),
-    meta: (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)((type.meta || {}))
+    meta: Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])((type.meta || {}))
   });
 
   var ns = parseName(type.name, pkg.prefix),
@@ -53321,7 +53126,7 @@ Registry.prototype.registerType = function(type, pkg) {
       propertiesByName = {};
 
   // parse properties
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(type.properties, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(function(p) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(type.properties, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(function(p) {
 
     // namespace property names
     var propertyNs = parseName(p.name, ns.prefix),
@@ -53332,7 +53137,7 @@ Registry.prototype.registerType = function(type, pkg) {
       p.type = parseName(p.type, propertyNs.prefix).name;
     }
 
-    (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(p, {
+    Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(p, {
       ns: propertyNs,
       name: propertyName
     });
@@ -53341,13 +53146,13 @@ Registry.prototype.registerType = function(type, pkg) {
   }, this));
 
   // update ns + name
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.assign)(type, {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["assign"])(type, {
     ns: ns,
     name: name,
     propertiesByName: propertiesByName
   });
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(type.extends, (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.bind)(function(extendsName) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(type.extends, Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["bind"])(function(extendsName) {
     var extended = this.typeMap[extendsName];
 
     extended.traits = extended.traits || [];
@@ -53401,12 +53206,12 @@ Registry.prototype.mapTypes = function(nsName, iterator, trait) {
     throw new Error('unknown type <' + nsName.name + '>');
   }
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(type.superClass, trait ? traverseTrait : traverseSuper);
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(type.superClass, trait ? traverseTrait : traverseSuper);
 
   // call iterator with (type, inherited=!trait)
   iterator(type, !trait);
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(type.traits, traverseTrait);
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(type.traits, traverseTrait);
 };
 
 
@@ -53643,7 +53448,7 @@ Moddle.prototype.getType = function(descriptor) {
 
   var cache = this.typeCache;
 
-  var name = (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isString)(descriptor) ? descriptor : descriptor.ns.name;
+  var name = Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isString"])(descriptor) ? descriptor : descriptor.ns.name;
 
   var type = cache[name];
 
@@ -53709,8 +53514,8 @@ Moddle.prototype.createAny = function(name, nsUri, properties) {
   this.properties.define(element, '$parent', { enumerable: false, writable: true });
   this.properties.define(element, '$instanceOf', { enumerable: false, writable: true });
 
-  (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.forEach)(properties, function(a, key) {
-    if ((0,min_dash__WEBPACK_IMPORTED_MODULE_0__.isObject)(a) && a.value !== undefined) {
+  Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["forEach"])(properties, function(a, key) {
+    if (Object(min_dash__WEBPACK_IMPORTED_MODULE_0__["isObject"])(a) && a.value !== undefined) {
       element[a.name] = a.value;
     } else {
       element[key] = a;
@@ -53785,7 +53590,8 @@ Moddle.prototype.getTypeDescriptor = function(type) {
 /*!*******************************************!*\
   !*** ./node_modules/object-refs/index.js ***!
   \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(/*! ./lib/refs */ "./node_modules/object-refs/lib/refs.js");
 
@@ -53797,7 +53603,8 @@ module.exports.Collection = __webpack_require__(/*! ./lib/collection */ "./node_
 /*!****************************************************!*\
   !*** ./node_modules/object-refs/lib/collection.js ***!
   \****************************************************/
-/***/ ((module) => {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -53927,7 +53734,8 @@ module.exports.isExtended = isExtended;
 /*!**********************************************!*\
   !*** ./node_modules/object-refs/lib/refs.js ***!
   \**********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -54139,7 +53947,8 @@ module.exports = Refs;
 /*!*****************************************************!*\
   !*** ./node_modules/path-intersection/intersect.js ***!
   \*****************************************************/
-/***/ ((module) => {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
@@ -55077,14 +54886,13 @@ module.exports = findPathIntersections;
 /*!**********************************************!*\
   !*** ./node_modules/saxen/dist/index.esm.js ***!
   \**********************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: Parser, decode */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Parser": () => (/* binding */ Parser),
-/* harmony export */   "decode": () => (/* binding */ decodeEntities)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Parser", function() { return Parser; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decode", function() { return decodeEntities; });
 var fromCharCode = String.fromCharCode;
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -56175,32 +55983,31 @@ function Parser(options) {
 /*!*************************************************!*\
   !*** ./node_modules/tiny-svg/dist/index.esm.js ***!
   \*************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/*! exports provided: append, appendTo, attr, classes, clear, clone, create, innerSVG, prepend, prependTo, remove, replace, transform, on, off, createPoint, createMatrix, createTransform, select, selectAll */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "append": () => (/* binding */ append),
-/* harmony export */   "appendTo": () => (/* binding */ appendTo),
-/* harmony export */   "attr": () => (/* binding */ attr),
-/* harmony export */   "classes": () => (/* binding */ classes),
-/* harmony export */   "clear": () => (/* binding */ clear),
-/* harmony export */   "clone": () => (/* binding */ clone),
-/* harmony export */   "create": () => (/* binding */ create),
-/* harmony export */   "innerSVG": () => (/* binding */ innerSVG),
-/* harmony export */   "prepend": () => (/* binding */ prepend),
-/* harmony export */   "prependTo": () => (/* binding */ prependTo),
-/* harmony export */   "remove": () => (/* binding */ remove),
-/* harmony export */   "replace": () => (/* binding */ replace),
-/* harmony export */   "transform": () => (/* binding */ transform),
-/* harmony export */   "on": () => (/* binding */ on),
-/* harmony export */   "off": () => (/* binding */ off),
-/* harmony export */   "createPoint": () => (/* binding */ createPoint),
-/* harmony export */   "createMatrix": () => (/* binding */ createMatrix),
-/* harmony export */   "createTransform": () => (/* binding */ createTransform),
-/* harmony export */   "select": () => (/* binding */ select),
-/* harmony export */   "selectAll": () => (/* binding */ selectAll)
-/* harmony export */ });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "append", function() { return append; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "appendTo", function() { return appendTo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "attr", function() { return attr; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "classes", function() { return classes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clear", function() { return clear; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clone", function() { return clone; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "innerSVG", function() { return innerSVG; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prepend", function() { return prepend; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prependTo", function() { return prependTo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "remove", function() { return remove; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "replace", function() { return replace; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "transform", function() { return transform; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "on", function() { return on; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "off", function() { return off; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createPoint", function() { return createPoint; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createMatrix", function() { return createMatrix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createTransform", function() { return createTransform; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "select", function() { return select; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selectAll", function() { return selectAll; });
 function ensureImported(element, target) {
 
   if (element.ownerDocument !== target.ownerDocument) {
@@ -57034,573 +56841,743 @@ function transform(node, transforms) {
 
 
 
-/***/ })
+/***/ }),
 
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__webpack_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__webpack_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/global */
-/******/ 	(() => {
-/******/ 		__webpack_require__.g = (function() {
-/******/ 			if (typeof globalThis === 'object') return globalThis;
-/******/ 			try {
-/******/ 				return this || new Function('return this')();
-/******/ 			} catch (e) {
-/******/ 				if (typeof window === 'object') return window;
-/******/ 			}
-/******/ 		})();
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/node module decorator */
-/******/ 	(() => {
-/******/ 		__webpack_require__.nmd = (module) => {
-/******/ 			module.paths = [];
-/******/ 			if (!module.children) module.children = [];
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
+/***/ "./node_modules/webpack/buildin/global.js":
+/*!***********************************!*\
+  !*** (webpack)/buildin/global.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || new Function("return this")();
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+
+/***/ "./node_modules/webpack/buildin/module.js":
+/*!***********************************!*\
+  !*** (webpack)/buildin/module.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if (!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if (!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+
+/***/ "./src/app.js":
 /*!********************!*\
-  !*** ./app/app.js ***!
+  !*** ./src/app.js ***!
   \********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "bpmnDiffApp": () => (/* binding */ bpmnDiffApp)
-/* harmony export */ });
-/* harmony import */ var _differ__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./differ */ "./app/differ.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BpmnDiffApp; });
+/* harmony import */ var _differ__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./differ */ "./src/differ.js");
 /* harmony import */ var _differ__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_differ__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
 /* harmony import */ var jquery__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(jquery__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _custom_viewer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./custom-viewer */ "./app/custom-viewer.js");
-/* harmony import */ var _diff_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./diff.json */ "./app/diff.json");
+/* harmony import */ var _custom_viewer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./custom-viewer */ "./src/custom-viewer.js");
+/* harmony import */ var _diff_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./diff.json */ "./src/diff.json");
+var _diff_json__WEBPACK_IMPORTED_MODULE_4___namespace = /*#__PURE__*/__webpack_require__.t(/*! ./diff.json */ "./src/diff.json", 1);
 
 
 
 
 
 
-function  bpmnDiffApp() {
 
 
+/**
+ * The main app used for BPMN model comparison
+ * @param leftContainerId: the div container id for the left-handed BPMN model
+ * @param rightContainerId: the div container id for the right-handed BPMN model
+ * @param changesContainerId: the div container id for the list of changes box
+ * @constructor
+ */
+function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
 
-  'use strict';
+    //////////// INITIALIZE /////////////////////////////////////
 
+    let viewers = createViewers(leftContainerId, rightContainerId);
 
-  // var $ = require('jquery'),
-  //     _ = require('lodash'),
-  //     BpmnViewer = require('bpmn-js'),
-     // Diffing = require('bpmn-js-diffing');
-
-
-  function createViewer(side) {
-    let viewer = new _custom_viewer__WEBPACK_IMPORTED_MODULE_3__.default({
-      container: '#canvas-' + side,
-      height: '100%',
-      width: '100%'
+    jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId + ' .show-hide-toggle').click(function () {
+        jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId).toggleClass('collapsed');
     });
-    let canvasObj = viewer.get('canvas');
-    canvasObj._viewboxChanged = function() {
-      canvasObj._eventBus.fire('canvas.viewbox.changed',
-          { viewbox: canvasObj.viewbox(false) });
-    };
-    return viewer;
-  }
 
-  function syncViewers(a, b) {
+    // These calls are only used for index.html for quick testing
+    // Must be commented out in server use
+    jquery__WEBPACK_IMPORTED_MODULE_2__('.drop-zone').each(function () {
+        let node = this,
+            element = jquery__WEBPACK_IMPORTED_MODULE_2__(node);
 
-    var changing;
+        element.append('<div class="drop-marker" />');
 
-    function update(viewer) {
-
-      return function(e) {
-        if (changing) {
-          return;
+        function removeMarker() {
+            jquery__WEBPACK_IMPORTED_MODULE_2__('.drop-zone').removeClass('dropping');
         }
 
-        changing = true;
-        viewer.get('canvas').viewbox(e.viewbox);
-        changing = false;
-      };
-    }
+        function handleFileSelect(e) {
+            e.stopPropagation();
+            e.preventDefault();
 
-    function syncViewbox(a, b) {
-      a.on('canvas.viewbox.changed', update(b));
-    }
+            let files = e.dataTransfer.files;
+            openFile(files[0], element.attr('target'), openDiagram);
 
-    syncViewbox(a, b);
-    syncViewbox(b, a);
-  }
-
-  function createViewers(left, right) {
-
-    var sides = {};
-
-    sides[left] = createViewer(left);
-    sides[right] = createViewer(right);
-
-    // sync navigation
-    syncViewers(sides[left], sides[right]);
-
-    return sides;
-  }
-
-
-  var viewers = createViewers('left', 'right');
-
-  function getViewer(side) {
-    return viewers[side];
-  }
-
-  function isLoaded(v) {
-    return v.loading !== undefined && !v.loading;
-  }
-
-  function allDiagramsLoaded() {
-    return lodash__WEBPACK_IMPORTED_MODULE_1__.every(viewers, isLoaded);
-  }
-
-  function setLoading(viewer, loading) {
-    viewer.loading = loading;
-  }
-
-
-  function clearDiffs(viewer) {
-    viewer.get('overlays').remove({ type: 'diff' });
-
-    // TODO(nre): expose as external API
-    lodash__WEBPACK_IMPORTED_MODULE_1__.forEach(viewer.get('elementRegistry')._elementMap, function(container) {
-      var gfx = container.gfx;
-
-      gfx
-        .removeClass('diff-added')
-        .removeClass('diff-changed')
-        .removeClass('diff-removed')
-        .removeClass('diff-layout-changed');
-    });
-
-  }
-
-
-  function diagramLoading(side, viewer) {
-
-    setLoading(viewer, true);
-
-    var loaded = lodash__WEBPACK_IMPORTED_MODULE_1__.filter(viewers, isLoaded);
-
-    // clear diffs on loaded
-    lodash__WEBPACK_IMPORTED_MODULE_1__.forEach(loaded, function(v) {
-      clearDiffs(v);
-    });
-  }
-
-  function diagramLoaded(err, side, viewer) {
-    if (err) {
-      console.error('load error', err);
-    }
-
-    setLoading(viewer, err);
-
-    if (allDiagramsLoaded()) {
-
-      // sync viewboxes
-      var other = getViewer(side == 'left' ? 'right' : 'left');
-      viewer.get('canvas').viewbox(other.get('canvas').viewbox());
-
-      showDiff(getViewer('left'), getViewer('right'));
-    }
-  }
-
-
-  // we use $.ajax to load the diagram.
-  // make sure you run the application via web-server (ie. connect (node) or asdf (ruby))
-
-  function loadDiagram(side, diagram) {
-
-    var viewer = getViewer(side);
-
-    function done(err) {
-      diagramLoaded(err, side, viewer);
-    }
-
-    diagramLoading(side, viewer);
-
-    if (diagram.xml) {
-      return viewer.importXML(diagram.xml, done);
-    }
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.get(diagram.url, function(xml) {
-      viewer.importXML(xml, done);
-    });
-  }
-
-
-  function showDiff(viewerOld, viewerNew) {
-console.log("viewerOld", viewerOld);
-console.log("viewerNew", viewerNew);
-console.log("definitions", viewerOld._definitions, viewerNew._definitions);
-    var result = _differ__WEBPACK_IMPORTED_MODULE_0__.diff (viewerOld._definitions, viewerNew._definitions);
-
-   // var result = sampleDiff;
-    console.log("diff result", result);
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._removed, function(i, obj) {
-      highlight(viewerOld, i, 'diff-removed');
-      addMarker(viewerOld, i, 'marker-removed', '&minus;');
-    });
-
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._added, function(i, obj) {
-      highlight(viewerNew, i, 'diff-added');
-      addMarker(viewerNew, i, 'marker-added', '&#43;');
-    });
-
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._layoutChanged, function(i, obj) {
-      highlight(viewerOld, i, 'diff-layout-changed');
-      addMarker(viewerOld, i, 'marker-layout-changed', '&#8680;');
-
-      highlight(viewerNew, i, 'diff-layout-changed');
-      addMarker(viewerNew, i, 'marker-layout-changed', '&#8680;');
-    });
-
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._changed, function(i, obj) {
-
-      highlight(viewerOld, i, 'diff-changed');
-      addMarker(viewerOld, i, 'marker-changed', '&#9998;');
-
-      highlight(viewerNew, i, 'diff-changed');
-      addMarker(viewerNew, i, 'marker-changed', '&#9998;');
-
-      var details = '<table ><tr><th>Attribute</th><th>old</th><th>new</th></tr>';
-      jquery__WEBPACK_IMPORTED_MODULE_2__.each(obj.attrs, function(attr, changes) {
-        details = details + '<tr>' +
-          '<td>' + attr + '</td><td>' + changes.oldValue + '</td>' +
-          '<td>' + changes.newValue + '</td>' +
-        '</tr>';
-      });
-
-      details = details + '</table></div>';
-console.log("viewerOld.get('elementRegistry')", viewerOld.get('elementRegistry'));
-viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsOld_' + i).toggle();});
-
-
-      var detailsOld = '<div id="changeDetailsOld_' + i + '" class="changeDetails">' + details;
-
-      // attach an overlay to a node
-      viewerOld.get('overlays').add(i, 'diff', {
-        position: {
-          bottom: -5,
-          left: 0
-        },
-        html: detailsOld
-      });
-
-      jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsOld_' + i).toggle();
-      viewerNew.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) { jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsNew_' + i).toggle();});
-
-      var detailsNew = '<div id="changeDetailsNew_' + i + '" class="changeDetails">' + details;
-
-      // attach an overlay to a node
-      viewerNew.get('overlays').add(i, 'diff', {
-        position: {
-          bottom: -5,
-          left: 0
-        },
-        html: detailsNew
-      });
-
-      jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsNew_' + i).toggle();
-    });
-
-    // create Table Overview of Changes
-    showChangesOverview (result, viewerOld, viewerNew);
-
-  }
-
-
-  // loadDiagram('left', { url: '../resources/pizza-collaboration/old.bpmn' });
-  // loadDiagram('right', { url: '../resources/pizza-collaboration/new.bpmn' });
-
-
-  function openDiagram(xml, side) {
-    loadDiagram(side, { xml: xml });
-  }
-
-  function openFile(file, target, done) {
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-      var xml = e.target.result;
-      done(xml, target);
-    };
-
-    reader.readAsText(file);
-  }
-
-
-  jquery__WEBPACK_IMPORTED_MODULE_2__('.drop-zone').each(function() {
-    var node = this,
-        element = jquery__WEBPACK_IMPORTED_MODULE_2__(node);
-
-    element.append('<div class="drop-marker" />');
-
-    function removeMarker() {
-      jquery__WEBPACK_IMPORTED_MODULE_2__('.drop-zone').removeClass('dropping');
-    }
-
-    function handleFileSelect(e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      var files = e.dataTransfer.files;
-      openFile(files[0], element.attr('target'), openDiagram);
-
-      removeMarker();
-    }
-
-    function handleDragOver(e) {
-      removeMarker();
-
-      e.stopPropagation();
-      e.preventDefault();
-
-      element.addClass('dropping');
-
-      e.dataTransfer.dropEffect = 'copy';
-    }
-
-    function handleDragLeave(e) {
-      removeMarker();
-    }
-
-    node.addEventListener('dragover', handleDragOver, false);
-    node.ownerDocument.body.addEventListener('dragover', handleDragLeave, false);
-
-    node.addEventListener('drop', handleFileSelect, false);
-  });
-
-  jquery__WEBPACK_IMPORTED_MODULE_2__('.file').on('change', function(e) {
-    openFile(e.target.files[0], jquery__WEBPACK_IMPORTED_MODULE_2__(this).attr('target'), openDiagram);
-  });
-
-
-  function addMarker(viewer, elementId, className, symbol) {
-
-    var overlays = viewer.get('overlays');
-
-    try {
-      // attach an overlay to a node
-      overlays.add(elementId, 'diff', {
-        position: {
-          top: -12,
-          right: 12
-        },
-        html: '<span class="marker ' + className + '">' + symbol + '</span>'
-      });
-    } catch (e) {
-      // fuck you, haha
-    }
-  }
-
-  function highlight(viewer, elementId, marker) {
-    viewer.get('canvas').addMarker(elementId, marker);
-  }
-
-  function unhighlight(viewer, elementId, marker) {
-    viewer.get('canvas').removeMarker(elementId, marker);
-  }
-
-  jquery__WEBPACK_IMPORTED_MODULE_2__('#changes-overview .show-hide-toggle').click(function () {
-    jquery__WEBPACK_IMPORTED_MODULE_2__('#changes-overview').toggleClass('collapsed');
-  });
-
-
-  function showChangesOverview (result, viewerOld, viewerNew) {
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__('#changes-overview table').remove();
-
-    var changesTable = jquery__WEBPACK_IMPORTED_MODULE_2__(
-      '<table>' +
-        '<thead><tr><th>#</th><th>Name</th><th>Type</th><th>Change</th></tr></thead>' +
-      '</table>');
-
-    var count = 0;
-
-    function addRow(element, type, label) {
-      var html =
-        '<tr class="entry">' +
-          '<td>' + (count++) + '</td><td>' + (element.name || '') + '</td>' +
-          '<td>' + element.$type.replace('bpmn:', '') + '</td>' +
-          '<td><span class="status">' + label + '</span></td>' +
-        '</tr>';
-
-      var row = jquery__WEBPACK_IMPORTED_MODULE_2__(html).data({
-        changed: type,
-        element: element.id
-      }).addClass(type).appendTo(changesTable);
-    }
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._removed, function(i, obj) {
-      addRow(obj, 'removed', 'Removed');
-    });
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._added, function(i, obj) {
-      addRow(obj, 'added', 'Added');
-    });
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._changed, function(i, obj) {
-      addRow(obj.model, 'changed', 'Changed');
-    });
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__.each(result._layoutChanged, function(i, obj) {
-      addRow(obj, 'layout-changed', 'Layout Changed');
-    });
-
-    changesTable.appendTo('#changes-overview .changes');
-
-
-    var HIGHLIGHT_CLS = 'highlight';
-
-    jquery__WEBPACK_IMPORTED_MODULE_2__('#changes-overview tr.entry').each(function() {
-
-      var row = jquery__WEBPACK_IMPORTED_MODULE_2__(this);
-
-      var id = row.data('element');
-      var changed = row.data('changed');
-
-      row.hover(function() {
-
-        if (changed == 'removed') {
-          highlight(viewerOld, id, HIGHLIGHT_CLS);
-        } else if (changed == 'added') {
-          highlight(viewerNew, id, HIGHLIGHT_CLS);
-        } else {
-          highlight(viewerOld, id, HIGHLIGHT_CLS);
-          highlight(viewerNew, id, HIGHLIGHT_CLS);
-        }
-      }, function() {
-
-        if (changed == 'removed') {
-          unhighlight(viewerOld, id, HIGHLIGHT_CLS);
-        } else if (changed == 'added') {
-          unhighlight(viewerNew, id, HIGHLIGHT_CLS);
-        } else {
-          unhighlight(viewerOld, id, HIGHLIGHT_CLS);
-          unhighlight(viewerNew, id, HIGHLIGHT_CLS);
-        }
-      });
-
-      row.click(function() {
-
-        var containerWidth = jquery__WEBPACK_IMPORTED_MODULE_2__('.di-container').width();
-        var containerHeight = jquery__WEBPACK_IMPORTED_MODULE_2__('.di-container').height();
-
-        var viewer = (changed == 'removed' ? viewerOld : viewerNew);
-
-        var element = viewer.get('elementRegistry').get(id);
-
-        var x, y;
-
-        if (element.waypoints) {
-          x = element.waypoints[0].x;
-          y = element.waypoints[0].y;
-        } else {
-          x = element.x + element.width / 2;
-          y = element.y + element.height / 2;
+            removeMarker();
         }
 
-        viewer.get('canvas').viewbox({
-          x: x - (containerWidth / 2),
-          y: y - ((containerHeight / 2) - 100),
-          width: containerWidth,
-          height: containerHeight
+        function handleDragOver(e) {
+            removeMarker();
+
+            e.stopPropagation();
+            e.preventDefault();
+
+            element.addClass('dropping');
+
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleDragLeave(e) {
+            removeMarker();
+        }
+
+        node.addEventListener('dragover', handleDragOver, false);
+        node.ownerDocument.body.addEventListener('dragover', handleDragLeave, false);
+        node.addEventListener('drop', handleFileSelect, false);
+    });
+
+    jquery__WEBPACK_IMPORTED_MODULE_2__('.file').on('change', function (e) {
+        openFile(e.target.files[0], jquery__WEBPACK_IMPORTED_MODULE_2__(this).attr('target'), openDiagram);
+    });
+
+
+
+    //////////// FUNCTIONS /////////////////////////////////////
+
+    function loadDiagrams(leftDiagramXML, rightDiagramXML) {
+        loadDiagram(leftContainerId, {xml: leftDiagramXML});
+        loadDiagram(rightContainerId, {url: rightDiagramXML});
+    }
+
+    function createViewer(containerId) {
+        let viewer = new _custom_viewer__WEBPACK_IMPORTED_MODULE_3__["default"]({
+            container: '#' + containerId,
+            height: '100%',
+            width: '100%'
         });
-      });
+        let canvasObj = viewer.get('canvas');
+        canvasObj._viewboxChanged = function () {
+            canvasObj._eventBus.fire('canvas.viewbox.changed',
+                {viewbox: canvasObj.viewbox(false)});
+        };
+        return viewer;
+    }
 
+    function syncViewers(a, b) {
+        let changing;
+
+        function update(viewer) {
+
+            return function (e) {
+                if (changing) {
+                    return;
+                }
+
+                changing = true;
+                viewer.get('canvas').viewbox(e.viewbox);
+                changing = false;
+            };
+        }
+
+        function syncViewbox(a, b) {
+            a.on('canvas.viewbox.changed', update(b));
+        }
+
+        syncViewbox(a, b);
+        syncViewbox(b, a);
+    }
+
+    function createViewers(left, right) {
+        let sides = {};
+        sides[left] = createViewer(left);
+        sides[right] = createViewer(right);
+        // sync navigation
+        syncViewers(sides[left], sides[right]);
+        return sides;
+    }
+
+    function getViewer(side) {
+        return viewers[side];
+    }
+
+    function isLoaded(v) {
+        return v.loading !== undefined && !v.loading;
+    }
+
+    function allDiagramsLoaded() {
+        return lodash__WEBPACK_IMPORTED_MODULE_1__["every"](viewers, isLoaded);
+    }
+
+    function setLoading(viewer, loading) {
+        viewer.loading = loading;
+    }
+
+    function clearDiffs(viewer) {
+        viewer.get('overlays').remove({type: 'diff'});
+
+        // TODO(nre): expose as external API
+        lodash__WEBPACK_IMPORTED_MODULE_1__["forEach"](viewer.get('elementRegistry')._elementMap, function (container) {
+            let gfx = container.gfx;
+
+            gfx
+                .removeClass('diff-added')
+                .removeClass('diff-changed')
+                .removeClass('diff-removed')
+                .removeClass('diff-layout-changed');
+        });
+
+    }
+
+    function diagramLoading(side, viewer) {
+        setLoading(viewer, true);
+        let loaded = lodash__WEBPACK_IMPORTED_MODULE_1__["filter"](viewers, isLoaded);
+        // clear diffs on loaded
+        lodash__WEBPACK_IMPORTED_MODULE_1__["forEach"](loaded, function (v) {
+            clearDiffs(v);
+        });
+    }
+
+    function diagramLoaded(err, side, viewer) {
+        if (err) {
+            console.error('load error', err);
+        }
+
+        setLoading(viewer, err);
+
+        if (allDiagramsLoaded()) {
+            // sync viewboxes
+            let other = getViewer(side == leftContainerId ? rightContainerId : leftContainerId);
+            viewer.get('canvas').viewbox(other.get('canvas').viewbox());
+
+            showDiff(getViewer(leftContainerId), getViewer(rightContainerId));
+        }
+    }
+
+    function loadDiagram(side, diagram) {
+        let viewer = getViewer(side);
+
+        function done(err) {
+            diagramLoaded(err, side, viewer);
+        }
+
+        diagramLoading(side, viewer);
+
+        if (diagram.xml) {
+            return viewer.importXML(diagram.xml, done);
+        }
+
+        // $.get(diagram.url, function(xml) {
+        //   viewer.importXML(xml, done);
+        // });
+    }
+
+
+    function showDiff(viewerOld, viewerNew) {
+        console.log("viewerOld", viewerOld);
+        console.log("viewerNew", viewerNew);
+        console.log("definitions", viewerOld._definitions, viewerNew._definitions);
+        let result = _differ__WEBPACK_IMPORTED_MODULE_0__["diff"](viewerOld._definitions, viewerNew._definitions);
+
+        // var result = sampleDiff;
+        console.log("diff result", result);
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._removed, function (i, obj) {
+            highlight(viewerOld, i, 'diff-removed');
+            addMarker(viewerOld, i, 'marker-removed', '&minus;');
+        });
+
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._added, function (i, obj) {
+            highlight(viewerNew, i, 'diff-added');
+            addMarker(viewerNew, i, 'marker-added', '&#43;');
+        });
+
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._layoutChanged, function (i, obj) {
+            highlight(viewerOld, i, 'diff-layout-changed');
+            addMarker(viewerOld, i, 'marker-layout-changed', '&#8680;');
+
+            highlight(viewerNew, i, 'diff-layout-changed');
+            addMarker(viewerNew, i, 'marker-layout-changed', '&#8680;');
+        });
+
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._changed, function (i, obj) {
+
+            highlight(viewerOld, i, 'diff-changed');
+            addMarker(viewerOld, i, 'marker-changed', '&#9998;');
+
+            highlight(viewerNew, i, 'diff-changed');
+            addMarker(viewerNew, i, 'marker-changed', '&#9998;');
+
+            let details = '<table ><tr><th>Attribute</th><th>old</th><th>new</th></tr>';
+            jquery__WEBPACK_IMPORTED_MODULE_2__["each"](obj.attrs, function (attr, changes) {
+                details = details + '<tr>' +
+                    '<td>' + attr + '</td><td>' + changes.oldValue + '</td>' +
+                    '<td>' + changes.newValue + '</td>' +
+                    '</tr>';
+            });
+
+            details = details + '</table></div>';
+            console.log("viewerOld.get('elementRegistry')", viewerOld.get('elementRegistry'));
+            viewerOld.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) {
+                jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsOld_' + i).toggle();
+            });
+
+
+            let detailsOld = '<div id="changeDetailsOld_' + i + '" class="changeDetails">' + details;
+
+            // attach an overlay to a node
+            viewerOld.get('overlays').add(i, 'diff', {
+                position: {
+                    bottom: -5,
+                    left: 0
+                },
+                html: detailsOld
+            });
+
+            jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsOld_' + i).toggle();
+            viewerNew.get('elementRegistry').getGraphics(i).addEventListener("click", function (event) {
+                jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsNew_' + i).toggle();
+            });
+
+            let detailsNew = '<div id="changeDetailsNew_' + i + '" class="changeDetails">' + details;
+
+            // attach an overlay to a node
+            viewerNew.get('overlays').add(i, 'diff', {
+                position: {
+                    bottom: -5,
+                    left: 0
+                },
+                html: detailsNew
+            });
+
+            jquery__WEBPACK_IMPORTED_MODULE_2__('#changeDetailsNew_' + i).toggle();
+        });
+
+        // create Table Overview of Changes
+        showChangesOverview(result, viewerOld, viewerNew);
+
+    }
+
+    function openDiagram(xml, side) {
+        loadDiagram(side, {xml: xml});
+    }
+
+    function openFile(file, target, done) {
+        let reader = new FileReader();
+
+        reader.onload = function (e) {
+            let xml = e.target.result;
+            done(xml, target);
+        };
+
+        reader.readAsText(file);
+    }
+
+    function addMarker(viewer, elementId, className, symbol) {
+        let overlays = viewer.get('overlays');
+
+        try {
+            // attach an overlay to a node
+            overlays.add(elementId, 'diff', {
+                position: {
+                    top: -12,
+                    right: 12
+                },
+                html: '<span class="marker ' + className + '">' + symbol + '</span>'
+            });
+        } catch (e) {
+            window.alert('Error in attaching an overlay to a node. Error message: ' + e.message);
+        }
+    }
+
+    function highlight(viewer, elementId, marker) {
+        viewer.get('canvas').addMarker(elementId, marker);
+    }
+
+    function unhighlight(viewer, elementId, marker) {
+        viewer.get('canvas').removeMarker(elementId, marker);
+    }
+
+    function showChangesOverview(result, viewerOld, viewerNew) {
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId + ' table').remove();
+
+        let changesTable = jquery__WEBPACK_IMPORTED_MODULE_2__(
+            '<table>' +
+            '<thead><tr><th>#</th><th>Name</th><th>Type</th><th>Change</th></tr></thead>' +
+            '</table>');
+
+        let count = 0;
+
+        function addRow(element, type, label) {
+            let html =
+                '<tr class="entry">' +
+                '<td>' + (count++) + '</td><td>' + (element.name || '') + '</td>' +
+                '<td>' + element.$type.replace('bpmn:', '') + '</td>' +
+                '<td><span class="status">' + label + '</span></td>' +
+                '</tr>';
+
+            let row = jquery__WEBPACK_IMPORTED_MODULE_2__(html).data({
+                changed: type,
+                element: element.id
+            }).addClass(type).appendTo(changesTable);
+        }
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._removed, function (i, obj) {
+            addRow(obj, 'removed', 'Removed');
+        });
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._added, function (i, obj) {
+            addRow(obj, 'added', 'Added');
+        });
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._changed, function (i, obj) {
+            addRow(obj.model, 'changed', 'Changed');
+        });
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__["each"](result._layoutChanged, function (i, obj) {
+            addRow(obj, 'layout-changed', 'Layout Changed');
+        });
+
+        changesTable.appendTo('#' + changesContainerId + ' .changes');
+
+        let HIGHLIGHT_CLS = 'highlight';
+
+        jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId + ' tr.entry').each(function () {
+
+            let row = jquery__WEBPACK_IMPORTED_MODULE_2__(this);
+            let id = row.data('element');
+            let changed = row.data('changed');
+
+            row.hover(function () {
+
+                if (changed == 'removed') {
+                    highlight(viewerOld, id, HIGHLIGHT_CLS);
+                } else if (changed == 'added') {
+                    highlight(viewerNew, id, HIGHLIGHT_CLS);
+                } else {
+                    highlight(viewerOld, id, HIGHLIGHT_CLS);
+                    highlight(viewerNew, id, HIGHLIGHT_CLS);
+                }
+            }, function () {
+
+                if (changed == 'removed') {
+                    unhighlight(viewerOld, id, HIGHLIGHT_CLS);
+                } else if (changed == 'added') {
+                    unhighlight(viewerNew, id, HIGHLIGHT_CLS);
+                } else {
+                    unhighlight(viewerOld, id, HIGHLIGHT_CLS);
+                    unhighlight(viewerNew, id, HIGHLIGHT_CLS);
+                }
+            });
+
+            row.click(function () {
+
+                let containerWidth = jquery__WEBPACK_IMPORTED_MODULE_2__('.di-container').width();
+                let containerHeight = jquery__WEBPACK_IMPORTED_MODULE_2__('.di-container').height();
+                let viewer = (changed == 'removed' ? viewerOld : viewerNew);
+                let element = viewer.get('elementRegistry').get(id);
+                let x, y;
+
+                if (element.waypoints) {
+                    x = element.waypoints[0].x;
+                    y = element.waypoints[0].y;
+                } else {
+                    x = element.x + element.width / 2;
+                    y = element.y + element.height / 2;
+                }
+
+                viewer.get('canvas').viewbox({
+                    x: x - (containerWidth / 2),
+                    y: y - ((containerHeight / 2) - 100),
+                    width: containerWidth,
+                    height: containerHeight
+                });
+            });
+
+        });
+    }
+}
+
+/***/ }),
+
+/***/ "./src/change-handler.js":
+/*!*******************************!*\
+  !*** ./src/change-handler.js ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+
+function isTracked(element) {
+  return element.$instanceOf('bpmn:FlowElement') ||
+         element.$instanceOf('bpmn:MessageFlow') ||
+         element.$instanceOf('bpmn:Participant') ||
+         element.$instanceOf('bpmn:Lane');
+}
+
+function ChangeHandler() {
+  this._layoutChanged = {};
+  this._changed = {};
+  this._removed = {};
+  this._added = {};
+}
+
+module.exports = ChangeHandler;
+
+
+ChangeHandler.prototype.removed = function(model, property, element, idx) {
+  console.log("removed property", property);
+  if (isTracked(element)) {
+    this._removed[element.id] = element;
+  }
+};
+
+ChangeHandler.prototype.changed = function(model, property, newValue, oldValue) {
+  console.log("changed property", property);
+  if (model.$instanceOf('bpmndi:BPMNEdge') || model.$instanceOf('bpmndi:BPMNShape')) {
+    this._layoutChanged[model.bpmnElement.id] = model.bpmnElement;
+  }
+
+  if (isTracked(model)) {
+    var changed = this._changed[model.id];
+
+    if (!changed) {
+      changed = this._changed[model.id] = { model: model, attrs: { } };
+    }
+
+    if (oldValue !== undefined || newValue !== undefined) {
+      changed.attrs[property] = { oldValue: oldValue, newValue: newValue };
+    }
+  }
+};
+
+ChangeHandler.prototype.added = function(model, property, element, idx) {
+  console.log("added property", property);
+  if (isTracked(element)) {
+    this._added[element.id] = element;
+  }
+};
+
+ChangeHandler.prototype.moved = function(model, property, oldIndex, newIndex) { };
+
+
+/***/ }),
+
+/***/ "./src/custom-viewer.js":
+/*!******************************!*\
+  !*** ./src/custom-viewer.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CustomViewer; });
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
+/* harmony import */ var inherits__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(inherits__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bpmn-js/lib/Viewer */ "./node_modules/bpmn-js/lib/Viewer.js");
+/* harmony import */ var diagram_js_lib_navigation_zoomscroll__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! diagram-js/lib/navigation/zoomscroll */ "./node_modules/diagram-js/lib/navigation/zoomscroll/index.js");
+/* harmony import */ var diagram_js_lib_navigation_movecanvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! diagram-js/lib/navigation/movecanvas */ "./node_modules/diagram-js/lib/navigation/movecanvas/index.js");
+
+
+
+
+
+
+
+;
+
+
+/**
+ * A viewer that includes mouse navigation and other goodies.
+ *
+ * @param {Object} options
+ */
+function CustomViewer(options) {
+  bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__["default"].call(this, options);
+}
+
+inherits__WEBPACK_IMPORTED_MODULE_0___default()(CustomViewer, bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__["default"]);
+
+CustomViewer.prototype._customModules = [
+  diagram_js_lib_navigation_zoomscroll__WEBPACK_IMPORTED_MODULE_2__["default"],
+  diagram_js_lib_navigation_movecanvas__WEBPACK_IMPORTED_MODULE_3__["default"]
+];
+
+CustomViewer.prototype._modules = [].concat(
+  bpmn_js_lib_Viewer__WEBPACK_IMPORTED_MODULE_1__["default"].prototype._modules,
+  CustomViewer.prototype._customModules
+);
+
+/***/ }),
+
+/***/ "./src/diff.json":
+/*!***********************!*\
+  !*** ./src/diff.json ***!
+  \***********************/
+/*! exports provided: removed, added, moved, edited, default */
+/***/ (function(module) {
+
+module.exports = JSON.parse("{\"removed\":[\"_6-74\",\"_6-674\",\"_6-125\",\"_6-178\",\"_6-746\",\"_6-691\",\"_6-748\"],\"added\":[\"ExclusiveGateway_1\",\"ManualTask_1\"],\"moved\":[\"_6-61\"],\"edited\":{\"_6-127\":{\"Name\":{\"old\":\"Order a pizza\",\"new\":\"Order Pasta!\"}}}}");
+
+/***/ }),
+
+/***/ "./src/differ.js":
+/*!***********************!*\
+  !*** ./src/differ.js ***!
+  \***********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
+var jsondiffpatch = __webpack_require__(/*! jsondiffpatch */ "./node_modules/jsondiffpatch/dist/jsondiffpatch.umd.js");
+
+
+var ChangeHandler = __webpack_require__(/*! ./change-handler */ "./src/change-handler.js");
+
+
+function Differ() { }
+
+module.exports = Differ;
+
+
+Differ.prototype.createDiff = function(a, b) {
+console.log("createDiff..",a,b);
+  // create a configured instance, match objects by name
+  var diffpatcher = jsondiffpatch.create({
+    objectHash: function(obj) {
+      return obj.id || JSON.stringify(obj);
+    }
+  });
+
+  return diffpatcher.diff(a, b);
+};
+
+
+Differ.prototype.diff = function(a, b, handler) {
+
+  handler = handler || new ChangeHandler();
+
+  function walk(diff, model) {
+    console.log("calling walk", diff, model);
+
+    _.forEach(diff, function(d, key) {
+
+      // is array
+      if (d._t === 'a') {
+
+        _.forEach(d, function(val, idx) {
+
+          if (idx === '_t') {
+            return;
+          }
+
+          var removed = /^_/.test(idx),
+              added = !removed && _.isArray(val),
+              moved = removed && val[0] === '';
+
+          idx = parseInt(removed ? idx.slice(1) : idx, 10);
+
+          if (added || (removed && !moved)) {
+            handler[removed ? 'removed' : 'added'](model, key, val[0], idx);
+          } else
+          if (moved) {
+            handler.moved(model, key, val[1], val[2]);
+          } else {
+            walk(val, model[key][idx]);
+          }
+        });
+      } else {
+        if (_.isArray(d)) {
+          handler.changed(model, key, d[0], d[1]);
+        } else {
+          handler.changed(model, key);
+          walk(d, model[key]);
+        }
+      }
     });
   }
 
-}
-bpmnDiffApp();
-})();
+  var diff = this.createDiff(a, b);
+  console.log('create diff response', diff);
+  walk(diff, b, handler);
 
-__webpack_exports__ = __webpack_exports__.default;
-/******/ 	return __webpack_exports__;
-/******/ })()
-;
+  return handler;
+};
+
+
+module.exports.diff = function(a, b, handler) {
+  return new Differ().diff(a, b, handler);
+};
+
+/***/ })
+
+/******/ })["default"];
 });
-//# sourceMappingURL=bpmndiff.js.map
+//# sourceMappingURL=bpmndiffapp.js.map

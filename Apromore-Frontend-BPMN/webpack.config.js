@@ -3,14 +3,12 @@ const path = require('path');
 const LowerCaseNamePlugin = require('webpack-lowercase-name');
 
 module.exports = {
-    // entry: {
-    //     BpmnDiff: './app/app.js',
-    //     BpmnJS: './app/bpmn.js',
-    // },
-    entry: ['./app/app.js'],
+    entry: {
+        BpmnDiffApp: './src/app.js'
+    },
     output: {
-        filename: 'bpmndiff.js',
-        path: path.resolve(__dirname, 'app'),
+        filename: '[lc-name].js',
+        path: path.resolve(__dirname, 'dist'),
         library: ['Apromore', '[name]'],   // Important
         libraryTarget: 'umd',   // Important
         libraryExport: 'default',

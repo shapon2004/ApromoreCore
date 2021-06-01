@@ -7,5 +7,3 @@
 # npm, WebStorms artifacts
 **/debug.log
 **/node_modules
-**/dist
-**/package-lock.json
