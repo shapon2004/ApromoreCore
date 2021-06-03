@@ -28,17 +28,15 @@ import java.util.stream.IntStream;
 
 import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
 import org.eclipse.collections.api.set.primitive.IntSet;
-import org.eclipse.collections.api.tuple.primitive.DoubleDoublePair;
 import org.eclipse.collections.impl.factory.primitive.IntIntMaps;
-import org.eclipse.collections.impl.tuple.primitive.PrimitiveTuples;
 
 public class TokenClustering {
-    // Map from real element index to zero-based index
-    private MutableIntIntMap elementIndexMap = IntIntMaps.mutable.empty();
-    
     // Each element is a table for one log
     // In each table, 1st dimension is element index, 2nd dimension is cluster index, cell value is the number of tokens in the cluster
     private List<int[][]> tokenClusterTable;
+    
+    // Map from real element index to zero-based index
+    private MutableIntIntMap elementIndexMap = IntIntMaps.mutable.empty();
     
     private final int numberOfLogs;
     
@@ -80,27 +78,17 @@ public class TokenClustering {
         return clusterIndex >= 0 && clusterIndex < numberOfClusters;
     }
     
-    private int findClusterByDistance(int logIndex, int elementIndex, double distance) {
-        if (!isValidLogIndex(logIndex) || !isValidElementIndex(elementIndex) || distance < 0 || distance > 1) return -1;
-
-        for (int cluster : getClusters(logIndex, elementIndex)) {
-            DoubleDoublePair clusterRange = getClusterRange(cluster);
-            if (distance >= clusterRange.getOne() && distance <= clusterRange.getTwo()) {
-                return cluster;
-            }
-        }
-        
-        return -1;
-    }
-    
-    public int[] getClusters(int logIndex, int elementIndex) {
-        if (!isValidLogIndex(logIndex) || !isValidElementIndex(elementIndex)) return new int[] {};
+    public int[] getClusters() {
         return IntStream.range(0, numberOfClusters).toArray();
     }
     
     // The radius on the two sides of the cluster distance
-    public double getClusterRadius() {
+    private double getClusterRadius() {
         return (double)1/(2*(numberOfClusters-1));
+    }
+    
+    private double getClusterDiameter() {
+        return (double)1/(numberOfClusters-1);
     }
     
     // Relative distance from the start of the element
@@ -108,20 +96,20 @@ public class TokenClustering {
         return (double)clusterIndex/(numberOfClusters-1);
     }
     
-    // A token is considered as part of the cluster if it falls within this radius
-    public DoubleDoublePair getClusterRange(int cluster) {
-        return PrimitiveTuples.pair(getClusterDistance(cluster) - getClusterRadius(), getClusterDistance(cluster) + getClusterRadius());
+    private int getClusterByDistance(double distance) {
+        double d = distance - getClusterRadius();
+        return d <=0 ? 0 : (int)(d/getClusterDiameter()) + 1;
     }
-
+    
     // Increment the size of the cluster that contains the token with tokenDistance
     public void incrementClusterSizeByTokenDistance(int logIndex, int elementIndex, double tokenDistance) {
-        if (!isValidLogIndex(logIndex) || isValidElementIndex(elementIndex)) return ;
-        int clusterIndex = findClusterByDistance(logIndex, elementIndex, tokenDistance);
+        if (!isValidLogIndex(logIndex) || !isValidElementIndex(elementIndex)) return ;
+        int clusterIndex = getClusterByDistance(tokenDistance);
         if (clusterIndex >= 0) tokenClusterTable.get(logIndex)[elementIndexMap.get(elementIndex)][clusterIndex] += 1;
     }
     
     public int getClusterSize(int logIndex, int elementIndex, int clusterIndex) {
-        if (!isValidLogIndex(logIndex) || isValidElementIndex(elementIndex) || isValidClusterIndex(clusterIndex)) return 0;
+        if (!isValidLogIndex(logIndex) || !isValidElementIndex(elementIndex) || !isValidClusterIndex(clusterIndex)) return 0;
         return tokenClusterTable.get(logIndex)[elementIndexMap.get(elementIndex)][clusterIndex];
     }
 }

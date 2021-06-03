@@ -72,21 +72,24 @@ import org.slf4j.LoggerFactory;
 public class FrameRecorder {
     private static final Logger LOGGER = LoggerFactory.getLogger(FrameRecorder.class.getCanonicalName());
 	public static Movie record(List<AnimationIndex> animationIndexes, AnimationContext animationContext) {
+	    long timer = System.currentTimeMillis();
 		Movie movie = new Movie(animationContext, animationIndexes);
 		movie.parallelStream().forEach(frame -> {
 		    for (int logIndex=0; logIndex < animationIndexes.size(); logIndex++) {
 		        int[] tokenIndexes = animationIndexes.get(logIndex).getReplayElementIndexesByFrame(frame.getIndex());
 	            frame.addTokens(logIndex, tokenIndexes);
 		    }
+		    //frame.cleanup();
 		});
+		LOGGER.info("Create movie: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
 		
-		long timer = System.currentTimeMillis();
-		movie.parallelStream().forEach(frame -> {
-		    for (int logIndex : frame.getLogIndexes()) {
-		        frame.clusterTokens(logIndex);
-		    }
-		});
-		LOGGER.debug("Clustering tokens: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
+//		timer = System.currentTimeMillis();
+//		movie.parallelStream().forEach(frame -> {
+//		    for (int logIndex : frame.getLogIndexes()) {
+//		        frame.clusterTokens(logIndex);
+//		    }
+//		});
+//		LOGGER.info("Cluster tokens: " + (System.currentTimeMillis() - timer)/1000 + " seconds.");
 		
 		return movie;
 	}

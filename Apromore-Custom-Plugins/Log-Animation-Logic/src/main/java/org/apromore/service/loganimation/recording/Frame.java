@@ -69,7 +69,7 @@ public class Frame {
             elementIndexes.addAll(animationIndex.getElementIndexes());
         });
         
-        tokenClustering = new TokenClustering(animationIndexes.size(), elementIndexes, 500);
+        tokenClustering = new TokenClustering(animationIndexes.size(), elementIndexes, 100);
     }
     
     private boolean isValidLogIndex(int logIndex) {
@@ -87,6 +87,16 @@ public class Frame {
     public void addTokens(int logIndex, int[] tokenIndexes) {
         if (!isValidLogIndex(logIndex)) return;
         replayElementMaps.get(logIndex).add(tokenIndexes);
+        for (int token : tokenIndexes) {
+            tokenClustering.incrementClusterSizeByTokenDistance(logIndex,
+                                                                getTokenElementIndex(logIndex, token),
+                                                                getRelativeTokenDistance(logIndex, token));
+        }
+    }
+    
+    public int getTokenElementIndex(int logIndex, int token) {
+        if (!isValidLogIndex(logIndex)) return -1;
+        return animationIndexes.get(logIndex).getElementIndex(token);
     }
     
     public int[] getElementIndexes(int logIndex) {
@@ -156,7 +166,7 @@ public class Frame {
         for (int logIndex: getLogIndexes()) {
             for (int elementIndex : getElementIndexes(logIndex)) {
                 JSONArray casesJSON = new JSONArray();
-                for (int cluster : tokenClustering.getClusters(logIndex, elementIndex)) {
+                for (int cluster : tokenClustering.getClusters()) {
                     if (tokenClustering.getClusterSize(logIndex, elementIndex, cluster) > 0) {
                         casesJSON.put((new JSONObject()).put("0", getTokenClusterJSON(logIndex, elementIndex, cluster)));
                     }
@@ -175,5 +185,10 @@ public class Frame {
         attJSON.put(df.format(tokenClustering.getClusterDistance(cluster)));
         attJSON.put(tokenClustering.getClusterSize(logIndex, elementIndex, cluster));
         return attJSON;
+    }
+    
+    public void cleanup() {
+        replayElementMaps.forEach(bitmap -> bitmap.clear());
+        replayElementMaps.clear();
     }
 }

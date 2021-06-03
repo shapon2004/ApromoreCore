@@ -21,7 +21,6 @@
  */
 package org.apromore.service.loganimation.recording;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +68,8 @@ public class AnimationIndex {
     // As each replay element is an interval of two frame indexes, interval tree is used
     // as an efficient data structure to query, e.g. retrieve all replay elements contain a frame index
     private IntervalTree<Integer> intervalTree = new IntervalTree<>();
+    
+    // Map from interval of startIndex-endIndex to the replay element index
     private Map<IntegerInterval, MutableIntSet> intervalToReplayElement = new HashMap<>();
     
     public AnimationIndex(AnimationLog log, ModelMapping modelMapping, AnimationContext animateContext)
@@ -154,11 +155,16 @@ public class AnimationIndex {
     
     public int[] getReplayElementIndexesByFrame(int frameIndex) {
         Set<Interval<Integer>> result = intervalTree.query(frameIndex);
-        return result.stream()
-                .map(interval -> intervalToReplayElement.get(interval))
-                .flatMap(set -> Arrays.stream(set.toArray()).boxed())
-                .mapToInt(Integer::intValue)
-                .toArray();
+        MutableIntSet replayElements = IntSets.mutable.empty();
+        for (Interval<Integer> interval : result) {
+            replayElements.addAll(intervalToReplayElement.get(interval));
+        }
+        return replayElements.toArray();
+//        return result.stream()
+//                .map(interval -> intervalToReplayElement.get(interval)) // stream of MutableIntSet
+//                .flatMap(set -> Arrays.stream(set.toArray()).boxed()) // stream of stream of Integer -> flat -> stream of Integers
+//                .mapToInt(Integer::intValue)
+//                .toArray();
     }
     
 }
