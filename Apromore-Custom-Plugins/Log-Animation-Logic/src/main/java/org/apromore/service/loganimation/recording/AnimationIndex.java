@@ -32,6 +32,7 @@ import org.apromore.service.loganimation.replay.ReplayTrace;
 import org.apromore.service.loganimation.replay.TraceNode;
 import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
 import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
+import org.eclipse.collections.api.set.primitive.IntSet;
 import org.eclipse.collections.api.set.primitive.MutableIntSet;
 import org.eclipse.collections.api.tuple.primitive.IntIntPair;
 import org.eclipse.collections.impl.factory.primitive.IntIntMaps;
@@ -73,6 +74,7 @@ public class AnimationIndex {
     public AnimationIndex(AnimationLog log, ModelMapping modelMapping, AnimationContext animateContext)
             throws ElementNotFoundException, CaseNotFoundException {
         this.animationContext = animateContext;
+        
         int replayElementIndex = 0;
         for (ReplayTrace trace : log.getTracesWithOriginalOrder()) {
             for (SequenceFlow flow : trace.getSequenceFlows()) {
@@ -130,6 +132,10 @@ public class AnimationIndex {
     
     public int getElementIndex(int replayElementIndex) {
         return replayElementToElement.get(replayElementIndex);
+    }
+    
+    public IntSet getElementIndexes() {
+        return replayElementToElement.values().toSet().toImmutable();
     }
     
     public int getTraceIndex(int replayElementIndex) {
