@@ -73,7 +73,7 @@ public interface UserMetadataService {
      * @param username username
      * @throws UserNotFoundException Can't find a user with specified username
      */
-    void saveUserMetadataWithoutLog(String content, UserMetadataTypeEnum userMetadataTypeEnum, String username) throws UserNotFoundException;
+    Usermetadata saveUserMetadataWithoutLog(String userMetadataName, String content, UserMetadataTypeEnum userMetadataTypeEnum, String username) throws UserNotFoundException;
 
     /**
      * Assign specified group with permission to all the user metadata that linked to the specified log
