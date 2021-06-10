@@ -540,8 +540,9 @@ public class UserMetadataServiceImpl implements UserMetadataService {
         return umSet;
     }
 
+    @Override
     public Set<Usermetadata> getUserMetadataByUserAndLog(String username, Integer logId,
-                                             UserMetadataTypeEnum userMetadataTypeEnum) throws UserNotFoundException {
+                                                         UserMetadataTypeEnum userMetadataTypeEnum) throws UserNotFoundException {
 
         return getUserMetadata(username, Collections.singletonList(logId), userMetadataTypeEnum);
     }
@@ -642,7 +643,7 @@ public class UserMetadataServiceImpl implements UserMetadataService {
 
     @Override
     @Transactional
-    public void saveUserMetadataWithoutLog(String content, UserMetadataTypeEnum userMetadataTypeEnum,
+    public Usermetadata saveUserMetadataWithoutLog(String userMetadataName, String content, UserMetadataTypeEnum userMetadataTypeEnum,
                                            String username) throws UserNotFoundException {
 
         User user = userSrv.findUserByLogin(username);
@@ -650,28 +651,24 @@ public class UserMetadataServiceImpl implements UserMetadataService {
         Usermetadata userMetadata = new Usermetadata();
 
         Set<GroupUsermetadata> groupUserMetadataSet = userMetadata.getGroupUserMetadata();
-        Set<Log> logs = userMetadata.getLogs();
 
         // Assign OWNER permission to the user's personal group
         groupUserMetadataSet.add(new GroupUsermetadata(user.getGroup(), userMetadata, true, true, true));
 
-        // Assign READ permission to all the groups that contain specified user
-        for (Group group : user.getGroups()) {
-            groupUserMetadataSet.add(new GroupUsermetadata(group, userMetadata, true, false, false));
-        }
-
         // Assemble Usermetadata
         userMetadata.setGroupUserMetadata(groupUserMetadataSet);
-        userMetadata.setLogs(logs);
         userMetadata.setUsermetadataType(usermetadataTypeRepo.findOne(userMetadataTypeEnum.getUserMetadataTypeId()));
         userMetadata.setIsValid(true);
         userMetadata.setCreatedBy(user.getRowGuid());
         userMetadata.setCreatedTime(dateFormat.format(new Date()));
+        userMetadata.setName(userMetadataName);
         userMetadata.setContent(content);
 
         userMetadataRepo.saveAndFlush(userMetadata);
-        LOGGER.info("User: {} create user metadata ID: {} TYPE: {}.", username,
-                userMetadata.getId(), UserMetadataTypeEnum.DASH_TEMPLATE.toString());
+        LOGGER.info("User: {} create user metadata ID: {} TYPE: {}.", username, userMetadata.getId(),
+                userMetadataTypeEnum.toString());
+
+        return userMetadata;
     }
 
     @Override
