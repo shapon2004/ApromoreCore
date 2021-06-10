@@ -21,10 +21,14 @@
  */
 package org.apromore.apmlog;
 
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.PLog;
-import org.apromore.apmlog.immutable.ImmutableLog;
-import org.deckfour.xes.model.XLog;
+import org.apromore.apmlog.logobjects.ImmutableLog;
+import org.apromore.apmlog.stats.TimeStatsProcessor;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
+
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -41,59 +45,59 @@ public class LogsDurationsTest {
         proceedAPMLogDurTest(apmLog);
     }
 
-    public static void testPLogDurations(APMLog apmLog) {
+    public static void testPLogDurations(APMLog apmLog) throws EmptyInputException {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         PLog pLog = apmLogFilter.getPLog();
         proceedPLogDurTest(pLog);
 
         // test converted version
-        APMLog converted = pLog.toAPMLog();
+        APMLog converted = pLog.toImmutableLog();
         proceedAPMLogDurTest(converted);
 
         // test updated version
-        pLog.updateStats();
         proceedPLogDurTest(pLog);
     }
 
-    public static void testImmutableLogDurations(XLog xLog) {
-        ImmutableLog immutableLog = (ImmutableLog) LogFactory.convertXLog(xLog);
-        proceedImmutableLogDurTest(immutableLog);
-
-        immutableLog.updateStats(); // test after-updated values
+    public static void testImmutableLogDurations(APMLog apmLog) {
+        ImmutableLog immutableLog = (ImmutableLog) apmLog;
         proceedImmutableLogDurTest(immutableLog);
     }
 
-    public static void testClonedImmutableLogDurations(XLog xLog) {
-        ImmutableLog immutableLog = (ImmutableLog) LogFactory.convertXLog(xLog);
+    public static void testClonedImmutableLogDurations(APMLog apmLog) throws EmptyInputException {
+        ImmutableLog immutableLog = (ImmutableLog) apmLog;
 
-        ImmutableLog clone = (ImmutableLog) immutableLog.clone();
-        proceedImmutableLogDurTest(clone);
-
-        clone.updateStats(); // test after-updated values
+        ImmutableLog clone = (ImmutableLog) immutableLog.deepClone();
         proceedImmutableLogDurTest(clone);
     }
 
     private static void proceedAPMLogDurTest(APMLog apmLog) {
-        double minDur = apmLog.getMinDuration();
-        double medDur = apmLog.getMedianDuration();
-        double avgDur = apmLog.getAverageDuration();
-        double maxDur = apmLog.getMaxDuration();
+        DoubleArrayList durs = TimeStatsProcessor.getCaseDurations(apmLog.getTraces());
+
+        double minDur = durs.min();
+        double medDur = durs.median();
+        double avgDur = durs.average();
+        double maxDur = durs.max();
         proceedResult(minDur, medDur, avgDur, maxDur);
     }
 
     private static void proceedImmutableLogDurTest(ImmutableLog immutableLog) {
-        double minDur = immutableLog.getMinDuration();
-        double medDur = immutableLog.getMedianDuration();
-        double avgDur = immutableLog.getAverageDuration();
-        double maxDur = immutableLog.getMaxDuration();
+        DoubleArrayList durs = TimeStatsProcessor.getCaseDurations(immutableLog.getTraces());
+
+        double minDur = durs.min();
+        double medDur = durs.median();
+        double avgDur = durs.average();
+        double maxDur = durs.max();
         proceedResult(minDur, medDur, avgDur, maxDur);
     }
 
     private static void proceedPLogDurTest(PLog pLog) {
-        double minDur = pLog.getMinDuration();
-        double medDur = pLog.getMedianDuration();
-        double avgDur = pLog.getAverageDuration();
-        double maxDur = pLog.getMaxDuration();
+        DoubleArrayList durs =
+                TimeStatsProcessor.getCaseDurations(pLog.getPTraces().stream().collect(Collectors.toList()));
+
+        double minDur = durs.min();
+        double medDur = durs.median();
+        double avgDur = durs.average();
+        double maxDur = durs.max();
         proceedResult(minDur, medDur, avgDur, maxDur);
     }
 

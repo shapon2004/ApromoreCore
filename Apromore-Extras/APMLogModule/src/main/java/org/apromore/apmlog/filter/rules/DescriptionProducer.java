@@ -26,12 +26,12 @@ import org.apromore.apmlog.filter.rules.desc.*;
 
 public class DescriptionProducer {
 
-    public static String getDescription(LogFilterRule logFilterRule, APMLog apmLog) {
+    public static String getDescription(LogFilterRule logFilterRule) {
         switch (logFilterRule.getFilterType()) {
             case CASE_VARIANT:
                 return CaseVariantDesc.getDescription(logFilterRule);
             case CASE_ID:
-                return CaseIDDesc.getDescription(logFilterRule, apmLog);
+                return CaseIDDesc.getDescription(logFilterRule);
             case CASE_CASE_ATTRIBUTE:
                 return CaseSectionCaseAttributeDesc.getDescription(logFilterRule);
             case CASE_EVENT_ATTRIBUTE:

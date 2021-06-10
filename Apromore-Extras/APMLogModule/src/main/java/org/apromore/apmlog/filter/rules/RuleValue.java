@@ -34,13 +34,13 @@ public class RuleValue implements Comparable<RuleValue>, Serializable {
     private FilterType filterType;
     private OperationType operationType;
     private String key;
-    private String stringVal;
+    private String stringVal = "";
     private long longVal = 0;
     private double doubleVal = 0;
     private int intVal = 0;
     private Object objectVal;
 
-    private Map<String, String> customAttributes;
+    private final Map<String, String> customAttributes = new UnifiedMap<>();
 
     public RuleValue(FilterType filterType, OperationType operationType, String key, Object objectVal) {
         this.filterType = filterType;
@@ -82,19 +82,18 @@ public class RuleValue implements Comparable<RuleValue>, Serializable {
     }
 
     public Map<String, String> getCustomAttributes() {
-        if (customAttributes == null) customAttributes = new HashMap<>();
-
         return customAttributes;
     }
 
     public void putCustomAttribute(String key, String value) {
-        if (customAttributes == null) customAttributes = new HashMap<>();
-
         customAttributes.put(key, value);
     }
 
     public void setCustomAttributes(Map<String, String> customAttributes) {
-        this.customAttributes = customAttributes;
+        this.customAttributes.clear();
+        for (String k : customAttributes.keySet()) {
+            this.customAttributes.put(k, customAttributes.get(k));
+        }
     }
 
     public void setStringVal(String stringVal) {
@@ -199,5 +198,8 @@ public class RuleValue implements Comparable<RuleValue>, Serializable {
 
     public void setObjectVal(Object obj) {
         this.objectVal = obj;
+        if (filterType == FilterType.CASE_SECTION_ATTRIBUTE_COMBINATION) {
+            this.stringVal = ((Set<String>) obj).iterator().next();
+        }
     }
 }

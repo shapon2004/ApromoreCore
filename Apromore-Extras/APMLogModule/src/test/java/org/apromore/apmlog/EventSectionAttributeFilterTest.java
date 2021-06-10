@@ -21,14 +21,18 @@
  */
 package org.apromore.apmlog;
 
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.*;
+import org.apromore.apmlog.stats.EventAttributeValue;
+import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -76,7 +80,7 @@ public class EventSectionAttributeFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
 
         UnifiedMap<String, Boolean> expectedIdMatch = new UnifiedMap<>();
 
@@ -119,7 +123,7 @@ public class EventSectionAttributeFilterTest {
         }
     }
 
-    public static void testEventAttrFreqAfterEventAttrFilter(APMLog apmLog) {
+    public static void testEventAttrFreqAfterEventAttrFilter(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException, EmptyInputException {
         Set<RuleValue> primaryValues = new HashSet<>();
 
         Set<String> selectedVals = new HashSet<>(Arrays.asList("Turning & Milling Q.C.", "Laser Marking - Machine 7"));
@@ -133,9 +137,16 @@ public class EventSectionAttributeFilterTest {
         List<LogFilterRule> rules = Collections.singletonList(logFilterRule);
 
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
-        apmLogFilter.filterIndex(rules);
+        apmLogFilter.filter(rules);
+        APMLog filteredLog = apmLogFilter.getAPMLog();
 
-        int actSizeOfCFM = apmLogFilter.getPLog().getEventAttributeValues().get("concept:name").size();
+        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = filteredLog.getImmutableEventAttributeValues();
+
+        int actSizeOfCFM = eavMap.get("concept:name").size();
+
+//        parent.printString("\n \n \n \n \n");
+//        parent.printString("actSizeOfCFM = " + actSizeOfCFM);
+//        parent.printString("\n \n \n \n \n");
 
         assertEquals(2, actSizeOfCFM);
     }

@@ -22,15 +22,14 @@
 package org.apromore.apmlog.stats;
 
 import org.apromore.apmlog.util.Util;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class CaseAttributeValue implements AttributeValue {
+public class CaseAttributeValue implements AttributeValue, Serializable {
     private String value;
 
     // the percentage of cases
@@ -46,6 +45,8 @@ public class CaseAttributeValue implements AttributeValue {
     private IntArrayList occurCaseIndexes;
 
     private long totalCases;
+
+    private DoubleArrayList allDurations;
 
     public CaseAttributeValue(String value, IntArrayList occurCaseIndexes, long totalCases) {
         this.value = value.intern();
@@ -70,6 +71,12 @@ public class CaseAttributeValue implements AttributeValue {
         return value;
     }
 
+    @Override
+    public long getCases(BitSet validCaseIndexes) {
+        return getOccurCasesIndexSet().stream().filter(x -> validCaseIndexes.get(x)).collect(Collectors.toSet()).size();
+    }
+
+
     public long getCases() {
         return getOccurCasesIndexSet().size();
     }
@@ -78,10 +85,10 @@ public class CaseAttributeValue implements AttributeValue {
         return frequency;
     }
 
-    @Override
-    public long getTotal() {
-        return getCases();
-    }
+//    @Override
+//    public long getTotal() {
+//        return getCases();
+//    }
 
     public double getRatio() {
         return ratio;
@@ -94,6 +101,61 @@ public class CaseAttributeValue implements AttributeValue {
     public double getPercent() {
         return percent;
     }
+
+    public double getInterCasesDoubleValue(BitSet validCaseIndexes) {
+        return getValueInDouble() * getCases(validCaseIndexes);
+    }
+
+    public double getInterCasesDoubleValue() {
+        return getValueInDouble() * getCases();
+    }
+
+    // ===============================================================
+    // Config methods below when use this class as UI data object
+    // ===============================================================
+
+    public long getCaseSize() {
+        return occurCaseIndexes.size();
+    }
+
+    public void setAllDurations(DoubleArrayList durations) {
+        this.allDurations = durations;
+    }
+
+    public double getMinDuration() {
+        return allDurations.min();
+    }
+
+    public double getMedianDuration() {
+        return allDurations.median();
+    }
+
+    public double getAverageDuration() {
+        return allDurations.average();
+    }
+
+    public double getMaxDuration() {
+        return allDurations.max();
+    }
+
+    public String getMinDurationString() {
+        return Util.durationStringOf(getMinDuration());
+    }
+
+    public String getMedianDurationString() {
+        return Util.durationStringOf(getMedianDuration());
+    }
+
+    public String getAverageDurationString() {
+        return Util.durationStringOf(getAverageDuration());
+    }
+
+    public String getMaxDurationString() {
+        return Util.durationStringOf(getMaxDuration());
+    }
+
+    // ===============================================================
+
 
     @Override
     public double getValueInDouble() {

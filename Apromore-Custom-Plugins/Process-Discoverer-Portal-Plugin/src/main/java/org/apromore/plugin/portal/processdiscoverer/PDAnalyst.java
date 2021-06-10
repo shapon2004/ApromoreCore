@@ -22,13 +22,7 @@
 
 package org.apromore.plugin.portal.processdiscoverer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apromore.apmlog.APMLog;
@@ -44,8 +38,9 @@ import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.Inclusion;
 import org.apromore.apmlog.filter.types.OperationType;
 import org.apromore.apmlog.filter.types.Section;
-import org.apromore.apmlog.stats.AAttributeGraph;
 import org.apromore.apmlog.stats.DurSubGraph;
+import org.apromore.apmlog.stats.LogStatsAnalyzer;
+import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.apromore.commons.datetime.DateTimeUtils;
 import org.apromore.commons.datetime.DurationUtils;
 import org.apromore.logman.ALog;
@@ -341,13 +336,13 @@ public class PDAnalyst {
         List<LogFilterRule> criteria = (List<LogFilterRule>)currentFilterCriteria;
         criteria.add(filterCriterion.clone());
         this.apmLogFilter.filter(criteria);
-        if (apmLogFilter.getPLog().getPTraceList().isEmpty()) { // Restore to the last state
+        if (apmLogFilter.getPLog().getPTraces().isEmpty()) { // Restore to the last state
             criteria.remove(criteria.get(criteria.size() - 1));
             apmLogFilter.filter(criteria);
             return false;
         }
         else {
-            this.updateLog(apmLogFilter.getPLog(), apmLogFilter.getApmLog());
+            this.updateLog(apmLogFilter.getPLog(), apmLogFilter.getAPMLog());
             return true;
         }
     }
@@ -355,11 +350,11 @@ public class PDAnalyst {
     // Apply filter criteria on top of the original log
     public boolean filter(List<LogFilterRule> criteria) throws Exception {
         this.apmLogFilter.filter(criteria);
-        if (apmLogFilter.getPLog().getPTraceList().isEmpty()) { // Restore to the last state
+        if (apmLogFilter.getPLog().getPTraces().isEmpty()) { // Restore to the last state
             apmLogFilter.filter((List<LogFilterRule>)currentFilterCriteria);
             return false;
         } else {
-            this.updateLog(apmLogFilter.getPLog(), apmLogFilter.getApmLog());
+            this.updateLog(apmLogFilter.getPLog(), apmLogFilter.getAPMLog());
             currentFilterCriteria = copyFilterCriteria(criteria);
             return true;
         }
@@ -443,30 +438,27 @@ public class PDAnalyst {
     }
 
     public boolean hasSufficientDurationVariant(String attribute, String value) {
-        DurSubGraph dsg = AAttributeGraph.getValueDurations(attribute, filteredAPMLog);
-        if (!dsg.getValDurCaseIndexMap().containsKey(value)) return false;
-        if (dsg.getValDurCaseIndexMap().get(value).isEmpty()) return false;
-        return dsg.getValDurCaseIndexMap().get(value).size() > 1;
+        return LogStatsAnalyzer.getNodeDurationSize(attribute, value, filteredAPMLog) > 1;
     }
 
     public boolean hasSufficientDurationVariant(String attribute, String inDegree, String outDegree) {
-        return AAttributeGraph.hasSufficientDataPoint(attribute, inDegree, outDegree, filteredAPMLog);
+        return LogStatsAnalyzer.getArcDurationSize(attribute, inDegree, outDegree, filteredAPMLog) > 1;
     }
 
     public List<CaseDetails> getCaseDetails() {
-        List<ATrace> traceList = filteredAPMLog.getTraceList();
-        UnifiedMap<Integer, Integer> caseVariantIdFrequencyMap = filteredAPMLog.getCaseVariantIdFrequencyMap();
-        int traceSize = traceList.size();
-        
+        List<ATrace> traceList = filteredAPMLog.getTraces();
+
+        Map<Integer, List<ATrace>> caseVariantGroups =
+                LogStatsAnalyzer.getCaseVariantGroupMap(filteredAPMLog.getTraces());
+
         List<CaseDetails> listResult = new ArrayList<CaseDetails>();
-        for (int i = 0; i < traceSize; i++) {
-            ATrace aTrace = traceList.get(i);
+        for (ATrace aTrace : traceList) {
             String caseId = aTrace.getCaseId();
-            int caseEvents = aTrace.getActivityList().size();
+            int caseEvents = aTrace.getActivityInstances().size();
             int caseVariantId = aTrace.getCaseVariantId();
-            int caseSize = caseVariantIdFrequencyMap.get(caseVariantId);
-            double caseVariantFreq = (double) caseSize / traceSize;
-            CaseDetails caseDetails = CaseDetails.valueOf(caseId, caseEvents, caseVariantId, caseVariantFreq);
+            int caseSize = caseVariantGroups.get(caseVariantId).size();
+            double caseVariantFreq = (double) caseSize / traceList.size();
+            CaseDetails caseDetails = CaseDetails.valueOf(caseId, aTrace.getCaseIdDigit(), caseEvents, caseVariantId, caseVariantFreq);
             listResult.add(caseDetails);
         }
         return listResult;
@@ -496,19 +488,23 @@ public class PDAnalyst {
     }
 
     public String getFilteredMinDuration() {
-        return DurationUtils.humanize(this.filteredAPMLog.getMinDuration(), true);
+        double dur = TimeStatsProcessor.getCaseDurations(filteredAPMLog.getTraces()).min();
+        return DurationUtils.humanize(dur, true);
     }
 
     public String getFilteredMedianDuration() {
-        return DurationUtils.humanize(this.filteredAPMLog.getMedianDuration(), true);
+        double dur = TimeStatsProcessor.getCaseDurations(filteredAPMLog.getTraces()).median();
+        return DurationUtils.humanize(dur, true);
     }
 
     public String getFilteredMeanDuration() {
-        return DurationUtils.humanize(this.filteredAPMLog.getAverageDuration(), true);
+        double dur = TimeStatsProcessor.getCaseDurations(filteredAPMLog.getTraces()).average();
+        return DurationUtils.humanize(dur, true);
     }
 
     public String getFilteredMaxDuration() {
-        return DurationUtils.humanize(this.filteredAPMLog.getMaxDuration(), true);
+        double dur = TimeStatsProcessor.getCaseDurations(filteredAPMLog.getTraces()).max();
+        return DurationUtils.humanize(dur, true);
     }
 
     public long getFilteredCaseVariantSize() {
@@ -520,8 +516,7 @@ public class PDAnalyst {
     }
 
     public long getFilteredActivityInstanceSize() {
-        return this.filteredAPMLog.getTraceList().stream()
-                .flatMap(x -> x.getActivityList().stream()).collect(Collectors.toList()).size();
+        return this.filteredAPMLog.getActivityInstances().size();
     }
     
     public void updateLog(PLog pLog, APMLog apmLog) throws Exception {
@@ -533,7 +528,7 @@ public class PDAnalyst {
         logBitMap.setTraceBitSet(pLog.getValidTraceIndexBS(), pTraces.size());
         
         for (int i=0; i<pTraces.size(); i++) {
-            logBitMap.addEventBitSet(pTraces.get(i).getValidEventIndexBitSet(), aLog.getOriginalTraceFromIndex(i).getOriginalEvents().size());
+            logBitMap.addEventBitSet(pTraces.get(i).getValidEventIndexBS(), aLog.getOriginalTraceFromIndex(i).getOriginalEvents().size());
         }
         aLog.updateLogStatus(logBitMap);
         attLog.refresh();
@@ -558,8 +553,9 @@ public class PDAnalyst {
         System.out.println("PLog trace event status: ");
         for (int i=0; i<pTraces.size(); i++) {
             System.out.println("Trace " + i + " event status (event_number:bit):");
-            BitSet eventBitSet = pTraces.get(i).getValidEventIndexBitSet();
-            for (int j=0; j<pTraces.get(i).getOriginalEventList().size(); j++) {
+            BitSet eventBitSet = pTraces.get(i).getValidEventIndexBS();
+            int originalEventSize = pTraces.get(i).getImmutableEvents().size();
+            for (int j=0; j<originalEventSize; j++) {
                 System.out.print(j + ":" + (eventBitSet.get(j) ? "1" : "0") + ",");
             }
             System.out.print("end");

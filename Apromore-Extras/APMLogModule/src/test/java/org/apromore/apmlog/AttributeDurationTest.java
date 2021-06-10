@@ -21,6 +21,7 @@
  */
 package org.apromore.apmlog;
 
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
@@ -35,8 +36,7 @@ import java.util.Set;
 
 public class AttributeDurationTest {
     public static void testRetainAttributeDuration1(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException
-    {
+            throws UnsupportedEncodingException, EmptyInputException {
         FilterType filterType = FilterType.EVENT_ATTRIBUTE_DURATION;
         Choice choice =  Choice.RETAIN;
         Inclusion inclusion = Inclusion.ANY_VALUE;
@@ -73,7 +73,7 @@ public class AttributeDurationTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
         boolean hasC3 = false;

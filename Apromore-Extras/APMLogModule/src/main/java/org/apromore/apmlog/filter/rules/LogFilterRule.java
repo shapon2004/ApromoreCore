@@ -27,6 +27,7 @@ import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.Inclusion;
 import org.apromore.apmlog.filter.types.Section;
+import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.util.Set;
 
@@ -42,5 +43,8 @@ public interface LogFilterRule {
     Set<String> getPrimaryValuesInString();
     Set<String> getSecondaryValuesInString();
     LogFilterRule clone();
-    String toString(APMLog log);
+    void setPrimaryValues(Set<RuleValue> primaryValues);
+    void setSecondaryValues(Set<RuleValue> secondaryValues);
+    String getFilterRuleDesc();
+    String getFilterTypeDesc();
 }

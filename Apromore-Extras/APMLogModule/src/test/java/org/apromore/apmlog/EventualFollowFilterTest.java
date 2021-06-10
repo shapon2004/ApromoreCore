@@ -24,6 +24,7 @@ package org.apromore.apmlog;
 import org.apromore.apmlog.APMLog;
 import org.apromore.apmlog.APMLogUnitTest;
 import org.apromore.apmlog.ATrace;
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
@@ -39,7 +40,7 @@ import java.util.Set;
 import static org.junit.Assert.assertTrue;
 
 public class EventualFollowFilterTest {
-    public static void runTest1(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException {
+    public static void runTest1(APMLog apmLog, APMLogUnitTest parent) throws EmptyInputException, UnsupportedEncodingException {
         FilterType filterType = FilterType.EVENTUAL_FOLLOW;
         Choice choice =  Choice.RETAIN;
         Inclusion inclusion = Inclusion.ANY_VALUE;
@@ -77,10 +78,21 @@ public class EventualFollowFilterTest {
         List<LogFilterRule> rules = new ArrayList<>();
         rules.add(logFilterRule);
 
+//        parent.printString("\n \n \n \n \n");
+//        parent.printString("Traces size = " + apmLog.getTraces().size());
+//        parent.printString("\n \n \n \n \n");
+
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+//        parent.printString("\n \n \n \n \n");
+//        parent.printString("cardinality = " + apmLogFilter.getPLog().getValidTraceIndexBS().cardinality());
+//        parent.printString("\n \n \n \n \n");
+
+
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
+
+
 
         assertTrue(traceList.get(0).getCaseId().equalsIgnoreCase("c3"));
     }

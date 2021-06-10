@@ -24,11 +24,14 @@ package org.apromore.apmlog;
 import org.apromore.apmlog.APMLog;
 import org.apromore.apmlog.APMLogUnitTest;
 import org.apromore.apmlog.ATrace;
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.*;
+import org.apromore.apmlog.stats.TimeStatsProcessor;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -38,11 +41,11 @@ import static org.junit.Assert.*;
 public class PerfFilterTest {
 
     // (1)
-    public static void testDuration(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException {
+    public static void testDuration(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException, EmptyInputException {
 
-        System.out.println("Trace size: " + apmLog.getTraceList().size());
+        System.out.println("Trace size: " + apmLog.getTraces().size());
 
-        for (ATrace aTrace : apmLog.getTraceList()) {
+        for (ATrace aTrace : apmLog.getTraces()) {
             System.out.println(aTrace.getCaseId() + ":" + aTrace.getDuration());
         }
 
@@ -68,7 +71,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -85,15 +88,16 @@ public class PerfFilterTest {
     }
 
     // (2)
-    public static void testTotalProcessTime(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException {
+    public static void testTotalProcessTime(APMLog apmLog, APMLogUnitTest parent) throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf("3600000");
         double val2 = Double.valueOf("3600001");
 
-        System.out.println("Trace size: " + apmLog.getTraceList().size());
+        System.out.println("Trace size: " + apmLog.getTraces().size());
 
-        for (ATrace aTrace : apmLog.getTraceList()) {
-            double ttlProcTime = aTrace.getTotalProcessingTime();
+        for (ATrace aTrace : apmLog.getTraces()) {
+
+            double ttlProcTime = aTrace.getProcessingTimes().sum();
             System.out.println(aTrace.getCaseId() + ":" + ttlProcTime);
             System.out.println(ttlProcTime >= val1 && ttlProcTime <= val2);
         }
@@ -120,7 +124,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -141,7 +145,7 @@ public class PerfFilterTest {
 
     // (3)
     public static void testAverageProcessTime(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf("1800000");
         double val2 = Double.valueOf("1800001");
@@ -168,7 +172,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -189,7 +193,7 @@ public class PerfFilterTest {
 
     // (4)
     public static void testMaxProcessTime(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf("1800000");
         double val2 = Double.valueOf("1800001");
@@ -216,7 +220,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -237,7 +241,7 @@ public class PerfFilterTest {
 
     // (5)
     public static void testTotalWaitTime(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf(10800000d);
         double val2 = Double.valueOf(10800001d);
@@ -264,7 +268,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -285,7 +289,7 @@ public class PerfFilterTest {
 
     // (6)
     public static void testAverageWaitTime(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf("7200000");
         double val2 = Double.valueOf("7200001");
@@ -313,7 +317,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -334,7 +338,7 @@ public class PerfFilterTest {
 
     // (7)
     public static void testMaxWaitTime(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = Double.valueOf("10777000");
         double val2 = Double.valueOf("10800000");
@@ -361,7 +365,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -382,7 +386,7 @@ public class PerfFilterTest {
 
     // (8)
     public static void testUtilization(APMLog apmLog, APMLogUnitTest parent)
-            throws UnsupportedEncodingException {
+            throws UnsupportedEncodingException, EmptyInputException {
 
         double val1 = 0.297;
         double val2 = 0.379;
@@ -410,7 +414,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
         boolean hasC1 = false;
         boolean hasC2 = false;
 
@@ -430,7 +434,7 @@ public class PerfFilterTest {
     }
 
     // (9)
-    public static void testCaseLength(APMLog apmLog) {
+    public static void testCaseLength(APMLog apmLog) throws EmptyInputException {
 
         long val1 = 1;
         long val2 = 2;
@@ -452,7 +456,7 @@ public class PerfFilterTest {
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-        List<ATrace> traceList = apmLogFilter.getApmLog().getTraceList();
+        List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
 
         int[] result = new int[]{0, 0};
         int[] expected = new int[]{1, 0};

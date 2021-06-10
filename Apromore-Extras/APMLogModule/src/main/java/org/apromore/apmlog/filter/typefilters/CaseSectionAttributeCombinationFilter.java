@@ -21,15 +21,12 @@
  */
 package org.apromore.apmlog.filter.typefilters;
 
-import org.apromore.apmlog.AActivity;
-import org.apromore.apmlog.AEvent;
-import org.apromore.apmlog.ATrace;
-
+import org.apromore.apmlog.logobjects.ActivityInstance;
+import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.Inclusion;
-import org.apromore.apmlog.stats.EventAttributeValue;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -37,7 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CaseSectionAttributeCombinationFilter {
-    public static boolean toKeep(ATrace trace, LogFilterRule logFilterRule) {
+    public static boolean toKeep(PTrace trace, LogFilterRule logFilterRule) {
         Choice choice = logFilterRule.getChoice();
         switch (choice) {
             case RETAIN: return conformRule(trace, logFilterRule);
@@ -45,7 +42,7 @@ public class CaseSectionAttributeCombinationFilter {
         }
     }
 
-    private static boolean conformRule(ATrace trace, LogFilterRule logFilterRule) {
+    private static boolean conformRule(PTrace trace, LogFilterRule logFilterRule) {
 
         Set<String> primaryValues = logFilterRule.getPrimaryValuesInString();
         Set<RuleValue> secoRV = logFilterRule.getSecondaryValues();
@@ -75,10 +72,10 @@ public class CaseSectionAttributeCombinationFilter {
         return false;
     }
 
-    private static boolean conformCaseToCaseAttrValue(ATrace trace, String firstKey, String secondKey,
+    private static boolean conformCaseToCaseAttrValue(PTrace trace, String firstKey, String secondKey,
                                                       Set<String> primaryValues, Set<String> secondaryValues,
                                                       Inclusion inclusion) {
-        UnifiedMap<String, String> caseAttrMap = trace.getAttributeMap();
+        UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
         if (!caseAttrMap.containsKey(firstKey)) return false;
         if (!caseAttrMap.containsKey(secondKey)) return false;
         else {
@@ -107,19 +104,19 @@ public class CaseSectionAttributeCombinationFilter {
         return false;
     }
 
-    private static boolean conformCaseToEventAttrValue(ATrace trace, String firstKey, String secondKey,
+    private static boolean conformCaseToEventAttrValue(PTrace trace, String firstKey, String secondKey,
                                                        Set<String> primaryValues, Set<String> secondaryValues,
                                                        Inclusion inclusion) {
-        UnifiedMap<String, String> caseAttrMap = trace.getAttributeMap();
+        UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
         if (!caseAttrMap.containsKey(firstKey)) return false;
         else {
             String primVal = primaryValues.iterator().next();
             if (!caseAttrMap.get(firstKey).equals(primVal)) return false;
 
-            Map<String, List<AActivity>> grouped = trace.getActivityList().stream()
-                    .filter(x -> x.getAllAttributes().containsKey(secondKey) &&
-                            secondaryValues.contains(x.getAllAttributes().get(secondKey)))
-                    .collect(Collectors.groupingBy(x -> x.getAllAttributes().get(secondKey)));
+            Map<String, List<ActivityInstance>> grouped = trace.getActivityInstances().stream()
+                    .filter(x -> x.getAttributes().containsKey(secondKey) &&
+                            secondaryValues.contains(x.getAttributes().get(secondKey)))
+                    .collect(Collectors.groupingBy(x -> x.getAttributes().get(secondKey)));
 
             LongSummaryStatistics valActSizes = grouped.entrySet().stream()
                     .collect(Collectors.summarizingLong(x -> x.getValue().size()));
@@ -131,44 +128,34 @@ public class CaseSectionAttributeCombinationFilter {
         }
     }
 
-    private static String getConfirmedActivityAttrValue(AActivity activity, String attrKey, Set<String> values) {
+    private static String getConfirmedActivityAttrValue(ActivityInstance activity, String attrKey, Set<String> values) {
 
-        AEvent event0 = activity.getImmutableEventList().get(0);
-        switch (attrKey) {
-            case "concept:name":
-                if (values.contains(activity.getName())) return activity.getName();
-                break;
-            case "org:resource":
-                if (values.contains(activity.getResource())) return activity.getResource();
-                break;
-            case "lifecycle:transition":
-                if (values.contains(event0.getLifecycle())) return event0.getLifecycle();
-                break;
-        }
-        return null;
+        if (!activity.getAttributes().containsKey(attrKey)) return null;
+
+        return values.contains(activity.getAttributes().get(attrKey)) ? activity.getAttributes().get(attrKey) : null;
     }
 
-    private static boolean confirmEventToEventAttrValues(ATrace trace, String firstKey, String secondKey,
+    private static boolean confirmEventToEventAttrValues(PTrace trace, String firstKey, String secondKey,
                                                          Set<String> primaryValues, Set<String> secondaryValues,
                                                          Inclusion inclusion) {
-        List<AActivity> activityList = trace.getActivityList();
+        List<ActivityInstance> activityList = trace.getActivityInstances();
 
         switch (inclusion) {
             case ALL_VALUES:
                 UnifiedSet<String> matchedVals = new UnifiedSet<>();
-                for (AActivity act : activityList) {
-                    AEvent event0 = act.getImmutableEventList().get(0);
+                for (ActivityInstance act : activityList) {
+//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
                     String confirmedVal =
-                            getConformedEventAttrValue(event0, firstKey, secondKey, primaryValues, secondaryValues);
+                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
                     if (confirmedVal != null) matchedVals.add(confirmedVal);
                 }
 
                 return matchedVals.size() == secondaryValues.size();
             case ANY_VALUE:
-                for (AActivity act : activityList) {
-                    AEvent event0 = act.getImmutableEventList().get(0);
+                for (ActivityInstance act : activityList) {
+//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
                     String confirmedVal =
-                            getConformedEventAttrValue(event0, firstKey, secondKey, primaryValues, secondaryValues);
+                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
                     if (confirmedVal != null) return true;
                 }
                 break;
@@ -177,89 +164,53 @@ public class CaseSectionAttributeCombinationFilter {
         return false;
     }
 
-    private static String getConformedEventAttrValue(AEvent event, String firstKey, String secondKey,
+    private static String getConformedEventAttrValue(ActivityInstance event, String firstKey, String secondKey,
                                                      Set<String> primaryValues, Set<String> secondaryValues) {
 
-        switch (firstKey) {
-            case "concept:name":
-                if (primaryValues.contains(event.getName())) {
-                    return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
-                }
-                break;
-            case "org:resource":
-                if (primaryValues.contains(event.getResource())) {
-                    return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
-                }
-                break;
-            case "lifecycle:transition":
-                if (primaryValues.contains(event.getLifecycle())) {
-                    return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
-                }
-                break;
-            default:
-                if (!event.getAttributeMap().keySet().contains(firstKey)) return null;
+        if (!event.getAttributes().containsKey(firstKey)) return null;
 
-                String val = event.getAttributeValue(firstKey);
-                if (primaryValues.contains(val)) {
-                    return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
-                }
+        String val = event.getAttributes().get(firstKey).toString();
 
-                break;
-        }
+        if (!primaryValues.contains(val)) return null;
 
-        return null;
+        return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
     }
 
-    private static String conformCaseAttributeKeyValue(ATrace trace, String attributeKey, Set<String> values) {
-        UnifiedMap<String, String> attrMap = trace.getAttributeMap();
+    private static String conformCaseAttributeKeyValue(PTrace trace, String attributeKey, Set<String> values) {
+        UnifiedMap<String, String> attrMap = trace.getAttributes();
         if (!attrMap.containsKey(attributeKey)) return null;
         return values.contains(attrMap.get(attributeKey)) ? attrMap.get(attributeKey) : null;
     }
 
-    private static String conformEventAttributeKeyValue(AEvent event, String attributeKey, Set<String> values) {
+    private static String conformEventAttributeKeyValue(ActivityInstance activityInstance,
+                                                        String attributeKey, Set<String> values) {
 
-        switch (attributeKey) {
-            case "concept:name":
-                if (values.contains(event.getName())) return event.getName();
-                break;
-            case "org:resource":
-                if (values.contains(event.getResource())) return event.getResource();
-                break;
-            case "lifecycle:transition":
-                if (values.contains(event.getLifecycle())) return event.getLifecycle();
-                break;
-            default:
-                if (!event.getAttributeMap().keySet().contains(attributeKey)) return null;
+        if (!activityInstance.getAttributes().containsKey(attributeKey)) return null;
 
-                String val = event.getAttributeValue(attributeKey);
-                if (values.contains(val)) return val;
+        String val = activityInstance.getAttributes().get(attributeKey).toString();
 
-                break;
-        }
-
-        return null;
+        return values.contains(val) ? val : null;
     }
 
-    private static boolean confirmEventToCaseAttrValues(ATrace trace, String firstKey, String secondKey,
+    private static boolean confirmEventToCaseAttrValues(PTrace trace, String firstKey, String secondKey,
                                                         Set<String> primaryValues, Set<String> secondaryValues,
                                                         Inclusion inclusion) {
-        UnifiedMap<String, String> caseAttrMap = trace.getAttributeMap();
+        UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
 
-        List<AActivity> activityList = trace.getActivityList();
+        List<ActivityInstance> activityList = trace.getActivityInstances();
 
         switch (inclusion) {
             case ALL_VALUES:
                 UnifiedSet<String> matchedVals = new UnifiedSet<>();
-                for (int i = 0; i < activityList.size(); i++) {
-                    AEvent event0 = activityList.get(i).getImmutableEventList().get(0);
-                    String attrVal = getEventAttributeValue(event0, firstKey);
-                    if (attrVal != null) {
-                        if (primaryValues.contains(attrVal)) {
-                            String attrVal2 = caseAttrMap.get(secondKey);
-                            if (attrVal2 != null) {
-                                if (secondaryValues.contains(attrVal2)) {
-                                    matchedVals.add(attrVal2);
-                                }
+
+                for (ActivityInstance act : activityList) {
+//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
+                    String attrVal = getEventAttributeValue(act, firstKey);
+                    if (attrVal != null && primaryValues.contains(attrVal)) {
+                        String attrVal2 = caseAttrMap.get(secondKey);
+                        if (attrVal2 != null) {
+                            if (secondaryValues.contains(attrVal2)) {
+                                matchedVals.add(attrVal2);
                             }
                         }
                     }
@@ -267,9 +218,9 @@ public class CaseSectionAttributeCombinationFilter {
 
                 return matchedVals.size() == secondaryValues.size();
             case ANY_VALUE:
-                for (int i = 0; i < activityList.size(); i++) {
-                    AEvent event0 = activityList.get(i).getImmutableEventList().get(0);
-                    String attrVal = getEventAttributeValue(event0, firstKey);
+                for (ActivityInstance act : activityList) {
+//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
+                    String attrVal = getEventAttributeValue(act, firstKey);
                     if (attrVal != null) {
                         if (primaryValues.contains(attrVal)) {
                             String attrVal2 = caseAttrMap.get(secondKey);
@@ -287,13 +238,9 @@ public class CaseSectionAttributeCombinationFilter {
         return false;
     }
 
-    private static String getEventAttributeValue(AEvent event, String attributeKey) {
-        switch (attributeKey) {
-            case "concept:name": return event.getName();
-            case "org:resource": return event.getResource();
-            default:
-                UnifiedMap<String, String> attrMap = event.getAttributeMap();
-                return attrMap.containsKey(attributeKey) ? attrMap.get(attributeKey) : null;
-        }
+    private static String getEventAttributeValue(ActivityInstance activityInstance, String key) {
+        if (!activityInstance.getAttributes().containsKey(key)) return null;
+
+        return activityInstance.getAttributes().containsKey(key) ? activityInstance.getAttributes().get(key).toString() : null;
     }
 }

@@ -19,15 +19,19 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.apmlog;
+package org.apromore.apmlog.logobjects;
 
-import static org.junit.Assert.assertArrayEquals;
+import java.io.Serializable;
 
-public class DiscardNoLifecycleTest {
-    public static void test1(APMLog apmLog) {
-        double[] expected = new double[]{100, 110, 0};
-        double[] result = apmLog.getTraceList().get(0).getActivityList().stream()
-                .mapToDouble(s -> s.getDuration()).toArray();
-        assertArrayEquals(expected, result, 0);
+public class ImmutableEvent implements Serializable {
+
+    private int immutableIndex;
+
+    public ImmutableEvent(int immutableIndex) {
+        this.immutableIndex = immutableIndex;
+    }
+
+    public int getImmutableIndex() {
+        return immutableIndex;
     }
 }

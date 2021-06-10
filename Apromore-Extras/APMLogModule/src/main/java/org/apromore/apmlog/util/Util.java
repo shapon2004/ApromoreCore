@@ -39,6 +39,10 @@ import java.time.format.DateTimeFormatter;
  */
 public class Util {
 
+    public static final DecimalFormat df3 = new DecimalFormat("###############.###");
+    public static final DecimalFormat df2 = new DecimalFormat("###############.##");
+    public static final DecimalFormat df0 = new DecimalFormat("###############");
+
     private static final double year = 1000.0D * 60 * 60 * 24 * 365;
     private static final double month = 1000.0D * 60 * 60 * 24 * 30.4166666667;
     private static final double week = 1000.0D * 60 * 60 * 24 * 7;
@@ -158,8 +162,6 @@ public class Util {
         return "instant";
     }
 
-    private static final DecimalFormat df2 = new DecimalFormat("###############.##");
-
     public static boolean isNumeric(String s) {
 
         if (s == null) return false;
@@ -223,6 +225,12 @@ public class Util {
         return validChar;
     }
 
+    public static String timestampRangeStringOf(long fromTime, long toTime) {
+        return "From " + timestampStringOf(fromTime) + " to " + timestampStringOf(toTime);
+    }
 
-
+    public static String timestampStringOf(long millisecond){
+        ZonedDateTime zdt = millisecondToZonedDateTime(millisecond);
+        return zdt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
+    }
 }
