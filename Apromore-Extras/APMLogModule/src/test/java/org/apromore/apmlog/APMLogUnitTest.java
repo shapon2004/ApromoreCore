@@ -407,6 +407,16 @@ public class APMLogUnitTest {
         }
     }
 
+    @Test
+    public void testMissOrderedLog() throws Exception {
+        APMLog apmLog = getImmutableLog("_reworkTest2", "files/new_connection.xes.gz");
+
+        PLog pLog = new PLog(apmLog);
+
+        assertTrue(pLog.getStartTime() == 1551919260000L);
+        assertTrue(pLog.getEndTime() == 1607672640000L);
+    }
+
     private ImmutableLog getImmutableLog(String logName, String path) throws Exception {
         XLog xLog = getXLog(path);
         ImmutableLog immutableLog = XLogToImmutableLog.convertXLog(logName, xLog);
