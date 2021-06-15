@@ -51,22 +51,14 @@ public class TimeStatsProcessor {
     }
 
     public static long getPLogDuration(PLog log) {
-        long st = log.getPTraces().get(0).getStartTime();
-        long et = log.getPTraces().get(log.getPTraces().size() - 1).getEndTime();
+        long st = log.getStartTime();
+        long et = log.getEndTime();
         return et > st ? et - st : 0;
     }
 
-    public static long getAPMLogStartTime(APMLog log) {
-        return log.getTraces().get(0).getStartTime();
-    }
-
-    public static long getAPMLogEndTime(APMLog log) {
-        return log.getTraces().get(log.getTraces().size() - 1).getEndTime();
-    }
-
     public static long getAPMLogDuration(APMLog log) {
-        long et = getAPMLogEndTime(log);
-        long st = getAPMLogStartTime(log);
+        long et = log.getStartTime();
+        long st = log.getEndTime();
         return et > st ? et - st : 0;
     }
 
