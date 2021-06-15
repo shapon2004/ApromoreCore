@@ -97,14 +97,6 @@ public class PLog extends AbstractLogImpl implements Serializable {
         return immutableLog;
     }
 
-    public long getStartTime() {
-        return TimeStatsProcessor.getPLogStartTime(this);
-    }
-
-    public long getEndTime() {
-        return TimeStatsProcessor.getPLogEndTime(this);
-    }
-
     public long getDuration() {
         return TimeStatsProcessor.getPLogDuration(this);
     }
@@ -159,8 +151,7 @@ public class PLog extends AbstractLogImpl implements Serializable {
         this.pTraces.clear();
         this.pTraces.addAll(originalPTraces);
 
-        activityInstances.clear();
-        activityInstances.addAll(immutableLog.getActivityInstances());
+        setActivityInstances(immutableLog.getActivityInstances());
         pTracesMap = pTraces.stream().collect(Collectors.toMap( PTrace::getCaseId, x -> x));
     }
 
