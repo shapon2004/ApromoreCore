@@ -87,16 +87,6 @@ public class ImmutableLog extends AbstractLogImpl implements APMLog, Serializabl
     }
 
     @Override
-    public long getStartTime() {
-        return TimeStatsProcessor.getAPMLogStartTime(this);
-    }
-
-    @Override
-    public long getEndTime() {
-        return TimeStatsProcessor.getAPMLogEndTime(this);
-    }
-
-    @Override
     public long getDuration() {
         return TimeStatsProcessor.getAPMLogDuration(this);
     }

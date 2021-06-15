@@ -26,23 +26,34 @@ import org.apromore.apmlog.ATrace;
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.PLog;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 
 import java.util.List;
 
 public class TimeStatsProcessor {
 
+    public static long getStartTime(List<ActivityInstance> activityInstances) {
+        long[] allST = activityInstances.stream()
+                .mapToLong(x -> x.getStartTime())
+                .toArray();
+
+        LongArrayList dalST = new LongArrayList(allST);
+        return dalST.min();
+    }
+
+    public static long getEndTime(List<ActivityInstance> activityInstances) {
+        long[] allET = activityInstances.stream()
+                .mapToLong(x -> x.getEndTime())
+                .toArray();
+
+        LongArrayList dalET = new LongArrayList(allET);
+        return dalET.max();
+    }
+
     public static long getPLogDuration(PLog log) {
         long st = log.getPTraces().get(0).getStartTime();
         long et = log.getPTraces().get(log.getPTraces().size() - 1).getEndTime();
         return et > st ? et - st : 0;
-    }
-
-    public static long getPLogStartTime(PLog log) {
-        return log.getPTraces().get(0).getStartTime();
-    }
-
-    public static long getPLogEndTime(PLog log) {
-        return log.getPTraces().get(log.getPTraces().size() - 1).getEndTime();
     }
 
     public static long getAPMLogStartTime(APMLog log) {

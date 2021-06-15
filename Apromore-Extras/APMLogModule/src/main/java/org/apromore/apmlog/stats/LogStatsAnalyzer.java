@@ -27,6 +27,7 @@ import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.PTrace;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -171,6 +172,10 @@ public class LogStatsAnalyzer {
             variId += 1;
         }
     }
+
+    // ===================================================================================================
+    // PD supported methods
+    // ===================================================================================================
 
     public static int getNodeDurationSize(String attributeKey, String value, APMLog apmLog) {
         if (!apmLog.getImmutableEventAttributeValues().containsKey(attributeKey)) return 0;

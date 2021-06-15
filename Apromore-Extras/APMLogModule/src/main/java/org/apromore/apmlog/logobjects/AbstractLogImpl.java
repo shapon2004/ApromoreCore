@@ -25,7 +25,9 @@ import org.apromore.apmlog.ATrace;
 import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
+import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -36,9 +38,9 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractLogImpl implements Serializable {
 
-    // -------------------------------------------------------
-    // Commonly, it is the filename of the log
-    // -------------------------------------------------------
+    // =====================================
+    // Expect to be the filename of the log
+    // =====================================
     protected String logName;
 
     protected HashBiMap<String, Integer> activityNameIndicatorMap;
@@ -46,6 +48,9 @@ public abstract class AbstractLogImpl implements Serializable {
     protected final List<ActivityInstance> activityInstances = new ArrayList<>();
 
     protected String timeZone;
+
+    protected long startTime;
+    protected long endTime;
 
     // ===============================================================================================================
     // Protected methods
@@ -79,13 +84,26 @@ public abstract class AbstractLogImpl implements Serializable {
         return timeZone;
     }
 
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
     // ===============================================================================================================
     // SET methods
     // ===============================================================================================================
 
     protected void setActivityInstances(List<ActivityInstance> activityInstances) {
         this.activityInstances.clear();
-        if (activityInstances != null) this.activityInstances.addAll(activityInstances);
+
+        if (activityInstances != null) {
+            this.activityInstances.addAll(activityInstances);
+            startTime = TimeStatsProcessor.getStartTime(activityInstances);
+            endTime = TimeStatsProcessor.getEndTime(activityInstances);
+        }
     }
 
     public void setTimeZone(String timeZone) {
