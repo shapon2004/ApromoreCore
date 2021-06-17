@@ -294,9 +294,6 @@ public class PLog implements APMLog {
 
     public void updateStats() {
         updateTraceStats();
-        List<PTrace> traces = getPTraceList();
-        caseAttributeValues = StatsUtil.getValidCaseAttributeValues(traces);
-        eventAttributeValues = StatsUtil.getValidEventAttributeValues(traces);
     }
 
     public void updateTraceStats() {
