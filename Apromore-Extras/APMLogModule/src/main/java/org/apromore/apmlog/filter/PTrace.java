@@ -73,7 +73,7 @@ public class PTrace extends AbstractTraceImpl implements Comparable<PTrace>, Ser
                 immutableTrace.getImmutableEvents(),
                 immutableTrace.getActivityInstances(),
                 immutableTrace.getAttributes());
-
+        this.immutableTrace = immutableTrace;
         originalActivityInstances = new ArrayList<>(immutableTrace.getActivityInstances());
 
         this.mutableIndex = mutableIndex;
