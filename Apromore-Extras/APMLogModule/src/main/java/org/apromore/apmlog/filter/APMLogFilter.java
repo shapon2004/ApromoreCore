@@ -118,7 +118,7 @@ public class APMLogFilter {
      */
     public void filter(List<LogFilterRule> logFilterRuleList) {
         proceedFiltering(logFilterRuleList);
-        pLog.updateStats();
+//        pLog.updateStats();
     }
 
     private void proceedFiltering(List<LogFilterRule> logFilterRuleList) {
@@ -191,6 +191,8 @@ public class APMLogFilter {
         BitSet validTracesBS = new BitSet(pLog.getOriginalPTraceList().size());
         for (PTrace trace : traces) {
             validTracesBS.set(trace.getImmutableIndex());
+
+            trace.updateTimeStats();
         }
 
         pLog.setValidTraceIndexBS(validTracesBS);
@@ -301,6 +303,8 @@ public class APMLogFilter {
             updateValidEventBitSet(pTrace, activity);
         }
 
+        pTrace.setActivities(validActs);
+
         return true;
     }
 
@@ -321,6 +325,9 @@ public class APMLogFilter {
         for (AEvent aEvent : validEvents) {
             pTrace.getValidEventIndexBitSet().set(aEvent.getIndex());
         }
+
+        pTrace.updateValidActivities();
+
         return !validEvents.isEmpty();
     }
 

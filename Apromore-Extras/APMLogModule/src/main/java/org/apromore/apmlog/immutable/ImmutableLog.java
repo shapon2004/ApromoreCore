@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ImmutableLog extends LaLog {
 
@@ -157,9 +158,11 @@ public class ImmutableLog extends LaLog {
     }
 
     public ImmutableLog(PLog pLog) {
-        List<ATrace> traces = pLog.getPTraceList().stream()
-                .map(PTrace::toATrace)
-                .collect(Collectors.toList());
+//        List<ATrace> traces = pLog.getPTraceList().stream()
+//                .map(PTrace::toATrace)
+//                .collect(Collectors.toList());
+
+        List<ATrace> traces = pLog.getPTraceList().stream().collect(Collectors.toList());
 
         setImmutableTraces(traces);
         setTraces(traces);
@@ -277,12 +280,152 @@ public class ImmutableLog extends LaLog {
         this.eventSize = pLog.getEventSize();
         this.activityNameMapper = pLog.getActivityNameMapper();
         this.activityMaxOccurMap = pLog.getActivityMaxOccurMap();
-        if (traceList.size() > 0) {
-            if (traceList.get(0).getDuration() > 0) {
-                defaultChartDataCollection = new DefaultChartDataCollection(this);
-            }
+
+//        updateLocalStats();
+
+        if (traceList.size() > 0 && traceList.get(0).getDuration() > 0) {
+            defaultChartDataCollection = new DefaultChartDataCollection(this);
         }
 
-        updateCaseVariants();
+//        updateCaseVariants();
+    }
+
+    public void updateLocalStats() {
+        startTime = 0;
+        endTime = 0;
+
+        actNameIdxCId = new HashBiMap<>();
+
+        variantIdFreqMap = new UnifiedMap<>();
+
+        List<IntArrayList> traceActNameIndexes = new ArrayList<>();
+
+        eventSize = 0;
+
+        variantIdFreqMap = new UnifiedMap<>();
+
+        this.caseDurationList = new DoubleArrayList(traceList.size());
+
+        UnifiedMap<String, UnifiedMap<String, IntArrayList>> caseAttrValOccurMap = new UnifiedMap<>();
+
+        int index = 0;
+
+        for (ATrace trace : traceList) {
+
+            UnifiedMap<String, String> tAttrMap = trace.getAttributeMap();
+
+            for (String attrKey : tAttrMap.keySet()) {
+                String val = trace.getAttributeMap().get(attrKey);
+
+                if (caseAttrValOccurMap.keySet().contains(attrKey)) {
+                    UnifiedMap<String, IntArrayList> valOccurMap = caseAttrValOccurMap.get(attrKey);
+                    if (valOccurMap.containsKey(val)) {
+                        valOccurMap.get(val).add(index);
+                    } else {
+                        IntArrayList indexes = new IntArrayList();
+                        indexes.add(index);
+                        valOccurMap.put(val, indexes);
+                    }
+                } else {
+                    IntArrayList indexes = new IntArrayList();
+                    indexes.add(index);
+                    UnifiedMap<String, IntArrayList> valOccurMap = new UnifiedMap<>();
+                    valOccurMap.put(val, indexes);
+                    caseAttrValOccurMap.put(attrKey, valOccurMap);
+                }
+            }
+
+            caseDurationList.add(trace.getDuration());
+
+//            trace.setMutableIndex(index);
+
+            int vari = trace.getCaseVariantId();
+
+            if (variantIdFreqMap.containsKey(vari)) {
+                int freq = variantIdFreqMap.get(vari) + 1;
+                variantIdFreqMap.put(vari, freq);
+            } else variantIdFreqMap.put(vari, 1);
+
+            IntArrayList actNameIndexes = getActivityNameIndexes(trace);
+            traceActNameIndexes.add(actNameIndexes);
+
+            if (startTime < 1 || trace.getStartTimeMilli() < startTime) startTime = trace.getStartTimeMilli();
+            if (trace.getEndTimeMilli() > endTime) endTime = trace.getEndTimeMilli();
+
+            eventSize += trace.getEventSize();
+
+            index += 1;
+        }
+
+        caseAttributeValues = new UnifiedMap<>();
+
+        for (String attrKey : caseAttrValOccurMap.keySet()) {
+            UnifiedMap<String, IntArrayList> valOccurMap = caseAttrValOccurMap.get(attrKey);
+            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>();
+
+            int[] arr = valOccurMap.entrySet().stream().mapToInt(x -> x.getValue().size()).toArray();
+            IntArrayList ial = new IntArrayList(arr);
+
+            int maxOccurSize = ial.max();
+
+            for (String val : valOccurMap.keySet()) {
+                CaseAttributeValue cav = new CaseAttributeValue(val, valOccurMap.get(val), traceList.size());
+                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
+                cavSet.add(cav);
+            }
+            caseAttributeValues.put(attrKey, cavSet);
+        }
+
+        updateEventAttributeOccurMap();
+
+        eventAttributeValues = new UnifiedMap<>();
+
+        for (String key : eventAttributeOccurMap.keySet()) {  // !!!!! performance issue
+            UnifiedMap<String, UnifiedSet<AActivity>> valOccurMap = eventAttributeOccurMap.get(key);
+
+            UnifiedMap<String, Integer> valCaseFreqMap = new UnifiedMap<>(valOccurMap.size());
+
+            UnifiedSet<EventAttributeValue> attrVals = new UnifiedSet<>();
+            int maxCasesOfCSEventAttrVal = 0;
+
+
+            for (String val : valOccurMap.keySet()) {
+
+                UnifiedSet<AActivity> occurSet = valOccurMap.get(val);
+
+                int[] array = occurSet.stream().mapToInt(s -> s.getMutableTraceIndex()).toArray();
+                List<Integer> traceIndexList = IntStream.of(array).boxed().collect(Collectors.toList());
+                UnifiedSet<Integer> uniqueTraceIndexes = new UnifiedSet<>(traceIndexList);
+                List<Integer> uniqueTraceIndexList = new ArrayList<>(uniqueTraceIndexes);
+
+                int[] array2 = uniqueTraceIndexList.stream().mapToInt(s -> s).toArray();
+
+                IntArrayList traceIndexes = new IntArrayList(array2);
+
+                valCaseFreqMap.put(val, traceIndexes.size());
+
+                try {
+                    attrVals.add(new EventAttributeValue(val, traceIndexes, traceList.size(), occurSet));
+                } catch (Exception e) {
+                    System.out.println("");
+                }
+                if (traceIndexes.size() > maxCasesOfCSEventAttrVal) maxCasesOfCSEventAttrVal = traceIndexes.size();
+            }
+
+            for (EventAttributeValue v : attrVals) {
+                v.setRatio(100 * ( (double) v.getCases() / maxCasesOfCSEventAttrVal));
+            }
+            eventAttributeValues.put(key, attrVals);
+        }
+    }
+
+    private void updateEventAttributeOccurMap() {
+        eventAttributeOccurMap = new UnifiedMap<>();
+
+        for (ATrace trace: traceList) {
+            for (AActivity activity: trace.getActivityList()) {
+                LogFactory.fillAttributeOccurMap(activity, eventAttributeOccurMap);
+            }
+        }
     }
 }
