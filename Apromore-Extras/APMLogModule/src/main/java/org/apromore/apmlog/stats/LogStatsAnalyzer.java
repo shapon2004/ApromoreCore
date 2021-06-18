@@ -42,40 +42,30 @@ public class LogStatsAnalyzer {
     public static UnifiedMap<String, UnifiedSet<EventAttributeValue>> getEventAttributeValues(
             List<ActivityInstance> activities, long tracesSize) {
 
-        UnifiedMap<String, UnifiedMap<String, UnifiedSet<ActivityInstance>>> eavaMap = new UnifiedMap<>();
+        UnifiedSet<String> keys = activities.stream()
+                .flatMap(x -> x.getAttributes().keySet().stream())
+                .collect(Collectors.toCollection(UnifiedSet::new));
 
-        for (ActivityInstance activity : activities) {
-            UnifiedMap<String, String> attributes = activity.getAttributes();
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                if (!eavaMap.containsKey(entry.getKey())) {
-                    UnifiedSet<ActivityInstance> actSet = new UnifiedSet<>();
-                    actSet.add(activity);
-                    UnifiedMap<String, UnifiedSet<ActivityInstance>> eavvMap = new UnifiedMap<>();
-                    eavvMap.put(entry.getValue(), actSet);
-                    eavaMap.put(entry.getKey(), eavvMap);
-                } else {
-                    UnifiedMap<String, UnifiedSet<ActivityInstance>> eavvMap = eavaMap.get(entry.getKey());
-                    if (!eavvMap.containsKey(entry.getValue())) {
-                        UnifiedSet<ActivityInstance> actSet = new UnifiedSet<>();
-                        actSet.add(activity);
-                        eavvMap.put(entry.getValue(), actSet);
-                    } else {
-                        eavvMap.get(entry.getValue()).put(activity);
-                    }
-                }
-            }
+        UnifiedMap<String, Map<String, List<ActivityInstance>>> eavaMap = new UnifiedMap<>(keys.size());
+
+        for (String key : keys) {
+            Map<String, List<ActivityInstance>> groups = activities.stream()
+                    .filter(x -> x.getAttributes().containsKey(key))
+                    .collect(Collectors.groupingBy(x -> x.getAttributes().get(key)));
+
+            eavaMap.put(key, groups);
         }
 
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
+        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>(keys.size());
 
-        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<ActivityInstance>>> entry : eavaMap.entrySet()) {
+        for (Map.Entry<String, Map<String, List<ActivityInstance>>> entry : eavaMap.entrySet()) {
 
             eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
 
-            UnifiedMap<String, UnifiedSet<ActivityInstance>> vals = entry.getValue();
-            for (Map.Entry<String, UnifiedSet<ActivityInstance>> valEntry : vals.entrySet()) {
+            Map<String, List<ActivityInstance>> vals = entry.getValue();
+            for (Map.Entry<String, List<ActivityInstance>> valEntry : vals.entrySet()) {
                 EventAttributeValue eav =
-                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), tracesSize);
+                        new EventAttributeValue(valEntry.getKey(), new UnifiedSet<>(valEntry.getValue()), tracesSize);
 
                 eavMap.get(entry.getKey()).put(eav);
             }
@@ -87,14 +77,13 @@ public class LogStatsAnalyzer {
 
     public static UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getCaseAttributeValues(List<ATrace> traces) {
 
-        UnifiedSet<String> allKeys = new UnifiedSet<>();
-        for (ATrace trace : traces) {
-            allKeys.addAll(trace.getAttributes().keySet());
-        }
+        UnifiedSet<String> keys = traces.stream()
+                .flatMap(x -> x.getAttributes().keySet().stream())
+                .collect(Collectors.toCollection(UnifiedSet::new));
 
         UnifiedMap<String, Map<String, List<ATrace>>> keyValCaseOccurMap = new UnifiedMap<>();
 
-        for (String key : allKeys) {
+        for (String key : keys) {
             Map<String, List<ATrace>> grouped = traces.stream()
                     .filter(x -> x.getAttributes().containsKey(key))
                     .collect(Collectors.groupingBy(x -> x.getAttributes().get(key)));
@@ -102,13 +91,13 @@ public class LogStatsAnalyzer {
         }
 
         // (3) create CaseAttributeValues
-        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>();
+        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>(keys.size());
 
         for (Map.Entry<String, Map<String, List<ATrace>>> entry : keyValCaseOccurMap.entrySet()) {
             String attrKey = entry.getKey();
             Map<String, List<ATrace>> valOccurMap = entry.getValue();
 
-            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>();
+            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>(valOccurMap.size());
 
             int[] arr = valOccurMap.entrySet().stream().mapToInt(x -> x.getValue().size()).toArray();
             IntArrayList ial = new IntArrayList(arr);
