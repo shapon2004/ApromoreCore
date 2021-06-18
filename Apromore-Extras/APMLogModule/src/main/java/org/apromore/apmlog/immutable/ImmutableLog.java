@@ -27,6 +27,7 @@ import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
+import org.apromore.apmlog.stats.StatsUtil;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
@@ -155,11 +156,11 @@ public class ImmutableLog extends LaLog {
     }
 
     public ImmutableLog(PLog pLog) {
-//        List<ATrace> traces = pLog.getPTraceList().stream()
-//                .map(PTrace::toATrace)
-//                .collect(Collectors.toList());
+        List<ATrace> traces = pLog.getPTraceList().stream()
+                .map(PTrace::toATrace)
+                .collect(Collectors.toList());
 
-        List<ATrace> traces = pLog.getPTraceList().stream().collect(Collectors.toList());
+//        List<ATrace> traces = pLog.getPTraceList().stream().collect(Collectors.toList());
 
         setImmutableTraces(traces);
         setTraces(traces);
@@ -176,106 +177,8 @@ public class ImmutableLog extends LaLog {
 
         this.variantIdFreqMap = pLog.getVariantIdFreqMap();
 
-
-        UnifiedMap<String, UnifiedMap<String, UnifiedSet<AActivity>>> eavaMap = new UnifiedMap<>();
-
-        List<AActivity> acts = traces.stream()
-                .flatMap(x -> x.getActivityList().stream()).collect(Collectors.toList());
-
-        Set<String> tobeRemovedEA = new UnifiedSet<>();
-
-        for (AActivity activity : acts) {
-            UnifiedMap<String, String> attributes = activity.getAttributes();
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                if (!eavaMap.containsKey(entry.getKey())) {
-                    UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                    actSet.add(activity);
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = new UnifiedMap<>();
-                    eavvMap.put(entry.getValue(), actSet);
-                    eavaMap.put(entry.getKey(), eavvMap);
-                } else {
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
-                    if (eavvMap.size() > 500) {
-                        tobeRemovedEA.add(entry.getKey());
-                    } else {
-                        if (!eavvMap.containsKey(entry.getValue())) {
-                            UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                            actSet.add(activity);
-                            eavvMap.put(entry.getValue(), actSet);
-                        } else {
-                            eavvMap.get(entry.getValue()).put(activity);
-                        }
-                    }
-                }
-            }
-        }
-
-        eavaMap.keySet().removeAll(tobeRemovedEA);
-
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
-
-        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<AActivity>>> entry : eavaMap.entrySet()) {
-
-            eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
-
-            UnifiedMap<String, UnifiedSet<AActivity>> vals = entry.getValue();
-            for (Map.Entry<String, UnifiedSet<AActivity>> valEntry : vals.entrySet()) {
-                EventAttributeValue eav =
-                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), traces.size());
-
-                eavMap.get(entry.getKey()).put(eav);
-            }
-        }
-
-        this.eventAttributeValues = eavMap;
-
-
-
-
-        // (1) get all keys
-        UnifiedSet<String> allKeys = new UnifiedSet<>();
-        for (ATrace trace : traces) {
-            allKeys.addAll(trace.getAttributeMap().keySet());
-        }
-
-        // (2) for each key, group traces with values
-        UnifiedMap<String, Map<String, List<ATrace>>> keyValCaseOccurMap = new UnifiedMap<>();
-
-        for (String key : allKeys) {
-            Map<String, List<ATrace>> grouped = traces.stream()
-                    .filter(x -> x.getAttributeMap().containsKey(key))
-                    .collect(Collectors.groupingBy(x -> x.getAttributeMap().get(key)));
-            keyValCaseOccurMap.put(key, grouped);
-        }
-
-        // (3) create CaseAttributeValues
-        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>();
-
-        for (Map.Entry<String, Map<String, List<ATrace>>> entry : keyValCaseOccurMap.entrySet()) {
-            String attrKey = entry.getKey();
-            Map<String, List<ATrace>> valOccurMap = entry.getValue();
-
-            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>();
-
-            int[] arr = valOccurMap.entrySet().stream().mapToInt(x -> x.getValue().size()).toArray();
-            IntArrayList ial = new IntArrayList(arr);
-
-            int maxOccurSize = ial.max();
-
-            for (Map.Entry<String, List<ATrace>> voe: valOccurMap.entrySet()) {
-                int[] occurredIndexes = voe.getValue().stream()
-                        .mapToInt(ATrace::getImmutableIndex)
-                        .toArray();
-                IntArrayList indexes = new IntArrayList(occurredIndexes);
-
-                CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, traces.size());
-                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
-                cavSet.add(cav);
-            }
-            caseAttributeValues.put(attrKey, cavSet);
-        }
-
-        this.caseAttributeValues = caseAttributeValues;
+        this.eventAttributeValues = StatsUtil.getEventAttributeValues(traces);
+        this.caseAttributeValues = StatsUtil.getCaseAttributeValues(traces);
 
 
         this.caseDurationList = pLog.getCaseDurations();
@@ -286,13 +189,11 @@ public class ImmutableLog extends LaLog {
         this.activityNameMapper = pLog.getActivityNameMapper();
         this.activityMaxOccurMap = pLog.getActivityMaxOccurMap();
 
-//        updateLocalStats();
-
         if (traceList.size() > 0 && traceList.get(0).getDuration() > 0) {
             defaultChartDataCollection = new DefaultChartDataCollection(this);
         }
 
-//        updateCaseVariants();
+        updateCaseVariants();
     }
 
     public void updateLocalStats() {

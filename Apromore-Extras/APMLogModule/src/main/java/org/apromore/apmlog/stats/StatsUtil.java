@@ -60,54 +60,34 @@ public class StatsUtil {
                 .collect(Collectors.toList());
     }
 
-    public static UnifiedMap<String, UnifiedSet<EventAttributeValue>> getEventAttributeValues(List<ATrace> aTraces) {
+    private static UnifiedMap<String, UnifiedSet<EventAttributeValue>>
+    getEventAttributeValuesByActivities(List<AActivity> activities, int traceSize) {
+        UnifiedSet<String> keys = activities.stream()
+                .flatMap(x -> x.getAttributes().keySet().stream())
+                .collect(Collectors.toCollection(UnifiedSet::new));
 
-        UnifiedMap<String, UnifiedMap<String, UnifiedSet<AActivity>>> eavaMap = new UnifiedMap<>();
+        UnifiedMap<String, Map<String, List<AActivity>>> eavaMap = new UnifiedMap<>(keys.size());
 
-        List<AActivity> allActs = aTraces.stream()
-                .flatMap(x -> x.getActivityList().stream())
-                .collect(Collectors.toList());
+        for (String key : keys) {
+            Map<String, List<AActivity>> groups = activities.stream()
+                    .filter(x -> x.getAttributes().containsKey(key))
+                    .collect(Collectors.groupingBy(x -> x.getAttributes().get(key)));
 
-        Set<String> tobeRemovedEA = new UnifiedSet<>();
-
-        for (AActivity activity : allActs) {
-            UnifiedMap<String, String> attributes = activity.getAttributes();
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                if (!eavaMap.containsKey(entry.getKey())) {
-                    UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                    actSet.add(activity);
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = new UnifiedMap<>();
-                    eavvMap.put(entry.getValue(), actSet);
-                    eavaMap.put(entry.getKey(), eavvMap);
-                } else {
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
-                    if (eavvMap.size() > 500) {
-                        tobeRemovedEA.add(entry.getKey());
-                    } else {
-                        if (!eavvMap.containsKey(entry.getValue())) {
-                            UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                            actSet.add(activity);
-                            eavvMap.put(entry.getValue(), actSet);
-                        } else {
-                            eavvMap.get(entry.getValue()).put(activity);
-                        }
-                    }
-                }
-            }
+            eavaMap.put(key, groups);
         }
 
-        eavaMap.keySet().removeAll(tobeRemovedEA);
+        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>(keys.size());
 
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
-
-        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<AActivity>>> entry : eavaMap.entrySet()) {
+        for (Map.Entry<String, Map<String, List<AActivity>>> entry : eavaMap.entrySet()) {
 
             eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
 
-            UnifiedMap<String, UnifiedSet<AActivity>> vals = entry.getValue();
-            for (Map.Entry<String, UnifiedSet<AActivity>> valEntry : vals.entrySet()) {
+            Map<String, List<AActivity>> vals = entry.getValue();
+
+            for (Map.Entry<String, List<AActivity>> valEntry : vals.entrySet()) {
                 EventAttributeValue eav =
-                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), aTraces.size());
+                        new EventAttributeValue(valEntry.getKey(),
+                                new UnifiedSet<>(valEntry.getValue()), traceSize);
 
                 eavMap.get(entry.getKey()).put(eav);
             }
@@ -116,11 +96,20 @@ public class StatsUtil {
         return eavMap;
     }
 
+    public static UnifiedMap<String, UnifiedSet<EventAttributeValue>> getEventAttributeValues(
+            List<ATrace> aTraces) {
+
+        List<AActivity> allActs = aTraces.stream()
+                .flatMap(x -> x.getActivityList().stream())
+                .collect(Collectors.toList());
+
+        return getEventAttributeValuesByActivities(allActs, aTraces.size());
+    }
+
 
     public static UnifiedMap<String, UnifiedSet<EventAttributeValue>> getValidEventAttributeValues(
             List<PTrace> validTraces) {
 
-        UnifiedMap<String, UnifiedMap<String, UnifiedSet<AActivity>>> eavaMap = new UnifiedMap<>();
 
         List<AActivity> validActivities = new ArrayList<>();
 
@@ -134,44 +123,95 @@ public class StatsUtil {
             }
         }
 
-        for (AActivity activity : validActivities) {
-            UnifiedMap<String, String> attributes = activity.getAttributes();
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                if (!eavaMap.containsKey(entry.getKey())) {
-                    UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                    actSet.add(activity);
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = new UnifiedMap<>();
-                    eavvMap.put(entry.getValue(), actSet);
-                    eavaMap.put(entry.getKey(), eavvMap);
-                } else {
-                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
-                    if (!eavvMap.containsKey(entry.getValue())) {
-                        UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                        actSet.add(activity);
-                        eavvMap.put(entry.getValue(), actSet);
-                    } else {
-                        eavvMap.get(entry.getValue()).put(activity);
-                    }
-                }
-            }
+        return getEventAttributeValuesByActivities(validActivities, validTraces.size());
+
+//        UnifiedMap<String, UnifiedMap<String, UnifiedSet<AActivity>>> eavaMap = new UnifiedMap<>();
+
+//        for (AActivity activity : validActivities) {
+//            UnifiedMap<String, String> attributes = activity.getAttributes();
+//            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+//                if (!eavaMap.containsKey(entry.getKey())) {
+//                    UnifiedSet<AActivity> actSet = new UnifiedSet<>();
+//                    actSet.add(activity);
+//                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = new UnifiedMap<>();
+//                    eavvMap.put(entry.getValue(), actSet);
+//                    eavaMap.put(entry.getKey(), eavvMap);
+//                } else {
+//                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
+//                    if (!eavvMap.containsKey(entry.getValue())) {
+//                        UnifiedSet<AActivity> actSet = new UnifiedSet<>();
+//                        actSet.add(activity);
+//                        eavvMap.put(entry.getValue(), actSet);
+//                    } else {
+//                        eavvMap.get(entry.getValue()).put(activity);
+//                    }
+//                }
+//            }
+//        }
+//
+//        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
+//
+//        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<AActivity>>> entry : eavaMap.entrySet()) {
+//
+//            eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
+//
+//            UnifiedMap<String, UnifiedSet<AActivity>> vals = entry.getValue();
+//            for (Map.Entry<String, UnifiedSet<AActivity>> valEntry : vals.entrySet()) {
+//                EventAttributeValue eav =
+//                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), validTraces.size());
+//
+//                eavMap.get(entry.getKey()).put(eav);
+//            }
+//        }
+//
+//        return eavMap;
+    }
+
+    public static UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getCaseAttributeValues(List<ATrace> traceList) {
+
+
+        UnifiedSet<String> allKeys = traceList.stream()
+                .flatMap(x -> x.getAttributeMap().keySet().stream())
+                .collect(Collectors.toCollection(UnifiedSet::new));
+
+        // (2) for each key, group traces with values
+        UnifiedMap<String, Map<String, List<ATrace>>> keyValCaseOccurMap = new UnifiedMap<>(allKeys.size());
+
+        for (String key : allKeys) {
+            Map<String, List<ATrace>> grouped = traceList.stream()
+                    .filter(x -> x.getAttributeMap().containsKey(key))
+                    .collect(Collectors.groupingBy(x -> x.getAttributeMap().get(key)));
+            keyValCaseOccurMap.put(key, grouped);
         }
 
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
+        // (3) create CaseAttributeValues
+        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>(allKeys.size());
 
-        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<AActivity>>> entry : eavaMap.entrySet()) {
+        for (Map.Entry<String, Map<String, List<ATrace>>> entry : keyValCaseOccurMap.entrySet()) {
+            String attrKey = entry.getKey();
+            Map<String, List<ATrace>> valOccurMap = entry.getValue();
 
-            eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
+            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>(valOccurMap.size());
 
-            UnifiedMap<String, UnifiedSet<AActivity>> vals = entry.getValue();
-            for (Map.Entry<String, UnifiedSet<AActivity>> valEntry : vals.entrySet()) {
-                EventAttributeValue eav =
-                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), validTraces.size());
+            int[] arr = valOccurMap.entrySet().stream().mapToInt(x -> x.getValue().size()).toArray();
+            IntArrayList ial = new IntArrayList(arr);
 
-                eavMap.get(entry.getKey()).put(eav);
+            int maxOccurSize = ial.max();
+
+            for (Map.Entry<String, List<ATrace>> voe: valOccurMap.entrySet()) {
+                int[] occurredIndexes = voe.getValue().stream()
+                        .mapToInt(ATrace::getImmutableIndex)
+                        .toArray();
+                IntArrayList indexes = new IntArrayList(occurredIndexes);
+
+                CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, traceList.size());
+                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
+                cavSet.add(cav);
             }
+            caseAttributeValues.put(attrKey, cavSet);
         }
 
-        return eavMap;
+        return caseAttributeValues;
     }
 
     public static UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getValidCaseAttributeValues(List<PTrace> pTraceList) {
@@ -184,13 +224,17 @@ public class StatsUtil {
 
 
         // (1) get all keys
-        UnifiedSet<String> allKeys = new UnifiedSet<>();
-        for (PTrace trace : pTraceList) {
-            allKeys.addAll(trace.getAttributeMap().keySet());
-        }
+//        UnifiedSet<String> allKeys = new UnifiedSet<>();
+//        for (PTrace trace : pTraceList) {
+//            allKeys.addAll(trace.getAttributeMap().keySet());
+//        }
+
+        UnifiedSet<String> allKeys = pTraceList.stream()
+                .flatMap(x -> x.getAttributeMap().keySet().stream())
+                .collect(Collectors.toCollection(UnifiedSet::new));
 
         // (2) for each key, group traces with values
-        UnifiedMap<String, Map<String, List<PTrace>>> keyValCaseOccurMap = new UnifiedMap<>();
+        UnifiedMap<String, Map<String, List<PTrace>>> keyValCaseOccurMap = new UnifiedMap<>(allKeys.size());
 
         for (String key : allKeys) {
             Map<String, List<PTrace>> grouped = pTraceList.stream()
@@ -200,13 +244,13 @@ public class StatsUtil {
         }
 
         // (3) create CaseAttributeValues
-        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>();
+        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttributeValues = new UnifiedMap<>(allKeys.size());
 
         for (Map.Entry<String, Map<String, List<PTrace>>> entry : keyValCaseOccurMap.entrySet()) {
             String attrKey = entry.getKey();
             Map<String, List<PTrace>> valOccurMap = entry.getValue();
 
-            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>();
+            UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>(valOccurMap.size());
 
             int[] arr = valOccurMap.entrySet().stream().mapToInt(x -> x.getValue().size()).toArray();
             IntArrayList ial = new IntArrayList(arr);
