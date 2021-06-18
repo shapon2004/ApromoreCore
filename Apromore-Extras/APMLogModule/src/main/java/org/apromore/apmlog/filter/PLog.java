@@ -128,7 +128,6 @@ public class PLog implements APMLog {
     private long eventSize = 0;
     private HashBiMap<IntArrayList, Integer> actNameIdxCId;
     private ActivityNameMapper activityNameMapper;
-    private DefaultChartDataCollection defaultChartDataCollection;
     private AAttributeGraph attributeGraph;
     private DoubleArrayList caseDurationList;
     //************
@@ -151,11 +150,6 @@ public class PLog implements APMLog {
         return ((ImmutableLog) apmLog).getImmutableTraces().stream()
                 .flatMap(x -> x.getActivityList().stream())
                 .collect(Collectors.toList());
-    }
-
-
-    public DefaultChartDataCollection getDefaultChartDataCollection() {
-        return defaultChartDataCollection;
     }
 
     public PLog(APMLog apmLog, boolean initIndexOnly) {
@@ -190,8 +184,6 @@ public class PLog implements APMLog {
         activityNameBiMap = apmLog.getActivityNameBiMap();
 
         originalAttributeGraph = apmLog.getAAttributeGraph();
-
-        this.defaultChartDataCollection = apmLog.getDefaultChartDataCollection();
 
         this.activityNameMapper = apmLog.getActivityNameMapper();
 

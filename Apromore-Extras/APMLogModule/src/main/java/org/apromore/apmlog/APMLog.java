@@ -48,7 +48,6 @@ import static java.util.Map.Entry.comparingByValue;
 public interface APMLog {
 
 
-    DefaultChartDataCollection getDefaultChartDataCollection();
     UnifiedMap<String, Integer> getActivityMaxOccurMap();
 
     ActivityNameMapper getActivityNameMapper();

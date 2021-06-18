@@ -148,11 +148,6 @@ public class ImmutableLog extends LaLog {
         this.eventSize = eventSize;
         this.activityNameMapper = activityNameMapper;
         this.activityMaxOccurMap = activityMaxOccurMap;
-        if (traceList.size() > 0) {
-            if (traceList.get(0).getDuration() > 0) {
-                defaultChartDataCollection = new DefaultChartDataCollection(this);
-            }
-        }
     }
 
     public ImmutableLog(PLog pLog) {
@@ -188,10 +183,6 @@ public class ImmutableLog extends LaLog {
         this.eventSize = pLog.getEventSize();
         this.activityNameMapper = pLog.getActivityNameMapper();
         this.activityMaxOccurMap = pLog.getActivityMaxOccurMap();
-
-        if (traceList.size() > 0 && traceList.get(0).getDuration() > 0) {
-            defaultChartDataCollection = new DefaultChartDataCollection(this);
-        }
 
         updateCaseVariants();
     }

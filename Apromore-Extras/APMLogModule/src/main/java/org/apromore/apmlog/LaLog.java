@@ -62,8 +62,6 @@ public class LaLog implements APMLog {
 
     protected ActivityNameMapper activityNameMapper;
 
-    protected DefaultChartDataCollection defaultChartDataCollection;
-
     protected AAttributeGraph attributeGraph;
 
     protected DoubleArrayList caseDurationList;
@@ -183,8 +181,6 @@ public class LaLog implements APMLog {
 
         eventAttributeValues = StatsUtil.getEventAttributeValues(traceList);
 
-        defaultChartDataCollection = new DefaultChartDataCollection(this);
-
         updateActivityOccurMaxMap();
 
         attributeGraph = new AAttributeGraph(this);
@@ -292,11 +288,6 @@ public class LaLog implements APMLog {
     @Override
     public void setActivityNameBiMap(HashBiMap<String, Integer> activityNameBiMap) {
         this.activityNameBiMap = activityNameBiMap;
-    }
-
-    @Override
-    public DefaultChartDataCollection getDefaultChartDataCollection() {
-        return defaultChartDataCollection;
     }
 
     @Override
