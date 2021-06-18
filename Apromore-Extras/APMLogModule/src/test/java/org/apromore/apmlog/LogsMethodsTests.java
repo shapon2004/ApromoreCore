@@ -57,13 +57,13 @@ public class LogsMethodsTests {
         }
 
         // Cloned version
-        ImmutableLog clone = (ImmutableLog) immutableLog.clone();
+//        ImmutableLog clone = (ImmutableLog) immutableLog.clone();
 
         // Test ActivityNameIndexes of the cloned version
-        for (int i = 0; i < immutableLog.size(); i++) {
-            IntArrayList actNameIndexes = clone.getActivityNameIndexes(immutableLog.get(i));
-            assertArrayEquals(expectedActIndexes[i], actNameIndexes.toArray());
-        }
+//        for (int i = 0; i < immutableLog.size(); i++) {
+//            IntArrayList actNameIndexes = clone.getActivityNameIndexes(immutableLog.get(i));
+//            assertArrayEquals(expectedActIndexes[i], actNameIndexes.toArray());
+//        }
 
         // PLog
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);

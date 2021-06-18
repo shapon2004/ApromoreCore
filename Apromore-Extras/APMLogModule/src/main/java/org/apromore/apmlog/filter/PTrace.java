@@ -264,7 +264,7 @@ public class PTrace implements Comparable<PTrace>, ATrace{
 
     @Override
     public void setImmutableEvents(List<AEvent> events) {
-
+        eventList = events;
     }
 
     public int getCaseVariantId() {

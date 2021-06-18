@@ -123,7 +123,7 @@ public interface APMLog {
 
     String getEndTimeString();
 
-    APMLog clone();
+//    APMLog clone();
 
     XLog toXLog();
 

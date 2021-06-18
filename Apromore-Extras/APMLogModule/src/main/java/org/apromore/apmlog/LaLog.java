@@ -23,7 +23,6 @@ package org.apromore.apmlog;
 
 
 import org.apromore.apmlog.filter.PTrace;
-import org.apromore.apmlog.immutable.ImmutableTrace;
 import org.apromore.apmlog.stats.AAttributeGraph;
 import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
@@ -204,7 +203,7 @@ public class LaLog implements APMLog {
         }
 
         Map<String, List<ATrace>> groups = getTraceList().stream()
-                .collect(Collectors.groupingBy(x -> ((ImmutableTrace)x).getActivityNameIndexString(activityNameBiMap)));
+                .collect(Collectors.groupingBy(x -> x.getActivityNameIndexString(activityNameBiMap)));
 
         List<Map.Entry<String, List<ATrace>>> sorted = groups.entrySet().stream()
                 .sorted( (f1, f2) -> Long.compare(f2.getValue().size(), f1.getValue().size()) )
@@ -520,10 +519,10 @@ public class LaLog implements APMLog {
         return new DoubleArrayList(array);
     }
 
-    @Override
-    public APMLog clone() {
-        return null;
-    }
+//    @Override
+//    public APMLog clone() {
+//        return null;
+//    }
 
 
     public UnifiedMap<String, UnifiedSet<EventAttributeValue>> getEventAttributeValues() {

@@ -348,11 +348,11 @@ public class APMLogUnitTest {
         LogsDurationsTest.testImmutableLogDurations(xLog);
     }
 
-    @Test
-    public void testClonedImmutableLogDurations() throws Exception {
-        XLog xLog = getXLog("files/durationTest.xes");
-        LogsDurationsTest.testClonedImmutableLogDurations(xLog);
-    }
+//    @Test
+//    public void testClonedImmutableLogDurations() throws Exception {
+//        XLog xLog = getXLog("files/durationTest.xes");
+//        LogsDurationsTest.testClonedImmutableLogDurations(xLog);
+//    }
 
     @Test
     public void testImmutableTraceTimestamp() throws Exception {

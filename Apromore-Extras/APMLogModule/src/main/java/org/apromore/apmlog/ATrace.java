@@ -41,6 +41,7 @@
 
 package org.apromore.apmlog;
 
+import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
@@ -158,8 +159,8 @@ public interface ATrace {
 
     void setStartTimeMilli(long startTimeMilli);
     void setEndTimeMilli(long endTimeMilli);
+    String getActivityNameIndexString(HashBiMap<String, Integer> nameIndexBiMap);
 
-
-    ATrace clone();
+//    ATrace clone();
 
 }

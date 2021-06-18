@@ -52,14 +52,14 @@ public class ImmutableTraceTest {
         assertArrayEquals(expectedStartTimes, startTimes);
         assertArrayEquals(expectedEndTimes, endTimes);
 
-        // Test cloned version
-        for (int i = 0; i < traceList.size(); i++) {
-            ImmutableTrace clone = (ImmutableTrace) traceList.get(i).clone();
-            startTimes[i] = clone.getStartTimeMilli();
-            endTimes[i] = clone.getEndTimeMilli();
-        }
+//        // Test cloned version
+//        for (int i = 0; i < traceList.size(); i++) {
+//            ImmutableTrace clone = (ImmutableTrace) traceList.get(i).clone();
+//            startTimes[i] = clone.getStartTimeMilli();
+//            endTimes[i] = clone.getEndTimeMilli();
+//        }
 
-        assertArrayEquals(expectedStartTimes, startTimes);
-        assertArrayEquals(expectedEndTimes, endTimes);
+//        assertArrayEquals(expectedStartTimes, startTimes);
+//        assertArrayEquals(expectedEndTimes, endTimes);
     }
 }
