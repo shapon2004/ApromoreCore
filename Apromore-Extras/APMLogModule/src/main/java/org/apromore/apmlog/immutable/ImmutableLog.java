@@ -33,10 +33,7 @@ import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LongSummaryStatistics;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -185,6 +182,8 @@ public class ImmutableLog extends LaLog {
         List<AActivity> acts = traces.stream()
                 .flatMap(x -> x.getActivityList().stream()).collect(Collectors.toList());
 
+        Set<String> tobeRemovedEA = new UnifiedSet<>();
+
         for (AActivity activity : acts) {
             UnifiedMap<String, String> attributes = activity.getAttributes();
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
@@ -196,16 +195,22 @@ public class ImmutableLog extends LaLog {
                     eavaMap.put(entry.getKey(), eavvMap);
                 } else {
                     UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
-                    if (!eavvMap.containsKey(entry.getValue())) {
-                        UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-                        actSet.add(activity);
-                        eavvMap.put(entry.getValue(), actSet);
+                    if (eavvMap.size() > 500) {
+                        tobeRemovedEA.add(entry.getKey());
                     } else {
-                        eavvMap.get(entry.getValue()).put(activity);
+                        if (!eavvMap.containsKey(entry.getValue())) {
+                            UnifiedSet<AActivity> actSet = new UnifiedSet<>();
+                            actSet.add(activity);
+                            eavvMap.put(entry.getValue(), actSet);
+                        } else {
+                            eavvMap.get(entry.getValue()).put(activity);
+                        }
                     }
                 }
             }
         }
+
+        eavaMap.keySet().removeAll(tobeRemovedEA);
 
         UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
 
@@ -427,5 +432,13 @@ public class ImmutableLog extends LaLog {
                 LogFactory.fillAttributeOccurMap(activity, eventAttributeOccurMap);
             }
         }
+
+        Set<String> tobeRemoved = eventAttributeOccurMap.entrySet().stream()
+                .filter(x -> x.getValue().size() > 1000)
+                .map(x -> x.getKey())
+                .collect(Collectors.toSet());
+
+        eventAttributeOccurMap.keySet().removeAll(tobeRemoved);
+
     }
 }
