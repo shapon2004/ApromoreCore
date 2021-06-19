@@ -167,6 +167,10 @@ public class StatsUtil {
 //        return eavMap;
     }
 
+    public static Set<Integer> getCaseIndexes(List<ATrace> traces) {
+        return traces.stream().map(x->x.getImmutableIndex()).collect(Collectors.toSet());
+    }
+
     public static UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getCaseAttributeValues(List<ATrace> traceList) {
 
 
@@ -205,7 +209,7 @@ public class StatsUtil {
                 IntArrayList indexes = new IntArrayList(occurredIndexes);
 
                 CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, traceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes(traceList)) / maxOccurSize));
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);
@@ -264,7 +268,7 @@ public class StatsUtil {
                 IntArrayList indexes = new IntArrayList(occurredIndexes);
 
                 CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, pTraceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes(pTraceList.stream().collect(Collectors.toList()))) / maxOccurSize));
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);
@@ -322,7 +326,7 @@ public class StatsUtil {
         BitSet validTraceBS = pLog.getValidTraceIndexBS();
         List<PTrace> traces = pLog.getOriginalPTraceList();
 
-        return v.getOccurActivities().stream()
+        return v.getOccurActivities(new UnifiedSet<>(pLog.getActivities())).stream()
                 .filter(x -> validTraceBS.get(x.getImmutableTraceIndex()) &&
                         x.getImmutableIndex() < traces.get(
                                 x.getImmutableTraceIndex()).getOriginalActivityList().size() &&

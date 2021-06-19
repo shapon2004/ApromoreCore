@@ -82,9 +82,31 @@ public class EventAttributeValue implements AttributeValue {
             sum += act.getEventSize();
         }
         this.total = sum;
+
+        occurCasesIndexSet = occurActivities.stream()
+                .map(AActivity::getImmutableTraceIndex)
+                .collect(Collectors.toSet());
     }
 
-    public Set<Integer> getOccurCasesIndexSet() {
+    public EventAttributeValue(String value, UnifiedSet<Integer> occurCaseIndexes, long totalCases,
+                               UnifiedSet<AActivity> occurActivities) {
+        this.value = value.intern();
+        this.occurCasesIndexSet = occurCaseIndexes;
+        this.percent = 100 * ((double) occurCaseIndexes.size() / totalCases);
+        this.frequency = String.format("%.2f", percent );
+        this.totalCases = totalCases;
+        this.oppCases = totalCases - occurCaseIndexes.size();
+        this.occurActivities = occurActivities;
+
+        long sum = 0;
+        for (AActivity act : occurActivities) {
+            sum += act.getEventSize();
+        }
+        this.total = sum;
+    }
+
+    @Override
+    public Set<Integer> getOccurCasesIndexSet(Set<Integer> validCaseIndexes) {
         if (occurCasesIndexSet == null) {
             occurCasesIndexSet = occurActivities.stream()
                     .map(AActivity::getImmutableTraceIndex)
@@ -106,15 +128,16 @@ public class EventAttributeValue implements AttributeValue {
         return value;
     }
 
-    public long getCases() {
-        return getOccurCasesIndexSet().size();
+    public long getCases(Set<Integer> validCaseIndexes) {
+        return getOccurCasesIndexSet(validCaseIndexes).size();
     }
 
-    public String getFrequency() {
-        return frequency;
+    @Override
+    public String getFrequency(Set<Integer> validCaseIndexes) {
+        return String.format("%.2f", getPercent(validCaseIndexes) );
     }
 
-    public long getTotal() {
+    public long getTotal(Set<Integer> validCaseIndexes) {
         return total;
 
     }
@@ -131,38 +154,35 @@ public class EventAttributeValue implements AttributeValue {
         return oppCases;
     }
 
-    public IntArrayList getOccurCaseIndexes() {
-        if (occurCaseIndexes == null) {
-            int[] array = occurCasesIndexSet.stream().mapToInt(x -> x).toArray();
-            occurCaseIndexes =new IntArrayList(array);
-        }
-        return occurCaseIndexes;
+    public IntArrayList getOccurCaseIndexes(Set<Integer> validCaseIndexes) {
+        return new IntArrayList(getOccurCasesIndexSet(validCaseIndexes).stream().mapToInt(x->x).toArray());
     }
 
-    public double getPercent() {
-        return percent;
+    @Override
+    public double getPercent(Set<Integer> validCaseIndexes) {
+        return 100 * ((double) getOccurCasesIndexSet(validCaseIndexes).size() / totalCases);
     }
 
-    public UnifiedSet<AActivity> getOccurActivities() {
-        return occurActivities;
+    public UnifiedSet<AActivity> getOccurActivities(Set<AActivity> validActivities) {
+        return occurActivities.stream().filter(x->validActivities.contains(x)).collect(Collectors.toCollection(UnifiedSet::new));
     }
 
-    public int getActivitySize() {
-        return occurActivities.size();
+    public int getActivitySize(Set<AActivity> validActivities) {
+        return getOccurActivities(validActivities).size();
     }
 
-    public double getTotalDuration() {
-        double[] array = occurActivities.stream().mapToDouble(s -> s.getDuration()).toArray();
+    public double getTotalDuration(Set<AActivity> validActivities) {
+        double[] array = getOccurActivities(validActivities).stream().mapToDouble(s -> s.getDuration()).toArray();
         DoubleArrayList dal = new DoubleArrayList(array);
         return dal.sum();
     }
 
-    public Set<Double> getUniqueDurations() {
-        return occurActivities.stream().map(s -> s.getDuration()).collect(Collectors.toSet());
+    public Set<Double> getUniqueDurations(Set<AActivity> validActivities) {
+        return getOccurActivities(validActivities).stream().map(s -> s.getDuration()).collect(Collectors.toSet());
     }
 
-    public DoubleArrayList getAllDurations() {
-        double[] array = occurActivities.stream().mapToDouble(s -> s.getDuration()).toArray();
+    public DoubleArrayList getAllDurations(Set<AActivity> validActivities) {
+        double[] array = getOccurActivities(validActivities).stream().mapToDouble(s -> s.getDuration()).toArray();
         return new DoubleArrayList(array);
     }
 
@@ -172,16 +192,16 @@ public class EventAttributeValue implements AttributeValue {
         else return Double.valueOf(value);
     }
 
-    public EventAttributeValue clone() {
-        IntArrayList occurCaseIndexesClone = new IntArrayList(this.getOccurCaseIndexes().size());
-        for (int i = 0; i < this.getOccurCaseIndexes().size(); i++) {
-            occurCaseIndexesClone.add(this.getOccurCaseIndexes().get(i));
-        }
-
-        EventAttributeValue eavClone = new EventAttributeValue(
-                this.getValue(), occurCaseIndexesClone, this.getCases(),
-                new UnifiedSet<>(this.getOccurActivities()) );
-
-        return eavClone;
-    }
+//    public EventAttributeValue clone() {
+//        IntArrayList occurCaseIndexesClone = new IntArrayList(this.getOccurCaseIndexes().size());
+//        for (int i = 0; i < this.getOccurCaseIndexes().size(); i++) {
+//            occurCaseIndexesClone.add(this.getOccurCaseIndexes().get(i));
+//        }
+//
+//        EventAttributeValue eavClone = new EventAttributeValue(
+//                this.getValue(), occurCaseIndexesClone, this.getCases(),
+//                new UnifiedSet<>(this.getOccurActivities()) );
+//
+//        return eavClone;
+//    }
 }

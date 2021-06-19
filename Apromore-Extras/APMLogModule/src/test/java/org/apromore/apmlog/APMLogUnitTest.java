@@ -440,7 +440,7 @@ public class APMLogUnitTest {
 
         UnifiedSet<EventAttributeValue> eavSet = apmLog.getEventAttributeValues().get("concept:name");
         for (EventAttributeValue eav : eavSet) {
-            assertTrue(eav.getFrequency().equals(expected.get(eav.getValue())));
+            assertTrue(eav.getFrequency(apmLog.getCaseIndexes()).equals(expected.get(eav.getValue())));
         }
     }
 

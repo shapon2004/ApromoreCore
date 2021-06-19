@@ -132,6 +132,8 @@ public class PLog implements APMLog {
     private DoubleArrayList caseDurationList;
     //************
 
+    private final List<AActivity> activities = new ArrayList<>();
+
     public APMLog getApmLog() {
         return apmLog;
     }
@@ -150,6 +152,14 @@ public class PLog implements APMLog {
         return ((ImmutableLog) apmLog).getImmutableTraces().stream()
                 .flatMap(x -> x.getActivityList().stream())
                 .collect(Collectors.toList());
+    }
+
+    public List<AActivity> getActivities() {
+        if (activities.isEmpty()) {
+            activities.addAll(pTraceList.stream().flatMap(x->x.getActivityList().stream()).collect(Collectors.toList()));
+        }
+
+        return activities;
     }
 
     public PLog(APMLog apmLog, boolean initIndexOnly) {
@@ -171,6 +181,9 @@ public class PLog implements APMLog {
                 index += 1;
             }
         }
+
+        activities.clear();
+        activities.addAll(pTraceList.stream().flatMap(x->x.getActivityList().stream()).collect(Collectors.toList()));
     }
 
     public PLog(APMLog apmLog) {
@@ -420,6 +433,8 @@ public class PLog implements APMLog {
     public void setPTraceList(List<PTrace> pTraceList) {
         this.pTraceList.clear();
         this.pTraceList.addAll(pTraceList);
+
+
     }
 
     public void setVariantIdFreqMap(UnifiedMap<Integer, Integer> variantIdFreqMap) {
@@ -434,6 +449,11 @@ public class PLog implements APMLog {
 
     public void setActivityMaxOccurMap(UnifiedMap<String, Integer> activityMaxOccurMap) {
         this.activityMaxOccurMap = activityMaxOccurMap;
+    }
+
+    @Override
+    public Set<Integer> getCaseIndexes() {
+        return StatsUtil.getCaseIndexes(pTraceList.stream().collect(Collectors.toList()));
     }
 
     public UnifiedMap<String, Integer> getActivityMaxOccurMap() {

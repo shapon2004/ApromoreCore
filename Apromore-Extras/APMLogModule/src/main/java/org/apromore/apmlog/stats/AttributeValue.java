@@ -28,21 +28,21 @@ import java.util.Set;
 public interface AttributeValue {
     String getValue();
 
-    long getCases();
+    long getCases(Set<Integer> validCaseIndexes);
 
-    String getFrequency();
+    String getFrequency(Set<Integer> validCaseIndexes);
 
-    long getTotal();
+    long getTotal(Set<Integer> validCaseIndexes);
 
     double getRatio();
 
     double getOppCases();
 
-    IntArrayList getOccurCaseIndexes();
+    IntArrayList getOccurCaseIndexes(Set<Integer> validCaseIndexes);
 
-    Set<Integer> getOccurCasesIndexSet();
+    Set<Integer> getOccurCasesIndexSet(Set<Integer> validCaseIndexes);
 
-    double getPercent();
+    double getPercent(Set<Integer> validCaseIndexes);
 
     double getValueInDouble();
 }

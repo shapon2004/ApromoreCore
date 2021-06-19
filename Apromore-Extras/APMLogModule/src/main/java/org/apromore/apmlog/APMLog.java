@@ -46,7 +46,8 @@ import static java.util.Map.Entry.comparingByValue;
  * Modified: Chii Chang (05/05/2021)
  */
 public interface APMLog {
-
+    Set<Integer> getCaseIndexes();
+    List<AActivity> getActivities();
 
     UnifiedMap<String, Integer> getActivityMaxOccurMap();
 

@@ -35,10 +35,7 @@ import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Map.Entry.comparingByValue;
@@ -72,7 +69,12 @@ public class LaLog implements APMLog {
     protected final UnifiedMap<IntArrayList, Integer> actNameIndexesFreqMap = new UnifiedMap<>();
     protected final List<IntArrayList> traceActNameIndexes = new ArrayList<>();
 
+    protected final List<AActivity> activities = new ArrayList<>();
+
     public void updateStats() {
+
+        activities.clear();
+        activities.addAll(traceList.stream().flatMap(x->x.getActivityList().stream()).collect(Collectors.toList()));
 
         actNameIdxCId = new HashBiMap<>();
 
@@ -140,6 +142,7 @@ public class LaLog implements APMLog {
 
         caseAttributeValues = new UnifiedMap<>();
 
+
         for (String attrKey : caseAttrValOccurMap.keySet()) {
             UnifiedMap<String, IntArrayList> valOccurMap = caseAttrValOccurMap.get(attrKey);
             UnifiedSet<CaseAttributeValue> cavSet = new UnifiedSet<>();
@@ -152,7 +155,7 @@ public class LaLog implements APMLog {
 
             for (String val : valOccurMap.keySet()) {
                 CaseAttributeValue cav = new CaseAttributeValue(val, valOccurMap.get(val), traceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes()) / maxOccurSize));
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);
@@ -184,6 +187,10 @@ public class LaLog implements APMLog {
         updateActivityOccurMaxMap();
 
         attributeGraph = new AAttributeGraph(this);
+    }
+
+    public Set<Integer> getCaseIndexes() {
+        return StatsUtil.getCaseIndexes(traceList);
     }
 
     protected void updateCaseVariants() {
@@ -476,7 +483,10 @@ public class LaLog implements APMLog {
         return Util.timestampStringOf(Util.millisecondToZonedDateTime(this.endTime));
     }
 
-
+    @Override
+    public List<AActivity> getActivities() {
+        return activities;
+    }
 
     @Override
     public XLog toXLog() {
