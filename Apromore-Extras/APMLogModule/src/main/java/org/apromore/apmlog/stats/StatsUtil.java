@@ -63,6 +63,7 @@ public class StatsUtil {
     private static UnifiedMap<String, UnifiedSet<EventAttributeValue>>
     getEventAttributeValuesByActivities(List<AActivity> activities, int traceSize) {
         UnifiedSet<String> keys = activities.stream()
+                .parallel()
                 .flatMap(x -> x.getAttributes().keySet().stream())
                 .collect(Collectors.toCollection(UnifiedSet::new));
 
@@ -100,6 +101,7 @@ public class StatsUtil {
             List<ATrace> aTraces) {
 
         List<AActivity> allActs = aTraces.stream()
+                .parallel()
                 .flatMap(x -> x.getActivityList().stream())
                 .collect(Collectors.toList());
 
@@ -117,6 +119,7 @@ public class StatsUtil {
             BitSet validEvents = pTrace.getValidEventIndexBitSet();
             if (validEvents != null) {
                 List<AActivity> activityList = pTrace.getActivityList().stream()
+                        .parallel()
                         .filter(x -> validEvents.get(x.getImmutableEventList().get(0).getIndex()))
                         .collect(Collectors.toList());
                 validActivities.addAll(activityList);
@@ -124,47 +127,6 @@ public class StatsUtil {
         }
 
         return getEventAttributeValuesByActivities(validActivities, validTraces.size());
-
-//        UnifiedMap<String, UnifiedMap<String, UnifiedSet<AActivity>>> eavaMap = new UnifiedMap<>();
-
-//        for (AActivity activity : validActivities) {
-//            UnifiedMap<String, String> attributes = activity.getAttributes();
-//            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-//                if (!eavaMap.containsKey(entry.getKey())) {
-//                    UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-//                    actSet.add(activity);
-//                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = new UnifiedMap<>();
-//                    eavvMap.put(entry.getValue(), actSet);
-//                    eavaMap.put(entry.getKey(), eavvMap);
-//                } else {
-//                    UnifiedMap<String, UnifiedSet<AActivity>> eavvMap = eavaMap.get(entry.getKey());
-//                    if (!eavvMap.containsKey(entry.getValue())) {
-//                        UnifiedSet<AActivity> actSet = new UnifiedSet<>();
-//                        actSet.add(activity);
-//                        eavvMap.put(entry.getValue(), actSet);
-//                    } else {
-//                        eavvMap.get(entry.getValue()).put(activity);
-//                    }
-//                }
-//            }
-//        }
-//
-//        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = new UnifiedMap<>();
-//
-//        for (Map.Entry<String, UnifiedMap<String, UnifiedSet<AActivity>>> entry : eavaMap.entrySet()) {
-//
-//            eavMap.put(entry.getKey(), new UnifiedSet<>(entry.getValue().size()));
-//
-//            UnifiedMap<String, UnifiedSet<AActivity>> vals = entry.getValue();
-//            for (Map.Entry<String, UnifiedSet<AActivity>> valEntry : vals.entrySet()) {
-//                EventAttributeValue eav =
-//                        new EventAttributeValue(valEntry.getKey(), valEntry.getValue(), validTraces.size());
-//
-//                eavMap.get(entry.getKey()).put(eav);
-//            }
-//        }
-//
-//        return eavMap;
     }
 
     public static Set<Integer> getCaseIndexes(List<ATrace> traces) {
@@ -175,6 +137,7 @@ public class StatsUtil {
 
 
         UnifiedSet<String> allKeys = traceList.stream()
+                .parallel()
                 .flatMap(x -> x.getAttributeMap().keySet().stream())
                 .collect(Collectors.toCollection(UnifiedSet::new));
 

@@ -787,27 +787,22 @@ public class PLog implements APMLog {
     public List<PTrace> getCustomPTraceList() {
         BitSet currentBS = this.validTraceIndexBS;
 
-        List<PTrace> theCusPTraceList = new ArrayList<>();
+        Map<String, List<PTrace>> idPTraces = pTraceList.stream()
+                .parallel()
+                .collect(Collectors.groupingBy(PTrace::getCaseId));
 
-        List<ATrace> immutableTraces = apmLog.getTraceList();
+        List<PTrace> theCusPTraceList = originalPTraceList;
 
-        int mutableIndex = 0;
-
-        for (ATrace aTrace : immutableTraces) {
-            PTrace pt = null;
-            if (!currentBS.get(aTrace.getImmutableIndex())) {
-                pt = new PTrace(mutableIndex, aTrace, this);
-                pt.setValidEventIndexBS(new BitSet(aTrace.getEventSize()));
+        for (PTrace pTrace : theCusPTraceList) {
+            if (currentBS.get(pTrace.getImmutableIndex())) {
+                pTrace.setValidEventIndexBS(idPTraces.get(pTrace.getCaseId()).get(0).getValidEventIndexBitSet());
             } else {
-                pt = getPTraceByImmutableIndex(aTrace.getImmutableIndex());
-            }
-
-            if (pt != null) {
-                theCusPTraceList.add(pt);
-                mutableIndex += 1;
+                pTrace.setValidEventIndexBS(new BitSet(pTrace.getOriginalEventList().size()));
             }
         }
+
         return theCusPTraceList;
+
     }
 
     /**
