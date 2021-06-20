@@ -303,28 +303,16 @@ public class StatsUtil {
     private static AActivity getFollowupActivity(AActivity sourceActivity, PTrace pTrace, String reqKey) {
 
         if (sourceActivity.getImmutableIndex() + 1 >= pTrace.getOriginalActivityList().size()) return null;
-        for (AActivity activity : pTrace.getOriginalActivityList()) {
-            if (pTrace.getValidEventIndexBitSet().get(activity.getEventIndexes().get(0)) &&
-                    activity.getImmutableIndex() > sourceActivity.getImmutableIndex()) {
-                if (activity.getAllAttributes().containsKey(reqKey)) return activity;
-            }
-        }
 
-        return null;
+        return pTrace.getActivityList().stream()
+                .filter(x -> x.getAllAttributes().containsKey(reqKey))
+                .filter(x -> x.getImmutableIndex() > sourceActivity.getImmutableIndex())
+                .findFirst()
+                .orElse(null);
     }
 
     public static AActivity getValidPreviousActivity(AActivity activity, PTrace trace) {
-        BitSet validEventBS = trace.getValidEventIndexBitSet();
-        if (activity.getImmutableIndex() < 1) return null;
-
-        List<AActivity> originalActs = trace.getOriginalActivityList();
-        for (int i = activity.getImmutableIndex() - 1; i >= 0; i--) {
-            AActivity pAct = originalActs.get(i);
-            if (validEventBS.get(pAct.getEventIndexes().get(0))) {
-                return pAct;
-            }
-        }
-        return null;
+        return trace.getPreviousActivityOf(activity);
     }
 
     public static double getArcDurationOf(AActivity indegree, AActivity outdegree) {
