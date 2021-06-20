@@ -90,7 +90,8 @@ public class ImmutableLog extends LaLog {
         this.activityNameMapper = pLog.getActivityNameMapper();
         this.activityMaxOccurMap = pLog.getActivityMaxOccurMap();
 
-        updateCaseVariants();
+        activities.clear();
+        activities.addAll(traceList.stream().flatMap(x->x.getActivityList().stream()).collect(Collectors.toList()));
     }
 
     //    @Override

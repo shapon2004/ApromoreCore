@@ -102,7 +102,7 @@ public class APMLogParsingTest {
 
         for (int i = 0; i < conceptNames.size(); i++) {
             EventAttributeValue eav = getEventAttributeValueByConceptName(conceptNames.get(i), apmLog);
-            assertTrue(eav.getCases(apmLog.getCaseIndexes()) == sizes.get(i));
+            assertTrue(eav.getCases() == sizes.get(i));
         }
     }
 

@@ -155,7 +155,7 @@ public class LaLog implements APMLog {
 
             for (String val : valOccurMap.keySet()) {
                 CaseAttributeValue cav = new CaseAttributeValue(val, valOccurMap.get(val), traceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes()) / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);

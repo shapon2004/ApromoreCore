@@ -71,12 +71,8 @@ public class CaseAttributeValue implements AttributeValue {
         this.oppCases = totalCases - occurCaseIndexSet.size();
     }
 
-    public Set<Integer> getOccurCasesIndexSet(Set<Integer> validCaseIndexes) {
-//        List<Integer> list = Arrays.stream(occurCaseIndexes.toArray()).boxed().collect(Collectors.toList());
-//        return new HashSet<>(list);
-
-        return occurCaseIndexSet.stream()
-                .filter(x->validCaseIndexes.contains(x)).collect(Collectors.toCollection(UnifiedSet::new));
+    public Set<Integer> getOccurCasesIndexSet() {
+        return occurCaseIndexSet;
     }
 
     public void setRatio(double ratio) {
@@ -87,17 +83,17 @@ public class CaseAttributeValue implements AttributeValue {
         return value;
     }
 
-    public long getCases(Set<Integer> validCaseIndexes) {
-        return getOccurCasesIndexSet(validCaseIndexes).size();
+    public long getCases() {
+        return getOccurCasesIndexSet().size();
     }
 
-    public String getFrequency(Set<Integer> validCaseIndexes) {
-        return String.format("%.2f",  getPercent(validCaseIndexes) );
+    public String getFrequency() {
+        return String.format("%.2f",  getPercent() );
     }
 
     @Override
-    public long getTotal(Set<Integer> validCaseIndexes) {
-        return getCases(validCaseIndexes);
+    public long getTotal() {
+        return getCases();
     }
 
     public double getRatio() {
@@ -108,8 +104,8 @@ public class CaseAttributeValue implements AttributeValue {
         return oppCases;
     }
 
-    public double getPercent(Set<Integer> validCaseIndexes) {
-        return 100 * ((double) getOccurCasesIndexSet(validCaseIndexes).size() / totalCases);
+    public double getPercent() {
+        return 100 * ((double) getOccurCasesIndexSet().size() / totalCases);
     }
 
     @Override
@@ -119,8 +115,8 @@ public class CaseAttributeValue implements AttributeValue {
     }
 
     @Override
-    public IntArrayList getOccurCaseIndexes(Set<Integer> validCaseIndexes) {
-        return new IntArrayList(getOccurCasesIndexSet(validCaseIndexes).stream().mapToInt(x->x).toArray());
+    public IntArrayList getOccurCaseIndexes() {
+        return new IntArrayList(getOccurCasesIndexSet().stream().mapToInt(x->x).toArray());
     }
 
     public CaseAttributeValue clone() {

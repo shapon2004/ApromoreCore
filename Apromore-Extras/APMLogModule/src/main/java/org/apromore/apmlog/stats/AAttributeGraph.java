@@ -60,7 +60,7 @@ public class AAttributeGraph {
 
         if (sourceEav == null) return false;
 
-        Set<Object> set = sourceEav.getOccurActivities(new UnifiedSet<>(apmLog.getActivities())).stream()
+        Set<Object> set = sourceEav.getOccurActivities().stream()
                 .filter(x->getNextActivityOf(x) != null)
                 .filter(x->getNextActivityOf(x).getAllAttributes().containsKey(attribute))
                 .filter(x->getNextActivityOf(x).getAllAttributes().get(attribute).equals(outDegree))
@@ -85,7 +85,7 @@ public class AAttributeGraph {
         DurSubGraph durSubGraph = new DurSubGraph();
 
         for (EventAttributeValue eav : eavMap.get(key)) {
-            UnifiedSet<AActivity> activities = eav.getOccurActivities(new UnifiedSet<>(apmLog.getActivities()));
+            UnifiedSet<AActivity> activities = eav.getOccurActivities();
             for (AActivity activity : activities) {
                 double actDur = activity.getDuration();
                 int traceIndex = activity.getMutableTraceIndex();

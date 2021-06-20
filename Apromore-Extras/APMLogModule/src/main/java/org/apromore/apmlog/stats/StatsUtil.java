@@ -209,7 +209,7 @@ public class StatsUtil {
                 IntArrayList indexes = new IntArrayList(occurredIndexes);
 
                 CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, traceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes(traceList)) / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases() / maxOccurSize));
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);
@@ -268,7 +268,7 @@ public class StatsUtil {
                 IntArrayList indexes = new IntArrayList(occurredIndexes);
 
                 CaseAttributeValue cav = new CaseAttributeValue(voe.getKey(), indexes, pTraceList.size());
-                cav.setRatio(100 * ( (double) cav.getCases(getCaseIndexes(pTraceList.stream().collect(Collectors.toList()))) / maxOccurSize));
+                cav.setRatio(100 * ( (double) cav.getCases()) / maxOccurSize);
                 cavSet.add(cav);
             }
             caseAttributeValues.put(attrKey, cavSet);
@@ -326,7 +326,7 @@ public class StatsUtil {
         BitSet validTraceBS = pLog.getValidTraceIndexBS();
         List<PTrace> traces = pLog.getOriginalPTraceList();
 
-        return v.getOccurActivities(new UnifiedSet<>(pLog.getActivities())).stream()
+        return v.getOccurActivities().stream()
                 .filter(x -> validTraceBS.get(x.getImmutableTraceIndex()) &&
                         x.getImmutableIndex() < traces.get(
                                 x.getImmutableTraceIndex()).getOriginalActivityList().size() &&

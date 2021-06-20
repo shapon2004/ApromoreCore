@@ -106,7 +106,7 @@ public class EventAttributeValue implements AttributeValue {
     }
 
     @Override
-    public Set<Integer> getOccurCasesIndexSet(Set<Integer> validCaseIndexes) {
+    public Set<Integer> getOccurCasesIndexSet() {
         if (occurCasesIndexSet == null) {
             occurCasesIndexSet = occurActivities.stream()
                     .map(AActivity::getImmutableTraceIndex)
@@ -128,16 +128,16 @@ public class EventAttributeValue implements AttributeValue {
         return value;
     }
 
-    public long getCases(Set<Integer> validCaseIndexes) {
-        return getOccurCasesIndexSet(validCaseIndexes).size();
+    public long getCases() {
+        return getOccurCasesIndexSet().size();
     }
 
     @Override
-    public String getFrequency(Set<Integer> validCaseIndexes) {
-        return String.format("%.2f", getPercent(validCaseIndexes) );
+    public String getFrequency() {
+        return String.format("%.2f", getPercent() );
     }
 
-    public long getTotal(Set<Integer> validCaseIndexes) {
+    public long getTotal() {
         return total;
 
     }
@@ -154,35 +154,35 @@ public class EventAttributeValue implements AttributeValue {
         return oppCases;
     }
 
-    public IntArrayList getOccurCaseIndexes(Set<Integer> validCaseIndexes) {
-        return new IntArrayList(getOccurCasesIndexSet(validCaseIndexes).stream().mapToInt(x->x).toArray());
+    public IntArrayList getOccurCaseIndexes() {
+        return new IntArrayList(getOccurCasesIndexSet().stream().mapToInt(x->x).toArray());
     }
 
     @Override
-    public double getPercent(Set<Integer> validCaseIndexes) {
-        return 100 * ((double) getOccurCasesIndexSet(validCaseIndexes).size() / totalCases);
+    public double getPercent() {
+        return 100 * ((double) getOccurCasesIndexSet().size() / totalCases);
     }
 
-    public UnifiedSet<AActivity> getOccurActivities(Set<AActivity> validActivities) {
-        return occurActivities.stream().filter(x->validActivities.contains(x)).collect(Collectors.toCollection(UnifiedSet::new));
+    public UnifiedSet<AActivity> getOccurActivities() {
+        return occurActivities;
     }
 
-    public int getActivitySize(Set<AActivity> validActivities) {
-        return getOccurActivities(validActivities).size();
+    public int getActivitySize() {
+        return getOccurActivities().size();
     }
 
-    public double getTotalDuration(Set<AActivity> validActivities) {
-        double[] array = getOccurActivities(validActivities).stream().mapToDouble(s -> s.getDuration()).toArray();
+    public double getTotalDuration() {
+        double[] array = getOccurActivities().stream().mapToDouble(s -> s.getDuration()).toArray();
         DoubleArrayList dal = new DoubleArrayList(array);
         return dal.sum();
     }
 
-    public Set<Double> getUniqueDurations(Set<AActivity> validActivities) {
-        return getOccurActivities(validActivities).stream().map(s -> s.getDuration()).collect(Collectors.toSet());
+    public Set<Double> getUniqueDurations() {
+        return getOccurActivities().stream().map(s -> s.getDuration()).collect(Collectors.toSet());
     }
 
-    public DoubleArrayList getAllDurations(Set<AActivity> validActivities) {
-        double[] array = getOccurActivities(validActivities).stream().mapToDouble(s -> s.getDuration()).toArray();
+    public DoubleArrayList getAllDurations() {
+        double[] array = getOccurActivities().stream().mapToDouble(s -> s.getDuration()).toArray();
         return new DoubleArrayList(array);
     }
 
