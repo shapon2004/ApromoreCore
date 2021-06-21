@@ -191,10 +191,6 @@ public class StatsUtil {
 
 
         // (1) get all keys
-//        UnifiedSet<String> allKeys = new UnifiedSet<>();
-//        for (PTrace trace : pTraceList) {
-//            allKeys.addAll(trace.getAttributeMap().keySet());
-//        }
 
         UnifiedSet<String> allKeys = pTraceList.stream()
                 .flatMap(x -> x.getAttributeMap().keySet().stream())

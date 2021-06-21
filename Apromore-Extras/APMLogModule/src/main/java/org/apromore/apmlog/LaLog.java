@@ -520,12 +520,6 @@ public class LaLog implements APMLog {
         return new DoubleArrayList(array);
     }
 
-//    @Override
-//    public APMLog clone() {
-//        return null;
-//    }
-
-
     public UnifiedMap<String, UnifiedSet<EventAttributeValue>> getEventAttributeValues() {
         return eventAttributeValues;
     }

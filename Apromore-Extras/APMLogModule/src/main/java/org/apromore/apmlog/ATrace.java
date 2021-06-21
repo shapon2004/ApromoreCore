@@ -70,6 +70,7 @@ import java.util.List;
  * Modified: Chii Chang (22/01/2021)
  * Modified: Chii Chang (26/01/2021)
  * Modified: Chii Chang (17/03/2021)
+ * Modified: Chii Chang (21/06/2021)
  */
 public interface ATrace {
 
@@ -160,7 +161,4 @@ public interface ATrace {
     void setStartTimeMilli(long startTimeMilli);
     void setEndTimeMilli(long endTimeMilli);
     String getActivityNameIndexString(HashBiMap<String, Integer> nameIndexBiMap);
-
-//    ATrace clone();
-
 }

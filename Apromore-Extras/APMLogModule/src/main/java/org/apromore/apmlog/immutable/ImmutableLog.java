@@ -24,19 +24,15 @@ package org.apromore.apmlog.immutable;
 
 import org.apromore.apmlog.*;
 import org.apromore.apmlog.filter.PLog;
-import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
-import org.apromore.apmlog.stats.StatsUtil;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
-import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class ImmutableLog extends LaLog {
 
@@ -94,70 +90,6 @@ public class ImmutableLog extends LaLog {
         activities.addAll(traceList.stream().flatMap(x->x.getActivityList().stream()).collect(Collectors.toList()));
     }
 
-    //    @Override
-//    public APMLog clone() {
-//
-//        List<ATrace> traceListForClone = new ArrayList<>();
-//
-//        for (ATrace aTrace : this.traceList) {
-//            ATrace clone = aTrace.clone();
-//            traceListForClone.add(clone);
-//        }
-//
-//        UnifiedMap<Integer, Integer> variIdFreqMapForClone = new UnifiedMap<>();
-//
-//        for (int key : this.variantIdFreqMap.keySet()) {
-//            variIdFreqMapForClone.put(key, this.variantIdFreqMap.get(key));
-//        }
-//
-//        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eventAttrValsClone = new UnifiedMap<>();
-//
-//        for (String key : eventAttributeValues.keySet()) {
-//            UnifiedSet<EventAttributeValue> valSet = eventAttributeValues.get(key);
-//            UnifiedSet<EventAttributeValue> valSetClone = new UnifiedSet<>(valSet.size());
-//            for (EventAttributeValue eav : valSet) {
-//                valSetClone.add(eav.clone());
-//            }
-//            eventAttrValsClone.put(key, valSetClone);
-//        }
-//
-//        UnifiedMap<String, UnifiedSet<CaseAttributeValue>> caseAttrValsClone = new UnifiedMap<>();
-//
-//        for (String key : caseAttributeValues.keySet()) {
-//            UnifiedSet<CaseAttributeValue> valSet = caseAttributeValues.get(key);
-//            UnifiedSet<CaseAttributeValue> valSetClone = new UnifiedSet<>(valSet.size());
-//            for (CaseAttributeValue cav : valSet) {
-//                valSetClone.add(cav.clone());
-//            }
-//            caseAttrValsClone.put(key, valSetClone);
-//        }
-//
-//        UnifiedMap<String, Integer> activityMaxOccurMapForClone = new UnifiedMap<>();
-//
-//        for (String key : this.activityMaxOccurMap.keySet()) {
-//            activityMaxOccurMapForClone.put(key, this.activityMaxOccurMap.get(key));
-//        }
-//
-//        DoubleArrayList caseDurationListClone = new DoubleArrayList(caseDurationList.toArray());
-//
-//
-//        ImmutableLog logClone = new ImmutableLog(traceListForClone,
-//                variIdFreqMapForClone,
-//                eventAttrValsClone,
-//                caseAttrValsClone,
-//                caseDurationListClone,
-//                this.timeZone,
-//                this.startTime,
-//                this.endTime,
-//                this.eventSize,
-//                this.activityNameMapper,
-//                activityMaxOccurMapForClone);
-//        logClone.setEventAttributeOccurMap(new UnifiedMap<>(this.eventAttributeOccurMap));
-//        logClone.setActivityNameBiMap(new HashBiMap<>(this.activityNameBiMap));
-//
-//        return logClone;
-//    }
-
     public ImmutableLog(List<ATrace> traceList,
                         UnifiedMap<Integer, Integer> variantIdFreqMap,
                         UnifiedMap<String, UnifiedSet<EventAttributeValue>> eventAttributeValues,
@@ -184,9 +116,6 @@ public class ImmutableLog extends LaLog {
     }
 
     public ImmutableLog(PLog pLog) {
-//        List<ATrace> traces = pLog.getPTraceList().stream()
-//                .map(PTrace::toATrace)
-//                .collect(Collectors.toList());
 
         List<ATrace> traces = pLog.getPTraceList().stream().collect(Collectors.toList());
 
@@ -204,14 +133,8 @@ public class ImmutableLog extends LaLog {
                 .collect(Collectors.summarizingLong(ATrace::getEndTimeMilli));
 
         this.variantIdFreqMap = pLog.getVariantIdFreqMap();
-
-//        this.eventAttributeValues = StatsUtil.getEventAttributeValues(traces);
-//        this.caseAttributeValues = StatsUtil.getCaseAttributeValues(traces);
-
         this.eventAttributeValues = pLog.getOriginalAPMLog().getEventAttributeValues();
         this.caseAttributeValues = pLog.getOriginalAPMLog().getCaseAttributeValues();
-
-
         this.caseDurationList = pLog.getCaseDurations();
         this.timeZone = pLog.getTimeZone();
         this.startTime = allST.getMin();

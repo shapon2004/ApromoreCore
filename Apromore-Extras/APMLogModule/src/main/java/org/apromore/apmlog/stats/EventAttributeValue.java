@@ -191,17 +191,4 @@ public class EventAttributeValue implements AttributeValue {
         if (!Util.isNumeric(value)) return -1;
         else return Double.valueOf(value);
     }
-
-//    public EventAttributeValue clone() {
-//        IntArrayList occurCaseIndexesClone = new IntArrayList(this.getOccurCaseIndexes().size());
-//        for (int i = 0; i < this.getOccurCaseIndexes().size(); i++) {
-//            occurCaseIndexesClone.add(this.getOccurCaseIndexes().get(i));
-//        }
-//
-//        EventAttributeValue eavClone = new EventAttributeValue(
-//                this.getValue(), occurCaseIndexesClone, this.getCases(),
-//                new UnifiedSet<>(this.getOccurActivities()) );
-//
-//        return eavClone;
-//    }
 }

@@ -59,6 +59,7 @@ import java.util.stream.Stream;
  * Modified: Chii Chang (17/03/2021)
  * Modified: Chii Chang (21/04/2021)
  * Modified: Chii Chang (05/05/2021)
+ * Modified: Chii Chang (21/06/2021)
  */
 public class PTrace implements Comparable<PTrace>, ATrace{
 
@@ -148,25 +149,10 @@ public class PTrace implements Comparable<PTrace>, ATrace{
     }
 
     public DoubleArrayList getWaitingTimes() {
-//        List<AActivity> validActs = StatsUtil.getValidActivitiesOf(this);
-//        double[] waitTimesArray = validActs.stream()
-//                .filter(x -> StatsUtil.getValidPreviousActivity(x, this) != null)
-//                .mapToDouble(x -> StatsUtil.getArcDurationOf(Objects.requireNonNull(StatsUtil.getValidPreviousActivity(x, this)), x))
-//                .toArray();
-//        DoubleArrayList wtDal = new DoubleArrayList(waitTimesArray);
-//        if (wtDal.isEmpty()) wtDal.add(0.0);
-//        return wtDal;
         return waitingTimes;
     }
 
     public DoubleArrayList getProcessingTimes() {
-//        List<AActivity> validActs = StatsUtil.getValidActivitiesOf(this);
-//        double[] procTimesArray = validActs.stream()
-//                .mapToDouble(AActivity::getDuration)
-//                .toArray();
-//        DoubleArrayList ptDal = new DoubleArrayList(procTimesArray);
-//        if (ptDal.isEmpty()) ptDal.add(0.0);
-//        return ptDal;
         return processingTimes;
     }
 
@@ -346,9 +332,6 @@ public class PTrace implements Comparable<PTrace>, ATrace{
     }
 
     public List<AEvent> getEventList() {
-//        return aTrace.getImmutableEvents().stream()
-//                .filter(x -> validEventIndexBS.get(x.getIndex()))
-//                .collect(Collectors.toList());
         return eventList;
     }
 
