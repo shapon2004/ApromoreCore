@@ -85,8 +85,6 @@ public class APMLogToXLog {
                 xTrace.add(getXEvent(a.getEndTime(), "complete", a, xFactory));
             }
 
-//            xTrace.addAll(aTrace.getImmutableEvents());
-
             xTraceList.add(xTrace);
         }
 

@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 public class ImmutableTrace extends AbstractTraceImpl implements Serializable {
 
-
-
     public ImmutableTrace(int immutableIndex,
                           String caseId,
                           List<ImmutableEvent> immutableEvents,

@@ -73,7 +73,7 @@ public class PTrace extends AbstractTraceImpl implements Comparable<PTrace>, Ser
                 immutableTrace.getImmutableEvents(),
                 immutableTrace.getActivityInstances(),
                 immutableTrace.getAttributes());
-        this.immutableTrace = immutableTrace;
+
         originalActivityInstances = new ArrayList<>(immutableTrace.getActivityInstances());
 
         this.mutableIndex = mutableIndex;
@@ -117,44 +117,6 @@ public class PTrace extends AbstractTraceImpl implements Comparable<PTrace>, Ser
     public List<ActivityInstance> getOriginalActivityInstances() {
         return originalActivityInstances;
     }
-
-//    @Override
-//    public List<ActivityInstance> getActivityInstances() {
-//        return LogStatsAnalyzer.getValidActivitiesOf(this);
-//    }
-
-//    public ActivityInstance getNextActivityInstanceOf(ActivityInstance activityInstance) {
-//        // ========================================================
-//        // Ensure to updateStats() before calling this method
-//        // ========================================================
-//
-//        return activityInstances.stream()
-//                .filter(x -> x.getImmutableIndex() > activityInstance.getImmutableIndex())
-//                .findFirst()
-//                .orElse(null);
-//    }
-//
-//    public ActivityInstance getPreviousActivityInstanceOf(ActivityInstance activityInstance) {
-//        // ========================================================
-//        // Ensure to updateStats() before calling this method
-//        // ========================================================
-//        if (activityInstances.get(0) == activityInstance) return null;
-//
-//        List<ActivityInstance> reversed = new ArrayList<>(activityInstances);
-//        Collections.reverse(reversed);
-//
-//        return reversed.stream()
-//                .filter(x -> x.getImmutableIndex() < activityInstance.getImmutableIndex())
-//                .findFirst()
-//                .orElse(null);
-//    }
-
-
-
-    // ========================================================
-    // SET methods
-    // ========================================================
-
 
     public void setMutableIndex(int mutableIndex) {
         this.mutableIndex = mutableIndex;

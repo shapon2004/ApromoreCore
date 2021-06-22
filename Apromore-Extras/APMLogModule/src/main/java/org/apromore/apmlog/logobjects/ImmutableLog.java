@@ -32,11 +32,13 @@ import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,16 +99,13 @@ public class ImmutableLog extends AbstractLogImpl implements APMLog, Serializabl
     }
 
     @Override
-    public long getCaseVariantSize() {
-        return caseVariantGroupMap != null ? caseVariantGroupMap.size() : 0;
+    public ImmutableUnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues() {
+        return new ImmutableUnifiedMap(immutableCaseAttributeValues);
     }
 
-    public UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues() {
-        return immutableCaseAttributeValues;
-    }
-
-    public UnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues() {
-        return immutableEventAttributeValues;
+    @Override
+    public ImmutableUnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues() {
+        return new ImmutableUnifiedMap(immutableEventAttributeValues);
     }
 
     // ===============================================================================================================

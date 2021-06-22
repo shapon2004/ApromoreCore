@@ -69,10 +69,8 @@ public class DirectFollowFilterTest {
         boolean hasC1 = false;
         boolean hasC2 = false;
 
-//        System.out.println("\n\ntrace size = " + traceList.size() + "\n\n");
 
         for (ATrace trace : traceList) {
-//            System.out.println(trace.getCaseId());
             if (trace.getCaseId().equals("c1")) hasC1 = true;
             if (trace.getCaseId().equals("c2")) hasC2 = true;
         }
@@ -142,10 +140,7 @@ public class DirectFollowFilterTest {
         boolean hasC4 = false;
         boolean hasC5 = false;
 
-//        System.out.println("\n\ntrace size = " + traceList.size() + "\n\n");
-
         for (ATrace trace : traceList) {
-//            System.out.println(trace.getCaseId());
             if (trace.getCaseId().equals("c1")) hasC1 = true;
             if (trace.getCaseId().equals("c2")) hasC2 = true;
             if (trace.getCaseId().equals("c3")) hasC3 = true;

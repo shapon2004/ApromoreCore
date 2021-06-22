@@ -46,7 +46,6 @@ public class CaseSectionEventAttributeCombinationDesc extends AttributeDesc {
 
         desc.append(secondKey + " ");
         desc.append(getDescriptionFromSetValue(logFilterRule.getSecondaryValues(), logFilterRule.getInclusion()));
-//        desc.append("]");
 
         return desc.toString();
     }

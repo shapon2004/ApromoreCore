@@ -42,7 +42,6 @@ public class CaseSectionEventAttributeDesc extends AttributeDesc {
 
         desc.append(getKeyLabel(attributeKey) + " ");
         desc.append(getDescriptionFromSetValue(logFilterRule.getPrimaryValues(), logFilterRule.getInclusion()));
-//        desc.append("]");
 
         return desc.toString();
     }

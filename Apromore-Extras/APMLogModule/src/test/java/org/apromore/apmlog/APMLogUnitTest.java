@@ -326,29 +326,11 @@ public class APMLogUnitTest {
         ImmutableTraceTest.testStartEndTimestamps(apmLog);
     }
 
-    // ===================
-    // method removed
-    // ===================
-//    @Test
-//    public void testLogsActivityNameIndexes() throws Exception {
-//        XLog xLog = getXLog("files/TestLogFactory.xes");
-//        LogsMethodsTests.testActivityNameIndexes(xLog);
-//    }
-
     @Test
     public void testEventAttrFreqAfterEventAttrFilter() throws Exception {
         APMLog apmLog = getImmutableLog("Production2cases", "files/Production2cases.xes");
         EventSectionAttributeFilterTest.testEventAttrFreqAfterEventAttrFilter(apmLog, this);
     }
-
-    // =============================
-    // Method removed
-    // =============================
-//    @Test
-//    public void testPLogAttributeGraph() throws Exception {
-//        APMLog apmLog = getImmutableLog("5cases", "files/5cases.xes");
-//        PLogAttributeGraphTest.testArc(apmLog);
-//    }
 
     @Test
     public void testTripleOverlap() throws Exception {

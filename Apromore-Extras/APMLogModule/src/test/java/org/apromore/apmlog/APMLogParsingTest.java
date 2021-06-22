@@ -27,6 +27,7 @@ import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.xes.XESAttributeCodes;
 import org.apromore.apmlog.xes.XLogToImmutableLog;
 import org.deckfour.xes.model.XLog;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -55,7 +56,7 @@ public class APMLogParsingTest {
         APMLog apmLog = XLogToImmutableLog.convertXLog("Process Log", xLog);
 
         assertTrue(apmLog.getTraces().size() == 6);
-        assertTrue(apmLog.getCaseVariantSize() == 3);
+        assertTrue(apmLog.getCaseVariantGroupMap().size() == 3);
         assertTrue(apmLog.getTraces().stream().flatMap(x->x.getActivityInstances().stream())
                 .collect(Collectors.toList()).size() == 23);
         assertTrue(getUniqueActivitySize(apmLog) == 5);
@@ -65,7 +66,7 @@ public class APMLogParsingTest {
         APMLog apmLog = XLogToImmutableLog.convertXLog("Process Log", xLog);
 
         assertTrue(apmLog.getTraces().size() == 6);
-        assertTrue(apmLog.getCaseVariantSize() == 3);
+        assertTrue(apmLog.getCaseVariantGroupMap().size() == 3);
         assertTrue(apmLog.getTraces().stream().flatMap(x->x.getActivityInstances().stream())
                 .collect(Collectors.toList()).size() == 22);
         assertTrue(getUniqueActivitySize(apmLog) == 4);
@@ -75,7 +76,7 @@ public class APMLogParsingTest {
         APMLog apmLog = XLogToImmutableLog.convertXLog("Process Log", xLog);
 
         assertTrue(apmLog.getTraces().size() == 6);
-        assertTrue(apmLog.getCaseVariantSize() == 3);
+        assertTrue(apmLog.getCaseVariantGroupMap().size() == 3);
         assertTrue(apmLog.getTraces().stream().flatMap(x->x.getActivityInstances().stream())
                 .collect(Collectors.toList()).size() == 23);
         assertTrue(getUniqueActivitySize(apmLog) == 5);
@@ -87,7 +88,7 @@ public class APMLogParsingTest {
         String lastActivity = activityList.get(activityList.size()-1).getName();
 
         assertTrue(apmLog.getTraces().size() == 1);
-        assertTrue(apmLog.getCaseVariantSize() == 1);
+        assertTrue(apmLog.getCaseVariantGroupMap().size() == 1);
         assertTrue(apmLog.getTraces().stream().flatMap(x->x.getActivityInstances().stream())
                 .collect(Collectors.toList()).size() == 14);
         assertTrue(getUniqueActivitySize(apmLog) == 14);
@@ -98,7 +99,7 @@ public class APMLogParsingTest {
         APMLog apmLog = XLogToImmutableLog.convertXLog("Process Log", xLog);
 
         assertTrue(apmLog.getTraces().size() == 2);
-        assertTrue(apmLog.getCaseVariantSize() == 2);
+        assertTrue(apmLog.getCaseVariantGroupMap().size() == 2);
         assertTrue(apmLog.getTraces().stream().flatMap(x->x.getActivityInstances().stream())
                 .collect(Collectors.toList()).size() == 6);
         assertTrue(getUniqueActivitySize(apmLog) == 5);
@@ -113,7 +114,7 @@ public class APMLogParsingTest {
     }
 
     private static int getUniqueActivitySize(APMLog apmLog) {
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = apmLog.getImmutableEventAttributeValues();
+        ImmutableUnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = apmLog.getImmutableEventAttributeValues();
         return eavMap.get(XESAttributeCodes.CONCEPT_NAME).size();
     }
 

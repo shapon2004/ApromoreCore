@@ -57,7 +57,6 @@ public class CaseStatsTest {
                 )
         );
 
-//        UnifiedMap<Integer, Integer> result = apmLog.getCaseVariantIdFrequencyMap();
         UnifiedMap<Integer, Integer> expected = UnifiedMap.newMap(
             expectedMap.entrySet().stream().collect(
                 Collectors.toMap(e -> Integer.valueOf(e.getKey()), e -> Integer.valueOf(e.getValue()))
@@ -84,7 +83,6 @@ public class CaseStatsTest {
         List<LogFilterRule> criteria = Arrays.asList(logFilterRule2);
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(criteria);
-//        apmLogFilter.getPLog().updateStats();
         APMLog filteredLog = apmLogFilter.getAPMLog();
 
 

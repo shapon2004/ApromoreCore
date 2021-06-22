@@ -34,13 +34,9 @@ public interface AttributeValue {
 
     String getFrequency();
 
-//    long getTotal();
-
     double getRatio();
 
     double getOppCases();
-
-//    IntArrayList getOccurCaseIndexes();
 
     Set<Integer> getOccurCasesIndexSet();
 

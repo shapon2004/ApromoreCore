@@ -31,6 +31,7 @@ import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.apromore.apmlog.stats.TimeStatsProcessor;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -105,12 +106,12 @@ public class PLog extends AbstractLogImpl implements Serializable {
         return pTracesMap;
     }
 
-    public UnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues() {
-        return immutableLog.getImmutableEventAttributeValues();
+    public ImmutableUnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues() {
+        return immutableLog.getImmutableCaseAttributeValues();
     }
 
-    public UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues() {
-        return immutableLog.getImmutableCaseAttributeValues();
+    public ImmutableUnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues() {
+        return immutableLog.getImmutableEventAttributeValues();
     }
 
     // ===============================================================================================================
@@ -205,26 +206,19 @@ public class PLog extends AbstractLogImpl implements Serializable {
     public List<PTrace> getCustomPTraceList() {
         BitSet currentBS = this.validTraceIndexBS;
 
-        List<PTrace> theCusPTraceList = new ArrayList<>();
+        Map<String, List<PTrace>> idPTraces = pTraces.stream()
+                .collect(Collectors.groupingBy(PTrace::getCaseId));
 
-        List<ATrace> immutableTraces = immutableLog.getTraces();
+        List<PTrace> theCusPTraceList = originalPTraces;
 
-        int mutableIndex = 0;
-
-        for (ATrace aTrace : immutableTraces) {
-            PTrace pt = null;
-            if (!currentBS.get(aTrace.getImmutableIndex())) {
-                pt = new PTrace(mutableIndex, aTrace, activityInstances);
-                pt.setValidEventIndexBS(new BitSet(aTrace.getImmutableEvents().size()));
+        for (PTrace pTrace : theCusPTraceList) {
+            if (currentBS.get(pTrace.getImmutableIndex())) {
+                pTrace.setValidEventIndexBS(idPTraces.get(pTrace.getCaseId()).get(0).getValidEventIndexBS());
             } else {
-                pt = getPTraceByImmutableIndex(aTrace.getImmutableIndex());
-            }
-
-            if (pt != null) {
-                theCusPTraceList.add(pt);
-                mutableIndex += 1;
+                pTrace.setValidEventIndexBS(new BitSet(pTrace.getImmutableEvents().size()));
             }
         }
+
         return theCusPTraceList;
     }
 

@@ -54,7 +54,7 @@ public class CaseVariantDesc {
 
     private static List<Pair> getPairs(List<RuleValue> ruleValueList) {
 
-        List<Pair> pairList = new ArrayList<Pair>();
+        List<Pair> pairList = new ArrayList<>();
 
         BitSet marked  = new BitSet(ruleValueList.size());
         for (int i = 0; i < ruleValueList.size(); i++) {

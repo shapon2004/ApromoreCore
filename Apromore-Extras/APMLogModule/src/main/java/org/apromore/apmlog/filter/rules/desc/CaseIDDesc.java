@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 public class CaseIDDesc {
 
     public static String getDescription(LogFilterRule logFilterRule) {
-//        PLog log = (PLog) apmLog;
 
         StringBuilder desc = new StringBuilder();
         String choice = logFilterRule.getChoice().toString().toLowerCase();
@@ -46,19 +45,10 @@ public class CaseIDDesc {
 
         if (ruleValues != null && !ruleValues.isEmpty()) {
 
-//            BitSet selection = (BitSet) ruleValues.iterator().next().getObjectVal();
             Map<String, String> labels = ruleValues.iterator().next().getCustomAttributes();
-
-//            if (selection.cardinality() == 1) desc.append("equal to [");
-//            else desc.append(" [");
 
             if (labels.size() == 1) desc.append("equal to [");
             else desc.append(" [");
-
-//            List<String> caseIds = log.getOriginalPTraceList().stream()
-//                    .filter(x -> selection.get(x.getImmutableIndex()))
-//                    .map(x->x.getCaseId())
-//                    .collect(Collectors.toList());
 
             int count = 0;
             for (String s : labels.keySet()) {
@@ -67,12 +57,6 @@ public class CaseIDDesc {
 
                 count += 1;
             }
-//            for (String s : caseIds) {
-//                desc.append(s.intern());
-//                if (count < caseIds.size() - 1) desc.append(", ");
-//
-//                count += 1;
-//            }
         }
 
         desc.append("]");

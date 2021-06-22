@@ -85,11 +85,6 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
         return frequency;
     }
 
-//    @Override
-//    public long getTotal() {
-//        return getCases();
-//    }
-
     public double getRatio() {
         return ratio;
     }

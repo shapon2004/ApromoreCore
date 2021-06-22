@@ -42,7 +42,6 @@ import java.util.List;
 public class ActivityInstance implements Serializable {
 
     private int immutableIndex;
-//    private int mutableIndex;
     private int immutableTraceIndex;
     private int mutableTraceIndex;
     private String parentCaseId;
@@ -65,7 +64,6 @@ public class ActivityInstance implements Serializable {
         this.immutableTraceIndex = immutableTraceIndex;
         this.parentCaseId = parentCaseId;
         this.mutableTraceIndex = immutableTraceIndex;
-//        this.mutableIndex = immutableIndex;
         this.nameIndicator = nameIndicator;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -75,9 +73,6 @@ public class ActivityInstance implements Serializable {
     // ========================================================
     // SET methods
     // ========================================================
-//    public void setMutableIndex(int mutableIndex) {
-//        this.mutableIndex = mutableIndex;
-//    }
 
     public void setMutableTraceIndex(int mutableTraceIndex) {
         this.mutableTraceIndex = mutableTraceIndex;
@@ -102,10 +97,6 @@ public class ActivityInstance implements Serializable {
     public int getImmutableIndex() {
         return immutableIndex;
     }
-
-//    public int getMutableIndex() {
-//        return mutableIndex;
-//    }
 
     public int getImmutableTraceIndex() {
         return immutableTraceIndex;

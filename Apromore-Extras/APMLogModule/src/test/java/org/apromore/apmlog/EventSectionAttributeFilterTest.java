@@ -29,6 +29,7 @@ import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.*;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -140,13 +141,9 @@ public class EventSectionAttributeFilterTest {
         apmLogFilter.filter(rules);
         APMLog filteredLog = apmLogFilter.getAPMLog();
 
-        UnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = filteredLog.getImmutableEventAttributeValues();
+        ImmutableUnifiedMap<String, UnifiedSet<EventAttributeValue>> eavMap = filteredLog.getImmutableEventAttributeValues();
 
         int actSizeOfCFM = eavMap.get("concept:name").size();
-
-//        parent.printString("\n \n \n \n \n");
-//        parent.printString("actSizeOfCFM = " + actSizeOfCFM);
-//        parent.printString("\n \n \n \n \n");
 
         assertEquals(2, actSizeOfCFM);
     }

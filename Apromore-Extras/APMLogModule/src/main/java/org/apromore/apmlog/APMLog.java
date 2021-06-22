@@ -28,6 +28,7 @@ import org.apromore.apmlog.stats.CaseAttributeValue;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
@@ -44,6 +45,7 @@ import static java.util.Map.Entry.comparingByValue;
  * Modified: Chii Chang (12/05/2020)
  * Modified: Chii Chang (27/10/2020)
  * Modified: Chii Chang (26/01/2021)
+ * Modified: Chii Chang (22/06/2021)
  *
  * An APMLog contains a list of ATrace
  * An ATrace contains a list of events
@@ -96,25 +98,19 @@ public interface APMLog {
      * The main attribute data of 'activity instances'/events
      * @return
      */
-    UnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues();
+    ImmutableUnifiedMap<String, UnifiedSet<EventAttributeValue>> getImmutableEventAttributeValues();
 
     /**
      * The main attribute data of cases
      * @return
      */
-    UnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues();
+    ImmutableUnifiedMap<String, UnifiedSet<CaseAttributeValue>> getImmutableCaseAttributeValues();
 
     /**
      * Represents the size of traces
      * @return
      */
     int size();
-
-    /**
-     * Number of case variant IDs in this log
-     * @return
-     */
-    long getCaseVariantSize();
 
     /**
      * Return a trace based on the index

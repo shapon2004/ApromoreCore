@@ -77,6 +77,7 @@ import java.util.stream.Collectors;
  * Modified: Chii Chang (17/04/2020) - bug fixed
  * Modified: Chii Chang (26/01/2020)
  * Modified: Chii Chang (16/03/2021) - Replaced with new code
+ * Modified: Chii Chang (22/06/2021)
  */
 public class APMLogFilter {
 
@@ -369,15 +370,6 @@ public class APMLogFilter {
 
         return validEventIndexList == null || validEventIndexList.isEmpty();
     }
-
-    // ================================
-    // faulty method. do not use
-    // ========================================
-//    private static void updateValidEventBitSet(PTrace trace, ActivityInstance activity) {
-//        for (int i = 0; i < activity.getImmutableEventIndexes().size(); i++) {
-//            trace.getValidEventIndexBS().set(activity.getImmutableEventIndexes().get(i));
-//        }
-//    }
 
     private List<PTrace> filterByPath(LogFilterRule rule, List<PTrace> traces) {
         // PathFilter handles Choice

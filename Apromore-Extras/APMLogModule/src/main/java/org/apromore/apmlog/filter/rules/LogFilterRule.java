@@ -21,13 +21,10 @@
  */
 package org.apromore.apmlog.filter.rules;
 
-
-import org.apromore.apmlog.APMLog;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.Inclusion;
 import org.apromore.apmlog.filter.types.Section;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.util.Set;
 

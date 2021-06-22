@@ -78,21 +78,10 @@ public class EventualFollowFilterTest {
         List<LogFilterRule> rules = new ArrayList<>();
         rules.add(logFilterRule);
 
-//        parent.printString("\n \n \n \n \n");
-//        parent.printString("Traces size = " + apmLog.getTraces().size());
-//        parent.printString("\n \n \n \n \n");
-
         APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
         apmLogFilter.filter(rules);
 
-//        parent.printString("\n \n \n \n \n");
-//        parent.printString("cardinality = " + apmLogFilter.getPLog().getValidTraceIndexBS().cardinality());
-//        parent.printString("\n \n \n \n \n");
-
-
         List<ATrace> traceList = apmLogFilter.getAPMLog().getTraces();
-
-
 
         assertTrue(traceList.get(0).getCaseId().equalsIgnoreCase("c3"));
     }

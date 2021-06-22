@@ -79,7 +79,6 @@ public class XLogToImmutableLog {
                 eventIndex += 1;
             }
 
-//            List<XEvent> traceEvents = xTrace.stream().collect(Collectors.toList());
             List<ImmutableEvent> immutableEvents = new ArrayList<>();
             for (int i = 0; i < xTrace.size(); i++) {
                 immutableEvents.add(new ImmutableEvent(i));

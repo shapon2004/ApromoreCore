@@ -24,10 +24,12 @@ package org.apromore.apmlog.stats;
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.util.Util;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
+import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.io.Serializable;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,27 +70,8 @@ public class EventAttributeValue implements AttributeValue, Serializable {
         this.frequency = String.format("%.2f", percent );
         this.oppCases = totalCasesOfLog - occurCasesIndexSet.size();
         this.total = occurActivities.stream().collect(Collectors.summingLong(ActivityInstance::getEventSize));
-        int[] array = occurCasesIndexSet.stream().mapToInt(x->x).toArray();
-//        occurCaseIndexes = new IntArrayList(array);
     }
 
-//    public EventAttributeValue(String value, IntArrayList occurCaseIndexes, long totalCases,
-//                               UnifiedSet<ActivityInstance> occurActivities) {
-//        this.value = value.intern();
-//        this.occurCaseIndexes = occurCaseIndexes;
-////        this.total = total;
-//        this.percent = 100 * ((double) occurCaseIndexes.size() / totalCases);
-//        this.frequency = String.format("%.2f", percent );
-//        this.totalCases = totalCases;
-//        this.oppCases = totalCases - occurCaseIndexes.size();
-//        this.occurActivities = occurActivities;
-//
-//        long sum = 0;
-//        for (ActivityInstance act : occurActivities) {
-//            sum += act.getEventSize();
-//        }
-//        this.total = sum;
-//    }
 
     public Set<Integer> getOccurCasesIndexSet() {
         if (occurCasesIndexSet == null) {
@@ -98,15 +81,6 @@ public class EventAttributeValue implements AttributeValue, Serializable {
         }
         return occurCasesIndexSet;
     }
-
-//    public void setRatio(double ratio) {
-//        this.ratio = ratio;
-//    }
-
-//    public void setTotal(long total) {
-//
-//        this.total = total;
-//    }
 
     public String getValue() {
         return value;
@@ -118,7 +92,6 @@ public class EventAttributeValue implements AttributeValue, Serializable {
 
     public long getCases(BitSet validCaseIndexes) {
         return occurCasesIndexSet.stream().filter(x -> validCaseIndexes.get(x)).collect(Collectors.toSet()).size();
-//        return getOccurCasesIndexSet().size();
     }
 
     public String getFrequency() {
@@ -130,10 +103,6 @@ public class EventAttributeValue implements AttributeValue, Serializable {
 
     }
 
-//    public void setTotalCases(long totalCases) {
-//        this.totalCases = totalCases;
-//    }
-
     public double getRatio() {
         return ratio;
     }
@@ -141,14 +110,6 @@ public class EventAttributeValue implements AttributeValue, Serializable {
     public double getOppCases() {
         return oppCases;
     }
-
-//    public IntArrayList getOccurCaseIndexes() {
-//        if (occurCaseIndexes == null) {
-//            int[] array = occurCasesIndexSet.stream().mapToInt(x -> x).toArray();
-//            occurCaseIndexes =new IntArrayList(array);
-//        }
-//        return occurCaseIndexes;
-//    }
 
     public double getPercent() {
         return percent;
@@ -193,41 +154,6 @@ public class EventAttributeValue implements AttributeValue, Serializable {
         return getValueInDouble() * getCases();
     }
 
-//    // ========================================================
-//    // Set by GUI; used by GUI
-//    // ========================================================
-//    public void setValueFrequency(double valueFrequency) {
-//        this.valueFrequency = valueFrequency;
-//    }
-//
-//    // ========================================================
-//    // Set by GUI; used by GUI
-//    // ========================================================
-//    public double getValueFrequency() {
-//        return valueFrequency;
-//    }
-//
-//    // ========================================================
-//    // Set by GUI; used by GUI
-//    // ========================================================
-//    public String getValueFrequencyString() {
-//        return Util.df2.format(100 * valueFrequency) + "%";
-//    }
-//
-//    // ========================================================
-//    // Set by GUI; used by GUI
-//    // ========================================================
-//    public void setOppActivitySize(double oppActivitySize) {
-//        this.oppActivitySize = oppActivitySize;
-//    }
-//
-//    // ========================================================
-//    // Set by GUI; used by GUI
-//    // ========================================================
-//    public double getOppActivitySize() {
-//        return oppActivitySize;
-//    }
-
     @Override
     public double getValueInDouble() {
         if (!Util.isNumeric(value)) return -1;
@@ -235,53 +161,7 @@ public class EventAttributeValue implements AttributeValue, Serializable {
     }
 
     public EventAttributeValue clone() {
-//        IntArrayList occurCaseIndexesClone = new IntArrayList(occurCaseIndexes.size());
-//        for (int i = 0; i < occurCaseIndexes.size(); i++) {
-//            occurCaseIndexesClone.add(occurCaseIndexes.get(i));
-//        }
-
         return new EventAttributeValue(
                 value, new UnifiedSet<>(occurActivities), totalCases );
     }
-
-//    public JSONObject toJSONObject() {
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.put("value", value);
-//        jsonObject.put("ratio", ratio);
-//        jsonObject.put("total", total);
-//        jsonObject.put("totalCases", totalCases);
-//        jsonObject.put("oppCases", oppCases);
-//        jsonObject.put("percent", percent);
-//
-//        JSONArray jsonOccurCaseIndexes = new JSONArray();
-//        for (int i = 0; i < occurCaseIndexes.size(); i++) {
-//            jsonOccurCaseIndexes.add(occurCaseIndexes.get(i));
-//        }
-//
-//        jsonObject.put("occurCaseIndexes", jsonOccurCaseIndexes);
-//
-//
-//    }
-
-    //private String value;
-    //
-    //    // the percentage of cases
-    //    private String frequency;
-    //
-    //    // ratio is: the cases of this value / the max cases among all attribute values
-    //    private double ratio;
-    //
-    //    // the number of events that contain this value
-    //    private long total;
-    //
-    //    private long totalCases;
-    //
-    //    // for default sorting
-    //    private double oppCases;
-    //
-    //    private double percent; // case section
-    //
-    //    private IntArrayList occurCaseIndexes;
-    //    private UnifiedSet<AActivity> occurActivities;
-    //    private Set<Integer> occurCasesIndexSet;
 }

@@ -32,12 +32,6 @@ import org.deckfour.xes.model.XLog;
  */
 public class APMLogServiceImpl implements APMLogService {
 
-    //private EventLogService eventLogService;
-
-    //APMLogServiceImpl(final EventLogService newEventLogService) {
-    //    this.eventLogService = newEventLogService;
-    //}
-
     @Override
     public APMLog findAPMLogForXLog(XLog xLog) {
         try {

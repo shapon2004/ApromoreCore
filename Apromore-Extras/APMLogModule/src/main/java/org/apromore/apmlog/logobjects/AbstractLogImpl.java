@@ -28,6 +28,7 @@ import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
+import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
