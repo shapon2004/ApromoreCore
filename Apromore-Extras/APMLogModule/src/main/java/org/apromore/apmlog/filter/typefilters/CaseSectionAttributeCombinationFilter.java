@@ -140,25 +140,46 @@ public class CaseSectionAttributeCombinationFilter {
                                                          Inclusion inclusion) {
         List<ActivityInstance> activityList = trace.getActivityInstances();
 
-        switch (inclusion) {
-            case ALL_VALUES:
-                UnifiedSet<String> matchedVals = new UnifiedSet<>();
-                for (ActivityInstance act : activityList) {
-//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
-                    String confirmedVal =
-                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
-                    if (confirmedVal != null) matchedVals.add(confirmedVal);
-                }
+        ActivityInstance priAct = activityList.stream()
+                .filter(x -> x.getAttributes().containsKey(firstKey))
+                .filter(x -> x.getAttributes().get(firstKey).equals(primaryValues.iterator().next()))
+                .findFirst()
+                .orElse(null);
 
-                return matchedVals.size() == secondaryValues.size();
+        if (priAct == null) return false;
+
+        switch (inclusion) {
             case ANY_VALUE:
-                for (ActivityInstance act : activityList) {
-//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
-                    String confirmedVal =
-                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
-                    if (confirmedVal != null) return true;
-                }
-                break;
+                ActivityInstance ai = activityList.stream()
+                        .filter(x -> x.getAttributes().containsKey(firstKey))
+                        .filter(x -> x.getAttributes().get(firstKey).equals(primaryValues.iterator().next()))
+                        .filter(x -> x.getAttributes().containsKey(secondKey))
+                        .filter(x -> secondaryValues.contains(x.getAttributes().get(secondKey)))
+                        .findFirst()
+                        .orElse(null);
+
+                return ai != null;
+            case ALL_VALUES:
+                Set<ActivityInstance> matchedVal = activityList.stream()
+                        .filter(x -> x.getAttributes().containsKey(firstKey))
+                        .filter(x -> x.getAttributes().get(firstKey).equals(primaryValues.iterator().next()))
+                        .filter(x -> x.getAttributes().containsKey(secondKey))
+                        .filter(x -> secondaryValues.contains(x.getAttributes().get(secondKey)))
+                        .collect(Collectors.toSet());
+
+//                if (matchedVal.size() >= secondaryValues.size()) {
+//                    System.out.println("");
+//                }
+
+                return matchedVal.size() >= secondaryValues.size();
+
+//                for (ActivityInstance act : activityList) {
+////                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
+//                    String confirmedVal =
+//                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
+//                    if (confirmedVal != null) return true;
+//                }
+//                break;
         }
 
         return false;

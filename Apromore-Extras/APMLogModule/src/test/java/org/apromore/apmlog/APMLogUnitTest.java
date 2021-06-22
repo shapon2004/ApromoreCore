@@ -22,8 +22,13 @@
 
 package org.apromore.apmlog;
 
+import org.apromore.apmlog.filter.APMLogFilter;
 import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.PTrace;
+import org.apromore.apmlog.filter.rules.LogFilterRule;
+import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
+import org.apromore.apmlog.filter.rules.RuleValue;
+import org.apromore.apmlog.filter.types.*;
 import org.apromore.apmlog.logobjects.ImmutableLog;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.xes.XLogToImmutableLog;
@@ -397,6 +402,35 @@ public class APMLogUnitTest {
 
         assertTrue(pLog.getStartTime() == 1551919260000L);
         assertTrue(pLog.getEndTime() == 1607672640000L);
+    }
+
+    @Test
+    public void testCaseSecEventAndEventAttributeFilter1() throws Exception {
+        APMLog apmLog = getImmutableLog("5casesMode", "files/5casesMOD.xes");
+
+        FilterType filterType = FilterType.CASE_SECTION_ATTRIBUTE_COMBINATION;
+
+        RuleValue rv1 = new RuleValue(filterType, OperationType.EQUAL, "org:resource", "Kalv");
+        rv1.putCustomAttribute("section", "event");
+        Set<RuleValue> primaryValues = new HashSet<>(Arrays.asList(rv1));
+
+        RuleValue rv2 = new RuleValue(filterType, OperationType.EQUAL,
+                "concept:name", new HashSet<>(Arrays.asList("Prepare package", "Proceed order")));
+        rv2.putCustomAttribute("section", "event");
+        Set<RuleValue> secondaryValues = new HashSet<>(Arrays.asList(rv2));
+
+        LogFilterRule logFilterRule = new LogFilterRuleImpl(Choice.RETAIN, Inclusion.ALL_VALUES, Section.CASE,
+                filterType, "org:resource", primaryValues, secondaryValues);
+
+        List<LogFilterRule> criteria = Arrays.asList(logFilterRule);
+
+        APMLogFilter apmLogFilter = new APMLogFilter(apmLog);
+
+        apmLogFilter.filter(criteria);
+
+        APMLog filteredLog = apmLogFilter.getAPMLog();
+        assertTrue(filteredLog.size() == 1);
+        assertTrue(filteredLog.get(0).getCaseId().equals("3007"));
     }
 
     private ImmutableLog getImmutableLog(String logName, String path) throws Exception {
