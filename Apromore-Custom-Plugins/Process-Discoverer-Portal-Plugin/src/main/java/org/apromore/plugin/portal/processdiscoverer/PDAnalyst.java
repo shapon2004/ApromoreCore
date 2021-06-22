@@ -38,7 +38,6 @@ import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.Inclusion;
 import org.apromore.apmlog.filter.types.OperationType;
 import org.apromore.apmlog.filter.types.Section;
-import org.apromore.apmlog.stats.DurSubGraph;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.apromore.commons.datetime.DateTimeUtils;
@@ -512,7 +511,7 @@ public class PDAnalyst {
         // PLog does not always have the updated case variants due to performance concern.
         // Such a value can be obtained from the filteredAPMLog (the output)
         // ==================================================================================================
-        return this.filteredAPMLog.getCaseVariantSize();
+        return this.filteredAPMLog.getCaseVariantGroupMap().size();
     }
 
     public long getFilteredActivityInstanceSize() {
