@@ -77,6 +77,11 @@ public class SimilaritySearchPlugin extends PluginCustomGui {
     }
 
     @Override
+    public String getIconPath() {
+        return "similar_models.svg";
+    }
+
+    @Override
     public String getGroupLabel(Locale locale) {
         return "Redesign";
     }
