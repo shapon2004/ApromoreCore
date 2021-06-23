@@ -29,10 +29,10 @@ import org.apromore.apmlog.stats.EventAttributeValue;
 import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.map.immutable.ImmutableUnifiedMap;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Map.Entry.comparingByValue;
 

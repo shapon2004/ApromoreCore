@@ -21,14 +21,15 @@
  */
 package org.apromore.apmlog.filter.rules.desc;
 
-import org.apromore.apmlog.APMLog;
-import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Collections;
+import java.util.BitSet;
 
 /**
  * @author Chii Chang
