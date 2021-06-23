@@ -31,10 +31,13 @@ import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.*;
 import org.apromore.apmlog.logobjects.ImmutableLog;
 import org.apromore.apmlog.stats.EventAttributeValue;
+import org.apromore.apmlog.stats.LogStatsAnalyzer;
+import org.apromore.apmlog.util.Util;
 import org.apromore.apmlog.xes.XLogToImmutableLog;
 import org.deckfour.xes.in.XesXmlGZIPParser;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import org.junit.Before;
@@ -431,6 +434,16 @@ public class APMLogUnitTest {
         APMLog filteredLog = apmLogFilter.getAPMLog();
         assertTrue(filteredLog.size() == 1);
         assertTrue(filteredLog.get(0).getCaseId().equals("3007"));
+    }
+
+    @Test
+    public void testAverageActivityDuration() throws Exception {
+        APMLog apmLog = getImmutableLog("logCSM_15Kcases", "files/logCSM_15Kcases.xes.gz");
+        UnifiedSet<EventAttributeValue> eavSet = apmLog.getImmutableEventAttributeValues().get("concept:name");
+        DoubleArrayList dal = LogStatsAnalyzer.getEventAttributeValueDurationList(eavSet, "average",
+                new UnifiedSet<>(apmLog.getActivityInstances()));
+        String displayVal = Util.durationShortStringOf(dal.average());
+        assertTrue(displayVal.equalsIgnoreCase("18.09 hrs"));
     }
 
     private ImmutableLog getImmutableLog(String logName, String path) throws Exception {

@@ -26,6 +26,7 @@ import org.apromore.apmlog.ATrace;
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.PLog;
 import org.apromore.apmlog.filter.PTrace;
+import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
@@ -159,6 +160,35 @@ public class LogStatsAnalyzer {
                 trace.setCaseVariantId(variId);
             }
             variId += 1;
+        }
+    }
+
+    /**
+     *
+     * @param eavSet
+     * @param durationType "min", "median", "average", "max" or "total"
+     * @return
+     */
+    public static DoubleArrayList getEventAttributeValueDurationList(UnifiedSet<EventAttributeValue> eavSet,
+                                                                     String durationType,
+                                                                     UnifiedSet<ActivityInstance> existActivityInstances) {
+
+        double[] array = eavSet.stream()
+                .filter(x -> x.getOccurActivities(existActivityInstances).size() > 0)
+                .mapToDouble(x -> getDurationOfType(x, durationType, existActivityInstances)).toArray();
+
+        return new DoubleArrayList(array);
+    }
+
+    private static double getDurationOfType(EventAttributeValue eav, String durationType,
+                                            UnifiedSet<ActivityInstance> validActivities) {
+        switch (durationType) {
+            case "total": return eav.getAllDurations(validActivities).sum();
+            case "min": return eav.getAllDurations(validActivities).min();
+            case "median": return eav.getAllDurations(validActivities).median();
+            case "average": return eav.getAllDurations(validActivities).average();
+            case "max": return eav.getAllDurations(validActivities).max();
+            default: return 0;
         }
     }
 
