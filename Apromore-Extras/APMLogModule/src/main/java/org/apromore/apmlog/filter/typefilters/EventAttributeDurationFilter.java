@@ -43,8 +43,6 @@ public class EventAttributeDurationFilter {
     private static boolean conformRule(PTrace trace, LogFilterRule logFilterRule) {
         String attributeKey = logFilterRule.getKey();
 
-
-
         double durRangeFrom = 0, durRangeTo = 0;
         for (RuleValue ruleValue : logFilterRule.getPrimaryValues()) {
             OperationType operationType = ruleValue.getOperationType();

@@ -117,7 +117,7 @@ public class XLogToImmutableLog {
         HashBiMap<String, Integer> indicatorMap = new HashBiMap<>(conceptNameList.size());
         int indicator = 0;
         for (String conceptName : conceptNameList) {
-            indicatorMap.put(conceptName, indicator);
+            indicatorMap.put(conceptName.intern(), indicator);
             indicator += 1;
         }
 

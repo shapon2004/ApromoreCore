@@ -75,65 +75,62 @@ public class CaseSectionAttributeCombinationFilter {
     private static boolean conformCaseToCaseAttrValue(PTrace trace, String firstKey, String secondKey,
                                                       Set<String> primaryValues, Set<String> secondaryValues,
                                                       Inclusion inclusion) {
+
+        String primVal = primaryValues.iterator().next();
+
         UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
+
         if (!caseAttrMap.containsKey(firstKey)) return false;
         if (!caseAttrMap.containsKey(secondKey)) return false;
-        else {
-            if (!primaryValues.contains(caseAttrMap.get(firstKey))) return false;
-            else {
-                switch (inclusion) {
-                    case ALL_VALUES:
-                        Set<String> matchedValues = new HashSet<>();
+        if (!caseAttrMap.get(firstKey).equals(primVal)) return false;
 
-                        for (String caseAttrKey : caseAttrMap.keySet()) {
-                            if (secondaryValues.contains(caseAttrMap.get(caseAttrKey))) {
-                                matchedValues.add(caseAttrMap.get(caseAttrKey));
-                            }
-                        }
-
-                        return matchedValues.size() == secondaryValues.size();
-                    case ANY_VALUE:
-                        for (String caseAttrKey : caseAttrMap.keySet()) {
-                            if (secondaryValues.contains(caseAttrMap.get(caseAttrKey))) {
-                                return true;
-                            }
-                        }
-                }
-            }
+        switch (inclusion) {
+            case ANY_VALUE:
+                return caseAttrMap.entrySet().stream()
+                        .filter(x -> secondaryValues.contains(x.getValue()))
+                        .findFirst()
+                        .orElse(null) != null;
+            case ALL_VALUES:
+                return caseAttrMap.entrySet().stream()
+                        .filter(x -> secondaryValues.contains(x.getValue()))
+                        .map(x -> x.getValue())
+                        .collect(Collectors.toSet()).size() >= secondaryValues.size();
         }
+
         return false;
     }
 
     private static boolean conformCaseToEventAttrValue(PTrace trace, String firstKey, String secondKey,
                                                        Set<String> primaryValues, Set<String> secondaryValues,
                                                        Inclusion inclusion) {
+
+        String primVal = primaryValues.iterator().next();
+
         UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
         if (!caseAttrMap.containsKey(firstKey)) return false;
-        else {
-            String primVal = primaryValues.iterator().next();
-            if (!caseAttrMap.get(firstKey).equals(primVal)) return false;
+        if (!caseAttrMap.get(firstKey).equals(primVal)) return false;
 
-            Map<String, List<ActivityInstance>> grouped = trace.getActivityInstances().stream()
-                    .filter(x -> x.getAttributes().containsKey(secondKey) &&
-                            secondaryValues.contains(x.getAttributes().get(secondKey)))
-                    .collect(Collectors.groupingBy(x -> x.getAttributes().get(secondKey)));
+        List<ActivityInstance> activityList = trace.getActivityInstances();
 
-            LongSummaryStatistics valActSizes = grouped.entrySet().stream()
-                    .collect(Collectors.summarizingLong(x -> x.getValue().size()));
+        switch (inclusion) {
+            case ANY_VALUE:
+                return null != activityList.stream()
+                        .filter(x -> x.getAttributes().containsKey(secondKey))
+                        .filter(x -> secondaryValues.contains(x.getAttributes().get(secondKey)))
+                        .findFirst().orElse(null);
 
-            if (inclusion == Inclusion.ALL_VALUES) {
-                return valActSizes.getMin() > 0 && valActSizes.getCount() == secondaryValues.size();
-            } else return valActSizes.getMax() > 0;
+            case ALL_VALUES:
+                Set<ActivityInstance> matchedVal = activityList.stream()
+                        .filter(x -> x.getAttributes().containsKey(secondKey))
+                        .filter(x -> secondaryValues.contains(x.getAttributes().get(secondKey)))
+                        .collect(Collectors.toSet());
 
+                return matchedVal.size() >= secondaryValues.size();
         }
+
+        return false;
     }
 
-    private static String getConfirmedActivityAttrValue(ActivityInstance activity, String attrKey, Set<String> values) {
-
-        if (!activity.getAttributes().containsKey(attrKey)) return null;
-
-        return values.contains(activity.getAttributes().get(attrKey)) ? activity.getAttributes().get(attrKey) : null;
-    }
 
     private static boolean confirmEventToEventAttrValues(PTrace trace, String firstKey, String secondKey,
                                                          Set<String> primaryValues, Set<String> secondaryValues,
@@ -167,93 +164,49 @@ public class CaseSectionAttributeCombinationFilter {
                         .filter(x -> secondaryValues.contains(x.getAttributes().get(secondKey)))
                         .collect(Collectors.toSet());
 
-//                if (matchedVal.size() >= secondaryValues.size()) {
-//                    System.out.println("");
-//                }
-
                 return matchedVal.size() >= secondaryValues.size();
-
-//                for (ActivityInstance act : activityList) {
-////                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
-//                    String confirmedVal =
-//                            getConformedEventAttrValue(act, firstKey, secondKey, primaryValues, secondaryValues);
-//                    if (confirmedVal != null) return true;
-//                }
-//                break;
         }
 
         return false;
     }
 
-    private static String getConformedEventAttrValue(ActivityInstance event, String firstKey, String secondKey,
-                                                     Set<String> primaryValues, Set<String> secondaryValues) {
-
-        if (!event.getAttributes().containsKey(firstKey)) return null;
-
-        String val = event.getAttributes().get(firstKey).toString();
-
-        if (!primaryValues.contains(val)) return null;
-
-        return conformEventAttributeKeyValue(event, secondKey, secondaryValues);
-    }
-
-    private static String conformCaseAttributeKeyValue(PTrace trace, String attributeKey, Set<String> values) {
-        UnifiedMap<String, String> attrMap = trace.getAttributes();
-        if (!attrMap.containsKey(attributeKey)) return null;
-        return values.contains(attrMap.get(attributeKey)) ? attrMap.get(attributeKey) : null;
-    }
-
-    private static String conformEventAttributeKeyValue(ActivityInstance activityInstance,
-                                                        String attributeKey, Set<String> values) {
-
-        if (!activityInstance.getAttributes().containsKey(attributeKey)) return null;
-
-        String val = activityInstance.getAttributes().get(attributeKey).toString();
-
-        return values.contains(val) ? val : null;
-    }
 
     private static boolean confirmEventToCaseAttrValues(PTrace trace, String firstKey, String secondKey,
                                                         Set<String> primaryValues, Set<String> secondaryValues,
                                                         Inclusion inclusion) {
+
         UnifiedMap<String, String> caseAttrMap = trace.getAttributes();
+
+        if (!caseAttrMap.containsKey(secondKey)) return false;
 
         List<ActivityInstance> activityList = trace.getActivityInstances();
 
         switch (inclusion) {
+            case ANY_VALUE:
+                for (ActivityInstance act : activityList) {
+                    String attrVal = getEventAttributeValue(act, firstKey);
+                    if (attrVal != null && primaryValues.contains(attrVal)) {
+                        String attrVal2 = caseAttrMap.get(secondKey);
+                        if (attrVal2 != null && secondaryValues.contains(attrVal2)) {
+                            return true;
+                        }
+                    }
+                }
+                break;
             case ALL_VALUES:
                 UnifiedSet<String> matchedVals = new UnifiedSet<>();
 
                 for (ActivityInstance act : activityList) {
-//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
                     String attrVal = getEventAttributeValue(act, firstKey);
                     if (attrVal != null && primaryValues.contains(attrVal)) {
                         String attrVal2 = caseAttrMap.get(secondKey);
-                        if (attrVal2 != null) {
-                            if (secondaryValues.contains(attrVal2)) {
-                                matchedVals.add(attrVal2);
-                            }
+                        if (attrVal2 != null && secondaryValues.contains(attrVal2)) {
+                            matchedVals.add(attrVal2);
                         }
                     }
                 }
 
                 return matchedVals.size() == secondaryValues.size();
-            case ANY_VALUE:
-                for (ActivityInstance act : activityList) {
-//                    XEvent event0 = trace.getImmutableEvents().get(act.getImmutableEventIndexes().get(0));
-                    String attrVal = getEventAttributeValue(act, firstKey);
-                    if (attrVal != null) {
-                        if (primaryValues.contains(attrVal)) {
-                            String attrVal2 = caseAttrMap.get(secondKey);
-                            if (attrVal2 != null) {
-                                if (secondaryValues.contains(attrVal2)) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
         }
 
         return false;
