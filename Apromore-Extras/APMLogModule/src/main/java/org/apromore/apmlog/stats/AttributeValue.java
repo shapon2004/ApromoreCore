@@ -21,9 +21,6 @@
  */
 package org.apromore.apmlog.stats;
 
-import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
-
 import java.util.BitSet;
 import java.util.Set;
 

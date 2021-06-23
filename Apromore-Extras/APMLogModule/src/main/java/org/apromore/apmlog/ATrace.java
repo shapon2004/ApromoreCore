@@ -43,7 +43,6 @@ package org.apromore.apmlog;
 
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.logobjects.ImmutableEvent;
-import org.deckfour.xes.model.XEvent;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 

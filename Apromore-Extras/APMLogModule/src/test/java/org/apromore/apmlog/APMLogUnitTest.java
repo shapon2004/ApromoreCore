@@ -28,7 +28,11 @@ import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.LogFilterRuleImpl;
 import org.apromore.apmlog.filter.rules.RuleValue;
-import org.apromore.apmlog.filter.types.*;
+import org.apromore.apmlog.filter.types.Choice;
+import org.apromore.apmlog.filter.types.FilterType;
+import org.apromore.apmlog.filter.types.Inclusion;
+import org.apromore.apmlog.filter.types.OperationType;
+import org.apromore.apmlog.filter.types.Section;
 import org.apromore.apmlog.logobjects.ImmutableLog;
 import org.apromore.apmlog.stats.EventAttributeValue;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
@@ -40,19 +44,22 @@ import org.deckfour.xes.model.XLog;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.*;
-import java.util.stream.Collectors;
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-
-import static org.junit.Assert.assertTrue;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Test suite for {@link APMLog}.
@@ -442,7 +449,7 @@ public class APMLogUnitTest {
         UnifiedSet<EventAttributeValue> eavSet = apmLog.getImmutableEventAttributeValues().get("concept:name");
         DoubleArrayList dal = LogStatsAnalyzer.getEventAttributeValueDurationList(eavSet, "average",
                 new UnifiedSet<>(apmLog.getActivityInstances()));
-        String displayVal = Util.durationShortStringOf(dal.average());
+        String displayVal = Util.durationStringOf(dal.average());
         assertTrue(displayVal.equalsIgnoreCase("18.09 hrs"));
     }
 

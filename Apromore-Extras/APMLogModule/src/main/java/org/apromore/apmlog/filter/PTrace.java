@@ -27,13 +27,10 @@ import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.logobjects.ImmutableTrace;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
 import org.apromore.apmlog.util.Util;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 

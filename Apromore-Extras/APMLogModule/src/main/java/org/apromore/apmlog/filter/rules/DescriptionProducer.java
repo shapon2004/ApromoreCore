@@ -21,8 +21,21 @@
  */
 package org.apromore.apmlog.filter.rules;
 
-import org.apromore.apmlog.APMLog;
-import org.apromore.apmlog.filter.rules.desc.*;
+import org.apromore.apmlog.filter.rules.desc.AttributeArcDurationDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseIDDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseLengthDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseSectionCaseAttributeDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseSectionEventAttributeCombinationDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseSectionEventAttributeDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseTimeDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseUtilisationDesc;
+import org.apromore.apmlog.filter.rules.desc.CaseVariantDesc;
+import org.apromore.apmlog.filter.rules.desc.DurationDesc;
+import org.apromore.apmlog.filter.rules.desc.EventAttributeDurationDesc;
+import org.apromore.apmlog.filter.rules.desc.EventSectionAttributeDesc;
+import org.apromore.apmlog.filter.rules.desc.EventTimeDesc;
+import org.apromore.apmlog.filter.rules.desc.PathDesc;
+import org.apromore.apmlog.filter.rules.desc.ReworkDesc;
 
 public class DescriptionProducer {
 

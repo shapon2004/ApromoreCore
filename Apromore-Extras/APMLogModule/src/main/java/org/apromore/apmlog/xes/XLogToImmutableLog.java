@@ -22,19 +22,28 @@
 package org.apromore.apmlog.xes;
 
 import org.apromore.apmlog.ATrace;
+import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.logobjects.ImmutableEvent;
 import org.apromore.apmlog.logobjects.ImmutableLog;
 import org.apromore.apmlog.logobjects.ImmutableTrace;
-import org.apromore.apmlog.exceptions.EmptyInputException;
 import org.apromore.apmlog.util.Util;
-import org.deckfour.xes.model.*;
+import org.deckfour.xes.model.XAttributable;
+import org.deckfour.xes.model.XAttributeMap;
+import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
+import org.deckfour.xes.model.XTrace;
 import org.deckfour.xes.model.impl.XAttributeLiteralImpl;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class XLogToImmutableLog {

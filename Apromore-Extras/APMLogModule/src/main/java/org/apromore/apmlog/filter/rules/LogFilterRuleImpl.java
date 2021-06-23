@@ -21,16 +21,13 @@
  */
 package org.apromore.apmlog.filter.rules;
 
-import org.apromore.apmlog.APMLog;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.Inclusion;
 import org.apromore.apmlog.filter.types.Section;
-import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class LogFilterRuleImpl implements LogFilterRule, Serializable {

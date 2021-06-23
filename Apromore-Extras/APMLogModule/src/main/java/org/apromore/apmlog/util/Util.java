@@ -99,27 +99,6 @@ public class Util {
         return zdt.format(formatter);
     }
 
-
-    public static String durationShortStringOf(long millis) {
-        double secs = millis / second;
-        double mins = millis / minute;
-        double hrs = millis / hour;
-        double days = millis / day;
-        double wks = millis / week;
-        double mths = millis / month;
-        double yrs = millis / year;
-
-        if (yrs > 1.0D) return df2.format(yrs) + " yrs";
-        if (mths > 1.0D) return df2.format(mths) + " mths";
-        if (wks > 1.0D) return df2.format(wks) + " wks";
-        if (days > 1.0D) return df2.format(days) + " d";
-        if (hrs > 1.0D) return df2.format(hrs) + " hrs";
-        if (mins > 1.0D) return df2.format(mins) + " mins";
-        if (secs > 1.0D) return df2.format(secs) + " secs";
-        if (millis > 1.0D) return df2.format(millis) + " millis";
-        return "instant";
-    }
-
     public static String durationStringOf(double millis) {
 
         double secs = millis / second;
@@ -139,26 +118,6 @@ public class Util {
         if (secs > 1) return df2.format(secs) + " secs";
         if (millis > 0) return df2.format(millis) + " millis";
 
-        return "instant";
-    }
-
-    public static String durationShortStringOf(double millis) {
-        double secs = millis / second;
-        double mins = millis / minute;
-        double hrs = millis / hour;
-        double days = millis / day;
-        double wks = millis / week;
-        double mths = millis / month;
-        double yrs = millis / year;
-
-        if (yrs > 1.0D) return df2.format(yrs) + " yrs";
-        if (mths > 1.0D) return df2.format(mths) + " mths";
-        if (wks > 1.0D) return df2.format(wks) + " wks";
-        if (days > 1.0D) return df2.format(days) + " d";
-        if (hrs > 1.0D) return df2.format(hrs) + " hrs";
-        if (mins > 1.0D) return df2.format(mins) + " mins";
-        if (secs > 1.0D) return df2.format(secs) + " secs";
-        if (millis > 1.0D) return df2.format(millis) + " millis";
         return "instant";
     }
 
