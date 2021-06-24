@@ -24,56 +24,39 @@ package org.apromore.apmlog.stats;
 import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.util.Util;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
-import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.io.Serializable;
 import java.util.BitSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EventAttributeValue implements AttributeValue, Serializable {
     private String value;
-
-    private double valueFrequency;
-
-    // the percentage of cases
-    private String frequency;
-
-    // ratio is: the cases of this value / the max cases among all attribute values
-    private double ratio;
-
-    // the number of events that contain this value
     private long total;
-
     private long totalCases;
-
-    // for default sorting
-    private double oppCases;
-    private double oppActivitySize;
-
-    private double percent; // case section
-
-//    private IntArrayList occurCaseIndexes;
     private UnifiedSet<ActivityInstance> occurActivities;
+
+    // ====================================================================
+    // Avoid accessing this value directly. Use getOccurCasesIndexSet()
+    // ====================================================================
     private Set<Integer> occurCasesIndexSet;
 
     public EventAttributeValue(String value, UnifiedSet<ActivityInstance> occurActivities, long totalCasesOfLog) {
         this.value = value;
         this.occurActivities = occurActivities;
-        occurCasesIndexSet = occurActivities.stream()
-                .map(ActivityInstance::getImmutableTraceIndex)
-                .collect(Collectors.toSet());
         this.totalCases = totalCasesOfLog;
-        this.percent = 100 * ((double) occurCasesIndexSet.size() / totalCases);
-        this.frequency = String.format("%.2f", percent );
-        this.oppCases = totalCasesOfLog - occurCasesIndexSet.size();
-        this.total = occurActivities.stream().collect(Collectors.summingLong(ActivityInstance::getEventSize));
+
+        // =========================================================================
+        // Doing operations here will cause performance problem. Avoid it.
+        // =========================================================================
     }
 
 
     public Set<Integer> getOccurCasesIndexSet() {
+        // ==================
+        // Late binding.
+        // ==================
         if (occurCasesIndexSet == null) {
             occurCasesIndexSet = occurActivities.stream()
                     .map(ActivityInstance::getImmutableTraceIndex)
@@ -87,32 +70,35 @@ public class EventAttributeValue implements AttributeValue, Serializable {
     }
 
     public long getCases() {
-        return occurCasesIndexSet.size();
+        return getOccurCasesIndexSet().size();
     }
 
     public long getCases(BitSet validCaseIndexes) {
-        return occurCasesIndexSet.stream().filter(x -> validCaseIndexes.get(x)).collect(Collectors.toSet()).size();
+        return getOccurCasesIndexSet().stream().filter(x -> validCaseIndexes.get(x)).collect(Collectors.toSet()).size();
     }
 
     public String getFrequency() {
-        return frequency;
+        return String.format("%.2f", getPercent() );
     }
 
     public long getTotal() {
+        if (total < 1) {
+            total = occurActivities.stream().collect(Collectors.summingLong(ActivityInstance::getEventSize));
+        }
         return total;
 
     }
 
     public double getRatio() {
-        return ratio;
+        return getOccurCasesIndexSet().size() / (double) totalCases;
     }
 
     public double getOppCases() {
-        return oppCases;
+        return totalCases - getOccurCasesIndexSet().size();
     }
 
     public double getPercent() {
-        return percent;
+        return 100 * ((double) getOccurCasesIndexSet().size() / totalCases);
     }
 
     public UnifiedSet<ActivityInstance> getOccurActivities(UnifiedSet<ActivityInstance> validActivities) {
@@ -125,12 +111,23 @@ public class EventAttributeValue implements AttributeValue, Serializable {
     }
 
     public double getTotalDuration(UnifiedSet<ActivityInstance> validActivities) {
-        double[] array = occurActivities.stream()
-                .filter(x -> validActivities.contains(x))
-                .mapToDouble(s -> s.getDuration())
-                .toArray();
-        DoubleArrayList dal = new DoubleArrayList(array);
-        return dal.sum();
+        return getAllDurations(validActivities).sum();
+    }
+
+    public double getMinDuration(UnifiedSet<ActivityInstance> validActivities) {
+        return getAllDurations(validActivities).min();
+    }
+
+    public double getMedianDuration(UnifiedSet<ActivityInstance> validActivities) {
+        return getAllDurations(validActivities).median();
+    }
+
+    public double getAverageDuration(UnifiedSet<ActivityInstance> validActivities) {
+        return getAllDurations(validActivities).average();
+    }
+
+    public double getMaxDuration(UnifiedSet<ActivityInstance> validActivities) {
+        return getAllDurations(validActivities).max();
     }
 
     public Set<Double> getUniqueDurations(UnifiedSet<ActivityInstance> validActivities) {

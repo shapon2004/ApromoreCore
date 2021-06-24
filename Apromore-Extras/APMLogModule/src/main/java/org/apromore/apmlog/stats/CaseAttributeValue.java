@@ -52,11 +52,12 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
 
     private DoubleArrayList allDurations;
 
-    public CaseAttributeValue(String value, IntArrayList occurCaseIndexes, long totalCases) {
+    public CaseAttributeValue(String value, IntArrayList occurCaseIndexes, DoubleArrayList allDurations, long totalCases) {
         this.value = value.intern();
         this.occurCaseIndexes = occurCaseIndexes;
         this.percent = 100 * ((double) occurCaseIndexes.size() / totalCases);
         this.frequency = String.format("%.2f",  percent );
+        this.allDurations = allDurations;
         this.totalCases = totalCases;
 
         this.oppCases = totalCases - occurCaseIndexes.size();
@@ -117,10 +118,6 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
         return occurCaseIndexes.size();
     }
 
-    public void setAllDurations(DoubleArrayList durations) {
-        this.allDurations = durations;
-    }
-
     public double getMinDuration() {
         return allDurations.min();
     }
@@ -171,6 +168,6 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
         for (int i = 0; i < occurCaseIndexes.size(); i++) {
             occurCaseIndexesClone.add(occurCaseIndexes.get(i));
         }
-        return new CaseAttributeValue(value, occurCaseIndexesClone, totalCases);
+        return new CaseAttributeValue(value, occurCaseIndexesClone, allDurations, totalCases);
     }
 }
