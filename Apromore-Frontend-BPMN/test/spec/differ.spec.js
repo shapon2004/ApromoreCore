@@ -1,6 +1,6 @@
 'use strict';
 
-var TestHelper = require('bpmn-js/test/TestHelper');
+//var TestHelper = require('bpmn-js/test/TestHelper');
 
 
 var _ = require('lodash');
@@ -10,11 +10,11 @@ var fs = require('fs');
 
 var BpmnModdle = require('bpmn-moddle');
 
-var Differ = require('../../lib/differ'),
-    SimpleChangeHandler = require('../../lib/change-handler');
+var Differ = require('../../src/differ'),
+    SimpleChangeHandler = require('../../src/change-handler');
 
 
-TestHelper.insertCSS('diff.css', fs.readFileSync('assets/diff.css', 'utf-8'));
+//TestHelper.insertCSS('diff.css', fs.readFileSync('../../dist/diff.css', 'utf-8'));
 
 
 function importDiagrams(a, b, done) {
