@@ -1,31 +1,39 @@
 'use strict';
 
-//var TestHelper = require('bpmn-js/test/TestHelper');
+//var TestHelper = require('bpmn-js/../TestHelper');
 
 
 var _ = require('lodash');
 
 var fs = require('fs');
 
-
-var BpmnModdle = require('bpmn-moddle');
+import BpmnModdle from 'bpmn-moddle';
 
 var Differ = require('../../src/differ'),
     SimpleChangeHandler = require('../../src/change-handler');
 
 
-//TestHelper.insertCSS('diff.css', fs.readFileSync('../../dist/diff.css', 'utf-8'));
+//TestHelper.insertCSS('diff.css', require('../../dist/diff.css'));
 
 
 function importDiagrams(a, b, done) {
+  let bpmnModdle = new BpmnModdle();
 
-  new BpmnModdle().fromXML(a, function(err, adefs) {
+  try {
+    let resA = bpmnModdle.fromXML(a);
+    let resB = bpmnModdle.fromXML(b);
+  }
+  catch (err) {
 
+  }
+
+
+  bpmnModdle.fromXML(a, function(err, adefs) {
     if (err) {
       return done(err);
     }
 
-    new BpmnModdle().fromXML(b, function(err, bdefs) {
+    bpmnModdle.fromXML(b, function(err, bdefs) {
       if (err) {
         return done(err);
       } else {
@@ -61,8 +69,11 @@ describe('diffing', function() {
 
     it('should discover add', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/add/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/add/after.bpmn', 'utf-8');
+      // var aDiagram = require('../fixtures/add/before.bpmn');
+      // var bDiagram = require('../fixtures/add/after.bpmn');
+
+      var aDiagram = require('../fixtures/add/before.bpmn').default;
+      var bDiagram = require('../fixtures/add/after.bpmn').default;
 
       // when
       diff(aDiagram, bDiagram, function(err, results, aDefinitions, bDefinitions) {
@@ -86,8 +97,11 @@ describe('diffing', function() {
 
     it('should discover remove', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/remove/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/remove/after.bpmn', 'utf-8');
+      // var aDiagram = require('../fixtures/remove/before.bpmn');
+      // var bDiagram = require('../fixtures/remove/after.bpmn');
+
+      var aDiagram = require('../fixtures/remove/before.bpmn').default;
+      var bDiagram = require('../fixtures/remove/after.bpmn').default;
 
       // when
       diff(aDiagram, bDiagram, function(err, results, aDefinitions, bDefinitions) {
@@ -110,8 +124,11 @@ describe('diffing', function() {
 
     it('should discover change', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/change/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/change/after.bpmn', 'utf-8');
+      // var aDiagram = require('../fixtures/change/before.bpmn');
+      // var bDiagram = require('../fixtures/change/after.bpmn');
+
+      var aDiagram = require('../fixtures/change/before.bpmn').default;
+      var bDiagram = require('../fixtures/change/after.bpmn').default;
 
       // when
       diff(aDiagram, bDiagram, function(err, results, aDefinitions, bDefinitions) {
@@ -138,8 +155,11 @@ describe('diffing', function() {
 
     it('should discover layout-change', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/layout-change/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/layout-change/after.bpmn', 'utf-8');
+      // var aDiagram = require('../fixtures/layout-change/before.bpmn');
+      // var bDiagram = require('../fixtures/layout-change/after.bpmn');
+
+      var aDiagram = require('../fixtures/layout-change/before.bpmn').default;
+      var bDiagram = require('../fixtures/layout-change/after.bpmn').default;
 
       // when
       diff(aDiagram, bDiagram, function(err, results, aDefinitions, bDefinitions) {
@@ -166,8 +186,11 @@ describe('diffing', function() {
 
     it('should diff with default handler', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/layout-change/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/layout-change/after.bpmn', 'utf-8');
+      // var aDiagram = require('../fixtures/layout-change/before.bpmn');
+      // var bDiagram = require('../fixtures/layout-change/after.bpmn');
+
+      var aDiagram = require('../fixtures/layout-change/before.bpmn').default;
+      var bDiagram = require('../fixtures/layout-change/after.bpmn').default;
 
       // when
       importDiagrams(aDiagram, bDiagram, function(err, aDefinitions, bDefinitions) {
@@ -193,8 +216,8 @@ describe('diffing', function() {
 
     it('should diff via static diff', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/layout-change/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/layout-change/after.bpmn', 'utf-8');
+      var aDiagram = require('../fixtures/layout-change/before.bpmn').default;
+      var bDiagram = require('../fixtures/layout-change/after.bpmn').default;
 
       // when
       importDiagrams(aDiagram, bDiagram, function(err, aDefinitions, bDefinitions) {
@@ -225,8 +248,8 @@ describe('diffing', function() {
 
     it('should diff collaboration pools / lanes', function(done) {
 
-      var aDiagram = fs.readFileSync('test/fixtures/collaboration/before.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('test/fixtures/collaboration/after.bpmn', 'utf-8');
+      var aDiagram = require('../fixtures/collaboration/before.bpmn').default;
+      var bDiagram = require('../fixtures/collaboration/after.bpmn').default;
 
 
       // when
@@ -249,8 +272,8 @@ describe('diffing', function() {
 
     it('should diff pizza collaboration StartEvent move', function(done) {
 
-      var aDiagram = fs.readFileSync('resources/pizza-collaboration/start-event-old.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('resources/pizza-collaboration/start-event-new.bpmn', 'utf-8');
+      var aDiagram = require('../fixtures/pizza-collaboration/start-event-old.bpmn').default;
+      var bDiagram = require('../fixtures/pizza-collaboration/start-event-new.bpmn').default;
 
 
       // when
@@ -273,8 +296,8 @@ describe('diffing', function() {
 
     it('should diff pizza collaboration', function(done) {
 
-      var aDiagram = fs.readFileSync('resources/pizza-collaboration/old.bpmn', 'utf-8');
-      var bDiagram = fs.readFileSync('resources/pizza-collaboration/new.bpmn', 'utf-8');
+      var aDiagram = require('../fixtures/pizza-collaboration/old.bpmn').default;
+      var bDiagram = require('../fixtures/pizza-collaboration/new.bpmn').default;
 
 
       // when

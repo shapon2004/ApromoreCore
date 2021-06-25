@@ -14,7 +14,9 @@ module.exports = function (config) {
             {pattern: 'test/fixtures/change/*.bpmn', watched: false, served: true, included: false},
             {pattern: 'test/fixtures/collaboration/*.bpmn', watched: false, served: true, included: false},
             {pattern: 'test/fixtures/layout-change/*.bpmn', watched: false, served: true, included: false},
-            {pattern: 'test/fixtures/remove/*.bpmn', watched: false, served: true, included: false}
+            {pattern: 'test/fixtures/remove/*.bpmn', watched: false, served: true, included: false},
+
+            {pattern: 'test/spec/*.spec.js', watched: false},
         ],
 
         preprocessors: {
