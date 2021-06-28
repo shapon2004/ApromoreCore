@@ -43,6 +43,8 @@ public abstract class AbstractTraceImpl implements ATrace, Serializable {
     protected final DoubleArrayList processingTimes = new DoubleArrayList();
     protected final DoubleArrayList waitingTimes = new DoubleArrayList();
     protected double caseUtilization;
+    protected long startTime;
+    protected long endTime;
 
     // ========================================================
     // Initiation method
@@ -112,12 +114,12 @@ public abstract class AbstractTraceImpl implements ATrace, Serializable {
 
     @Override
     public long getStartTime() {
-        return !activityInstances.isEmpty() ? activityInstances.get(0).getStartTime() : 0;
+        return startTime;
     }
 
     @Override
     public long getEndTime() {
-        return !activityInstances.isEmpty() ? activityInstances.get(activityInstances.size() - 1).getEndTime() : 0;
+        return endTime;
     }
 
     @Override
@@ -181,6 +183,9 @@ public abstract class AbstractTraceImpl implements ATrace, Serializable {
 
         waitingTimes.clear();
         waitingTimes.addAll(TimeStatsProcessor.getWaitingTimes(activityInstances));
+
+        startTime = TimeStatsProcessor.getStartTime(activityInstances);
+        endTime = TimeStatsProcessor.getEndTime(activityInstances);
 
         caseUtilization =
                 TimeStatsProcessor.getCaseUtilization(activityInstances, getProcessingTimes(), getWaitingTimes());
