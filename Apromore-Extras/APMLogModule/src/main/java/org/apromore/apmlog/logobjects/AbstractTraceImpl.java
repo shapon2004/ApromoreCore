@@ -179,16 +179,20 @@ public abstract class AbstractTraceImpl implements ATrace, Serializable {
     // ===============================================================================================================
     protected void updateTimeStats() {
         processingTimes.clear();
-        processingTimes.addAll(TimeStatsProcessor.getProcessingTimes(activityInstances));
-
         waitingTimes.clear();
-        waitingTimes.addAll(TimeStatsProcessor.getWaitingTimes(activityInstances));
+        startTime = 0;
+        endTime = 0;
 
-        startTime = TimeStatsProcessor.getStartTime(activityInstances);
-        endTime = TimeStatsProcessor.getEndTime(activityInstances);
+        if (!activityInstances.isEmpty()) {
+            processingTimes.addAll(TimeStatsProcessor.getProcessingTimes(activityInstances));
+            waitingTimes.addAll(TimeStatsProcessor.getWaitingTimes(activityInstances));
 
-        caseUtilization =
-                TimeStatsProcessor.getCaseUtilization(activityInstances, getProcessingTimes(), getWaitingTimes());
+            startTime = TimeStatsProcessor.getStartTime(activityInstances);
+            endTime = TimeStatsProcessor.getEndTime(activityInstances);
+
+            caseUtilization =
+                    TimeStatsProcessor.getCaseUtilization(activityInstances, getProcessingTimes(), getWaitingTimes());
+        }
     }
 
 }
