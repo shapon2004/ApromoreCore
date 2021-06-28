@@ -261,6 +261,8 @@ public class LogStatsAnalyzer {
         UnifiedSet<ActivityInstance> existActs = new UnifiedSet<>(apmLog.getActivityInstances());
 
         return v.getOccurActivities(existActs).stream()
+                .filter(x -> getParentTrace(x.getParentTraceId(), apmLog) != null)
+                .filter(x -> getParentTrace(x.getParentTraceId(), apmLog).getNextOf(x) != null)
                 .collect(Collectors.toMap(x -> x, x -> getParentTrace(x.getParentTraceId(), apmLog).getNextOf(x)));
     }
 
