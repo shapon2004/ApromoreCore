@@ -21,17 +21,17 @@
  */
 package org.apromore.apmlog.filter.typefilters;
 
-import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.OperationType;
+import org.apromore.apmlog.logobjects.ActivityInstance;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventAttributeDurationFilter {
+public class EventAttributeDurationFilter extends AbstractAttributeDurationFilter {
     public static boolean toKeep(PTrace trace, LogFilterRule logFilterRule) {
         Choice choice = logFilterRule.getChoice();
         switch (choice) {
@@ -54,13 +54,13 @@ public class EventAttributeDurationFilter {
 
         List<Double> durList = getAttributeDurationList(trace, attributeKey, attributeValue);
 
-        if (durList.size() < 1) {
-            return false;
-        } else {
-            for (double dur : durList) {
-                if (dur >= durRangeFrom && dur <= durRangeTo) {
-                    return true;
-                }
+        if (durList.size() < 1) return false;
+
+        if (containsInvalidDuration(durList, durRangeFrom, durRangeTo)) return false;
+
+        for (double dur : durList) {
+            if (dur >= durRangeFrom && dur <= durRangeTo) {
+                return true;
             }
         }
 

@@ -21,11 +21,11 @@
  */
 package org.apromore.apmlog.filter.typefilters;
 
-import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.OperationType;
+import org.apromore.apmlog.logobjects.ActivityInstance;
 
 
 public class EventTimeFilter {
@@ -50,9 +50,5 @@ public class EventTimeFilter {
 
         return activityInstance.getStartTime() >= fromTime && activityInstance.getEndTime() <= toTime;
 
-    }
-
-    private static boolean withinTimeRange(long fromTime, long toTime, long eventEpochMilli) {
-        return eventEpochMilli >= fromTime && eventEpochMilli <= toTime;
     }
 }

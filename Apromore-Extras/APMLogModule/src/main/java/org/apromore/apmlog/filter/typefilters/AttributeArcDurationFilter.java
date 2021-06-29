@@ -21,19 +21,19 @@
  */
 package org.apromore.apmlog.filter.typefilters;
 
-import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.apromore.apmlog.filter.PTrace;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.OperationType;
+import org.apromore.apmlog.logobjects.ActivityInstance;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AttributeArcDurationFilter {
+public class AttributeArcDurationFilter extends AbstractAttributeDurationFilter {
     public static boolean toKeep(PTrace trace, LogFilterRule logFilterRule) {
         Choice choice = logFilterRule.getChoice();
         switch (choice) {
@@ -55,7 +55,6 @@ public class AttributeArcDurationFilter {
             }
         }
 
-
         double lowBoundVal = 0, upBoundVal = 0;
         for (RuleValue ruleValue : logFilterRule.getSecondaryValues()) {
             OperationType operationType = ruleValue.getOperationType();
@@ -69,6 +68,8 @@ public class AttributeArcDurationFilter {
 
         List<Double> durList = getAttributeToAttributeDurationList(activityList, attributeKey,
                 fromVal, toVal, lowBoundVal, upBoundVal);
+
+        if (containsInvalidDuration(durList, lowBoundVal, upBoundVal)) return false;
 
         return durList.size() > 0;
     }

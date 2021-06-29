@@ -200,10 +200,9 @@ public class LogStatsAnalyzer {
         }
     }
 
-    // ===================================================================================================
-    // PD supported methods
-    // ===================================================================================================
-
+    // ================================
+    // PD specific method
+    // ================================
     public static int getNodeDurationSize(String attributeKey, String value, APMLog apmLog) {
         if (!apmLog.getImmutableEventAttributeValues().containsKey(attributeKey)) return 0;
 
@@ -224,6 +223,9 @@ public class LogStatsAnalyzer {
         return allDurs.length;
     }
 
+    // ================================
+    // PD specific method
+    // ================================
     public static int getArcDurationSize(String key, String sourceNode, String targetNode, APMLog apmLog) {
 
         UnifiedSet<EventAttributeValue> set = apmLog.getImmutableEventAttributeValues().get(key);
