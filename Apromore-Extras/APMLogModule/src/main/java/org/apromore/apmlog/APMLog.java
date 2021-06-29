@@ -58,6 +58,8 @@ import static java.util.Map.Entry.comparingByValue;
  * PLog contains indexes. It is the mutable log object for runtime operations.
  */
 public interface APMLog {
+    Set<Integer> getCaseIndexes();
+    List<AActivity> getActivities();
 
     String getLogName();
 

@@ -31,17 +31,21 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.csvimporter.listener.CsvImportListener;
 import org.apromore.service.UserMetadataService;
+import org.apromore.service.csvimporter.exception.EmptyHeaderException;
+import org.apromore.service.csvimporter.exception.UnsupportedSeparatorException;
 import org.apromore.service.csvimporter.services.ParquetFactoryProvider;
 import org.apromore.service.csvimporter.services.legacy.LogImporterProvider;
 import org.apromore.util.UserMetadataTypeEnum;
 import org.slf4j.Logger;
 import org.zkoss.json.JSONObject;
 import org.zkoss.json.JSONValue;
+import org.zkoss.util.Locales;
 import org.zkoss.util.media.Media;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.Button;
 import org.zkoss.zul.Label;
+import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
 
 import java.io.IOException;
@@ -79,6 +83,12 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
         this.logImporterProvider = logImporterProvider;
     }
 
+    public ResourceBundle getLabels() {
+        return ResourceBundle.getBundle("WEB-INF.zk-label",
+            Locales.getCurrent(),
+            CSVImporterController.class.getClassLoader());
+    }
+
     // Implementation of FileImporterPlugin
 
     public void setUserMetadataService(UserMetadataService newUserMetadataService) {
@@ -111,13 +121,20 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
                 List<String> header = new ArrayList<>();
                 String fileEncoding = "UTF-8";
                 CSVFileReader csvFileReader = new CSVFileReader();
-
-                try (CSVReader csvReader = csvFileReader.newCSVReader(media, fileEncoding)) {
+                try {
+                    CSVReader csvReader = csvFileReader.newCSVReader(media, fileEncoding);
                     header = Arrays.asList(csvReader.readNext());
+                } catch(EmptyHeaderException e) {
+                    Messagebox.show(getLabels().getString("headerEmpty_message"));
+                    return;
+                } catch(UnsupportedSeparatorException e) {
+                    Messagebox.show(getLabels().getString("unsupportedSeparator_message"));
+                    return;
                 } catch (IOException e) {
+                    Messagebox.show(getLabels().getString("failedImport_message"));
                     LOGGER.error("Unable to read CSV", e);
+                    return;
                 }
-
                 // Get saved schema mapping from DB
                 List<Usermetadata> mappingJSONList;
                 Set<Usermetadata> usermetadataSet = null;
@@ -127,6 +144,7 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
                             username);
                 } catch (UserNotFoundException e) {
                     LOGGER.error("Unable to find user " + username, e);
+                    return;
                 }
 
                 if (usermetadataSet != null) {
@@ -140,18 +158,21 @@ public class CSVImporterFileImporterPlugin implements FileImporterPlugin {
 
                     // Matching from the latest record
                     for (int i = mappingJSONList.size() - 1; i >= 0; i--) {
-                        System.out.println(mappingJSONList.get(i));
 
                         Usermetadata usermetadata = mappingJSONList.get(i);
 
                         JSONObject jsonObject = (JSONObject) JSONValue.parse(usermetadata.getContent());
 
-                        System.out.println(JSONValue.parse(jsonObject.get("header").toString()));
+                        assert jsonObject != null;
+                        LOGGER.debug("Trying to match with stored schema: {}", JSONValue.parse(jsonObject.get("header").toString()));
 
                         List<String> sampleHeader = (List<String>) jsonObject.get("header");
 
-                        // Attempt 1: try to create a popup window on top of csvImporter window here.
+                        // Create a popup window on top of Importer window to prompt matched schema
                         if (sampleHeader != null && sampleHeader.equals(header)) try {
+
+                            LOGGER.debug("Found matched schema: {} : {}", sampleHeader, header);
+
                             Window matchedMappingPopUp =
                                     (Window) portalContext.getUI().createComponent(getClass().getClassLoader(), "zul" +
                                             "/matchedMapping.zul", null, null);

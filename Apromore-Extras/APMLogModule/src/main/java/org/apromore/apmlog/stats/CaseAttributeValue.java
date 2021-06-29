@@ -24,6 +24,7 @@ package org.apromore.apmlog.stats;
 import org.apromore.apmlog.util.Util;
 import org.eclipse.collections.impl.list.mutable.primitive.DoubleArrayList;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
+import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -47,6 +48,7 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
     private double oppCases;
 
     private IntArrayList occurCaseIndexes;
+    private UnifiedSet<Integer> occurCaseIndexSet;
 
     private long totalCases;
 
@@ -61,11 +63,22 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
         this.totalCases = totalCases;
 
         this.oppCases = totalCases - occurCaseIndexes.size();
+
+        occurCaseIndexSet = Arrays.stream(occurCaseIndexes.toArray()).boxed().collect(Collectors.toCollection(UnifiedSet::new));
+    }
+
+    public CaseAttributeValue(String value, UnifiedSet<Integer> occurCaseIndexSet, long totalCases) {
+        this.value = value.intern();
+        this.occurCaseIndexSet = occurCaseIndexSet;
+        this.percent = 100 * ((double) occurCaseIndexSet.size() / totalCases);
+        this.frequency = String.format("%.2f",  percent );
+        this.totalCases = totalCases;
+
+        this.oppCases = totalCases - occurCaseIndexSet.size();
     }
 
     public Set<Integer> getOccurCasesIndexSet() {
-        List<Integer> list = Arrays.stream(occurCaseIndexes.toArray()).boxed().collect(Collectors.toList());
-        return new HashSet<>(list);
+        return occurCaseIndexSet;
     }
 
     public void setRatio(double ratio) {
@@ -87,7 +100,7 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
     }
 
     public String getFrequency() {
-        return frequency;
+        return String.format("%.2f",  getPercent() );
     }
 
     public double getRatio() {
@@ -99,7 +112,7 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
     }
 
     public double getPercent() {
-        return percent;
+        return 100 * ((double) getOccurCasesIndexSet().size() / totalCases);
     }
 
     public double getInterCasesDoubleValue(BitSet validCaseIndexes) {
@@ -159,8 +172,9 @@ public class CaseAttributeValue implements AttributeValue, Serializable {
         else return Double.valueOf(value);
     }
 
+    @Override
     public IntArrayList getOccurCaseIndexes() {
-        return occurCaseIndexes;
+        return new IntArrayList(getOccurCasesIndexSet().stream().mapToInt(x->x).toArray());
     }
 
     public CaseAttributeValue clone() {

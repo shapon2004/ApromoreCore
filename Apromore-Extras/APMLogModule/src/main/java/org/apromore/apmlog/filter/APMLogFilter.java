@@ -186,6 +186,8 @@ public class APMLogFilter {
         BitSet validTracesBS = new BitSet(pLog.getImmutableLog().size());
         for (PTrace trace : traces) {
             validTracesBS.set(trace.getImmutableIndex());
+
+            trace.updateTimeStats();
         }
 
         pLog.setValidTraceIndexBS(validTracesBS);
