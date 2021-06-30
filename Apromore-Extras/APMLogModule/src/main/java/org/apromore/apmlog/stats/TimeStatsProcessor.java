@@ -128,4 +128,6 @@ public class TimeStatsProcessor {
         long endTime = activityInstance.getEndTime();
         return endTime > startTime && endTime > 0 && startTime > 0 ? endTime - startTime : 0;
     }
+
+
 }

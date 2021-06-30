@@ -34,8 +34,6 @@ import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Map.Entry.comparingByValue;
-
 /**
  * @author Chii Chang (11/2019)
  * Modified: Chii Chang (03/02/2020)
@@ -58,8 +56,6 @@ import static java.util.Map.Entry.comparingByValue;
  * PLog contains indexes. It is the mutable log object for runtime operations.
  */
 public interface APMLog {
-    Set<Integer> getCaseIndexes();
-    List<AActivity> getActivities();
 
     String getLogName();
 

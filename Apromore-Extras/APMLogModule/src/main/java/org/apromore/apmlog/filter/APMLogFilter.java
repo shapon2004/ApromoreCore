@@ -52,7 +52,7 @@ import org.apromore.apmlog.filter.typefilters.*;
 import org.apromore.apmlog.filter.types.Choice;
 import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.stats.LogStatsAnalyzer;
-
+import org.apromore.apmlog.stats.TimeStatsProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,8 +186,6 @@ public class APMLogFilter {
         BitSet validTracesBS = new BitSet(pLog.getImmutableLog().size());
         for (PTrace trace : traces) {
             validTracesBS.set(trace.getImmutableIndex());
-
-            trace.updateTimeStats();
         }
 
         pLog.setValidTraceIndexBS(validTracesBS);

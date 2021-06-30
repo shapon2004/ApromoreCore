@@ -555,8 +555,8 @@ public class PDAnalyst {
         LOGGER.debug("PLog trace event status: ");
         for (int i=0; i<pTraces.size(); i++) {
             LOGGER.debug("Trace " + i + " event status (event_number:bit):");
-            BitSet eventBitSet = pTraces.get(i).getValidEventIndexBitSet();
-            for (int j=0; j<pTraces.get(i).getOriginalEventList().size(); j++) {
+            BitSet eventBitSet = pTraces.get(i).getValidEventIndexBS();
+            for (int j=0; j<pTraces.get(i).getImmutableEvents().size(); j++) {
                 LOGGER.debug(j + ":" + (eventBitSet.get(j) ? "1" : "0") + ",");
             }
             LOGGER.debug("end");

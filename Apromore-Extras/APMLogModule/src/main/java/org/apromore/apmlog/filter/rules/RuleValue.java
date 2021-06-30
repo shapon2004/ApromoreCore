@@ -21,7 +21,6 @@
  */
 package org.apromore.apmlog.filter.rules;
 
-
 import org.apromore.apmlog.filter.types.FilterType;
 import org.apromore.apmlog.filter.types.OperationType;
 import org.eclipse.collections.impl.map.mutable.UnifiedMap;

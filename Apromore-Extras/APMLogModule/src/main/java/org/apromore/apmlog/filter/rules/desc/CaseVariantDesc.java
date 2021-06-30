@@ -24,11 +24,11 @@ package org.apromore.apmlog.filter.rules.desc;
 import org.apromore.apmlog.filter.rules.LogFilterRule;
 import org.apromore.apmlog.filter.rules.RuleValue;
 
+import java.util.BitSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.BitSet;
 
 public class CaseVariantDesc {
 
