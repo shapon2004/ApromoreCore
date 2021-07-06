@@ -142,10 +142,10 @@ public class PDAnalyst {
         apmLogFilter = new APMLogFilter(apmLog);
         
         // ProcessDiscoverer logic with default attribute
+        this.calendarModel = eventLogService.getCalendarFromLog(contextData.getLogId());
         this.setMainAttribute(configData.getDefaultAttribute());
         this.processDiscoverer = new ProcessDiscoverer(this.attLog);
         this.processVisualizer = new ProcessJSONVisualizer();
-        this.calendarModel = eventLogService.getCalendarFromLog(contextData.getLogId());
     }
     
     // Without filter, for testing only
