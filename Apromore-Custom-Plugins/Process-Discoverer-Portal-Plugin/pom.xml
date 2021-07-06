@@ -197,7 +197,12 @@
             <groupId>org.everit.osgi.bundles</groupId>
             <artifactId>org.everit.osgi.bundles.com.lodborg.interval-tree</artifactId>
             <version>1.0.0</version>
-        </dependency>               
+        </dependency>       
+        
+        <dependency>
+            <groupId>org.apromore</groupId>
+            <artifactId>apromore-calendar</artifactId>
+        </dependency>        
 
         <dependency>
             <groupId>junit</groupId>

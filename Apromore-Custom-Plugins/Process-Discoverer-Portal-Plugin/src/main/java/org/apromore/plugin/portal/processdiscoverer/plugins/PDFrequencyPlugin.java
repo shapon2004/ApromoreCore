@@ -29,14 +29,10 @@ import javax.inject.Inject;
 import org.apromore.logman.attribute.graph.MeasureType;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.logfilter.generic.LogFilterPlugin;
-import org.apromore.service.DomainService;
 import org.apromore.service.EventLogService;
 import org.apromore.service.ProcessService;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.springframework.stereotype.Component;
-import org.zkoss.zk.ui.Desktop;
-import org.zkoss.zk.ui.Executions;
-import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.util.Clients;
 
@@ -46,7 +42,6 @@ public class PDFrequencyPlugin extends PDAbstractPlugin {
     private String label = "Discover model";
     private String groupLabel = "Discover";
 
-    @Inject DomainService domainService;
     @Inject EventLogService eventLogService;
     @Inject ProcessService processService;
     @Inject LogFilterPlugin logFilterPlugin;
@@ -76,15 +71,10 @@ public class PDFrequencyPlugin extends PDAbstractPlugin {
     public void execute(PortalContext context) {
         try {
         	boolean prepare = this.prepare(context, MeasureType.FREQUENCY); //prepare session
-        	Desktop d = Executions.getCurrent().getDesktop();
-        	Session s = Executions.getCurrent().getSession();
-
-                Sessions.getCurrent().setAttribute("domainService", domainService);
-                Sessions.getCurrent().setAttribute("eventLogService", eventLogService);
-                Sessions.getCurrent().setAttribute("processService", processService);
-                Sessions.getCurrent().setAttribute("logFilterPlugin", logFilterPlugin);
-                Sessions.getCurrent().setAttribute("logAnimationService", logAnimationService);
-
+            Sessions.getCurrent().setAttribute("eventLogService", eventLogService);
+            Sessions.getCurrent().setAttribute("processService", processService);
+            Sessions.getCurrent().setAttribute("logFilterPlugin", logFilterPlugin);
+            Sessions.getCurrent().setAttribute("logAnimationService", logAnimationService);
         	if (!prepare) return;
         	Clients.evalJavaScript("window.open('../processdiscoverer/zul/processDiscoverer.zul?id=" + this.getSessionId() + "')");
         } catch (Exception e) {

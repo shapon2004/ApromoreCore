@@ -46,6 +46,7 @@ import org.apromore.apmlog.filter.types.OperationType;
 import org.apromore.apmlog.filter.types.Section;
 import org.apromore.apmlog.stats.AAttributeGraph;
 import org.apromore.apmlog.stats.DurSubGraph;
+import org.apromore.calendar.model.CalendarModel;
 import org.apromore.commons.datetime.DateTimeUtils;
 import org.apromore.commons.datetime.DurationUtils;
 import org.apromore.logman.ALog;
@@ -117,6 +118,9 @@ public class PDAnalyst {
     
     private int sourceLogId; // plugin maintain log ID for Filter; Filter remove value to avoid conflic from multiple plugins
     
+    // Calendar management
+    CalendarModel calendarModel;
+    
     public PDAnalyst(ContextData contextData, ConfigData configData, EventLogService eventLogService) throws Exception {
         XLog xlog = eventLogService.getXLog(contextData.getLogId());
         APMLog apmLog = eventLogService.getAggregatedLog(contextData.getLogId());
@@ -141,6 +145,7 @@ public class PDAnalyst {
         this.setMainAttribute(configData.getDefaultAttribute());
         this.processDiscoverer = new ProcessDiscoverer(this.attLog);
         this.processVisualizer = new ProcessJSONVisualizer();
+        this.calendarModel = eventLogService.getCalendarFromLog(contextData.getLogId());
     }
     
     // Without filter, for testing only
@@ -181,7 +186,6 @@ public class PDAnalyst {
                 userOptions.getSecondaryType(),
                 userOptions.getSecondaryAggregation(),
                 userOptions.getSecondaryRelation(),
-                userOptions.getRelationReader(),
                 null);
     }
     
@@ -204,7 +208,6 @@ public class PDAnalyst {
                 MeasureType.FREQUENCY,
                 MeasureAggregation.CASES,
                 MeasureRelation.ABSOLUTE,
-                null,
                 null);
     }
     
@@ -271,7 +274,7 @@ public class PDAnalyst {
                 mainAttribute = newAttribute;
                 if (attLog == null) {
                     timer = System.currentTimeMillis();
-                    attLog = new AttributeLog(aLog, mainAttribute);
+                    attLog = new AttributeLog(aLog, mainAttribute, this.calendarModel);
                     LOGGER.debug("Create AttributeLog for the perspective attribute: {} ms.", System.currentTimeMillis() - timer);
                 }
                 else {
