@@ -149,10 +149,31 @@ public class CalendarModel {
         ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDateTimeunixTs), ZoneId.of(zoneId));
     return getDuration(zonedStartDateTime, zonedEndDateTime);
   }
-
-
+  
   public Long[] getDuration(Long[] starDateTimeUnixTs, Long[] endDateTimeunixTs) {
-    Long[] resultList = new Long[starDateTimeUnixTs.length];
+      Long[] resultList = new Long[starDateTimeUnixTs.length];
+
+      ZoneId zone = ZoneId.of(zoneId);
+
+      IntStream.range(0, starDateTimeUnixTs.length).parallel().forEach(i -> {
+
+        ZonedDateTime zonedStartDateTime =
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(starDateTimeUnixTs[i]), zone);
+        ZonedDateTime zonedEndDateTime =
+            ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDateTimeunixTs[i]), zone);
+        resultList[i] = getDuration(zonedStartDateTime, zonedEndDateTime).getDuration().toMillis();
+
+      });
+
+      return resultList;
+  }
+
+
+  public long[] getDuration(long[] starDateTimeUnixTs, long[] endDateTimeunixTs) {
+    if (starDateTimeUnixTs == null || starDateTimeUnixTs.length == 0 ||
+        endDateTimeunixTs == null || endDateTimeunixTs.length == 0) return new long[] {};
+      
+    long[] resultList = new long[starDateTimeUnixTs.length];
 
     ZoneId zone = ZoneId.of(zoneId);
 
