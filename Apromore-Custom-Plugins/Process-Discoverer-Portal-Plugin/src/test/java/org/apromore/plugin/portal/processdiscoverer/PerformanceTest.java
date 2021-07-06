@@ -35,7 +35,7 @@ public class PerformanceTest extends TestDataSetup {
             ALog aLog = new ALog(xlog);
             System.out.println("Create ALog: " + (System.currentTimeMillis() - timer) + " ms.");
             ConfigData configData = ConfigData.DEFAULT;
-            PDAnalyst analyst = PDAnalyst.newInstanceWithoutFilter(aLog, configData);
+            PDAnalyst analyst = PDAnalyst.newInstanceWithoutFilter(aLog, configData, getAllDayAllTimeCalendar());
             analyst.discoverProcess(UserOptionsData.DEFAULT(configData));
             System.out.println("Generate JSON data from BPMNDiagram: " + (System.currentTimeMillis() - timer) + " ms.");
         }

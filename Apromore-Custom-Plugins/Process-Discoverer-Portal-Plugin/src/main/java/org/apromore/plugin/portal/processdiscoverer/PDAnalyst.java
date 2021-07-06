@@ -149,8 +149,9 @@ public class PDAnalyst {
     }
     
     // Without filter, for testing only
-    private PDAnalyst(ALog aLog, ConfigData configData) throws Exception {
+    private PDAnalyst(ALog aLog, ConfigData configData, CalendarModel calendarModel) throws Exception {
         this.aLog = aLog;
+        this.calendarModel = calendarModel;
         indexableAttributes = aLog.getAttributeStore().getPerspectiveEventAttributes(
                 configData.getMaxNumberOfUniqueValues(), AttributeType.BOOLEAN);
         this.setMainAttribute(configData.getDefaultAttribute());
@@ -158,8 +159,8 @@ public class PDAnalyst {
         this.processVisualizer = new ProcessJSONVisualizer();
     }
     
-    public static PDAnalyst newInstanceWithoutFilter(ALog aLog, ConfigData configData) throws Exception {
-        return new PDAnalyst(aLog, configData);
+    public static PDAnalyst newInstanceWithoutFilter(ALog aLog, ConfigData configData, CalendarModel calendarModel) throws Exception {
+        return new PDAnalyst(aLog, configData, calendarModel);
     }
     
     public void cleanUp() {
