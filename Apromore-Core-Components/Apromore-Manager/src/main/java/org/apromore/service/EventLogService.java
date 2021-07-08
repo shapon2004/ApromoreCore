@@ -24,6 +24,7 @@
 
 package org.apromore.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -132,4 +133,12 @@ public interface EventLogService {
    * @return CustomCalendar
    */
   CalendarModel getCalendarFromLog(Integer logId);
+
+  /**
+   * Save the file to the default path (volume.export.path) configured in site.properties
+   * @param filename
+   * @param baos
+   * @return
+   */
+  boolean saveFileToVolume(String filename, ByteArrayOutputStream baos, String storagePath);
 }
