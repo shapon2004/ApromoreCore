@@ -27,7 +27,6 @@ import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
 import org.deckfour.xes.model.XLog;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 
@@ -88,7 +87,6 @@ public class PerformanceTest extends TestDataSetup {
         }
     }
 
-    @Ignore
     @Test
     public void test_Performance_Iterations() {
         System.out.println("Read all XLog data objects used in this test into memory");
