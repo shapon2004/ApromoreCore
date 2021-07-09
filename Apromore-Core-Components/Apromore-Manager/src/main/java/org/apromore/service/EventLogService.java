@@ -25,6 +25,7 @@
 package org.apromore.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.apromore.exception.ImportException;
 import org.apromore.exception.UserNotFoundException;
 import org.apromore.portal.model.ExportLogResultType;
 import org.apromore.portal.model.SummariesType;
+import org.apromore.storage.exception.ObjectCreationException;
 import org.deckfour.xes.model.XLog;
 
 /**
@@ -138,7 +140,6 @@ public interface EventLogService {
    * Save the file to the default path (volume.export.path) configured in site.properties
    * @param filename
    * @param baos
-   * @return
    */
-  boolean saveFileToVolume(String filename, ByteArrayOutputStream baos, String storagePath);
+  void saveFileToVolume(String filename, ByteArrayOutputStream baos, String storagePath) throws IOException, ObjectCreationException;
 }
