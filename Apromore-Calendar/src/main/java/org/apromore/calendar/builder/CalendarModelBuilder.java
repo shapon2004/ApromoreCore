@@ -25,6 +25,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.OffsetTime;
 import java.time.ZoneOffset;
+
 import org.apromore.calendar.model.CalendarModel;
 import org.apromore.calendar.model.WorkDayModel;
 
@@ -49,18 +50,26 @@ public class CalendarModelBuilder {
     model.getWorkDays().add(workDayModel);
     return this;
   }
+  
+  public CalendarModelBuilder withAllDayAllTime() {
+      for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
+          withWorkDay(dayOfWeek, OffsetTime.of(0, 0, 0, 0, ZoneOffset.of(model.getZoneId())),
+                  OffsetTime.of(23, 59, 59, 0, ZoneOffset.of(model.getZoneId())), true);
+      }
+      return this;
+  }
 
   public CalendarModelBuilder withWork9to5Day(DayOfWeek dayOfWeek) {
 
-    return withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.UTC),
-        OffsetTime.of(5, 0, 0, 0, ZoneOffset.UTC), true);
+    return withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.of(model.getZoneId())),
+        OffsetTime.of(5, 0, 0, 0, ZoneOffset.of(model.getZoneId())), true);
 
   }
 
   public CalendarModelBuilder withNotWorkDay(DayOfWeek dayOfWeek) {
 
-    return withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.UTC),
-        OffsetTime.of(5, 0, 0, 0, ZoneOffset.UTC), false);
+    return withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.of(model.getZoneId())),
+        OffsetTime.of(5, 0, 0, 0, ZoneOffset.of(model.getZoneId())), false);
 
   }
   
@@ -73,8 +82,8 @@ public class CalendarModelBuilder {
   public CalendarModelBuilder with7DayWorking() {
 
     for (DayOfWeek dayOfWeek : DayOfWeek.values()) {
-      withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.UTC),
-          OffsetTime.of(17, 0, 0, 0, ZoneOffset.UTC), true);
+      withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.of(model.getZoneId())),
+          OffsetTime.of(17, 0, 0, 0, ZoneOffset.of(model.getZoneId())), true);
 
     }
     return this;
@@ -88,14 +97,14 @@ public class CalendarModelBuilder {
         isWorking = false;
       }
 
-      withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.UTC),
-          OffsetTime.of(17, 0, 0, 0, ZoneOffset.UTC), isWorking);
+      withWorkDay(dayOfWeek, OffsetTime.of(9, 0, 0, 0, ZoneOffset.of(model.getZoneId())),
+          OffsetTime.of(17, 0, 0, 0, ZoneOffset.of(model.getZoneId())), isWorking);
 
     }
     return this;
   }
 
-//   
+//
 
 
 }

@@ -24,6 +24,7 @@ package org.apromore.logman;
 
 import java.io.File;
 
+import org.apromore.calendar.builder.CalendarModelBuilder;
 import org.apromore.calendar.model.CalendarModel;
 import org.deckfour.xes.in.XesXmlGZIPParser;
 import org.deckfour.xes.in.XesXmlParser;
@@ -51,7 +52,7 @@ public class DataSetup {
     }
     
     public CalendarModel getAllDayAllTimeCalendar() {
-        return new CalendarModelBuilder().withAllDayAllTime().withZoneId("Australia/Brisbane").build();
+        return new CalendarModelBuilder().withAllDayAllTime().build();
     }
     
     public XLog readEmptyLog() {

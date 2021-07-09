@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
+import org.apromore.calendar.builder.CalendarModelBuilder;
 import org.apromore.calendar.model.CalendarModel;
 import org.deckfour.xes.in.XesXmlGZIPParser;
 import org.deckfour.xes.in.XesXmlParser;
@@ -56,7 +57,7 @@ public class TestDataSetup {
     }
     
     public CalendarModel getAllDayAllTimeCalendar() {
-        return new CalendarModelBuilder().withAllDayAllTime().withZoneId("Australia/Brisbane").build();
+        return new CalendarModelBuilder().withAllDayAllTime().build();
     }
     
     public XLog readEmptyLog() {

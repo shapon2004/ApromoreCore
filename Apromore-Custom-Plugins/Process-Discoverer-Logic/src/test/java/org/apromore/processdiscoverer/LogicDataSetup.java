@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import org.apromore.calendar.builder.CalendarModelBuilder;
 import org.apromore.calendar.model.CalendarModel;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.plugins.bpmn.plugins.BpmnImportPlugin;
@@ -62,7 +63,7 @@ public class LogicDataSetup {
     }
     
     public CalendarModel getAllDayAllTimeCalendar() {
-        return new CalendarModelBuilder().withAllDayAllTime().withZoneId("Australia/Brisbane").build();
+        return new CalendarModelBuilder().withAllDayAllTime().build();
     }
     
     // ----------------------------------------------------
