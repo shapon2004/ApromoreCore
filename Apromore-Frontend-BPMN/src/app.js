@@ -87,11 +87,7 @@ export default function BpmnDiffApp(leftContainerId, rightContainerId, changesCo
             height: '100%',
             width: '100%'
         });
-        let canvasObj = viewer.get('canvas');
-        canvasObj._viewboxChanged = function () {
-            canvasObj._eventBus.fire('canvas.viewbox.changed',
-                {viewbox: canvasObj.viewbox(false)});
-        };
+
         return viewer;
     }
 
@@ -182,6 +178,11 @@ export default function BpmnDiffApp(leftContainerId, rightContainerId, changesCo
             viewer.get('canvas').viewbox(other.get('canvas').viewbox());
 
             showDiff(getViewer(leftContainerId), getViewer(rightContainerId));
+                    let canvasObj = viewer.get('canvas');
+                    canvasObj._viewboxChanged = function () {
+                        canvasObj._eventBus.fire('canvas.viewbox.changed',
+                            {viewbox: canvasObj.viewbox(false)});
+                    };
         }
     }
 
@@ -345,7 +346,7 @@ export default function BpmnDiffApp(leftContainerId, rightContainerId, changesCo
         function addRow(element, type, label) {
             let html =
                 '<tr class="entry">' +
-                '<td>' + (count++) + '</td><td>' + (element.name || '') + '</td>' +
+                '<td>' + (count++) + '</td><td>' + (element.name || element.id) + '</td>' +
                 '<td>' + element.$type.replace('bpmn:', '') + '</td>' +
                 '<td><span class="status">' + label + '</span></td>' +
                 '</tr>';

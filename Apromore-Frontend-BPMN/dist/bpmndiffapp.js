@@ -56941,11 +56941,14 @@ var _diff_json__WEBPACK_IMPORTED_MODULE_4___namespace = /*#__PURE__*/__webpack_r
  * @param changesContainerId: the div container id for the list of changes box
  * @constructor
  */
-function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
+function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId,
+                                    leftDiagramXML, rightDiagramXML) {
 
     //////////// INITIALIZE /////////////////////////////////////
 
     let viewers = createViewers(leftContainerId, rightContainerId);
+
+    loadDiagrams(leftDiagramXML, rightDiagramXML);
 
     jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId + ' .show-hide-toggle').click(function () {
         jquery__WEBPACK_IMPORTED_MODULE_2__('#' + changesContainerId).toggleClass('collapsed');
@@ -57003,7 +57006,7 @@ function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
 
     function loadDiagrams(leftDiagramXML, rightDiagramXML) {
         loadDiagram(leftContainerId, {xml: leftDiagramXML});
-        loadDiagram(rightContainerId, {url: rightDiagramXML});
+        loadDiagram(rightContainerId, {xml: rightDiagramXML});
     }
 
     function createViewer(containerId) {
@@ -57012,11 +57015,7 @@ function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
             height: '100%',
             width: '100%'
         });
-        let canvasObj = viewer.get('canvas');
-        canvasObj._viewboxChanged = function () {
-            canvasObj._eventBus.fire('canvas.viewbox.changed',
-                {viewbox: canvasObj.viewbox(false)});
-        };
+
         return viewer;
     }
 
@@ -57107,6 +57106,11 @@ function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
             viewer.get('canvas').viewbox(other.get('canvas').viewbox());
 
             showDiff(getViewer(leftContainerId), getViewer(rightContainerId));
+                    let canvasObj = viewer.get('canvas');
+                    canvasObj._viewboxChanged = function () {
+                        canvasObj._eventBus.fire('canvas.viewbox.changed',
+                            {viewbox: canvasObj.viewbox(false)});
+                    };
         }
     }
 
@@ -57270,7 +57274,7 @@ function BpmnDiffApp(leftContainerId, rightContainerId, changesContainerId) {
         function addRow(element, type, label) {
             let html =
                 '<tr class="entry">' +
-                '<td>' + (count++) + '</td><td>' + (element.name || '') + '</td>' +
+                '<td>' + (count++) + '</td><td>' + (element.name || element.id) + '</td>' +
                 '<td>' + element.$type.replace('bpmn:', '') + '</td>' +
                 '<td><span class="status">' + label + '</span></td>' +
                 '</tr>';
