@@ -527,17 +527,16 @@ public class EventLogServiceImpl implements EventLogService {
         return calendar != null ? calendarService.getCalendar(calendar.getId()) : null;
     }
 
-    public void saveFileToVolume(String filename, ByteArrayOutputStream baos, String storagePath) throws IOException, ObjectCreationException {
+    public boolean saveFileToVolume(String filename, String rootPath, String prefix,
+                                    ByteArrayOutputStream baos) throws IOException, ObjectCreationException {
 
-        if (storagePath == null) storagePath = config.getStoragePath();
+        StorageClient newStorage = storageFactory.getStorageClient(rootPath);
 
-        StorageClient newStorage = storageFactory.getStorageClient(storagePath);
-
-        OutputStream outputStream;
-
-        outputStream = newStorage.getOutputStream("report", filename);
+        OutputStream outputStream = newStorage.getOutputStream(prefix, filename);
         baos.writeTo(outputStream);
         outputStream.close();
+
+        return true;
     }
 
 }

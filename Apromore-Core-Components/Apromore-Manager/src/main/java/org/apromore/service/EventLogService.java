@@ -137,9 +137,15 @@ public interface EventLogService {
   CalendarModel getCalendarFromLog(Integer logId);
 
   /**
-   * Save the file to the default path (volume.export.path) configured in site.properties
+   * Save the file to the given path
    * @param filename
+   * @param rootPath
+   * @param prefix
    * @param baos
+   * @return
+   * @throws IOException
+   * @throws ObjectCreationException
    */
-  void saveFileToVolume(String filename, ByteArrayOutputStream baos, String storagePath) throws IOException, ObjectCreationException;
+  boolean saveFileToVolume(String filename, String rootPath, String prefix,
+                           ByteArrayOutputStream baos) throws IOException, ObjectCreationException;
 }
