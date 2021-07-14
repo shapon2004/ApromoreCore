@@ -23,14 +23,14 @@
 package org.apromore.plugin.portal.account;
 
 import java.util.Locale;
+import org.apromore.commons.config.ConfigBean;
 import org.apromore.plugin.portal.DefaultPortalPlugin;
 import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
-import org.apromore.portal.ConfigBean;
 import org.apromore.service.SecurityService;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.zkoss.spring.SpringUtil;
 
 
 @Component
@@ -43,6 +43,9 @@ public class ChangePasswordPlugin extends DefaultPortalPlugin {
 
   private SecurityService securityService;
 
+  @Autowired
+  ConfigBean configBean;
+
   ChangePasswordPlugin(SecurityService newSecurityService) {
     this.securityService = newSecurityService;
   }
@@ -51,8 +54,8 @@ public class ChangePasswordPlugin extends DefaultPortalPlugin {
 
   @Override
   public Availability getAvailability() {
-    ConfigBean config = (ConfigBean) SpringUtil.getBean("portalConfig");
-    boolean isUseKeycloakSso = config.isUseKeycloakSso();
+
+    boolean isUseKeycloakSso = configBean.isUseKeycloakSso();
     isUseKeycloakSso = false; // always show change password for now
 
     return isUseKeycloakSso ? Availability.UNAVAILABLE : Availability.AVAILABLE;
