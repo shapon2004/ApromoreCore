@@ -22,9 +22,11 @@
 package org.apromore.plugin.portal.file;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Locale;
@@ -227,10 +229,10 @@ public class DownloadSelectionPlugin extends DefaultPortalPlugin {
         try {
             String filename = logSummary.getName().replace('.','-');
             XLog xlog = eventLogService.getXLog(logSummary.getId());
-            String csvLog = csvExporterLogic.exportCSV(xlog);
-
-            InputStream csvLogStream = new ByteArrayInputStream(csvLog.getBytes(Charset.forName(selectedEncoding.getSelectedItem().getValue().toString())));
-            Filedownload.save(csvLogStream, "text/csv", filename);
+            File file = csvExporterLogic.exportCSV(xlog);
+            byte[] finalbytes = Files.readAllBytes(file.toPath());
+            Filedownload.save(finalbytes, "application/x-gzip", filename + ".csv.gz");
+            Files.delete(file.toPath());
         } catch (RuntimeException e) {
             LOGGER.error("Unable to export log as CSV", e);
             Messagebox.show("Unable to export log as CSV.", "Server error", Messagebox.OK, Messagebox.ERROR);
