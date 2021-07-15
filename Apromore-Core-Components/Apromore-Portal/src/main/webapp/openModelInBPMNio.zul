@@ -21,7 +21,6 @@
   -->
 
 
-<<<<<<< HEAD:Apromore-Core-Components/Apromore-Portal/src/main/webapp/macros/openModelInBPMNio.zul
 <?link rel="shortcut icon" href="~./themes/${labels.theme}/common/img/brand/favicon.ico" ?>
 
 <window id="win" xmlns:n="http://www.zkoss.org/2005/zk/native"
