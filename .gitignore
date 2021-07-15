@@ -47,9 +47,13 @@ Apromore-Assembly/Lucene-Repository
 Apromore-Assembly/Manager-Repository*
 Apromore-Assembly/Parquet-Repository
 Apromore-Assembly/virgo-tomcat-server-3.6.4.RELEASE
+<<<<<<< Updated upstream
 Event-Logs-Repository/
 # Ignore Gradle project-specific cache directory
 .gradle
 
 # Ignore Gradle build output directory
 build
+=======
+/.gradle/
+>>>>>>> Stashed changes
