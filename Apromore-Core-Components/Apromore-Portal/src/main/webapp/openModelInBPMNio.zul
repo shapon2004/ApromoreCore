@@ -108,8 +108,8 @@
       <script src="${arg.editor}/libs/autolayout.js" type="text/javascript"/>
 
       <script src="${arg.editor}/editor/i18n/translation_${arg.langTag}.js" type="text/javascript"/>
-      <script src="${arg.editor}/editor/apromore-editor.js" type="text/javascript"/>
-
+      <script src="${arg.editor}/editor/apromore-editor1.js" type="text/javascript"/>
+      <script src="${arg.editor}/editor/editor.js" type="text/javascript"/>
 
         <z:zk forEach="${arg.plugins}">
             <n:script src="${each.getJavaScriptURI()}" type="text/javascript"/>
