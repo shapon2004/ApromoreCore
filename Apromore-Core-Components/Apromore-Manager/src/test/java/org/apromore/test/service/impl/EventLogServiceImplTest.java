@@ -22,23 +22,7 @@
 
 package org.apromore.test.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.powermock.api.easymock.PowerMock.createMock;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import java.util.stream.Stream;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-
-import junit.framework.Assert;
+import com.google.common.collect.Sets;
 import org.apromore.calendar.service.CustomCalendarService;
 import org.apromore.commons.config.ConfigBean;
 import org.apromore.dao.CustomCalendarRepository;
@@ -73,7 +57,23 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.collect.Sets;
+
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.assertEquals;
+import static org.powermock.api.easymock.PowerMock.createMock;
 
 public class EventLogServiceImplTest {
 
