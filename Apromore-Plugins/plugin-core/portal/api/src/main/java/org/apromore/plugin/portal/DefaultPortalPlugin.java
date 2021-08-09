@@ -48,7 +48,7 @@ public class DefaultPortalPlugin extends DefaultParameterAwarePlugin implements 
 
     @Override
     public String getID() {
-        return null;
+        return this.getItemCode(Locale.getDefault());
     }
 
     @Override
