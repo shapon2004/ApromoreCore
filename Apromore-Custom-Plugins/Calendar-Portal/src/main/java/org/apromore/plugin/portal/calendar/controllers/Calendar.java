@@ -53,10 +53,7 @@ import org.slf4j.Logger;
 import org.zkoss.json.JSONArray;
 import org.zkoss.json.JSONObject;
 import org.zkoss.zk.ui.Executions;
-import org.zkoss.zk.ui.event.Event;
-import org.zkoss.zk.ui.event.EventListener;
-import org.zkoss.zk.ui.event.ForwardEvent;
-import org.zkoss.zk.ui.event.InputEvent;
+import org.zkoss.zk.ui.event.*;
 import org.zkoss.zk.ui.select.SelectorComposer;
 import org.zkoss.zk.ui.select.annotation.Listen;
 import org.zkoss.zk.ui.select.annotation.VariableResolver;
@@ -89,6 +86,8 @@ public class Calendar extends SelectorComposer<Window> {
     private CalendarModel calendarModel;
 
     private boolean calendarExists = false;
+	private Long calendarId;
+	private boolean isNew;
 
     /**
      * For searching time zone id
@@ -148,9 +147,10 @@ public class Calendar extends SelectorComposer<Window> {
 	super.doAfterCompose(win);
 
 	Long calendarId = (Long) Executions.getCurrent().getArg().get("calendarId");
+	isNew = (boolean) Executions.getCurrent().getArg().get("isNew");
 	calendarExists = calendarId != null;
 	calendarModel = !calendarExists ? new CalendarModel() : calendarService.getCalendar(calendarId);
-
+	this.calendarId = calendarModel.getId();
 	populateTimeZone();
 	initialize();
 	win.setTitle("Custom Calendar - " + calendarModel.getName());
@@ -483,7 +483,11 @@ public class Calendar extends SelectorComposer<Window> {
 
     @Listen("onClick = #cancelBtn")
     public void onClickCancelBtn() {
-	getSelf().detach();
+		if (isNew) {
+			EventQueue calendarEventQueue = EventQueues.lookup(CalendarService.EVENT_TOPIC, EventQueues.DESKTOP,true);
+			calendarEventQueue.publish(new Event(Events.ON_CANCEL, null, calendarModel));
+		}
+    	getSelf().detach();
     }
 
 }
