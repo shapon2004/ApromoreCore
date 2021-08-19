@@ -22,7 +22,7 @@
 
 package org.apromore.plugin.portal.processdiscoverer.impl.json;
 
-import org.apromore.plugin.portal.processdiscoverer.vis.InvalidOutputException;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.InvalidOutputException;
 import org.apromore.plugin.portal.processdiscoverer.vis.UnsupportedElementException;
 import org.apromore.processmining.models.graphbased.directed.ContainableDirectedGraphElement;
 import org.json.JSONException;

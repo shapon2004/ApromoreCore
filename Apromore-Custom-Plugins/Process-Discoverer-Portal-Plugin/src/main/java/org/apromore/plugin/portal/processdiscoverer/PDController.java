@@ -62,6 +62,7 @@ import org.apromore.plugin.portal.processdiscoverer.eventlisteners.AnimationCont
 import org.apromore.plugin.portal.processdiscoverer.eventlisteners.BPMNExportController;
 import org.apromore.plugin.portal.processdiscoverer.eventlisteners.LogExportController;
 import org.apromore.plugin.portal.processdiscoverer.eventlisteners.LogFilterController;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.OutOfLimitException;
 import org.apromore.plugin.portal.processdiscoverer.impl.factory.PDFactory;
 import org.apromore.portal.common.UserSessionManager;
 import org.apromore.portal.dialogController.BaseController;
@@ -83,6 +84,7 @@ import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zk.ui.select.annotation.WireVariable;
+import org.zkoss.zk.ui.util.Clients;
 import org.zkoss.zk.ui.util.Composer;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Window;
@@ -193,125 +195,105 @@ public class PDController extends BaseController implements Composer<Component> 
         Executions.getCurrent().pushArg(pageParams);
     }
 
-    public ResourceBundle getLabels() {
-        return ResourceBundle.getBundle("pd", (Locale) Sessions.getCurrent().getAttribute(Attributes.PREFERRED_LOCALE),
-                PDController.class.getClassLoader());
+    @Override
+    public void doAfterCompose(Component comp) throws Exception {
+        this.pdComponent = comp;
+        onCreate(comp);
     }
 
-    public String getLabel(String key) {
-        String label = getLabels().getString(key);
-        if (label == null) {
-            label = "";
-        }
-        return label;
+    @Override
+    public Component query(String selector) {
+        return this.pdComponent.query(selector);
     }
 
-    public String getLabel(String key, String defaultVal) {
-        String label = getLabels().getString(key);
-        if (label == null) {
-            label = defaultVal;
-        }
-        return label;
+    @Override
+    public Component getFellow(String compId) throws ComponentNotFoundException {
+        return pdComponent.getFellow(compId);
     }
-
-    // Note: this method is only valid inside onCreate() as it calls ZK current
-    // Execution
-    private boolean preparePluginSessionId() {
-        pluginSessionId = Executions.getCurrent().getParameter("id");
-        if (pluginSessionId == null)
-            return false;
-        if (UserSessionManager.getEditSession(pluginSessionId) == null)
-            return false;
-        return true;
-    }
-
+    
     // True means the current portal session is not valid to go ahead any more
     // It could be the Apromore Portal session has timed out or user has logged off,
-    // or
-    // or something has made it crashed
-    private boolean preparePortalSession(String pluginSessionId) {
+    private boolean prepareWorkingSession() {
+        pluginSessionId = Executions.getCurrent().getParameter("id");
+        if (pluginSessionId == null) return false;
         portalSession = UserSessionManager.getEditSession(pluginSessionId);
-        if (portalSession == null)
-            return false;
+        if (portalSession == null) return false;
         portalContext = (PortalContext) portalSession.get("context");
         logSummary = (LogSummaryType) portalSession.get("selection");
-
-        sourceLogId = logSummary.getId();
-        sourceLogName = logSummary.getName();
-
-        if (portalContext == null || logSummary == null)
-            return false;
+        if (portalContext == null || logSummary == null) return false;
         try {
             FolderType currentFolder = portalContext.getCurrentFolder();
-            if (currentFolder == null)
-                return false;
+            if (currentFolder == null) return false;
         } catch (Exception ex) {
             return false;
         }
-
-        return true;
-    }
-
-    // This is to check the availability of system services before executing a
-    // related action
-    // E.g. before calling export log/model to the portal.
-    public boolean prepareCriticalServices() {
-        if (pluginSessionId == null) {
-            Messagebox.show(getLabel("sessionTimeout_message"));
-            return false;
-        }
-
-        if (!preparePortalSession(pluginSessionId)) {
-            Messagebox.show(getLabel("sessionTimeout_message"));
-            return false;
-        }
-
+        
+        sourceLogId = logSummary.getId();
+        sourceLogName = logSummary.getName();
         return true;
     }
 
     public void onCreate(Component comp) throws InterruptedException {
+        init(comp);
+        initializeWindow(comp);
+    }
+    
+    private void initializeWindow(Component comp) {
+        if (!prepareWorkingSession()) {
+            Messagebox.show(getLabel("sessionNotInitialized_message"));
+            return;
+        }
+        
+        ApromoreSession session = UserSessionManager.getEditSession(pluginSessionId);
+        PortalContext portalContext = (PortalContext) session.get("context");
+        LogSummaryType logSummary = (LogSummaryType) session.get("selection");
+        pdFactory = (PDFactory) session.get("pdFactory");
+        configData = ConfigData.DEFAULT;
+        userOptions = UserOptionsData.DEFAULT(configData);
+        contextData = ContextData.valueOf(logSummary.getDomain(), portalContext.getCurrentUser().getUsername(),
+                logSummary.getId(), logSummary.getName(),
+                portalContext.getCurrentFolder() == null ? 0 : portalContext.getCurrentFolder().getId(),
+                portalContext.getCurrentFolder() == null ? "Home"
+                        : portalContext.getCurrentFolder().getFolderName());
+        
+        mainWindow = (Window) this.getFellow("win");
+        mainWindow.setTitle(contextData.getLogName());
+
+        //show data waiting popup
+        
+        mainWindow.addEventListener("onWindowInitialized", event -> initializeLogData(comp));
+        Clients.evalJavaScript("Ap.pd.backendWindowInitialized();");
+    }
+    
+    private void initializeLogData(Component comp) {
+        if (mainWindow == null) return;
         try {
-
-            init(comp);
-
-            if (!preparePluginSessionId()) {
-                Messagebox.show(getLabel("sessionNotInitialized_message"));
-                return;
-            }
-
-            if (!prepareCriticalServices()) {
-                return;
-            }
-
-            // Set up Process Analyst
-            ApromoreSession session = UserSessionManager.getEditSession(pluginSessionId);
-            PortalContext portalContext = (PortalContext) session.get("context");
-            LogSummaryType logSummary = (LogSummaryType) session.get("selection");
-            pdFactory = (PDFactory) session.get("pdFactory");
-            configData = ConfigData.DEFAULT;
-            contextData = ContextData.valueOf(logSummary.getDomain(), portalContext.getCurrentUser().getUsername(),
-                    logSummary.getId(), logSummary.getName(),
-                    portalContext.getCurrentFolder() == null ? 0 : portalContext.getCurrentFolder().getId(),
-                    portalContext.getCurrentFolder() == null ? "Home"
-                            : portalContext.getCurrentFolder().getFolderName());
             processAnalyst = new PDAnalyst(contextData, configData, getEventLogService());
+            // Store objects to be cleaned up when the session timeouts
+            LOGGER.debug("Session ID = " + ((HttpSession) Sessions.getCurrent().getNativeSession()).getId());
+            LOGGER.debug("Desktop ID = " + comp.getDesktop().getId());
+            comp.getDesktop().setAttribute("processAnalyst", processAnalyst);
+            comp.getDesktop().setAttribute("pluginSessionId", pluginSessionId);
+            
+            mainWindow.addEventListener("onLogDataInitialized", event -> initializeUIComponents());
+            Clients.evalJavaScript("Ap.pd.backendLogDataInitialized();");
+        }
+        catch (OutOfLimitException ex) {
+            Messagebox.show(
+                    MessageFormat.format(getLabel("tooManyActivities_message"),
+                            configData.getMaxNumberOfUniqueValues()),
+                    getLabel("tooManyActivities_title"), Messagebox.OK, Messagebox.INFORMATION);
+        }
+        catch (Exception ex) {
+            Messagebox.show(getLabel("initError_message") + ".\n Error message: "
+                    + (ex.getMessage() == null ? "Internal errors occurred." : ex.getMessage()));
+            LOGGER.error("Errors when initializing data", ex);
+        }
+    }
 
-            // Check data against the capacity of Process Analyst
-            IndexableAttribute mainAttribute = processAnalyst.getAttribute(configData.getDefaultAttribute());
-            if (mainAttribute == null) {
-                Messagebox.show(getLabel("missingActivity_message"), getLabel("missingActivity_title"), Messagebox.OK,
-                        Messagebox.INFORMATION);
-                return;
-            } else if (mainAttribute.getValueSize() > configData.getMaxNumberOfUniqueValues()) {
-                Messagebox.show(
-                        MessageFormat.format(getLabel("tooManyActivities_message"),
-                                configData.getMaxNumberOfUniqueValues()),
-                        getLabel("tooManyActivities_title"), Messagebox.OK, Messagebox.INFORMATION);
-                return;
-            }
-            userOptions = UserOptionsData.DEFAULT(configData);
-
-            // Set up UI components
+    private void initializeUIComponents() {
+        if (mainWindow == null || processAnalyst == null) return;
+        try {
             graphVisController = pdFactory.createGraphVisController(this);
             caseDetailsController = pdFactory.createCaseDetailsController(this);
             perspectiveDetailsController = pdFactory.createPerspectiveDetailsController(this);
@@ -324,53 +306,17 @@ public class PDController extends BaseController implements Composer<Component> 
             logExportController = pdFactory.createLogExportController(this);
             bpmnExportController = pdFactory.createBPMNExportController(this);
             toolbarController = pdFactory.createToolbarController(this);
-
-            initialize();
-            LOGGER.debug("Session ID = " + ((HttpSession) Sessions.getCurrent().getNativeSession()).getId());
-            LOGGER.debug("Desktop ID = " + comp.getDesktop().getId());
-
-            // Finally, store objects to be cleaned up when the session timeouts
-            comp.getDesktop().setAttribute("processAnalyst", processAnalyst);
-            comp.getDesktop().setAttribute("pluginSessionId", pluginSessionId);
-        } catch (Exception ex) {
-            Messagebox.show(getLabel("initError_message") + ".\n Error message: "
-                    + (ex.getMessage() == null ? "Internal errors occurred." : ex.getMessage()));
-            LOGGER.error("Error occurred while initializing: " + ex.getMessage(), ex);
-        }
-    }
-
-    // All data and controllers must be already available
-    private void initialize() {
-        try {
-            initializeControls();
-            timeStatsController.updateUI(contextData);
-            viewSettingsController.updateUI(null);
-            initializeEventListeners();
-        } catch (Exception e) {
-            LOGGER.error("Unable to initialize PD controller", e);
-            Messagebox.show(getLabel("initError_message"), getLabel("initError_title"), Messagebox.OK,
-                    Messagebox.ERROR);
-        }
-    }
-
-    private void initializeControls() {
-        try {
-            mainWindow = (Window) this.getFellow("win");
-            mainWindow.setTitle(contextData.getLogName());
+            
             viewSettingsController.initializeControls(contextData);
             graphSettingsController.initializeControls(contextData);
             timeStatsController.initializeControls(contextData);
             logStatsController.initializeControls(contextData);
             graphVisController.initializeControls(contextData);
             toolbarController.initializeControls(contextData);
-        } catch (Exception ex) {
-            Messagebox.show(getLabel("initError_message"));
-            LOGGER.error("An error occurred while initializing UI: " + ex.getMessage());
-        }
-    }
-
-    private void initializeEventListeners() {
-        try {
+            
+            timeStatsController.updateUI(contextData);
+            viewSettingsController.updateUI(null);
+            
             viewSettingsController.initializeEventListeners(contextData);
             graphSettingsController.initializeEventListeners(contextData);
             graphVisController.initializeEventListeners(contextData);
@@ -381,20 +327,22 @@ public class PDController extends BaseController implements Composer<Component> 
             EventListener<Event> windowListener = event -> {
                 graphSettingsController.ensureSliders();
                 generateViz();
+                // close waiting popup
             };
-            mainWindow.addEventListener("onLoaded", windowListener);
-            mainWindow.addEventListener("onOpen", windowListener);
+            mainWindow.addEventListener("onUIComponentsInitialized", windowListener);
             mainWindow.addEventListener("onZIndex", event -> {
                 putWindowAtTop(caseDetailsController.getWindow());
                 putWindowAtTop(perspectiveDetailsController.getWindow());
             });
             mainWindow.addEventListener("onCaseDetails", event -> caseDetailsController.onEvent(event));
             mainWindow.addEventListener("onPerspectiveDetails", event -> perspectiveDetailsController.onEvent(event));
-        } catch (Exception ex) {
-            Messagebox.show(getLabel("initEventHandlerError_message"));
-            LOGGER.error("Errors occured while initializing event handlers.", ex);
+            
+            Clients.evalJavaScript("Ap.pd.backendUIComponentsInitialized();");
+        } catch (Exception e) {
+            Messagebox.show(getLabel("initError_message"), getLabel("initError_title"), Messagebox.OK,
+                    Messagebox.ERROR);
+            LOGGER.error("Errors when initializing UI components", e);
         }
-
     }
 
     private void putWindowAtTop(Window window) {
@@ -797,21 +745,25 @@ public class PDController extends BaseController implements Composer<Component> 
             }
         }
     }
-
-    @Override
-    public void doAfterCompose(Component comp) throws Exception {
-        this.pdComponent = comp;
-        onCreate(comp);
-
+    
+    public ResourceBundle getLabels() {
+        return ResourceBundle.getBundle("pd", (Locale) Sessions.getCurrent().getAttribute(Attributes.PREFERRED_LOCALE),
+                PDController.class.getClassLoader());
     }
 
-    @Override
-    public Component query(String selector) {
-        return this.pdComponent.query(selector);
+    public String getLabel(String key) {
+        String label = getLabels().getString(key);
+        if (label == null) {
+            label = "";
+        }
+        return label;
     }
 
-    @Override
-    public Component getFellow(String compId) throws ComponentNotFoundException {
-        return pdComponent.getFellow(compId);
+    public String getLabel(String key, String defaultVal) {
+        String label = getLabels().getString(key);
+        if (label == null) {
+            label = defaultVal;
+        }
+        return label;
     }
 }

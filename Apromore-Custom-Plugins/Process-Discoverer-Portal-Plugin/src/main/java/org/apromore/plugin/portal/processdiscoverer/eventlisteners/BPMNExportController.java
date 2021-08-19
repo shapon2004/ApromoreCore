@@ -35,8 +35,8 @@ import org.apromore.dao.model.ProcessModelVersion;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.processdiscoverer.PDController;
 import org.apromore.plugin.portal.processdiscoverer.components.AbstractController;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.InvalidOutputException;
 import org.apromore.plugin.portal.processdiscoverer.utils.InputDialog;
-import org.apromore.plugin.portal.processdiscoverer.vis.InvalidOutputException;
 import org.apromore.portal.common.notification.Notification;
 import org.apromore.portal.helper.Version;
 import org.apromore.processdiscoverer.Abstraction;
@@ -108,10 +108,6 @@ public class BPMNExportController extends AbstractController {
     class ProgressEventListener implements EventListener<Event> {
         @Override
         public void onEvent(Event event) throws Exception {
-            if (!parent.prepareCriticalServices()) {
-                return;
-            }
-            
             switch (event.getName()) {
                 case CHANGE_DESCRIPTION:
                     if (descriptionLabel != null) descriptionLabel.setValue((String) event.getData());

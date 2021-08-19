@@ -675,4 +675,16 @@ PDp.switchToInteractiveView = function() {
     pd.setupSearch(sourceJSON, true);
 }
 
+PDp.backendWindowInitialized = function() {
+    this.zkSendEvent('$win', 'onWindowInitialized', {});
+}
+
+PDp.backendLogDataInitialized = function() {
+    this.zkSendEvent('$win', 'onLogDataInitialized', {});
+}
+
+PDp.backendUIComponentsInitialized = function() {
+    this.zkSendEvent('$win', 'onUIComponentsInitialized', {});
+}
+
 export default PDp;

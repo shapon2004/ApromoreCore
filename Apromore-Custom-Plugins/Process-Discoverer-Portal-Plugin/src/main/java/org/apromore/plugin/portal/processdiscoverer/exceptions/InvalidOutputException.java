@@ -20,7 +20,7 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.vis;
+package org.apromore.plugin.portal.processdiscoverer.exceptions;
 
 public class InvalidOutputException extends Exception {
     public InvalidOutputException(String message) {

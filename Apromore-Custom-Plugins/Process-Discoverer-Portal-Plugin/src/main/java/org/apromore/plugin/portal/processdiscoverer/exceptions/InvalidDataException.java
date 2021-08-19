@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.plugin.portal.processdiscoverer.data;
+package org.apromore.plugin.portal.processdiscoverer.exceptions;
 
 public class InvalidDataException extends Exception {
     public InvalidDataException(String msg) {

@@ -20,10 +20,18 @@
  * #L%
  */
 
-package org.apromore.plugin.portal.processdiscoverer.data;
+package org.apromore.plugin.portal.processdiscoverer.exceptions;
 
-public class NotFoundAttributeException extends Exception {
-    public NotFoundAttributeException (String message) {
+import lombok.Getter;
+
+@Getter
+public class OutOfLimitException extends Exception {
+    private String attributeName = "";
+    private int attributeLimit = 0;
+    
+    public OutOfLimitException(String message, String attributeName, int attributeLimit) {
         super(message);
+        this.attributeName = attributeName;
+        this.attributeLimit = attributeLimit;
     }
 }

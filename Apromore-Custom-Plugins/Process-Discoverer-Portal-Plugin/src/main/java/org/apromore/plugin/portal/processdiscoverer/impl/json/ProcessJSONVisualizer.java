@@ -22,8 +22,8 @@
 
 package org.apromore.plugin.portal.processdiscoverer.impl.json;
 
+import org.apromore.plugin.portal.processdiscoverer.exceptions.InvalidOutputException;
 import org.apromore.plugin.portal.processdiscoverer.impl.layout.JGraphLayouter;
-import org.apromore.plugin.portal.processdiscoverer.vis.InvalidOutputException;
 import org.apromore.plugin.portal.processdiscoverer.vis.Layouter;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
 import org.apromore.plugin.portal.processdiscoverer.vis.UnsupportedElementException;

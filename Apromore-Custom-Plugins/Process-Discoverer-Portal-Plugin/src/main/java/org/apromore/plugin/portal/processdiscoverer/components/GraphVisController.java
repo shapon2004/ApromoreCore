@@ -36,7 +36,7 @@ import org.apromore.plugin.portal.processdiscoverer.actions.FilterActionOnNodeRe
 import org.apromore.plugin.portal.processdiscoverer.actions.FilterActionOnNodeRemoveTrace;
 import org.apromore.plugin.portal.processdiscoverer.actions.FilterActionOnNodeRetainEvent;
 import org.apromore.plugin.portal.processdiscoverer.actions.FilterActionOnNodeRetainTrace;
-import org.apromore.plugin.portal.processdiscoverer.vis.InvalidOutputException;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.InvalidOutputException;
 import org.apromore.processdiscoverer.Abstraction;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;

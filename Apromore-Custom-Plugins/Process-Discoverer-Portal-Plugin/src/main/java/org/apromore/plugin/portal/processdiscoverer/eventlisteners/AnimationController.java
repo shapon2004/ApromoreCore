@@ -34,10 +34,6 @@ public class AnimationController extends AbstractController {
     
     @Override
     public void onEvent(Event event) throws Exception {
-        if (!parent.prepareCriticalServices()) {
-            return;
-        }
-        
         // Toggle between model and animation views
         if (parent.getInteractiveMode() == InteractiveMode.MODEL_MODE) {
             parent.switchToAnimationView();

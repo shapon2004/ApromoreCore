@@ -64,11 +64,11 @@ import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.plugin.portal.processdiscoverer.data.CaseDetails;
 import org.apromore.plugin.portal.processdiscoverer.data.ConfigData;
 import org.apromore.plugin.portal.processdiscoverer.data.ContextData;
-import org.apromore.plugin.portal.processdiscoverer.data.InvalidDataException;
-import org.apromore.plugin.portal.processdiscoverer.data.NotFoundAttributeException;
 import org.apromore.plugin.portal.processdiscoverer.data.OutputData;
 import org.apromore.plugin.portal.processdiscoverer.data.PerspectiveDetails;
 import org.apromore.plugin.portal.processdiscoverer.data.UserOptionsData;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.InvalidDataException;
+import org.apromore.plugin.portal.processdiscoverer.exceptions.OutOfLimitException;
 import org.apromore.plugin.portal.processdiscoverer.impl.json.ProcessJSONVisualizer;
 import org.apromore.plugin.portal.processdiscoverer.vis.ProcessVisualizer;
 import org.apromore.processdiscoverer.Abstraction;
@@ -124,12 +124,9 @@ public class PDAnalyst {
     public PDAnalyst(ContextData contextData, ConfigData configData, EventLogService eventLogService) throws Exception {
         XLog xlog = eventLogService.getXLog(contextData.getLogId());
         APMLog apmLog = eventLogService.getAggregatedLog(contextData.getLogId());
-        if (xlog == null) {
-            throw new InvalidDataException("XLog data of this log is missing");
-        }
-        if (apmLog == null) {
-            throw new InvalidDataException("APMLog data of this log is missing");
-        }
+        if (xlog == null) throw new InvalidDataException("XLog data of this log is missing");
+        if (apmLog == null) throw new InvalidDataException("APMLog data of this log is missing");
+
         long timer = System.currentTimeMillis();
         this.aLog = new ALog(xlog);
         LOGGER.debug("ALog.constructor: {} ms.", System.currentTimeMillis() - timer);
@@ -143,9 +140,15 @@ public class PDAnalyst {
         
         // ProcessDiscoverer logic with default attribute
         this.calendarModel = eventLogService.getCalendarFromLog(contextData.getLogId());
-        if (calendarModel == null) throw new Exception("The open log doesn't have an associated calendar.");
+        if (calendarModel == null) throw new InvalidDataException("The open log doesn't have an associated calendar.");
         
+        IndexableAttribute defaultAtt = (IndexableAttribute)indexableAttributes.select(att -> att.getKey().equals(configData.getDefaultAttribute())).get(0);
+        if (defaultAtt == null) throw new InvalidDataException("Missing activity attribute");
+        if (defaultAtt.getValueSize() > configData.getMaxNumberOfUniqueValues()) {
+            throw new OutOfLimitException("Too many activity values", "Activity", configData.getMaxNumberOfUniqueValues());
+        }
         this.setMainAttribute(configData.getDefaultAttribute());
+        
         this.processDiscoverer = new ProcessDiscoverer();
         this.processVisualizer = new ProcessJSONVisualizer();
     }
@@ -269,7 +272,7 @@ public class PDAnalyst {
         return (IndexableAttribute)indexableAttributes.select(att -> att.getKey().equals(key)).get(0);
     }
     
-    public void setMainAttribute(String key) throws NotFoundAttributeException  {
+    public void setMainAttribute(String key) throws InvalidDataException  {
         long timer = 0;
         IndexableAttribute newAttribute = getAttribute(key);
         if (newAttribute != null) {
@@ -289,7 +292,7 @@ public class PDAnalyst {
             }
         }
         else {
-            throw new NotFoundAttributeException("Cannot find an attribute in ALog with key = " + key);
+            throw new InvalidDataException("Cannot find an attribute in ALog with key = " + key);
         }
     }
     
