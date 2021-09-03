@@ -24,42 +24,75 @@
 
 package org.apromore.service.loganimation.utils;
 
-import de.hpi.bpmn2_0.model.FlowNode;
+import de.hpi.bpmn2_0.model.*;
+import de.hpi.bpmn2_0.model.Process;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
+import de.hpi.bpmn2_0.model.event.EndEvent;
+import de.hpi.bpmn2_0.model.event.StartEvent;
 import de.hpi.bpmn2_0.model.gateway.ExclusiveGateway;
 import de.hpi.bpmn2_0.model.gateway.InclusiveGateway;
 import de.hpi.bpmn2_0.model.gateway.ParallelGateway;
+import org.eclipse.collections.api.tuple.Pair;
+import org.eclipse.collections.impl.tuple.Tuples;
 import org.jgrapht.DirectedGraph;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BPMNDiagramHelper {
-    
-    // key: taskId, value is reference to the node
-    private Map<String, FlowNode> allNodes = new HashMap();
-    
-    // key: concatenation of taskId of source and target node
-    // value: reference to edge object
-    private Map<String, SequenceFlow> allSequenceFlows = new HashMap();
+    private ModelChecker checker = new ModelChecker();
+    private Map<String, FlowNode> idToNode = new HashMap<>();
+    private Map<Pair<String,String>, SequenceFlow> nodeNamesToSequenceFlow = new HashMap<>();
+    private Map<FlowNode,Set<FlowNode>> targets = new HashMap();
+    private Map<FlowNode,Set<FlowNode>> sources = new HashMap();
+    private StartEvent startEvent;
+    private EndEvent endEvent;
 
-    private Set<FlowNode> joins = new HashSet();
+    public BPMNDiagramHelper(Definitions definition) {
+        List<BaseElement> rootElements = definition.getRootElement();
+        if (rootElements.size() == 1) {
+            BaseElement rootElement = rootElements.get(0);
 
-    private DirectedGraph directedGraph = null;
-    private List<List<FlowNode>> bpmnCycles = null;
-
-    public BPMNDiagramHelper() {
+            if (rootElement instanceof Process) {
+                Process process = (Process)rootElement;
+                for (FlowElement element : process.getFlowElement()) {
+                    element.acceptVisitor(checker);
+                    if (element instanceof StartEvent) {
+                        startEvent = (StartEvent)element;
+                    }
+                    else if (element instanceof EndEvent) {
+                        endEvent = (EndEvent)element;
+                    }
+                    else if (element instanceof FlowNode) {
+                        idToNode.put(element.getId(), (FlowNode)element);
+                        targets.put((FlowNode)element, ((FlowNode)element).getOutgoingSequenceFlows()
+                                        .stream()
+                                        .map(f -> (FlowNode)f.getTargetRef())
+                                        .collect(Collectors.toSet()));
+                        sources.put((FlowNode)element, ((FlowNode)element).getIncomingSequenceFlows()
+                                .stream()
+                                .map(f -> (FlowNode)f.getSourceRef())
+                                .collect(Collectors.toSet()));
+                    }
+                    else if (element instanceof SequenceFlow) {
+                        SequenceFlow flow = (SequenceFlow)element;
+                        nodeNamesToSequenceFlow.put(Tuples.pair(flow.getSourceRef().getName(), flow.getTargetRef().getName()), flow);
+                    }
+                }
+            }
+        }
     }
 
-    public Collection<FlowNode> getAllNodes()  {
-        return allNodes.values();
+    public boolean isValidModel() {
+        return checker.isValid();
     }
-    
-    public Set<FlowNode> getAllJoins() {
-        return joins;
+
+    public FlowNode getNode(String nodeName) {
+        return idToNode.get(nodeName);
     }
-    
-    public Collection<SequenceFlow> getAllSequenceFlows() {
-        return allSequenceFlows.values();
+
+    public SequenceFlow getSequenceFlow(String sourceNode, String targetNode) {
+        return nodeNamesToSequenceFlow.get(Tuples.pair(sourceNode, targetNode));
     }
     
     public static boolean isJoin(FlowNode node) {
@@ -96,6 +129,22 @@ public class BPMNDiagramHelper {
         return (node instanceof InclusiveGateway &&
                 node.getOutgoingSequenceFlows().size() == 1 &&
                 node.getIncomingSequenceFlows().size() > 1);
+    }
+
+    public Set<FlowNode> getTargets(FlowNode element) {
+        return targets.containsKey(element) ? targets.get(element) : new HashSet();
+    }
+
+    public Set<FlowNode> getSources(FlowNode element) {
+        return sources.containsKey(element) ? sources.get(element) : new HashSet();
+    }
+
+    public FlowNode getStartEvent() {
+        return startEvent;
+    }
+
+    public FlowNode getEndEvent() {
+        return endEvent;
     }
     
 }

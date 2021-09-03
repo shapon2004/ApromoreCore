@@ -36,10 +36,12 @@ import java.util.Properties;
 import javax.xml.bind.JAXBException;
 
 import org.apromore.plugin.DefaultParameterAwarePlugin;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.json.AnimationJSONBuilder2;
 import org.apromore.service.loganimation.replay.AnimationLog;
+import org.apromore.service.loganimation.utils.BPMNDiagramHelper;
 import org.apromore.service.loganimation.utils.LogUtility;
 import org.apromore.service.loganimation.replay.ReplayParams;
 import org.apromore.service.loganimation.replay.ReplayTrace;
@@ -67,46 +69,17 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
 
     @Override
-    public AnimationResult createAnimation(String bpmn, List<Log> logs)
-            throws BpmnConverterException, IOException, JAXBException, JSONException, AnimationException {
-
+    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, String bpmn, List<Log> logs) throws Exception {
         Definitions bpmnDefinition = BPMN2DiagramConverter.parseBPMN(bpmn, getClass().getClassLoader());
 
-
-        /*
-        * ------------------------------------------
-        * Check BPMN diagram validity and replay log
-        * ------------------------------------------
-        */
-        String propertyFile = "properties.xml";
-        InputStream is = getClass().getClassLoader().getResourceAsStream(propertyFile);
+        InputStream is = getClass().getClassLoader().getResourceAsStream("properties.xml");
         Properties props = new Properties();
         props.loadFromXML(is);
         ReplayParams params = new ReplayParams();
-        params.setMaxCost(Double.valueOf(props.getProperty("MaxCost")).doubleValue());
-        params.setMaxDepth(Integer.valueOf(props.getProperty("MaxDepth")).intValue());
-        params.setMinMatchPercent(Double.valueOf(props.getProperty("MinMatchPercent")).doubleValue());
-        params.setMaxMatchPercent(Double.valueOf(props.getProperty("MaxMatchPercent")).doubleValue());
-        params.setMaxConsecutiveUnmatch(Integer.valueOf(props.getProperty("MaxConsecutiveUnmatch")).intValue());
-        params.setActivityMatchCost(Double.valueOf(props.getProperty("ActivityMatchCost")).doubleValue());
-        params.setActivitySkipCost(Double.valueOf(props.getProperty("ActivitySkipCost")).doubleValue());
-        params.setEventSkipCost(Double.valueOf(props.getProperty("EventSkipCost")).doubleValue());
-        params.setNonActivityMoveCost(Double.valueOf(props.getProperty("NonActivityMoveCost")).doubleValue());
-        params.setTraceChunkSize(Integer.valueOf(props.getProperty("TraceChunkSize")).intValue());
-        params.setMaxNumberOfNodesVisited(Integer.valueOf(props.getProperty("MaxNumberOfNodesVisited")).intValue());
-        params.setMaxActivitySkipPercent(Double.valueOf(props.getProperty("MaxActivitySkipPercent")).doubleValue());
-        params.setMaxNodeDistance(Integer.valueOf(props.getProperty("MaxNodeDistance")).intValue());
         params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
         params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
         params.setTotalEngineSeconds(600); //Override this setting for testing
         params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
-        params.setSequenceTokenDiffThreshold(Integer.valueOf(props.getProperty("SequenceTokenDiffThreshold")).intValue());
-        params.setMaxTimePerTrace(Long.valueOf(props.getProperty("MaxTimePerTrace")).longValue());
-        params.setMaxTimeShortestPathExploration(Long.valueOf(props.getProperty("MaxTimeShortestPathExploration")).longValue());
-        params.setExactTraceFitnessCalculation(props.getProperty("ExactTraceFitnessCalculation"));
-        params.setBacktrackingDebug(props.getProperty("BacktrackingDebug"));
-        params.setExploreShortestPathDebug(props.getProperty("ExploreShortestPathDebug"));
-        params.setCheckViciousCycle(props.getProperty("CheckViciousCycle"));
 
         // Clean traces for animation and compute the transition duration for start/end events
         cleanLogs(logs);
@@ -115,21 +88,20 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         params.setStartEventToFirstEventDuration(artificalTransitionDur);
         params.setLastEventToEndEventDuration(artificalTransitionDur);
         
-        Replayer replayer = new Replayer(bpmnDefinition, params);
         ArrayList<AnimationLog> replayedLogs = new ArrayList<>();
-        if (replayer.isValidProcess()) {
-            for (Log log: logs) {
-                AnimationLog animationLog = replayer.replay(log.xlog, log.color);
-                animationLog.setFileName(log.fileName);
-                
-                if (animationLog !=null && !animationLog.isEmpty()) {
-                    replayedLogs.add(animationLog);
-                }
-            }
+        BPMNDiagramHelper diagramHelper = new BPMNDiagramHelper(bpmnDefinition);
+        if (diagramHelper.isValidModel()) {
+//            for (Log log: logs) {
+//                AnimationLog animationLog = Alignment.align(bpmnDefinition, log.xlog);
+//                animationLog.setFileName(log.fileName);
+//
+//                if (animationLog !=null && !animationLog.isEmpty()) {
+//                    replayedLogs.add(animationLog);
+//                }
+//            }
 
         } else {
-            throw new AnimationException("The BPMN diagram is not valid for animation. " +
-                                         "Reason: " + replayer.getProcessCheckingMsg());
+            throw new AnimationException("The BPMN diagram is not valid for animation. ");
         }
         
         for (AnimationLog animationLog : replayedLogs) {
@@ -170,7 +142,8 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
      * @throws AnimationException
      */
     @Override
-    public AnimationResult createAnimationWithNoGateways(String bpmnWithGateways, String bpmnNoGateways, List<Log> logs)
+    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, String bpmnWithGateways,
+                                                         BPMNDiagram bpmnDiagramNoGateways, String bpmnNoGateways, List<Log> logs)
             throws BpmnConverterException, IOException, JAXBException, JSONException, DiagramMappingException, AnimationException {
 
         Definitions bpmnDefWithGateways = BPMN2DiagramConverter.parseBPMN(bpmnWithGateways, getClass().getClassLoader());
@@ -182,30 +155,10 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         Properties props = new Properties();
         props.loadFromXML(is);
         ReplayParams params = new ReplayParams();
-        params.setMaxCost(Double.valueOf(props.getProperty("MaxCost")).doubleValue());
-        params.setMaxDepth(Integer.valueOf(props.getProperty("MaxDepth")).intValue());
-        params.setMinMatchPercent(Double.valueOf(props.getProperty("MinMatchPercent")).doubleValue());
-        params.setMaxMatchPercent(Double.valueOf(props.getProperty("MaxMatchPercent")).doubleValue());
-        params.setMaxConsecutiveUnmatch(Integer.valueOf(props.getProperty("MaxConsecutiveUnmatch")).intValue());
-        params.setActivityMatchCost(Double.valueOf(props.getProperty("ActivityMatchCost")).doubleValue());
-        params.setActivitySkipCost(Double.valueOf(props.getProperty("ActivitySkipCost")).doubleValue());
-        params.setEventSkipCost(Double.valueOf(props.getProperty("EventSkipCost")).doubleValue());
-        params.setNonActivityMoveCost(Double.valueOf(props.getProperty("NonActivityMoveCost")).doubleValue());
-        params.setTraceChunkSize(Integer.valueOf(props.getProperty("TraceChunkSize")).intValue());
-        params.setMaxNumberOfNodesVisited(Integer.valueOf(props.getProperty("MaxNumberOfNodesVisited")).intValue());
-        params.setMaxActivitySkipPercent(Double.valueOf(props.getProperty("MaxActivitySkipPercent")).doubleValue());
-        params.setMaxNodeDistance(Integer.valueOf(props.getProperty("MaxNodeDistance")).intValue());
         params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
         params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
         params.setTotalEngineSeconds(600); //Override this setting for testing
         params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
-        params.setSequenceTokenDiffThreshold(Integer.valueOf(props.getProperty("SequenceTokenDiffThreshold")).intValue());
-        params.setMaxTimePerTrace(Long.valueOf(props.getProperty("MaxTimePerTrace")).longValue());
-        params.setMaxTimeShortestPathExploration(Long.valueOf(props.getProperty("MaxTimeShortestPathExploration")).longValue());
-        params.setExactTraceFitnessCalculation(props.getProperty("ExactTraceFitnessCalculation"));
-        params.setBacktrackingDebug(props.getProperty("BacktrackingDebug"));
-        params.setExploreShortestPathDebug(props.getProperty("ExploreShortestPathDebug"));
-        params.setCheckViciousCycle(props.getProperty("CheckViciousCycle"));
         
         cleanLogs(logs);
         int artificialTransitionRatio = Integer.valueOf(props.getProperty("ArtificialTransitionDurationRatio")).intValue();
@@ -213,22 +166,21 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         params.setStartEventToFirstEventDuration(artificalTransitionDur);
         params.setLastEventToEndEventDuration(artificalTransitionDur);
 
-        Replayer replayer = new Replayer(bpmnDefWithGateways, params);
         List<AnimationLog> replayedLogs = new ArrayList<>();
-        if (replayer.isValidProcess()) {
-            for (Log log: logs) {
-                AnimationLog animationLog = replayer.replay(log.xlog, log.color);
-                animationLog.setFileName(log.fileName);
-                
-                if (animationLog !=null && !animationLog.isEmpty()) {
-                    replayedLogs.add(animationLog);
-                }
-            }
-
-        } else {
-            throw new AnimationException("The BPMN diagram is not valid for animation. " +
-                                         "Reason: " + replayer.getProcessCheckingMsg());
-        }
+//        if (replayer.isValidProcess()) {
+//            for (Log log: logs) {
+//                AnimationLog animationLog = replayer.replay(log.xlog, log.color);
+//                animationLog.setFileName(log.fileName);
+//
+//                if (animationLog !=null && !animationLog.isEmpty()) {
+//                    replayedLogs.add(animationLog);
+//                }
+//            }
+//
+//        } else {
+//            throw new AnimationException("The BPMN diagram is not valid for animation. " +
+//                                         "Reason: " + replayer.getProcessCheckingMsg());
+//        }
         
         /*
          * ------------------------------------------

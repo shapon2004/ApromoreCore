@@ -24,40 +24,23 @@
 
 package org.apromore.service.loganimation.replay;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.logging.Logger;
-
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import de.hpi.bpmn2_0.model.FlowNode;
+import de.hpi.bpmn2_0.model.connector.SequenceFlow;
+import de.hpi.bpmn2_0.model.gateway.ExclusiveGateway;
 import org.apromore.service.loganimation.utils.LogUtility;
+import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 
-import de.hpi.bpmn2_0.model.FlowNode;
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-import de.hpi.bpmn2_0.model.gateway.ExclusiveGateway;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.logging.Logger;
 
-/*
-* Note that this trace can be incomplete: not having end node
-* depending on a particular log trace. For example, a fork node might not be
-* always has a corresponding join node in the trace since halfway during replay
-* the log trace runs out of events.
-*/
 public class ReplayTrace {
     private TraceNode startNode = null;
-    private XTrace2 logTrace = null;
-    private long algoRuntime = 0; //milliseconds to run backtracking algo for this trace
-    
+    private XTrace logTrace = null;
+
     //All nodes in the trace. Different from model nodes because there can be different trace nodes
     //corresponding to one model node (as a result of loop effect in the model)
     //private ArrayList<TraceNode> traceNodes = new ArrayList();
@@ -78,30 +61,22 @@ public class ReplayTrace {
     //During replay, markings of BPMN model and this trace must be kept synchronized.
     private Map<FlowNode,TraceNode> markingsMap = new HashMap();
     
-    //private BidiMap<TraceNode,TraceNode> forkJoinMap = new DualHashBidiMap<>();
-    //private BidiMap<TraceNode,TraceNode> ORforkJoinMap = new DualHashBidiMap<>();
-    
     private static final Logger LOGGER = Logger.getLogger(ReplayTrace.class.getCanonicalName());
 
     private ReplayParams replayParams;
     
-    public ReplayTrace(XTrace2 trace, long algoRuntime, ReplayParams replayParams) {
+    public ReplayTrace(XTrace trace, ReplayParams replayParams) {
         this.logTrace = trace;
-        this.algoRuntime = algoRuntime;
         this.replayParams = replayParams;
     }
        
     public String getId() {
         if (logTrace != null) {
-            return logTrace.getId();
+            return logTrace.getAttributes().get("concept:name").toString();
         }
         else {
-            return null;
+            return "";
         }
-    }
-    
-    public XTrace2 getOriginalTrace() {
-        return this.logTrace;
     }
     
     public TraceNode getStart() {
@@ -111,11 +86,6 @@ public class ReplayTrace {
     public void setStart(TraceNode startNode) {
         this.startNode = startNode;
         this.markingsMap.put(startNode.getModelNode(), startNode);
-        /*
-        if (!this.traceNodes.contains(startNode)) {
-            this.traceNodes.add(startNode);
-        }
-        */
     }
     
     public DateTime getStartDate() {
@@ -133,10 +103,6 @@ public class ReplayTrace {
         else {
             return null;
         }
-    }
-    
-    public long getAlgoRuntime() {
-        return this.algoRuntime;
     }
     
     //newNode: node to add
@@ -204,17 +170,17 @@ public class ReplayTrace {
     public ArrayList<TraceNode> getNodes() {
         return this.timeOrderedReplayedNodes;
     }
-    
-    public void removeNode(TraceNode node) {
+
+    private void removeNode(TraceNode node) {
         this.markingsMap.remove(node.getModelNode());
         this.timeOrderedReplayedNodes.remove(node);
     }
-    
-    public void removeSequenceFlow(SequenceFlow flow) {
+
+    private void removeSequenceFlow(SequenceFlow flow) {
         flow.getSourceRef().getOutgoing().remove(flow);
         flow.getTargetRef().getIncoming().remove(flow);
         flow.setSourceRef(null);
-        flow.setTargetRef(null);        
+        flow.setTargetRef(null);
         this.sequenceFlows.remove(flow);
     }
     
@@ -266,16 +232,17 @@ public class ReplayTrace {
         }
         toBeRemoved.forEach(node -> removeNode(node));
     }
+
+    //Add the input node to the list of nodes which have been replayed
+    //This method assumes that the replayed node has been added to the list of
+    //all nodes in the replayed trace.
+    public void addToReplayedList(FlowNode curModelNode) {
+        this.timeOrderedReplayedNodes.add(this.markingsMap.get(curModelNode));
+    }
     
     private TraceNode getNext(TraceNode node) {
         return !node.getOutgoingSequenceFlows().isEmpty() 
                     ? (TraceNode)node.getOutgoingSequenceFlows().get(0).getTargetRef() 
-                    : null;
-    }
-    
-    private TraceNode getPrevious(TraceNode node) {
-        return !node.getIncomingSequenceFlows().isEmpty() 
-                    ? (TraceNode)node.getIncomingSequenceFlows().get(0).getSourceRef() 
                     : null;
     }
 
@@ -299,7 +266,6 @@ public class ReplayTrace {
     
     public void calcTiming() {
         calcTimingAll();
-
         calculateCompleteTimestamp();
     }
     
@@ -415,11 +381,11 @@ public class ReplayTrace {
                 //NOTE: This is in case some process models cannot reach the End Event (unsound model)
                 //----------------------------------------------
                 if (timeBefore == null) {
-                    timeBefore = (new DateTime(LogUtility.getTimestamp(logTrace.getTrace().get(0)))).minusSeconds(
+                    timeBefore = (new DateTime(LogUtility.getTimestamp(logTrace.get(0)))).minusSeconds(
                                                replayParams.getStartEventToFirstEventDuration());
                 }
                 if (timeAfter == null) {
-                    timeAfter = (new DateTime(LogUtility.getTimestamp(logTrace.getTrace().get(logTrace.getTrace().size()-1)))).plusSeconds(
+                    timeAfter = (new DateTime(LogUtility.getTimestamp(logTrace.get(logTrace.size()-1)))).plusSeconds(
                             replayParams.getLastEventToEndEventDuration());
                 }
                 

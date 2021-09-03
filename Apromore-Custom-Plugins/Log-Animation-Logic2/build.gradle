@@ -13,6 +13,7 @@ dependencies {
 	implementation 'org.roaringbitmap:RoaringBitmap:0.9.0'
 	implementation project(':Apromore-ProcessMining-Collection')
 	implementation 'com.lodborg:interval-tree:1.0.0'
+    implementation project(':Apromore-Custom-Plugins:Alignment-Service-Client')
 	
     
 }

@@ -46,21 +46,9 @@ import org.json.JSONObject;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
-/*
-* Animation timing is shown via the timeline bar which embeds two timing aspects:
-* the real time in event log file and the internal clock of the animation engine (SVG).
-* Thus, there is a conversion ratio between the event log time and the animation engine time
-* called TimeConversionRatio, meaning how many seconds of the engine is equivalent to
-* one second of data time. This ratio is used to convert the real data time to
-* the animation engine time.
-* The timeline has a number of even slots. Each slot represents a duration of time
-* in the event log (SlotDataUnit) and a duration of time of animation engine (SlotEngineUnit)
-* If the event log spans a long duration, the timeline slot will have large SlotDataUnit value,
-* the number of slots on the timeline should also be increased. If the event log has short duration,
-* the timeline slot will have small SlotDataUnit value.
-* The SlotEngineUnit can be used to set the speed of the tick movement on the timeline bar
-* The SlotDataUnit can be used to show the location of a specific event date on the timeline bar
-*/
+/**
+ * Generate the setup data for animation
+ */
 public class AnimationJSONBuilder2 {
     private List<AnimationLog> animations = null;
     private Interval totalRealInterval = null; //total time interval of all logs
@@ -130,64 +118,6 @@ public class AnimationJSONBuilder2 {
         json.put("timezone", ZoneId.systemDefault().toString());
 
         return json;
-    }
-    
-    protected JSONObject parseSequenceFlow(AnimationLog animationLog, SequenceFlow sequenceFlow) throws JSONException {
-        
-        if (((TraceNode)(sequenceFlow.getSourceRef())).getStart() == null ||
-                ((TraceNode)sequenceFlow.getTargetRef()).getStart() == null) {
-            return null;
-        }
-                
-        JSONObject json = new JSONObject();
-        json.put("id", sequenceFlow.getId());
-        
-        //DateTime logStart = animationLog.getStartDate();
-        DateTime logStart = totalRealInterval.getStart(); //Bruce 15.06.2015: fix bug of playing multiple logs with different start dates
-        DateTime start = ((TraceNode)sequenceFlow.getSourceRef()).getComplete();
-        DateTime end = ((TraceNode)sequenceFlow.getTargetRef()).getStart();
-        double begin = Seconds.secondsBetween(logStart, start).getSeconds()*this.getTimeConversionRatio();
-        //double duration = Seconds.secondsBetween(start, end).getSeconds()*this.getTimeConversionRatio();
-        double duration = (end.getMillis() - start.getMillis())*this.getTimeConversionRatio(); // in milliseconds
-        
-        DecimalFormat df = new DecimalFormat("#.#####");
-        json.put("begin", df.format(begin));
-        json.put("dur", df.format(1.0*duration/1000));
-
-        return json;
-    }
-    
-    protected JSONObject parseNode(AnimationLog animationLog, TraceNode node) throws JSONException {
-        JSONObject json = new JSONObject();
-        json.put("id", node.getId());
-        
-        //DateTime logStart = animationLog.getStartDate();
-        DateTime logStart = totalRealInterval.getStart(); //Bruce 15.06.2015: fix bug of multiple logs with different start dates
-        DateTime start = node.getStart();
-        DateTime end = node.getComplete();
-        double begin = Seconds.secondsBetween(logStart, start).getSeconds()*this.getTimeConversionRatio();
-        //double duration = Seconds.secondsBetween(start, end).getSeconds()*this.getTimeConversionRatio();
-        double duration = (end.getMillis() - start.getMillis())*this.getTimeConversionRatio(); // in milliseconds
-        
-        DecimalFormat df = new DecimalFormat("#.#####");
-        json.put("begin", df.format(begin));
-        json.put("dur", df.format(1.0*duration/1000));
-        
-        if (node.isActivitySkipped()) {
-            json.put("isVirtual", "true");
-        } else {
-            json.put("isVirtual", "false");
-        }
-        return json;
-    }
-    
-    public void clear() {
-        params = null;
-        for (AnimationLog animLog : animations) {
-            animLog.clear();
-        }
-        animations.clear();
-        animations = null;
     }
     
 }

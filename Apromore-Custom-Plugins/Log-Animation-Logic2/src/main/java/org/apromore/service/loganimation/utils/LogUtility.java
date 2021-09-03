@@ -26,14 +26,11 @@ package org.apromore.service.loganimation.utils;
 
 import org.deckfour.xes.extension.std.XConceptExtension;
 import org.deckfour.xes.extension.std.XLifecycleExtension;
-import org.deckfour.xes.extension.std.XOrganizationalExtension;
 import org.deckfour.xes.extension.std.XTimeExtension;
-import org.deckfour.xes.model.*;
-import org.deckfour.xes.model.impl.XTraceImpl;
+import org.deckfour.xes.model.XAttributable;
+import org.deckfour.xes.model.XEvent;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class LogUtility {
 
