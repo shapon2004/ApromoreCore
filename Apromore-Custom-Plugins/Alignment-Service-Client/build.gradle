@@ -1,0 +1,8 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation project(':Apromore-ProcessMining-Collection:prom-bpmn')
+    implementation project(':Apromore-ProcessMining-Collection:prom-models')
+    implementation project(':Apromore-ProcessMining-Collection:prom-widgets')
+    implementation project(':Apromore-ProcessMining-Collection:jgraph')
+    implementation project(':Apromore-Extras:OpenXES')
+}
