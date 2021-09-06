@@ -51,7 +51,6 @@ public class AnimationLog {
     private XLog xlog = null;
     private Definitions diagram;
     private Map<XTrace, ReplayTrace> traceMap = new HashMap();
-    private Set<XTrace> unplayTraces = new HashSet();
     private String name = "";
     private String fileName = "";
     private DateTime startDate = null;
@@ -122,18 +121,6 @@ public class AnimationLog {
     
     public void add(XTrace trace, ReplayTrace replayTrace) {
         traceMap.put(trace, replayTrace);
-    }
-    
-    public Set<XTrace> getUnplayTraces() {
-        return this.unplayTraces;
-    }
-    
-    public String getUnplayTracesString() {
-        String unreplay = "Unreplay: ";
-        for (XTrace trace : this.unplayTraces) {
-            unreplay += LogUtility.getConceptName(trace) + ",";
-        }
-        return unreplay;
     }
     
     public Collection<ReplayTrace> getTraces() {
@@ -214,11 +201,6 @@ public class AnimationLog {
             trace.clear();
         }
         traceMap.clear();
-        
-        for (XTrace xTrace : this.unplayTraces) {
-            xTrace.clear();
-        }
-        unplayTraces.clear();
-    }  
+    }
 
 }

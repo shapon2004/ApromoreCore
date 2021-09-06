@@ -5,46 +5,58 @@ import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import org.apromore.alignmentautomaton.AlignmentResult;
 import org.apromore.alignmentautomaton.ReplayResult;
-import org.apromore.alignmentautomaton.StepType;
+import org.apromore.alignmentautomaton.client.AlignmentClient;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.utils.BPMNDiagramHelper;
 import org.apromore.service.loganimation.utils.LogUtility;
 import org.deckfour.xes.model.XLog;
-import org.apromore.alignmentautomaton.client.AlignmentClient;
 import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LogAlignment {
     private BPMNDiagram bpmnDiagram;
+    private Definitions oldBpmnDiagram;
     private BPMNDiagramHelper diagramHelper;
-    private XLog log;
     private ReplayParams params;
-    private Map<Integer, ReplayTrace> replayTraces = new HashMap<>();
 
-    public LogAlignment(BPMNDiagram bpmnDiagram, Definitions bpmnDefinitions, XLog log, ReplayParams replayParams) {
+    public LogAlignment(BPMNDiagram bpmnDiagram, Definitions oldBpmnDiagram, ReplayParams replayParams) {
         this.bpmnDiagram = bpmnDiagram;
-        diagramHelper = new BPMNDiagramHelper(bpmnDefinitions);
-        this.log = log;
+        this.oldBpmnDiagram = oldBpmnDiagram;
+        diagramHelper = new BPMNDiagramHelper(oldBpmnDiagram);
         this.params = replayParams;
     }
 
-    public void align(BPMNDiagram bpmnDiagram, XLog log, ReplayParams replayParams) {
+    public List<AnimationLog> align(List<LogAnimationService2.Log> logs) {
+        return logs.stream()
+                    .map(log -> align(log))
+                    .collect(Collectors.toList());
+    }
+
+    private AnimationLog align(LogAnimationService2.Log log) {
+        AnimationLog animationLog = new AnimationLog(log.xlog);
+        animationLog.setFileName(log.fileName);
+        animationLog.setName(log.xlog.getAttributes().get("concept:name").toString());
+        animationLog.setDiagram(oldBpmnDiagram);
+
         AlignmentClient alignmentClient = new AlignmentClient(new RestTemplate(), "http://54.217.90.168");
-        AlignmentResult alignRes = alignmentClient.computeAlignment(bpmnDiagram, log);
+        AlignmentResult alignRes = alignmentClient.computeAlignment(bpmnDiagram, log.xlog);
         for (ReplayResult rep : alignRes.getAlignmentResults()) {
             Set<Integer> alignTraces = rep.getTraceIndex();
             TraceAlignment traceAlignment = new TraceAlignment(rep.getStepTypes(), rep.getNodeInstances());
             for (int i : alignTraces) {
-                replayTraces.put(i, createReplayTrace(log, i, traceAlignment, params));
+                animationLog.add(log.xlog.get(i), createReplayTrace(log.xlog, i, traceAlignment));
             }
         }
+        return animationLog;
     }
 
-    private ReplayTrace createReplayTrace(XLog log, int traceIndex, TraceAlignment traceAlignment,
-                                                ReplayParams params) {
+    private ReplayTrace createReplayTrace(XLog log, int traceIndex, TraceAlignment traceAlignment) {
         XTrace trace = log.get(traceIndex);
         ReplayTrace replayTrace = new ReplayTrace(log.get(traceIndex), params);
 

@@ -92,16 +92,15 @@ public class AnimationJSONBuilder2 {
         json.put("name", animationLog.getName());
         json.put("filename", animationLog.getFileName());
         json.put("color", "");
-        json.put("total", animationLog.getTraces().size() + animationLog.getUnplayTraces().size());
+        json.put("total", animationLog.getTraces().size());
         json.put("play", animationLog.getTraces().size());
         json.put("startDateLabel", animationLog.getStartDate().toString());
         json.put("endDateLabel", animationLog.getEndDate().toString());
         json.put("startLogDateLabel", animationLog.getStartDate().plus(((long)params.getStartEventToFirstEventDuration())*1000));
         json.put("endLogDateLabel", animationLog.getEndDate().minus(((long)params.getLastEventToEndEventDuration())*1000));
-        json.put("unplayTraces", animationLog.getUnplayTracesString());
         json.put("reliable", animationLog.getReliableTraceCount());
         json.put("unreliableTraces", animationLog.getUnReliableTraceIDs());
-        json.put("exactTraceFitness", !params.isExactTraceFitnessCalculation() ? 0 : df.format(animationLog.getTraceFitness(animationLog.getMinBoundMoveOnModel())));
+        json.put("exactTraceFitness", "0.0");
         
         return json;
     }

@@ -32,20 +32,24 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import org.apromore.alignmentautomaton.AlignmentResult;
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.json.AnimationJSONBuilder2;
 import org.apromore.service.loganimation.replay.AnimationLog;
+import org.apromore.service.loganimation.replay.LogAlignment;
 import org.apromore.service.loganimation.utils.BPMNDiagramHelper;
 import org.apromore.service.loganimation.utils.LogUtility;
 import org.apromore.service.loganimation.replay.ReplayParams;
 import org.apromore.service.loganimation.replay.ReplayTrace;
 import org.deckfour.xes.model.XEvent;
+import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -69,148 +73,85 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
 
     @Override
-    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, String bpmn, List<Log> logs) throws Exception {
-        Definitions bpmnDefinition = BPMN2DiagramConverter.parseBPMN(bpmn, getClass().getClassLoader());
+    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, String bpmn, List<Log> logs) throws AnimationException {
+        Definitions oldBpmnDiagram = checkBPMNDiagram(bpmn);
 
-        InputStream is = getClass().getClassLoader().getResourceAsStream("properties.xml");
-        Properties props = new Properties();
-        props.loadFromXML(is);
-        ReplayParams params = new ReplayParams();
-        params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
-        params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
-        params.setTotalEngineSeconds(600); //Override this setting for testing
-        params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
-
-        // Clean traces for animation and compute the transition duration for start/end events
         cleanLogs(logs);
-        int artificialTransitionRatio = Integer.valueOf(props.getProperty("ArtificialTransitionDurationRatio")).intValue();
-        int artificalTransitionDur = (int)computeArtificialTransitionDuration(logs, artificialTransitionRatio);
-        params.setStartEventToFirstEventDuration(artificalTransitionDur);
-        params.setLastEventToEndEventDuration(artificalTransitionDur);
-        
-        ArrayList<AnimationLog> replayedLogs = new ArrayList<>();
-        BPMNDiagramHelper diagramHelper = new BPMNDiagramHelper(bpmnDefinition);
-        if (diagramHelper.isValidModel()) {
-//            for (Log log: logs) {
-//                AnimationLog animationLog = Alignment.align(bpmnDefinition, log.xlog);
-//                animationLog.setFileName(log.fileName);
-//
-//                if (animationLog !=null && !animationLog.isEmpty()) {
-//                    replayedLogs.add(animationLog);
-//                }
-//            }
 
-        } else {
-            throw new AnimationException("The BPMN diagram is not valid for animation. ");
-        }
-        
-        for (AnimationLog animationLog : replayedLogs) {
-            animationLog.setDiagram(bpmnDefinition);
-        }
-        
-        /*
-        * ------------------------------------------
-        * Return Json animation
-        * ------------------------------------------
-        */
-        if (replayedLogs.size() > 0) {
-            AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(replayedLogs, bpmnDefinition, params);
-            JSONObject json = jsonBuilder.parseLogCollection();
-            json.put("success", true);  // Ext2JS's file upload requires this flag
-            return new AnimationResult(replayedLogs, bpmnDefinition, json);
-        }
-        else {
-            throw new AnimationException("Internal error. No log is replayed successfully.");
-        }
-        
+        return doCreateAnimation(bpmnDiagram, oldBpmnDiagram, logs, createReplayParams(logs));
     }
-    
-    /**
-     * This method adds a step to convert the replay result to JSON for the diagram with no gateways (i.e. graphs).
-     * The input BPMN diagram with gateways are used to replay the logs.
-     * The input BPMN digram with no gateways is the corresponding graph which must have JSON text to be visualized.
-     * Approach:
-     *      1. A mapping is built to map IDs of nodes/arcs on bpmnWithGateways to those on bpmnNoGateways
-     *      2. The log is replayed on bpmnWithGateways to have animationLog
-     *      3. All traces in the animationLog are converted to non-gateway traces with sequence flows adjusted
-     *      4. Apply the ID mapping to set IDs for all nodes/arcs in the animationLog to the IDs of nodes/arcs on bpmnNoGateways
-     *      5. The new animationLog is used to generate JSON text for bpmnNoGateways
-     * @param bpmnWithGateways: BPMN text with XOR gateways
-     * @param bpmnNoGateways: corresponding BPMN text with no XOR gateways
-     * @param logs: logs to be replayed
-     * @throws DiagramMappingException
-     * @throws AnimationException
-     */
+
     @Override
     public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, String bpmnWithGateways,
                                                          BPMNDiagram bpmnDiagramNoGateways, String bpmnNoGateways, List<Log> logs)
-            throws BpmnConverterException, IOException, JAXBException, JSONException, DiagramMappingException, AnimationException {
+            throws AnimationException {
 
-        Definitions bpmnDefWithGateways = BPMN2DiagramConverter.parseBPMN(bpmnWithGateways, getClass().getClassLoader());
-        Definitions bpmnDefNoGateways = BPMN2DiagramConverter.parseBPMN(bpmnNoGateways, getClass().getClassLoader());
-        ElementIDMapper diagramMapping = new ElementIDMapper(bpmnDefNoGateways);
+        Definitions oldBpmnDiagramWithGateways = checkBPMNDiagram(bpmnWithGateways);
+        Definitions oldBpmnNoGateways = checkBPMNDiagram(bpmnNoGateways);
 
-        String propertyFile = "properties.xml";
-        InputStream is = getClass().getClassLoader().getResourceAsStream(propertyFile);
-        Properties props = new Properties();
-        props.loadFromXML(is);
-        ReplayParams params = new ReplayParams();
-        params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
-        params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
-        params.setTotalEngineSeconds(600); //Override this setting for testing
-        params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
-        
         cleanLogs(logs);
-        int artificialTransitionRatio = Integer.valueOf(props.getProperty("ArtificialTransitionDurationRatio")).intValue();
-        int artificalTransitionDur = (int)computeArtificialTransitionDuration(logs, artificialTransitionRatio);
-        params.setStartEventToFirstEventDuration(artificalTransitionDur);
-        params.setLastEventToEndEventDuration(artificalTransitionDur);
 
-        List<AnimationLog> replayedLogs = new ArrayList<>();
-//        if (replayer.isValidProcess()) {
-//            for (Log log: logs) {
-//                AnimationLog animationLog = replayer.replay(log.xlog, log.color);
-//                animationLog.setFileName(log.fileName);
-//
-//                if (animationLog !=null && !animationLog.isEmpty()) {
-//                    replayedLogs.add(animationLog);
-//                }
-//            }
-//
-//        } else {
-//            throw new AnimationException("The BPMN diagram is not valid for animation. " +
-//                                         "Reason: " + replayer.getProcessCheckingMsg());
-//        }
-        
-        /*
-         * ------------------------------------------
-         * Convert the animation log to the one for graph, i.e. without gateways
-         * This new animation log is then used to generate the JSON text.
-         * ------------------------------------------
-         */
-        for (AnimationLog animationLog : replayedLogs) {
-            transformToNonGateways(animationLog, diagramMapping);
-            animationLog.setDiagram(bpmnDefNoGateways);
-        }
-        LOGGER.info("Finish replaying log over model");
-        
-        /*
-        * ------------------------------------------
-        * Return Json animation
-        * ------------------------------------------
-        */
-        if (replayedLogs.size() > 0) {
-            //To be replaced
-            AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(replayedLogs, bpmnDefNoGateways, params);
-            JSONObject json = jsonBuilder.parseLogCollection();
-            json.put("success", true);  // Ext2JS's file upload requires this flag
+        AnimationResult animResult = doCreateAnimation(bpmnDiagramWithGateways, oldBpmnDiagramWithGateways, logs, createReplayParams(logs));
 
-            //return string;
-            LOGGER.info("Finish generating JSON and start sending to the browser");
-            return new AnimationResult(replayedLogs, bpmnDefNoGateways, json);
+        transformToNoGateways(animResult, oldBpmnNoGateways);
+
+        return animResult;
+    }
+
+    private Definitions checkBPMNDiagram(String bpmnDiagram) throws AnimationException {
+        try {
+            Definitions oldBpmnDiagram = BPMN2DiagramConverter.parseBPMN(bpmnDiagram, getClass().getClassLoader());
+            BPMNDiagramHelper oldBpmnHelper = new BPMNDiagramHelper(oldBpmnDiagram);
+            if (!oldBpmnHelper.isValidModel()) throw new AnimationException("The BPMN diagram is not valid for animation.");
+            return oldBpmnDiagram;
         }
-        else {
-            throw new AnimationException("Internal error. No log is replayed successfully.");
+        catch (JAXBException ex) {
+            throw new AnimationException("An internal error occurred during parsing BPMN XML. Please check system logs");
+        }
+    }
+
+    private void transformToNoGateways(AnimationResult animationResult, Definitions oldBpmnNoGateways) throws AnimationException {
+        try {
+            ElementIDMapper diagramMapping = new ElementIDMapper(oldBpmnNoGateways);
+            for (AnimationLog animationLog : animationResult.getAnimationLogs()) {
+                transformToNonGateways(animationLog, diagramMapping);
+                animationLog.setDiagram(oldBpmnNoGateways);
+            }
+        }
+        catch (DiagramMappingException ex) {
+            LOGGER.error(ex.getMessage());
+            throw new AnimationException("An internal error occurred during animation result transformation. Please check system logs.");
+        }
+    }
+
+    private AnimationResult doCreateAnimation(BPMNDiagram bpmnDiagram, Definitions oldBpmnDiagram, List<Log> logs, ReplayParams params) {
+        LogAlignment logAlignment = new LogAlignment(bpmnDiagram, oldBpmnDiagram, params);
+        List<AnimationLog> animationLogs = logAlignment.align(logs);
+        AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(animationLogs, oldBpmnDiagram, params);
+        JSONObject json = jsonBuilder.parseLogCollection();
+        json.put("success", true);  // Ext2JS's file upload requires this flag
+        return new AnimationResult(animationLogs, oldBpmnDiagram, json);
+    }
+
+    private ReplayParams createReplayParams(List<Log> logs) throws AnimationException {
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream("properties.xml");
+            Properties props = new Properties();
+            props.loadFromXML(is);
+            ReplayParams params = new ReplayParams();
+            params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
+            params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
+            params.setTotalEngineSeconds(600); //Override this setting for testing
+            params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
+
+            int artificialTransitionRatio = Integer.valueOf(props.getProperty("ArtificialTransitionDurationRatio")).intValue();
+            int artificalTransitionDur = (int)computeArtificialTransitionDuration(logs, artificialTransitionRatio);
+            params.setStartEventToFirstEventDuration(artificalTransitionDur);
+            params.setLastEventToEndEventDuration(artificalTransitionDur);
+
+            return params;
+        } catch (IOException e) {
+            throw new AnimationException("An internal error occurred when reading animation properties file. Please check system logs");
         }
     }
     
@@ -242,12 +183,19 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
             }
         }
     }
-    
+
+    /**
+     * Clean the trace:
+     *  - Remove events with lifecycle different from "complete" value
+     *  - Make sure the only "complete" event logs have the same start and end timestamp as the original one
+     */
     private void cleanTrace(XTrace trace) {
         if (trace == null || trace.isEmpty()) return;
         
         Date startTimestamp = LogUtility.getTimestamp(trace.get(0));
         Date endTimestamp = LogUtility.getTimestamp(trace.get(trace.size()-1));
+
+        // Remove events with lifecycle different from "complete"
         Iterator<XEvent> iterator = trace.iterator();
         while (iterator.hasNext()) {
             XEvent event = iterator.next();
@@ -255,8 +203,9 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
                 iterator.remove();
             }
         }
-        
-        // Adjust the timestamp of the first/last events to ensure the clean log has a matched start/end date with the original one.
+
+        // After events have been removed, adjust the timestamp of the first/last events to ensure the clean log has a
+        // matched start/end date with the original one.
         if (!trace.isEmpty()) {
             LogUtility.setTimestamp(trace.get(0), startTimestamp);
             if (trace.size() > 1) LogUtility.setTimestamp(trace.get(trace.size()-1), endTimestamp);

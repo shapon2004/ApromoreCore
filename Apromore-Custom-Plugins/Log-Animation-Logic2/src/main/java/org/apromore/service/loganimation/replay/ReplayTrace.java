@@ -41,15 +41,11 @@ public class ReplayTrace {
     private TraceNode startNode = null;
     private XTrace logTrace = null;
 
-    //All nodes in the trace. Different from model nodes because there can be different trace nodes
-    //corresponding to one model node (as a result of loop effect in the model)
-    //private ArrayList<TraceNode> traceNodes = new ArrayList();
-    
     //Contains replayed node in the order of timing. Only contain node of model that is actually played
     //Every element points to a trace node in the replayed trace
     //This is to support for the replayed trace, like its flatten form in timing order
     private ArrayList<TraceNode> timeOrderedReplayedNodes = new ArrayList();
-    
+
     //All sequence flows in the trace.
     private ArrayList<SequenceFlow> sequenceFlows = new ArrayList();
     
@@ -94,15 +90,6 @@ public class ReplayTrace {
     
     public DateTime getEndDate() {
         return timeOrderedReplayedNodes.get(timeOrderedReplayedNodes.size()-1).getComplete();
-    }
-    
-    public Interval getInterval() {
-        if (this.getStartDate() != null && this.getEndDate() != null) {
-            return new Interval(this.getStartDate(), this.getEndDate());
-        }
-        else {
-            return null;
-        }
     }
     
     //newNode: node to add
@@ -308,20 +295,6 @@ public class ReplayTrace {
                     }
                 }
                 timeBeforePos = timeOrderedReplayedNodes.indexOf(mostRecentIncomingNode);
-                //----------------------------------------
-                //Go backward and look for a timed node, 
-                //known that it can either encounter a timed activity/gateway or 
-                //the Start event node (always timed)
-                //----------------------------------------
-                /*
-                for (int j=i-1;j>=0;j--) {
-                    if (timeOrderedReplayedNodes.get(j).isTimed()) {
-                        timeBefore = timeOrderedReplayedNodes.get(j).getStart();
-                        timeBeforePos = j;
-                        break;
-                    }
-                }
-                */
                 
                 //----------------------------------------
                 // Go forward and look for a timed node, known that it can encounter
@@ -341,39 +314,6 @@ public class ReplayTrace {
                         break;
                     }
                 }
-                
-                //----------------------------------------
-                //It may happen that timeBefore >= timeAfter because the two activities
-                //at timeBeforePos and timeAfterPos are on parallel branches and have 
-                //the same timestamp.
-                //----------------------------------------
-                /*
-                if (timeBefore != null && timeAfter != null && timeBefore.isEqual(timeAfter) && 
-                   !node.getSources().contains(timeOrderedReplayedNodes.get(timeBeforePos))) {
-                    //For activity or split gateway: continue searching backward for another timed node
-                    if (node.getSources().size() <= 1) { 
-                        for (int j=timeBeforePos-1;j>=0;j--) {
-                            if (timeOrderedReplayedNodes.get(j).isTimed() &&
-                                timeOrderedReplayedNodes.get(j).getStart().isBefore(timeAfter)) {
-                                timeBefore = timeOrderedReplayedNodes.get(j).getStart();
-                                timeBeforePos = j;
-                                break;
-                            }
-                        }
-                    }
-                    //For joining gateway: continue searching forward for another timed node
-                    else {  
-                        for (int j=timeAfterPos+1;j<timeOrderedReplayedNodes.size();j++) {
-                            if (timeOrderedReplayedNodes.get(j).isTimed() && 
-                                timeOrderedReplayedNodes.get(j).getStart().isAfter(timeBefore)) {
-                                timeAfter = timeOrderedReplayedNodes.get(j).getStart();
-                                timeAfterPos = j;
-                                break;
-                            }
-                        }
-                    }
-                }
-                */
                 
                 //----------------------------------------------
                 //Always take two ends of the trace plus a buffer as time limit
