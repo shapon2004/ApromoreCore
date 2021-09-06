@@ -45,14 +45,6 @@ public class ReplayParams {
     
     public void setLastEventToEndEventDuration(int newDuration) {
         this.LastEventToEndEventDuration = newDuration;
-    }       
-
-    public int getProgressCircleBarRadius() {
-        return ProgressCircleBarRadius;
-    }
-
-    public void setProgressCircleBarRadius(int ProgressCircleBarRadius) {
-        this.ProgressCircleBarRadius = ProgressCircleBarRadius;
     }
 
     public int getTotalEngineSeconds() {

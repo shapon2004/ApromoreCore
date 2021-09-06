@@ -140,11 +140,11 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
             InputStream is = getClass().getClassLoader().getResourceAsStream("properties.xml");
             Properties props = new Properties();
             props.loadFromXML(is);
+
             ReplayParams params = new ReplayParams();
             params.setTimelineSlots(Integer.valueOf(props.getProperty("TimelineSlots")).intValue());
             params.setTotalEngineSeconds(Integer.valueOf(props.getProperty("TotalEngineSeconds")).intValue());
             params.setTotalEngineSeconds(600); //Override this setting for testing
-            params.setProgressCircleBarRadius(Integer.valueOf(props.getProperty("ProgressCircleBarRadius")).intValue());
 
             int artificialTransitionRatio = Integer.valueOf(props.getProperty("ArtificialTransitionDurationRatio")).intValue();
             int artificalTransitionDur = (int)computeArtificialTransitionDuration(logs, artificialTransitionRatio);

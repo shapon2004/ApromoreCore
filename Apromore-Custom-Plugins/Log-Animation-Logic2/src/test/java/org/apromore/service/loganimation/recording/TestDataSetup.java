@@ -165,10 +165,6 @@ public class TestDataSetup {
         return this.readBPMNDiagram("src/test/logs/L1_1trace_complete_events_only_with_gateways.bpmn");
     }
     
-    private String readBPNDiagram_OneTraceAndCompleteEvents_WithGatewaysAsString() throws Exception {
-        return this.readBPMNDiagramAsString("src/test/logs/L1_1trace_complete_events_only_with_gateways.bpmn");
-    }
-    
     private BPMNDiagram readBPNDiagram_OneTraceAndCompleteEvents_NoGateways() throws Exception {
         return this.readBPMNDiagram("src/test/logs/L1_1trace_complete_events_only_no_gateways.bpmn");
     }
@@ -182,18 +178,8 @@ public class TestDataSetup {
         return parser.parse(new File(fullFilePath)).get(0);
     }
     
-    private XLog readXESCompressedFile(String fullFilePath) throws Exception {
-        XesXmlParser parser = new XesXmlGZIPParser();
-        return parser.parse(new File(fullFilePath)).get(0);
-    }
-    
     private BPMNDiagram readBPMNDiagram(String fullFilePath) throws FileNotFoundException, Exception {
         return bpmnImport.importFromStreamToDiagram(new FileInputStream(new File(fullFilePath)), fullFilePath);
-    }
-    
-    private String readBPMNDiagramAsString(String fullFilePath) throws FileNotFoundException, Exception {
-        byte[] encoded = Files.readAllBytes(Paths.get(fullFilePath));
-        return new String(encoded, StandardCharsets.UTF_8);
     }
     
     protected List<AnimationIndex> createAnimationIndexes(List<AnimationLog> logs, ModelMapping modelMapping, AnimationContext context) throws ElementNotFoundException, CaseNotFoundException {
