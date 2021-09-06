@@ -39,6 +39,8 @@ import javax.xml.bind.JAXBException;
 import org.apromore.alignmentautomaton.AlignmentResult;
 import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.processmining.models.jgraph.ProMJGraph;
+import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.json.AnimationJSONBuilder2;
@@ -73,8 +75,8 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
 
     @Override
-    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, String bpmn, List<Log> logs) throws AnimationException {
-        Definitions oldBpmnDiagram = checkBPMNDiagram(bpmn);
+    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws AnimationException {
+        Definitions oldBpmnDiagram = checkBPMNDiagram(getBPMN(bpmnDiagram, null));
 
         cleanLogs(logs);
 
@@ -82,12 +84,12 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     }
 
     @Override
-    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, String bpmnWithGateways,
-                                                         BPMNDiagram bpmnDiagramNoGateways, String bpmnNoGateways, List<Log> logs)
+    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways,
+                                                         BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
             throws AnimationException {
 
-        Definitions oldBpmnDiagramWithGateways = checkBPMNDiagram(bpmnWithGateways);
-        Definitions oldBpmnNoGateways = checkBPMNDiagram(bpmnNoGateways);
+        Definitions oldBpmnDiagramWithGateways = checkBPMNDiagram(getBPMN(bpmnDiagramWithGateways, null));
+        Definitions oldBpmnNoGateways = checkBPMNDiagram(getBPMN(bpmnDiagramNoGateways, null));
 
         cleanLogs(logs);
 
@@ -257,6 +259,32 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         if (artificialTransitionDur == 0) artificialTransitionDur = 10;
 
         return artificialTransitionDur;
+    }
+
+    //Convert from BPMNDiagram to string
+    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
+        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
+        if (layoutInfo != null) {
+            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
+        }
+        else {
+            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
+        }
+        BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n " +
+                "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\"\n " +
+                "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\"\n " +
+                "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\"\n " +
+                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n " +
+                "targetNamespace=\"http://www.omg.org/bpmn20\"\n " +
+                "xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">");
+        sb.append(definitions.exportElements());
+        sb.append("</definitions>");
+        String bpmnText = sb.toString();
+        bpmnText.replaceAll("\n", "");
+        return bpmnText;
     }
 
 }

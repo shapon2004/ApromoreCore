@@ -63,7 +63,7 @@ public class TestDataSetup {
     
     public AnimationResult animate_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
         return this.replay(Arrays.asList(this.readLog_OneTraceAndCompleteEvents()),
-                            this.readBPNDiagram_OneTraceAndCompleteEvents_WithGatewaysAsString());
+                            this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways());
     }
     
     public AnimationResult animate_TwoTraceAndCompleteEvents_Graph() throws Exception {
@@ -119,13 +119,11 @@ public class TestDataSetup {
     private AnimationResult replay(XLog log, BPMNDiagram diagramWithGateways, BPMNDiagram diagramNoGateways) throws Exception {
         LogAnimationService2.Log serviceLog = new LogAnimationService2.Log();
         serviceLog.xlog = log;
-        return logAnimationService.createAnimationWithNoGateways(
-                                                                getBPMN(diagramWithGateways, null),
-                                                                getBPMN(diagramNoGateways, null),
+        return logAnimationService.createAnimationWithNoGateways(diagramWithGateways, diagramNoGateways,
                                                                 Arrays.asList(new LogAnimationService2.Log[] {serviceLog}));
     }
     
-    private AnimationResult replay(List<XLog> logs, String diagram) throws Exception {
+    private AnimationResult replay(List<XLog> logs, BPMNDiagram diagram) throws Exception {
         List<LogAnimationService2.Log> serviceLogs = Lists.newArrayList();
         logs.forEach(log -> {
             LogAnimationService2.Log serviceLog = new LogAnimationService2.Log();
@@ -175,8 +173,8 @@ public class TestDataSetup {
         return this.readBPMNDiagram("src/test/logs/L1_1trace_complete_events_only_no_gateways.bpmn");
     }
     
-    private String readBPNDiagram_abc() throws Exception {
-        return this.readBPMNDiagramAsString("src/test/logs/abc.bpmn");
+    private BPMNDiagram readBPNDiagram_abc() throws Exception {
+        return this.readBPMNDiagram("src/test/logs/abc.bpmn");
     }
     
     private XLog readXESFile(String fullFilePath) throws Exception {
@@ -196,32 +194,6 @@ public class TestDataSetup {
     private String readBPMNDiagramAsString(String fullFilePath) throws FileNotFoundException, Exception {
         byte[] encoded = Files.readAllBytes(Paths.get(fullFilePath));
         return new String(encoded, StandardCharsets.UTF_8);
-    }
-    
-    //Convert from BPMNDiagram to string
-    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
-        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
-        if (layoutInfo != null) {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
-        }
-        else {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
-        }
-        BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n " +
-                "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\"\n " +
-                "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\"\n " +
-                "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\"\n " +
-                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n " +
-                "targetNamespace=\"http://www.omg.org/bpmn20\"\n " +
-                "xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">");
-        sb.append(definitions.exportElements());
-        sb.append("</definitions>");
-        String bpmnText = sb.toString();
-        bpmnText.replaceAll("\n", "");
-        return bpmnText;
     }
     
     protected List<AnimationIndex> createAnimationIndexes(List<AnimationLog> logs, ModelMapping modelMapping, AnimationContext context) throws ElementNotFoundException, CaseNotFoundException {

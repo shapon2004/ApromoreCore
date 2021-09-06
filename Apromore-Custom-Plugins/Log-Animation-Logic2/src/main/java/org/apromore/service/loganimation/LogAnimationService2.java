@@ -34,10 +34,8 @@ public interface LogAnimationService2 {
    class Log {
        public String fileName;
        public XLog   xlog;
-       public String color;
    }
 
-   public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, String bpmn, List<Log> logs) throws Exception;
-   public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, String bpmnWithGateways,
-                                                        BPMNDiagram bpmnDiagramNoGateways, String bpmnNoGateways, List<Log> logs) throws Exception;
+   public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws Exception;
+   public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, BPMNDiagram bpmnDiagramNoGateways, List<Log> logs) throws Exception;
 }
