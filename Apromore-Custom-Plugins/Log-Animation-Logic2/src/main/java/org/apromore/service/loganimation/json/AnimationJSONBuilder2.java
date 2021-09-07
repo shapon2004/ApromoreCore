@@ -54,7 +54,7 @@ public class AnimationJSONBuilder2 {
     private Interval totalRealInterval = null; //total time interval of all logs
     private ReplayParams params;
     
-    public AnimationJSONBuilder2(List<AnimationLog> animations, Definitions diagram, ReplayParams params) {
+    public AnimationJSONBuilder2(List<AnimationLog> animations, ReplayParams params) {
         this.animations = animations;
         this.params = params;
         

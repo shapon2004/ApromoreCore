@@ -44,12 +44,9 @@ import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.json.AnimationJSONBuilder2;
-import org.apromore.service.loganimation.replay.AnimationLog;
-import org.apromore.service.loganimation.replay.LogAlignment;
+import org.apromore.service.loganimation.replay.*;
 import org.apromore.service.loganimation.utils.BPMNDiagramHelper;
 import org.apromore.service.loganimation.utils.LogUtility;
-import org.apromore.service.loganimation.replay.ReplayParams;
-import org.apromore.service.loganimation.replay.ReplayTrace;
 import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
@@ -75,66 +72,20 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
 
     @Override
-    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws AnimationException {
-        Definitions oldBpmnDiagram = convertToOldBPMNDiagram(getBPMN(bpmnDiagram, null), true);
-
+    public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws AnimationException {
         cleanLogs(logs);
-
-        return doCreateAnimation(bpmnDiagram, oldBpmnDiagram, logs, createReplayParams(logs));
+        return doCreateAnimation(bpmnDiagram, logs, createReplayParams(logs), false);
     }
 
     @Override
-    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
+    public AnimationData createAnimationForGraph(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
             throws AnimationException {
-
-        BPMNDiagram bpmnDiagramWithGateways = BPMNDiagramHelper.createBPMNDiagramWithGateways(bpmnDiagramNoGateways);
-        Definitions oldBpmnDiagramWithGateways = convertToOldBPMNDiagram(getBPMN(bpmnDiagramWithGateways, null), true);
-        Definitions oldBpmnNoGateways = convertToOldBPMNDiagram(getBPMN(bpmnDiagramNoGateways, null), false);
-
         cleanLogs(logs);
-
-        AnimationResult animResult = doCreateAnimation(bpmnDiagramWithGateways, oldBpmnDiagramWithGateways, logs, createReplayParams(logs));
-
-        transformToNoGateways(animResult, oldBpmnNoGateways);
-
-        return animResult;
+        return doCreateAnimation(bpmnDiagramNoGateways, logs, createReplayParams(logs), true);
     }
 
-    private Definitions convertToOldBPMNDiagram(String bpmnDiagram, boolean checkValid) throws AnimationException {
-        try {
-            Definitions oldBpmnDiagram = BPMN2DiagramConverter.parseBPMN(bpmnDiagram, getClass().getClassLoader());
-            BPMNDiagramHelper oldBpmnHelper = new BPMNDiagramHelper(oldBpmnDiagram);
-            if (checkValid && !oldBpmnHelper.isValidModel()) {
-                throw new AnimationException("The BPMN diagram is not valid for animation.");
-            }
-            return oldBpmnDiagram;
-        }
-        catch (JAXBException ex) {
-            throw new AnimationException("An internal error occurred during parsing BPMN XML. Please check system logs");
-        }
-    }
-
-    private void transformToNoGateways(AnimationResult animationResult, Definitions oldBpmnNoGateways) throws AnimationException {
-        try {
-            ElementIDMapper diagramMapping = new ElementIDMapper(oldBpmnNoGateways);
-            for (AnimationLog animationLog : animationResult.getAnimationLogs()) {
-                transformToNonGateways(animationLog, diagramMapping);
-                animationLog.setDiagram(oldBpmnNoGateways);
-            }
-        }
-        catch (DiagramMappingException ex) {
-            LOGGER.error(ex.getMessage());
-            throw new AnimationException("An internal error occurred during animation result transformation. Please check system logs.");
-        }
-    }
-
-    private AnimationResult doCreateAnimation(BPMNDiagram bpmnDiagram, Definitions oldBpmnDiagram, List<Log> logs, ReplayParams params) {
-        LogAlignment logAlignment = new LogAlignment(bpmnDiagram, oldBpmnDiagram, params);
-        List<AnimationLog> animationLogs = logAlignment.align(logs);
-        AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(animationLogs, oldBpmnDiagram, params);
-        JSONObject json = jsonBuilder.parseLogCollection();
-        json.put("success", true);  // Ext2JS's file upload requires this flag
-        return new AnimationResult(animationLogs, oldBpmnDiagram, json);
+    private AnimationData doCreateAnimation(BPMNDiagram bpmnDiagram, List<Log> logs, ReplayParams params, boolean isGraph) throws AnimationException {
+        return (new LogAlignment(bpmnDiagram, params, isGraph)).align(logs);
     }
 
     private ReplayParams createReplayParams(List<Log> logs) throws AnimationException {
@@ -156,27 +107,6 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
             return params;
         } catch (IOException e) {
             throw new AnimationException("An internal error occurred when reading animation properties file. Please check system logs");
-        }
-    }
-    
-    // The input animation log will be modified after the call to this method
-    private void transformToNonGateways(AnimationLog diagramAnimationLog, ElementIDMapper diagramMapping) throws DiagramMappingException {
-        for (ReplayTrace trace : diagramAnimationLog.getTraces()) {
-            trace.convertToNonGateways();
-            for (FlowNode node : trace.getNodes()) {
-                String newId = diagramMapping.getId(node);
-                if (newId.equals(ElementIDMapper.UNFOUND)) {
-                    throw new DiagramMappingException("Couldn't find id for the node with name = " + node.getName());
-                }
-                node.setId(newId);
-            }
-            for (SequenceFlow flow : trace.getSequenceFlows()) {
-                String newId = diagramMapping.getId(flow);
-                if (newId.equals(ElementIDMapper.UNFOUND)) {
-                    throw new DiagramMappingException("Couldn't find id for the sequence flow with name = " + flow.getName());
-                }
-                flow.setId(newId);
-            }
         }
     }
     
@@ -261,32 +191,6 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         if (artificialTransitionDur == 0) artificialTransitionDur = 10;
 
         return artificialTransitionDur;
-    }
-
-    //Convert from BPMNDiagram to string
-    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
-        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
-        if (layoutInfo != null) {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
-        }
-        else {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
-        }
-        BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n " +
-                "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\"\n " +
-                "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\"\n " +
-                "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\"\n " +
-                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n " +
-                "targetNamespace=\"http://www.omg.org/bpmn20\"\n " +
-                "xsi:schemaLocation=\"http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd\">");
-        sb.append(definitions.exportElements());
-        sb.append("</definitions>");
-        String bpmnText = sb.toString();
-        bpmnText.replaceAll("\n", "");
-        return bpmnText;
     }
 
 }

@@ -21,7 +21,7 @@
  */
 package org.apromore.service.loganimation.impl;
 
-public class AnimationException extends Exception {
+public class AnimationException extends RuntimeException {
     public AnimationException(String message) {
         super(message);
     }

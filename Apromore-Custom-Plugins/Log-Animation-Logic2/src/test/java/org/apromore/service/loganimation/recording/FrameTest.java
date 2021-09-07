@@ -38,6 +38,14 @@ public class FrameTest extends TestDataSetup {
         AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
+
+    protected Movie createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
+        AnimationResult result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
+        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
+        ModelMapping modelMapping = new OldBpmnModelMapping(result.getModel());
+        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
+        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
+    }
     
     protected Movie createAnimationMovie_TwoTraceAndCompleteEvents_Graph() throws Exception {
         AnimationResult result = this.animate_TwoTraceAndCompleteEvents_Graph();
@@ -56,8 +64,8 @@ public class FrameTest extends TestDataSetup {
     }
     
     @Test
-    public void test_FrameData_OneTraceLog() throws Exception {
-        Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_Graph();
+        public void test_FrameData_OneTraceLog() throws Exception {
+            Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_Graph();
         
         Frame frame0 = animationMovie.get(0);
         Assert.assertEquals(0, frame0.getIndex());
@@ -82,6 +90,11 @@ public class FrameTest extends TestDataSetup {
         Assert.assertArrayEquals(new int[] {3}, frame35999.getOriginalTokens(0));
         Assert.assertArrayEquals(new int[] {}, frame35999.getOriginalTokensByElement(0,0));
         Assert.assertArrayEquals(new int[] {3}, frame35999.getOriginalTokensByElement(0,11));
+    }
+
+    @Test
+    public void test_FrameData_OneTraceLog_BPMNDiagram() throws Exception {
+        Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram();
     }
     
     @Test

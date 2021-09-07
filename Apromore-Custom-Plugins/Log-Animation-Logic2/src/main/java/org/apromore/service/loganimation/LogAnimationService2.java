@@ -27,6 +27,7 @@ package org.apromore.service.loganimation;
 import java.util.List;
 
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.service.loganimation.replay.AnimationData;
 import org.deckfour.xes.model.XLog;
 
 public interface LogAnimationService2 {
@@ -36,6 +37,6 @@ public interface LogAnimationService2 {
        public XLog   xlog;
    }
 
-   public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws Exception;
-   public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs) throws Exception;
+   public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws Exception;
+   public AnimationData createAnimationForGraph(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs) throws Exception;
 }
