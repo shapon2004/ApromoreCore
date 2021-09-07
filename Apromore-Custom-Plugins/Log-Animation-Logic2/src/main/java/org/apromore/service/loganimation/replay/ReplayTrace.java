@@ -94,18 +94,18 @@ public class ReplayTrace {
     
     //newNode: node to add
     //curModelNode: source node to be connected with the new node
-    public void add(FlowNode curModelNode, TraceNode newNode) {
+    public void add(TraceNode currentNode, TraceNode newNode) {
         FlowNode newModelNode = newNode.getModelNode();
         SequenceFlow modelFlow = null;
         
-        TraceNode curNode = this.getMarkingsMap().get(curModelNode);
+        TraceNode curNode = this.getMarkingsMap().get(currentNode.getModelNode());
         
         SequenceFlow traceFlow = new SequenceFlow();
         traceFlow.setSourceRef(curNode);
         traceFlow.setTargetRef(newNode);
         
         //Search for original sequence id
-        for (SequenceFlow flow : curModelNode.getOutgoingSequenceFlows()) {
+        for (SequenceFlow flow : currentNode.getModelNode().getOutgoingSequenceFlows()) {
             if (newModelNode == flow.getTargetRef()) {
                 modelFlow = flow;
                 break;

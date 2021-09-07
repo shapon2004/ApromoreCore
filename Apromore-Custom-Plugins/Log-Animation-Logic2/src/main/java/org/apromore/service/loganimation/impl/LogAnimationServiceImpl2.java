@@ -76,7 +76,7 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
 
     @Override
     public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws AnimationException {
-        Definitions oldBpmnDiagram = checkBPMNDiagram(getBPMN(bpmnDiagram, null));
+        Definitions oldBpmnDiagram = convertToOldBPMNDiagram(getBPMN(bpmnDiagram, null), true);
 
         cleanLogs(logs);
 
@@ -84,12 +84,12 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     }
 
     @Override
-    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways,
-                                                         BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
+    public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
             throws AnimationException {
 
-        Definitions oldBpmnDiagramWithGateways = checkBPMNDiagram(getBPMN(bpmnDiagramWithGateways, null));
-        Definitions oldBpmnNoGateways = checkBPMNDiagram(getBPMN(bpmnDiagramNoGateways, null));
+        BPMNDiagram bpmnDiagramWithGateways = BPMNDiagramHelper.createBPMNDiagramWithGateways(bpmnDiagramNoGateways);
+        Definitions oldBpmnDiagramWithGateways = convertToOldBPMNDiagram(getBPMN(bpmnDiagramWithGateways, null), true);
+        Definitions oldBpmnNoGateways = convertToOldBPMNDiagram(getBPMN(bpmnDiagramNoGateways, null), false);
 
         cleanLogs(logs);
 
@@ -100,11 +100,13 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         return animResult;
     }
 
-    private Definitions checkBPMNDiagram(String bpmnDiagram) throws AnimationException {
+    private Definitions convertToOldBPMNDiagram(String bpmnDiagram, boolean checkValid) throws AnimationException {
         try {
             Definitions oldBpmnDiagram = BPMN2DiagramConverter.parseBPMN(bpmnDiagram, getClass().getClassLoader());
             BPMNDiagramHelper oldBpmnHelper = new BPMNDiagramHelper(oldBpmnDiagram);
-            if (!oldBpmnHelper.isValidModel()) throw new AnimationException("The BPMN diagram is not valid for animation.");
+            if (checkValid && !oldBpmnHelper.isValidModel()) {
+                throw new AnimationException("The BPMN diagram is not valid for animation.");
+            }
             return oldBpmnDiagram;
         }
         catch (JAXBException ex) {

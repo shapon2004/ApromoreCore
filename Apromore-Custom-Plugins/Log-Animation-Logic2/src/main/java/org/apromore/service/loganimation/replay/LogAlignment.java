@@ -2,7 +2,6 @@ package org.apromore.service.loganimation.replay;
 
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowNode;
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import org.apromore.alignmentautomaton.AlignmentResult;
 import org.apromore.alignmentautomaton.ReplayResult;
 import org.apromore.alignmentautomaton.client.AlignmentClient;
@@ -70,17 +69,15 @@ public class LogAlignment {
 
         FlowNode modelNode = null;
         for (int i=0; i<traceAlignment.getNumberOfSteps(); i++) {
-            //---------------------------------------
-            //Add normal node to the replay trace
-            //---------------------------------------
-            modelNode = diagramHelper.getNode(traceAlignment.getNodeId(i));
-            traceNode = new TraceNode(modelNode);
-            SequenceFlow flow = diagramHelper.getSequenceFlow(previousNode.getName(), traceNode.getName());
-            replayTrace.add((FlowNode)flow.getSourceRef(), traceNode);
+            if (traceAlignment.isMoveOnModel(i)) continue;
+
+            // Add node
+            traceNode = new TraceNode(diagramHelper.getNode(traceAlignment.getNodeId(i)));
+            replayTrace.add(previousNode, traceNode);
 
             //Set timestamp
             if (traceNode.isActivity()) {
-                if (traceAlignment.isActivityMatched(i)) {
+                if (traceAlignment.isMoveOnModel(i)) {
                     traceNode.setActivityMatched(true);
                     traceNode.setStart(new DateTime(LogUtility.getTimestamp(trace.get(traceAlignment.getEventIndex(i)))));
                 } else {
@@ -88,7 +85,8 @@ public class LogAlignment {
                 }
             }
 
-            replayTrace.addToReplayedList(modelNode);
+            replayTrace.addToReplayedList(traceNode.getModelNode());
+            previousNode = traceNode;
         }
 
         //----------------------------------------------
@@ -99,11 +97,14 @@ public class LogAlignment {
             traceNode = new TraceNode(diagramHelper.getEndEvent());
             traceNode.setStart((new DateTime(LogUtility.getTimestamp(trace.get(trace.size()-1)))).plusSeconds(
                     params.getLastEventToEndEventDuration()));
-            replayTrace.add(modelNode, traceNode);
+            replayTrace.add(previousNode, traceNode);
             replayTrace.addToReplayedList(diagramHelper.getEndEvent());
         }
 
-        if (!replayTrace.isEmpty()) replayTrace.calcTiming();
+        // Calculate timing for non-timing nodes
+        if (!replayTrace.isEmpty()) {
+            replayTrace.calcTiming();
+        }
 
         return replayTrace;
     }

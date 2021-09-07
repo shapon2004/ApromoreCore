@@ -57,7 +57,7 @@ public class TestDataSetup {
     
     public AnimationResult animate_OneTraceAndCompleteEvents_Graph() throws Exception {
         return this.replay(this.readLog_OneTraceAndCompleteEvents(),
-                            this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways(),
+                            //this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways(),
                             this.readBPNDiagram_OneTraceAndCompleteEvents_NoGateways());
     }
     
@@ -68,19 +68,19 @@ public class TestDataSetup {
     
     public AnimationResult animate_TwoTraceAndCompleteEvents_Graph() throws Exception {
         return this.replay(this.readLog_TwoTraceAndCompleteEvents(),
-                            this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways(),
+                            //this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways(),
                             this.readBPNDiagram_OneTraceAndCompleteEvents_NoGateways());
     }
     
     public AnimationResult animate_OneTraceOneEvent_OneTaskGraph() throws Exception {
         return this.replay(this.readLog_OneTraceOneEvent(),
-                            this.readBPNDiagram_OneTask(),
+                            //this.readBPNDiagram_OneTask(),
                             this.readBPNDiagram_OneTask());
     }
     
     public AnimationResult animate_TwoTracesOneEvent_OneTaskGraph() throws Exception {
         return this.replay(this.readLog_TwoTracesOneEvent(),
-                            this.readBPNDiagram_OneTask(),
+                            //this.readBPNDiagram_OneTask(),
                             this.readBPNDiagram_OneTask());
     }
     
@@ -116,10 +116,10 @@ public class TestDataSetup {
         return new JSONArray(tokener);
     }
     
-    private AnimationResult replay(XLog log, BPMNDiagram diagramWithGateways, BPMNDiagram diagramNoGateways) throws Exception {
+    private AnimationResult replay(XLog log, BPMNDiagram diagramNoGateways) throws Exception {
         LogAnimationService2.Log serviceLog = new LogAnimationService2.Log();
         serviceLog.xlog = log;
-        return logAnimationService.createAnimationWithNoGateways(diagramWithGateways, diagramNoGateways,
+        return logAnimationService.createAnimationWithNoGateways(diagramNoGateways,
                                                                 Arrays.asList(new LogAnimationService2.Log[] {serviceLog}));
     }
     

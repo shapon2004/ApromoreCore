@@ -37,5 +37,5 @@ public interface LogAnimationService2 {
    }
 
    public AnimationResult createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws Exception;
-   public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramWithGateways, BPMNDiagram bpmnDiagramNoGateways, List<Log> logs) throws Exception;
+   public AnimationResult createAnimationWithNoGateways(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs) throws Exception;
 }

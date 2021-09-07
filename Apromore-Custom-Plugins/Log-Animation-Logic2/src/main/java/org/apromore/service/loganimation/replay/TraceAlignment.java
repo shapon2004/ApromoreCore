@@ -22,21 +22,21 @@ public class TraceAlignment {
         return steps.size();
     }
 
-    public boolean isActivityMatched(int stepIndex) {
+    public boolean isMoveOnModel(int stepIndex) {
         if (!isValidStepIndex(stepIndex)) return false;
         return steps.get(stepIndex) == StepType.LMGOOD || steps.get(stepIndex) == StepType.MREAL;
     }
 
-    public boolean isEventMatched(int stepIndex) {
+    public boolean isMoveOnTrace(int stepIndex) {
         if (!isValidStepIndex(stepIndex)) return false;
         return steps.get(stepIndex) == StepType.LMGOOD || steps.get(stepIndex) == StepType.L;
     }
 
     public String getNodeId(int stepIndex) {
-        return isActivityMatched(stepIndex) ? nodeIDs.get(stepIndex) : "";
+        return isMoveOnModel(stepIndex) ? nodeIDs.get(stepIndex) : "";
     }
 
     public int getEventIndex(int stepIndex) {
-        return isEventMatched(stepIndex) ? stepIndex : -1;
+        return isMoveOnTrace(stepIndex) ? stepIndex : -1;
     }
 }
