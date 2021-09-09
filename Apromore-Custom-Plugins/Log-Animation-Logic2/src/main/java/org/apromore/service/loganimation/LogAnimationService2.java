@@ -35,6 +35,10 @@ public interface LogAnimationService2 {
    class Log {
        public String fileName;
        public XLog   xlog;
+       public Log(String fileName, XLog xlog) {
+           this.fileName = fileName;
+           this.xlog = xlog;
+       }
    }
 
    public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws Exception;

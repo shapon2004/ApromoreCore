@@ -12,12 +12,16 @@ import java.util.List;
 @Getter
 public class AnimationData {
     @NonNull
+    private Definitions bpmnDiagram;
+
+    @NonNull
     private final List<AnimationLog> animationLogs;
 
     @NonNull
     private final JSONObject setupData;
 
-    public AnimationData(List<AnimationLog> animationLogs, JSONObject setupData) {
+    public AnimationData(Definitions oldBpmnDiagram, List<AnimationLog> animationLogs, JSONObject setupData) {
+        this.bpmnDiagram = oldBpmnDiagram;
         this.animationLogs = Collections.unmodifiableList(animationLogs);
         this.setupData = setupData;
     }

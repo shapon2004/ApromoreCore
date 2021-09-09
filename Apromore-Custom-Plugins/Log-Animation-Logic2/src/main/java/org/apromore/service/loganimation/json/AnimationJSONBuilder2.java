@@ -33,18 +33,13 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.apromore.service.loganimation.replay.AnimationLog;
-import org.apromore.service.loganimation.replay.ReplayParams;
+import org.apromore.service.loganimation.replay.AnimationParams;
 import org.apromore.service.loganimation.utils.TimeUtilities;
-import org.apromore.service.loganimation.replay.TraceNode;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Seconds;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import de.hpi.bpmn2_0.model.Definitions;
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 /**
  * Generate the setup data for animation
@@ -52,9 +47,9 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 public class AnimationJSONBuilder2 {
     private List<AnimationLog> animations = null;
     private Interval totalRealInterval = null; //total time interval of all logs
-    private ReplayParams params;
+    private AnimationParams params;
     
-    public AnimationJSONBuilder2(List<AnimationLog> animations, ReplayParams params) {
+    public AnimationJSONBuilder2(List<AnimationLog> animations, AnimationParams params) {
         this.animations = animations;
         this.params = params;
         

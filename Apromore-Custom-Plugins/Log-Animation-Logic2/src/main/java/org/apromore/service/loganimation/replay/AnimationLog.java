@@ -49,7 +49,6 @@ import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 
 public class AnimationLog {
     private XLog xlog = null;
-    private Definitions diagram;
     private Map<XTrace, ReplayTrace> traceMap = new HashMap();
     private String name = "";
     private String fileName = "";
@@ -77,10 +76,6 @@ public class AnimationLog {
     
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-    
-    public void setDiagram(Definitions diagram) {
-    	this.diagram = diagram;
     }
     
     public int getCaseIndexFromId(String caseId) {

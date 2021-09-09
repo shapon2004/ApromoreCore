@@ -4,12 +4,10 @@ import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowNode;
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
 import de.hpi.bpmn2_0.transformation.BPMN2DiagramConverter;
-import lombok.NonNull;
 import org.apromore.alignmentautomaton.AlignmentResult;
 import org.apromore.alignmentautomaton.ReplayResult;
 import org.apromore.alignmentautomaton.client.AlignmentClient;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
-import org.apromore.processmining.models.jgraph.ProMJGraph;
 import org.apromore.processmining.plugins.bpmn.BpmnDefinitions;
 import org.apromore.service.loganimation.LogAnimationService2;
 import org.apromore.service.loganimation.impl.AnimationException;
@@ -34,42 +32,47 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This is the main class for creating log animation data based on alignment log and model.
- * The result is {@link AnimationData}.
+ * <bold>LogAnimation</bold> is responsible for creating log animation data based on log-model alignment data.
+ * The purpose is creating {@link AnimationData} from the alignment data. For each trace and its alignment with the model,
+ * a concrete path on the model must be calculated with node IDs and sequence flow IDs, this path is used for running the
+ * animation tokens along. In addition, timing must be calculated for each node on the path. This timing
+ * must be based on the original timestamps of events in each trace to be accurate. For non-task nodes (e.g. gateways)
+ * or unmatched task nodes, timing must be calculated to match the gateway semantics. For example, a token coming out
+ * of an AND-split must spawn several tokens at the same timestamp, and these tokens coming to an AND-merge must
+ * arrive at the same timestamp.
  *
  * @author Bruce Nguyen
  */
-public class LogAlignment {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogAlignment.class);
+public class LogAnimation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimation.class);
 
-    private final BPMNDiagram bpmnDiagram;
     private final BPMNDiagram bpmnDiagramWithGateways;
 
     private final Definitions oldBpmnDiagram;
     private final Definitions oldBpmnDiagramWithGateways;
 
     private final BPMNDiagramHelper diagramHelper;
-    private final ReplayParams params;
+    private final AnimationParams params;
     private final boolean isGraph;
 
-    public LogAlignment(@NotNull BPMNDiagram bpmnDiagram, @NotNull ReplayParams replayParams, boolean isGraph) throws AnimationException {
-        this.bpmnDiagram = bpmnDiagram;
-        this.oldBpmnDiagram = convertToOldBPMNDiagram(bpmnDiagram);
+    public LogAnimation(@NotNull BPMNDiagram bpmnDiagram, @NotNull AnimationParams animationParams, boolean isGraph) throws AnimationException {
+        this.oldBpmnDiagram = convertToOldBPMNDiagram(bpmnDiagram, !isGraph);
 
         // Log alignment only works on BPMN diagram with gateways
         this.bpmnDiagramWithGateways = isGraph ? BPMNDiagramHelper.createBPMNDiagramWithGateways(bpmnDiagram) : bpmnDiagram;
-        this.oldBpmnDiagramWithGateways = isGraph ? convertToOldBPMNDiagram(bpmnDiagramWithGateways) : oldBpmnDiagram;
+        this.oldBpmnDiagramWithGateways = isGraph ? convertToOldBPMNDiagram(bpmnDiagramWithGateways, false) : oldBpmnDiagram;
 
         diagramHelper = new BPMNDiagramHelper(oldBpmnDiagramWithGateways);
-        this.params = replayParams;
+        this.params = animationParams;
         this.isGraph = isGraph;
     }
 
-    public AnimationData align(@NotNull @NotEmpty List<LogAnimationService2.Log> logs) throws AnimationException {
+    public AnimationData createAnimation(@NotNull @NotEmpty List<LogAnimationService2.Log> logs) throws AnimationException {
         List<AnimationLog> animationLogs = logs.stream()
-                .map(log -> align(log))
+                .map(this::align)
                 .collect(Collectors.toList());
-        AnimationData animationData = new AnimationData(animationLogs, createSetupData(animationLogs, params));
+        AnimationData animationData = new AnimationData(oldBpmnDiagramWithGateways, animationLogs,
+                                                        createSetupData(animationLogs, params));
         if (isGraph) transformToNoGateways(animationData);
         return animationData;
     }
@@ -78,7 +81,6 @@ public class LogAlignment {
         AnimationLog animationLog = new AnimationLog(log.xlog);
         animationLog.setFileName(log.fileName);
         animationLog.setName(log.xlog.getAttributes().get("concept:name").toString());
-        animationLog.setDiagram(oldBpmnDiagramWithGateways);
 
         try {
             AlignmentClient alignmentClient = new AlignmentClient(new RestTemplate(), "http://54.217.90.168");
@@ -94,11 +96,19 @@ public class LogAlignment {
         }
         catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new AnimationException("An internal error occurred during calling to aligment service. Please check system logs");
+            throw new AnimationException("An internal error occurred in calling to alignment service. Please check system logs");
         }
     }
 
-    private ReplayTrace createReplayTrace(@NotNull XLog log, int traceIndex, TraceAlignment traceAlignment) {
+    /**
+     * Create a replay trace from a TraceAlignment result. A ReplayTrace represents the path on the model aligned
+     * with the events in the trace. The timing at each node is also calculated.
+     * @param log: the XLog
+     * @param traceIndex: index of the trace in the log
+     * @param traceAlignment: the alignment result of the trace
+     * @return replay trace
+     */
+    private ReplayTrace createReplayTrace(@NotNull XLog log, int traceIndex, @NotNull TraceAlignment traceAlignment) {
         XTrace trace = log.get(traceIndex);
         ReplayTrace replayTrace = new ReplayTrace(log.get(traceIndex), params);
 
@@ -110,7 +120,6 @@ public class LogAlignment {
         replayTrace.addToReplayedList(diagramHelper.getStartEvent());
         TraceNode previousNode = traceNode;
 
-        FlowNode modelNode = null;
         for (int i=0; i<traceAlignment.getNumberOfSteps(); i++) {
             if (traceAlignment.isMoveOnModel(i)) continue;
 
@@ -132,11 +141,8 @@ public class LogAlignment {
             previousNode = traceNode;
         }
 
-        //----------------------------------------------
-        // Set timing for end event if it is connected to the last node in the replay trace
-        // modelNode: point to the last node of the replay trace
-        //----------------------------------------------
-        if (diagramHelper.getTargets(modelNode).contains(diagramHelper.getEndEvent())) {
+        //Set up ending node
+        if (diagramHelper.getTargets(previousNode.getModelNode()).contains(diagramHelper.getEndEvent())) {
             traceNode = new TraceNode(diagramHelper.getEndEvent());
             traceNode.setStart((new DateTime(LogUtility.getTimestamp(trace.get(trace.size()-1)))).plusSeconds(
                     params.getLastEventToEndEventDuration()));
@@ -152,36 +158,37 @@ public class LogAlignment {
         return replayTrace;
     }
 
-    private JSONObject createSetupData(List<AnimationLog> animationLogs, ReplayParams replayParams) {
-        AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(animationLogs, replayParams);
+    /**
+     * Create JSON setup data for the animation
+     * @param animationLogs: list of AnimationLog objects
+     * @param animationParams: replay parameters
+     * @return JSONObject containing setup data
+     */
+    private JSONObject createSetupData(List<AnimationLog> animationLogs, AnimationParams animationParams) {
+        AnimationJSONBuilder2 jsonBuilder = new AnimationJSONBuilder2(animationLogs, animationParams);
         JSONObject setupData = jsonBuilder.parseLogCollection();
         setupData.put("success", true);  // Ext2JS's file upload requires this flag
         return setupData;
     }
 
-    private Definitions convertToOldBPMNDiagram(BPMNDiagram bpmnDiagram) throws AnimationException {
+    private Definitions convertToOldBPMNDiagram(BPMNDiagram bpmnDiagram, boolean check) throws AnimationException {
         try {
-            Definitions oldBpmnDiagram = BPMN2DiagramConverter.parseBPMN(getBPMN(bpmnDiagram, null), getClass().getClassLoader());
+            Definitions oldBpmnDiagram = BPMN2DiagramConverter.parseBPMN(getBPMN(bpmnDiagram), getClass().getClassLoader());
             BPMNDiagramHelper oldBpmnHelper = new BPMNDiagramHelper(oldBpmnDiagram);
-            if (!oldBpmnHelper.isValidModel()) {
+            if (check && !oldBpmnHelper.isValidModel()) {
                 throw new AnimationException("The BPMN diagram is not valid for animation.");
             }
             return oldBpmnDiagram;
         }
         catch (JAXBException ex) {
-            throw new AnimationException("An internal error occurred during parsing BPMN XML. Please check system logs");
+            LOGGER.error(ex.getMessage(), ex);
+            throw new AnimationException("An internal error occurred in parsing BPMN XML. Please check system logs");
         }
     }
 
     //Convert from BPMNDiagram to string
-    private String getBPMN(BPMNDiagram diagram, ProMJGraph layoutInfo) {
-        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = null;
-        if (layoutInfo != null) {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram, layoutInfo);
-        }
-        else {
-            definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
-        }
+    private String getBPMN(BPMNDiagram diagram) {
+        BpmnDefinitions.BpmnDefinitionsBuilder definitionsBuilder = new BpmnDefinitions.BpmnDefinitionsBuilder(diagram);
         BpmnDefinitions definitions = new BpmnDefinitions("definitions", definitionsBuilder);
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -195,27 +202,40 @@ public class LogAlignment {
         sb.append(definitions.exportElements());
         sb.append("</definitions>");
         String bpmnText = sb.toString();
-        bpmnText.replaceAll("\n", "");
+        bpmnText = bpmnText.replaceAll("\n", "");
         return bpmnText;
     }
 
+    /**
+     * The alignment is done based on BPMN diagrams with gateways. This transformation is to transform the animation
+     * data back to BPMN diagrams with no gateways (i.e. graph)
+     * @param animationData AnimationData
+     * @throws AnimationException when transformation has an issue
+     */
     private void transformToNoGateways(AnimationData animationData) throws AnimationException {
         try {
             ElementIDMapper diagramMapping = new ElementIDMapper(oldBpmnDiagram);
             for (AnimationLog animationLog : animationData.getAnimationLogs()) {
-                transformToNonGateways(animationLog, diagramMapping);
-                animationLog.setDiagram(oldBpmnDiagram);
+                transformToNoGateways(animationLog, diagramMapping);
             }
         }
         catch (DiagramMappingException ex) {
-            LOGGER.error(ex.getMessage());
-            throw new AnimationException("An internal error occurred during animation result transformation. Please check system logs.");
+            LOGGER.error(ex.getMessage(), ex);
+            throw new AnimationException("An internal error occurred in transforming animation data to graph format. Please check system logs.");
         }
     }
 
-    // The input animation log will be modified after the call to this method
-    private void transformToNonGateways(AnimationLog diagramAnimationLog, ElementIDMapper diagramMapping) throws DiagramMappingException {
-        for (ReplayTrace trace : diagramAnimationLog.getTraces()) {
+    /**
+     * Transform each AnimationLog to using graph-based BPMN Diagram.
+     * For each ReplayTrace in the AnimationLog, this transformation perform:
+     *  - Remove all gateway nodes in the replay trace
+     *  - Update the node IDs and sequence flow IDs to be the ones from the input diagram mapping
+     * @param animationLog: Animation Log
+     * @param diagramMapping: mapping from node names to node IDs, this mapping is created from the graph-based BPMN diagram
+     * @throws DiagramMappingException when a node ID is not found for a node name (something wrong with the replay trace or mapping)
+     */
+    private void transformToNoGateways(AnimationLog animationLog, ElementIDMapper diagramMapping) throws DiagramMappingException {
+        for (ReplayTrace trace : animationLog.getTraces()) {
             trace.convertToNonGateways();
             for (FlowNode node : trace.getNodes()) {
                 String newId = diagramMapping.getId(node);

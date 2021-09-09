@@ -24,7 +24,7 @@
 
 package org.apromore.service.loganimation.replay;
 
-public class ReplayParams {
+public class AnimationParams {
     private int TimelineSlots;
     private int TotalEngineSeconds;
     private int ProgressCircleBarRadius;

@@ -23,24 +23,24 @@ package org.apromore.service.loganimation.recording;
 
 import java.util.Arrays;
 
-import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.modelmapping.OldBpmnModelMapping;
+import org.apromore.service.loganimation.replay.AnimationData;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TokenClusteringTest extends TestDataSetup {
     protected Movie createAnimationMovie_OneTraceOneEvent_OneTaskGrap() throws Exception {
-        AnimationResult result = this.animate_OneTraceOneEvent_OneTaskGraph();
+        AnimationData result = this.animate_OneTraceOneEvent_OneTaskGraph();
         AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getModel());
+        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
         AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoTracesOneEvent_OneTaskGrap() throws Exception {
-        AnimationResult result = this.animate_TwoTracesOneEvent_OneTaskGraph();
+        AnimationData result = this.animate_TwoTracesOneEvent_OneTaskGraph();
         AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getModel());
+        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
         AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }

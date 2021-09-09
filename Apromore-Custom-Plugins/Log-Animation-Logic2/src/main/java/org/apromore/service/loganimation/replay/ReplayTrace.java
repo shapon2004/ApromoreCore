@@ -31,7 +31,6 @@ import org.apromore.service.loganimation.utils.LogUtility;
 import org.deckfour.xes.model.XTrace;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -57,13 +56,11 @@ public class ReplayTrace {
     //During replay, markings of BPMN model and this trace must be kept synchronized.
     private Map<FlowNode,TraceNode> markingsMap = new HashMap();
     
-    private static final Logger LOGGER = Logger.getLogger(ReplayTrace.class.getCanonicalName());
-
-    private ReplayParams replayParams;
+    private AnimationParams animationParams;
     
-    public ReplayTrace(XTrace trace, ReplayParams replayParams) {
+    public ReplayTrace(XTrace trace, AnimationParams animationParams) {
         this.logTrace = trace;
-        this.replayParams = replayParams;
+        this.animationParams = animationParams;
     }
        
     public String getId() {
@@ -98,7 +95,7 @@ public class ReplayTrace {
         FlowNode newModelNode = newNode.getModelNode();
         SequenceFlow modelFlow = null;
         
-        TraceNode curNode = this.getMarkingsMap().get(currentNode.getModelNode());
+        TraceNode curNode = this.markingsMap.get(currentNode.getModelNode());
         
         SequenceFlow traceFlow = new SequenceFlow();
         traceFlow.setSourceRef(curNode);
@@ -120,39 +117,7 @@ public class ReplayTrace {
         this.sequenceFlows.add(traceFlow);
         
         this.markingsMap.put(newNode.getModelNode(), newNode);
-    }   
-    
-    //nodeSet: set of branch nodes of a join
-    //joinNode: join node to add
-    public void add(Collection<FlowNode> nodeSet, TraceNode joinNode) {
-        SequenceFlow traceFlow;
-        SequenceFlow modelFlow = null;
-        TraceNode branchNode;
-        FlowNode newModelNode = joinNode.getModelNode();
-        
-        for (FlowNode node : nodeSet) {
-            branchNode = this.getMarkingsMap().get(node);
-            
-            traceFlow = new SequenceFlow();
-            traceFlow.setSourceRef(branchNode);
-            traceFlow.setTargetRef(joinNode);
-            
-            for (SequenceFlow flow : node.getOutgoingSequenceFlows()) {
-                if (newModelNode == flow.getTargetRef()) {
-                    modelFlow = flow;
-                    break;
-                }
-            }
-            if (modelFlow != null) {
-                traceFlow.setId(modelFlow.getId());
-            }
-            
-            branchNode.getOutgoing().add(traceFlow);
-            joinNode.getIncoming().add(traceFlow);
-        }
-        
-        this.markingsMap.put(joinNode.getModelNode(), joinNode);
-    }    
+    }
     
     public ArrayList<TraceNode> getNodes() {
         return this.timeOrderedReplayedNodes;
@@ -180,10 +145,6 @@ public class ReplayTrace {
             }
         }
         return this.sequenceFlows;
-    }   
-   
-    public Map<FlowNode,TraceNode> getMarkingsMap() {
-        return markingsMap;
     }
     
     /**
@@ -322,11 +283,11 @@ public class ReplayTrace {
                 //----------------------------------------------
                 if (timeBefore == null) {
                     timeBefore = (new DateTime(LogUtility.getTimestamp(logTrace.get(0)))).minusSeconds(
-                                               replayParams.getStartEventToFirstEventDuration());
+                                               animationParams.getStartEventToFirstEventDuration());
                 }
                 if (timeAfter == null) {
                     timeAfter = (new DateTime(LogUtility.getTimestamp(logTrace.get(logTrace.size()-1)))).plusSeconds(
-                            replayParams.getLastEventToEndEventDuration());
+                            animationParams.getLastEventToEndEventDuration());
                 }
                 
                 //----------------------------------------------

@@ -23,8 +23,8 @@ package org.apromore.service.loganimation.recording;
 
 import java.util.Arrays;
 
-import org.apromore.service.loganimation.AnimationResult;
 import org.apromore.service.loganimation.modelmapping.OldBpmnModelMapping;
+import org.apromore.service.loganimation.replay.AnimationData;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,9 +33,9 @@ public class MovieTest extends TestDataSetup {
     
     @Test
     public void test_getChunkJSON_OneLog() throws Exception {
-        AnimationResult result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
+        AnimationData result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getModel());
+        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
         AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
         Movie movie = FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
         
@@ -52,9 +52,9 @@ public class MovieTest extends TestDataSetup {
     
     @Test
     public void test_getChunkJSON_TwoLogs() throws Exception {
-        AnimationResult result = this.animate_TwoLogs_With_BPMNDiagram();
+        AnimationData result = this.animate_TwoLogs_With_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getModel());
+        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
         Movie movie = FrameRecorder.record(createAnimationIndexes(result.getAnimationLogs(), modelMapping, animationContext),
                                         animationContext);
         

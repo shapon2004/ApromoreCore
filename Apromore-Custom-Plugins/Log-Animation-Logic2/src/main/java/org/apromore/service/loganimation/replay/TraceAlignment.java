@@ -5,6 +5,10 @@ import org.apromore.alignmentautomaton.StepType;
 
 import java.util.List;
 
+/**
+ * This class bundles details of alignment result to expose a consistent API on trace alignment.
+ * @author Bruce Nguyen
+ */
 public class TraceAlignment {
     private List<StepType> steps;
     private List<String> nodeIDs;
