@@ -24,7 +24,6 @@
 
 package org.apromore.plugin.portal.logimporter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +33,6 @@ import org.apromore.plugin.portal.PortalContext;
 import org.apromore.plugin.portal.PortalLoggerFactory;
 import org.apromore.service.EventLogService;
 import org.apromore.service.UserMetadataService;
-import org.apromore.service.logimporter.exception.InvalidLogMetadataException;
 import org.apromore.service.logimporter.model.LogErrorReport;
 import org.apromore.service.logimporter.model.LogMetaData;
 import org.apromore.service.logimporter.model.LogModel;
@@ -244,7 +242,35 @@ public class LogImporterController extends SelectorComposer<Window> implements C
             tempLogMetaData = metaDataUtilities.processMetaData(tempLogMetaData, this.sampleLog);
 
             if (mappingJSON != null) {
-                getSchemaMappingFromJson(tempLogMetaData, mappingJSON);
+                tempLogMetaData.setCaseIdPos((Integer) mappingJSON.get("caseIdPos"));
+                tempLogMetaData.setActivityPos((Integer) mappingJSON.get("activityPos"));
+                tempLogMetaData.setEndTimestampFormat((String) mappingJSON.get("endTimestampFormat"));
+                tempLogMetaData.setEndTimestampPos((Integer) mappingJSON.get("endTimestampPos"));
+                tempLogMetaData.setStartTimestampFormat((String) mappingJSON.get("startTimestampFormat"));
+                tempLogMetaData.setStartTimestampPos((Integer) mappingJSON.get("startTimestampPos"));
+                tempLogMetaData.setResourcePos((Integer) mappingJSON.get("resourcePos"));
+                tempLogMetaData.getEventAttributesPos().clear();
+                tempLogMetaData.getEventAttributesPos()
+                        .addAll((List<Integer>) mappingJSON.get("eventAttributesPos"));
+                tempLogMetaData.getCaseAttributesPos().clear();
+                tempLogMetaData.getCaseAttributesPos()
+                        .addAll((List<Integer>) mappingJSON.get("caseAttributesPos"));
+                tempLogMetaData.getIgnoredPos().clear();
+                tempLogMetaData.getIgnoredPos().addAll((List<Integer>) mappingJSON.get("ignoredPos"));
+
+                Object otherTimestamps = mappingJSON.get("otherTimestamps");
+                Map<Integer, String> otherTimestampsMap = (Map<Integer, String>) otherTimestamps;
+                Map<Integer, String> otherTimestampsMap2 = new HashMap<>();
+
+                for (Map.Entry<Integer, String> integerStringEntry : otherTimestampsMap.entrySet()) {
+                    Object key = ((Map.Entry) integerStringEntry).getKey();
+                    if (key != null) {
+                        otherTimestampsMap2.put(Integer.parseInt(key.toString()), otherTimestampsMap.get(key));
+                    }
+                }
+
+                tempLogMetaData.getOtherTimestamps().clear();
+                tempLogMetaData.getOtherTimestamps().putAll(otherTimestampsMap2);
             }
 
             if (getTimeZone() == null) {
@@ -265,39 +291,6 @@ public class LogImporterController extends SelectorComposer<Window> implements C
                     Messagebox.ERROR, event -> close());
         }
         // Clients.evalJavaScript("Ap.common.pullClientTimeZone()");
-    }
-
-    private void getSchemaMappingFromJson (LogMetaData tempLogMetaData, JSONObject mappingJSON) {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        LogMetaData storedSchemaMapping = null;
-        try {
-            storedSchemaMapping = objectMapper.readValue(mappingJSON.toJSONString(), LogMetaData.class);
-        } catch (JsonProcessingException e) {
-            LOGGER.error("Could not deserialize JSON content from given JSON content String: " + mappingJSON.toJSONString(), e);
-        }
-
-        if (storedSchemaMapping != null) {
-            tempLogMetaData.setCaseIdPos(storedSchemaMapping.getCaseIdPos());
-            tempLogMetaData.setActivityPos(storedSchemaMapping.getActivityPos());
-            tempLogMetaData.setEndTimestampFormat(storedSchemaMapping.getEndTimestampFormat());
-            tempLogMetaData.setEndTimestampPos(storedSchemaMapping.getEndTimestampPos());
-            tempLogMetaData.setStartTimestampFormat(storedSchemaMapping.getStartTimestampFormat());
-            tempLogMetaData.setStartTimestampPos(storedSchemaMapping.getStartTimestampPos());
-            tempLogMetaData.setResourcePos(storedSchemaMapping.getResourcePos());
-            tempLogMetaData.getEventAttributesPos().clear();
-            tempLogMetaData.getEventAttributesPos().addAll(storedSchemaMapping.getEventAttributesPos());
-            tempLogMetaData.getCaseAttributesPos().clear();
-            tempLogMetaData.getCaseAttributesPos().addAll(storedSchemaMapping.getCaseAttributesPos());
-            tempLogMetaData.getIgnoredPos().clear();
-            tempLogMetaData.getIgnoredPos().addAll(storedSchemaMapping.getIgnoredPos());
-            tempLogMetaData.getPerspectivePos().clear();
-            if (storedSchemaMapping.getPerspectivePos() != null) {
-                tempLogMetaData.getPerspectivePos().addAll(storedSchemaMapping.getPerspectivePos());
-            }
-            tempLogMetaData.getOtherTimestamps().clear();
-            tempLogMetaData.getOtherTimestamps().putAll(storedSchemaMapping.getOtherTimestamps());
-        }
     }
 
     // Create a dialog to ask for user option regarding matched schema mapping
@@ -405,27 +398,23 @@ public class LogImporterController extends SelectorComposer<Window> implements C
         return logModel;
     }
 
-    private void storeMetadataAsJSON(LogMetaData logMetaData, Log log)
+    private void storeMappingAsJSON(LogMetaData logMetaData, Log log)
             throws UserNotFoundException {
 
         String username = portalContext.getCurrentUser().getUsername();
-        String logMetadataJsonStr;
-        String perspectiveJsonStr;
+        String jsonStr = "";
 
         // Creating Object of ObjectMapper define in Jakson Api
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            logMetadataJsonStr = objectMapper.writeValueAsString(logMetaData);
-            perspectiveJsonStr = objectMapper.writeValueAsString(logMetaData.getPerspectives());
-
-            userMetadataService.saveUserMetadata("Default CSV schema mapping name", logMetadataJsonStr,
-                    UserMetadataTypeEnum.CSV_IMPORTER, username, log.getId());
-            userMetadataService.saveUserMetadata(UserMetadataTypeEnum.PERSPECTIVE_TAG.toString(), perspectiveJsonStr,
-                    UserMetadataTypeEnum.PERSPECTIVE_TAG, username, log.getId());
-        } catch (JsonProcessingException | InvalidLogMetadataException e) {
-            LOGGER.error("Unable to convert Log Metadata into JSON or Invalid Log Metadata, give up storing them into" +
-                    " DB for Log ({}). ", log.getName(), e);
+            jsonStr = objectMapper.writeValueAsString(logMetaData);
+        } catch (IOException e) {
+            LOGGER.error("Unable to convert log metadata into JSON; will store an empty string instead",
+                    e);
         }
+
+        userMetadataService.saveUserMetadata("Default CSV schema mapping name", jsonStr,
+                UserMetadataTypeEnum.CSV_IMPORTER, username, log.getId());
     }
 
     protected String getLogTag() {
@@ -715,7 +704,7 @@ public class LogImporterController extends SelectorComposer<Window> implements C
         menuItems.put(CASE_ATTRIBUTE_LABEL, getLabel("case_attribute"));
         menuItems.put(EVENT_ATTRIBUTE_LABEL, getLabel("event_attribute"));
         menuItems.put(IGNORE_LABEL, getLabel("ignore_attribute"));
-        menuItems.put(PERSPECTIVE_LABEL, getLabel("perspective"));
+
 
         for (int pos = 0; pos < logMetaData.getHeader().size(); pos++) {
             String head = logMetaData.getHeader().get(pos);
@@ -741,19 +730,12 @@ public class LogImporterController extends SelectorComposer<Window> implements C
                         && logMetaData.getStartTimestampPos() == pos)
                         || (myItem.getKey().equals(OTHER_TIMESTAMP_LABEL)
                         && ((Map<Integer, String>) logMetaData.getOtherTimestamps()).containsKey(pos))
-                        || (myItem.getKey().equals(RESOURCE_LABEL)
-                        && logMetaData.getResourcePos() == pos)
+                        || (myItem.getKey().equals(RESOURCE_LABEL) && logMetaData.getResourcePos() == pos)
                         || (myItem.getKey().equals(CASE_ATTRIBUTE_LABEL)
                         && logMetaData.getCaseAttributesPos().contains(pos))
-                        // When this head is in Perspective tag list, select PERSPECTIVE_LABEL instead of
-                        // EVENT_ATTRIBUTE_LABEL
                         || (myItem.getKey().equals(EVENT_ATTRIBUTE_LABEL)
-                        && logMetaData.getEventAttributesPos().contains(pos)
-                        && !logMetaData.getPerspectivePos().contains(pos))
-                        || (myItem.getKey().equals(IGNORE_LABEL)
-                        && logMetaData.getIgnoredPos().contains(pos))
-                        || (myItem.getKey().equals(PERSPECTIVE_LABEL)
-                        && logMetaData.getPerspectivePos().contains(pos))) {
+                        && logMetaData.getEventAttributesPos().contains(pos))
+                        || (myItem.getKey().equals(IGNORE_LABEL) && logMetaData.getIgnoredPos().contains(pos))) {
                     item.setSelected(true);
                 }
                 box.appendChild(item);
@@ -825,10 +807,6 @@ public class LogImporterController extends SelectorComposer<Window> implements C
                     case IGNORE_LABEL:
                         logMetaData.getIgnoredPos().add(colPos);
                         break;
-                    case PERSPECTIVE_LABEL:
-                        logMetaData.getEventAttributesPos().add(colPos);
-                        logMetaData.getPerspectivePos().add(colPos);
-                        break;
                     default:
                 }
             });
@@ -874,12 +852,8 @@ public class LogImporterController extends SelectorComposer<Window> implements C
             logMetaData.getIgnoredPos().remove(Integer.valueOf(pos));
         } else if (logMetaData.getCaseAttributesPos().contains(pos)) {
             logMetaData.getCaseAttributesPos().remove(Integer.valueOf(pos));
-        } else if (logMetaData.getEventAttributesPos().contains(pos)
-                && !logMetaData.getPerspectivePos().contains(pos)) {
+        } else if (logMetaData.getEventAttributesPos().contains(pos)) {
             logMetaData.getEventAttributesPos().remove(Integer.valueOf(pos));
-        } else if (logMetaData.getPerspectivePos().contains(pos)) {
-            logMetaData.getEventAttributesPos().remove(Integer.valueOf(pos));
-            logMetaData.getPerspectivePos().remove(Integer.valueOf(pos));
         }
     }
 
@@ -946,7 +920,7 @@ public class LogImporterController extends SelectorComposer<Window> implements C
             }
         } else {
             if (maskPos.contains(pos)) {
-                maskPos.remove((Integer) pos);
+              maskPos.remove((Integer) pos);
             }
         }
     }
@@ -1208,7 +1182,7 @@ public class LogImporterController extends SelectorComposer<Window> implements C
     private void saveXLog(LogModel logModel, boolean isPublic) {
 
         try {
-            storeMetadataAsJSON(logMetaData, logModel.getImportLog());
+            storeMappingAsJSON(logMetaData, logModel.getImportLog());
             String successMessage;
             if (logModel.isRowLimitExceeded()) {
                 successMessage = MessageFormat.format(getLabel("limit_reached"), logModel.getRowsCount());

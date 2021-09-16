@@ -145,7 +145,7 @@ public class LogImporterFileImporterPlugin implements FileImporterPlugin {
         }
         // Get saved schema mapping from DB
         List<Usermetadata> mappingJSONList;
-        Set<Usermetadata> usermetadataSet;
+        Set<Usermetadata> usermetadataSet = null;
 
         try {
           usermetadataSet = userMetadataService
