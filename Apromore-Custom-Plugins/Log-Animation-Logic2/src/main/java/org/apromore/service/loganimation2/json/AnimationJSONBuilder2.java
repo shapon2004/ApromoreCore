@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.apromore.service.loganimation2.replay.AnimationLog;
-import org.apromore.service.loganimation2.replay.AnimationParams;
+import org.apromore.service.loganimation2.enablement.EnablementLog;
+import org.apromore.service.loganimation2.enablement.AnimationParams;
 import org.apromore.service.loganimation2.utils.TimeUtilities;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -45,18 +45,18 @@ import org.json.JSONObject;
  * Generate the setup data for animation
  */
 public class AnimationJSONBuilder2 {
-    private List<AnimationLog> animations = null;
+    private List<EnablementLog> animations = null;
     private Interval totalRealInterval = null; //total time interval of all logs
     private AnimationParams params;
     
-    public AnimationJSONBuilder2(List<AnimationLog> animations, AnimationParams params) {
+    public AnimationJSONBuilder2(List<EnablementLog> animations, AnimationParams params) {
         this.animations = animations;
         this.params = params;
         
         Set<DateTime> dateSet = new HashSet<>();
-        for (AnimationLog animationLog : animations) {
-            dateSet.add(animationLog.getStartDate());
-            dateSet.add(animationLog.getEndDate());
+        for (EnablementLog animationLog : animations) {
+            dateSet.add(new DateTime(animationLog.getStartTimestamp()));
+            dateSet.add(new DateTime(animationLog.getEndTimestamp()));
         }
         SortedSet<DateTime> sortedDates = TimeUtilities.sortDates(dateSet);
         totalRealInterval = new Interval(sortedDates.first(), sortedDates.last());
@@ -71,7 +71,7 @@ public class AnimationJSONBuilder2 {
         JSONObject collectionObj = new JSONObject();
         
         JSONArray logs = new JSONArray();
-        for(AnimationLog log : this.animations) {
+        for(EnablementLog log : this.animations) {
             logs.put(this.parseLog(log));
         }
         
@@ -80,27 +80,27 @@ public class AnimationJSONBuilder2 {
         return collectionObj;
     }
     
-    public JSONObject parseLog(AnimationLog animationLog) throws JSONException {
+    public JSONObject parseLog(EnablementLog animationLog) throws JSONException {
         DecimalFormat df = new DecimalFormat("#.###");
         JSONObject json = new JSONObject();
         
         json.put("name", animationLog.getName());
         json.put("filename", animationLog.getFileName());
         json.put("color", "");
-        json.put("total", animationLog.getTraces().size());
-        json.put("play", animationLog.getTraces().size());
-        json.put("startDateLabel", animationLog.getStartDate().toString());
-        json.put("endDateLabel", animationLog.getEndDate().toString());
-        json.put("startLogDateLabel", animationLog.getStartDate().plus(((long)params.getStartEventToFirstEventDuration())*1000));
-        json.put("endLogDateLabel", animationLog.getEndDate().minus(((long)params.getLastEventToEndEventDuration())*1000));
-        json.put("reliable", animationLog.getReliableTraceCount());
-        json.put("unreliableTraces", animationLog.getUnReliableTraceIDs());
+        json.put("total", animationLog.size());
+        json.put("play", animationLog.size());
+        json.put("startDateLabel", new DateTime(animationLog.getStartTimestamp()).toString());
+        json.put("endDateLabel", new DateTime(animationLog.getEndTimestamp()).toString());
+        json.put("startLogDateLabel", new DateTime(animationLog.getStartTimestamp()).plus(((long)params.getStartEventToFirstEventDuration())*1000));
+        json.put("endLogDateLabel", new DateTime(animationLog.getEndTimestamp()).minus(((long)params.getLastEventToEndEventDuration())*1000));
+        json.put("reliable", "0");
+        json.put("unreliableTraces", "0");
         json.put("exactTraceFitness", "0.0");
         
         return json;
     }
     
-    protected JSONObject parseTimeline(Collection<AnimationLog> animations) throws JSONException {
+    protected JSONObject parseTimeline(Collection<EnablementLog> animations) throws JSONException {
         JSONObject json = new JSONObject();
         
         json.put("startDateLabel", totalRealInterval.getStart().toString());

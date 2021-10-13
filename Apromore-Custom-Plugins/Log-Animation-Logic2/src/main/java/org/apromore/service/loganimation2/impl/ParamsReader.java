@@ -1,9 +1,8 @@
 package org.apromore.service.loganimation2.impl;
 
-import org.apromore.service.loganimation2.LogAnimationService2;
-import org.apromore.service.loganimation2.replay.AnimationParams;
-import org.apromore.service.loganimation2.utils.LogUtility;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.logman.attribute.log.AttributeLog;
+import org.apromore.logman.attribute.log.AttributeTrace;
+import org.apromore.service.loganimation2.enablement.AnimationParams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +13,7 @@ import java.util.Properties;
  * Prepare parameters for the animation
  */
 public class ParamsReader {
-    public static AnimationParams createAnimationParams(List<LogAnimationService2.Log> logs) throws AnimationException {
+    public static AnimationParams createAnimationParams(List<AttributeLog> logs) throws AnimationException {
         try {
             InputStream is = ParamsReader.class.getClassLoader().getResourceAsStream("properties.xml");
             Properties props = new Properties();
@@ -43,7 +42,7 @@ public class ParamsReader {
      * @param artificialTransDurRatio: the parameter for the artificial duration compared to the total timeline duration, e.g. 20 means 1/20
      * @return: artificial transition duration in seconds
      */
-    private static double computeArtificialTransitionDuration(List<LogAnimationService2.Log> logs, int artificialTransDurRatio) {
+    private static double computeArtificialTransitionDuration(List<AttributeLog> logs, int artificialTransDurRatio) {
         double UPPER_BOUND = 1.0/artificialTransDurRatio;
         double LOWER_BOUND =  1.0/(2*artificialTransDurRatio);
 
@@ -52,13 +51,13 @@ public class ParamsReader {
         double totalAvgTransitionDur = 0;
         long minLogTimestamp = Long.MAX_VALUE, maxLogTimestamp = 0;
         int traceCount = 0;
-        for (LogAnimationService2.Log log : logs) {
-            for (XTrace trace : log.xlog) {
-                minLogTimestamp = Math.min(minLogTimestamp, !trace.isEmpty() ? LogUtility.getTimestamp(trace.get(0)).getTime() : Long.MAX_VALUE);
-                maxLogTimestamp = Math.max(maxLogTimestamp, !trace.isEmpty() ? LogUtility.getTimestamp(trace.get(trace.size()-1)).getTime() : 0);
-                if (trace.size() >= 2) {
-                    long traceDuration = LogUtility.getTimestamp(trace.get(trace.size()-1)).getTime() - LogUtility.getTimestamp(trace.get(0)).getTime();
-                    totalAvgTransitionDur += traceDuration/(trace.size()-1);
+        for (AttributeLog log : logs) {
+            for (AttributeTrace trace : log.getTraces()) {
+                minLogTimestamp = Math.min(minLogTimestamp, !trace.isEmpty() ? trace.getStartTimeAtIndex(0) : Long.MAX_VALUE);
+                maxLogTimestamp = Math.max(maxLogTimestamp, !trace.isEmpty() ? trace.getEndTimeAtIndex(trace.getValueTrace().size()-1) : 0);
+                if (trace.getValueTrace().size() >= 2) {
+                    long traceDuration = trace.getEndTimeAtIndex(trace.getValueTrace().size()-1) - trace.getStartTimeAtIndex(0);
+                    totalAvgTransitionDur += traceDuration/(trace.getValueTrace().size()-1);
                     traceCount++;
                 }
             }

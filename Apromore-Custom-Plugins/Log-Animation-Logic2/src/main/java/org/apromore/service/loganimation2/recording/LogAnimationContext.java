@@ -21,8 +21,6 @@
  */
 package org.apromore.service.loganimation2.recording;
 
-import org.apromore.service.loganimation2.replay.AnimationLog;
-
 public class LogAnimationContext {
     private long logStartTimestamp;
     private long logEndTimestamp;

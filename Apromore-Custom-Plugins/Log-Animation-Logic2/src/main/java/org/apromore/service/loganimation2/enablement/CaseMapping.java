@@ -19,12 +19,9 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.replay;
+package org.apromore.service.loganimation2.enablement;
 
-import java.util.Collection;
-
-import org.deckfour.xes.extension.std.XConceptExtension;
-import org.deckfour.xes.model.XTrace;
+import org.apromore.logman.attribute.log.AttributeLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 
 /**
@@ -33,14 +30,10 @@ import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
  *
  */
 public class CaseMapping {
-	private HashBiMap<String, Integer> mapping = new HashBiMap<>();
-	
-	public CaseMapping(Collection<XTrace> traces) {
-		int index=0;
-		for (XTrace trace : traces) {
-			mapping.put(XConceptExtension.instance().extractName(trace), index);
-			index++;
-		}
+	private final HashBiMap<String, Integer> mapping = new HashBiMap<>();
+
+	public CaseMapping(AttributeLog attLog) {
+		attLog.getTraces().forEachWithIndex((trace, index) -> mapping.put(trace.getTraceId(), index));
 	}
 	
 	public int getIndex(String caseId) {

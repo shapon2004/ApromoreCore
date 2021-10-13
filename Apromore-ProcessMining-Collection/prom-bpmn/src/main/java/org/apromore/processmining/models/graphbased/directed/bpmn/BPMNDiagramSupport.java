@@ -24,6 +24,7 @@ package org.apromore.processmining.models.graphbased.directed.bpmn;
 import java.util.Collection;
 import java.util.HashSet;
 
+import lombok.NonNull;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Activity;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.CallActivity;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Event;
@@ -34,7 +35,7 @@ import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Gatew
 public class BPMNDiagramSupport {
     private BPMNDiagram diagram;
     
-    public BPMNDiagramSupport(BPMNDiagram d) {
+    public BPMNDiagramSupport(@NonNull BPMNDiagram d) {
         diagram = d;
     }
     
@@ -129,5 +130,9 @@ public class BPMNDiagramSupport {
         Collection<BPMNNode> result = new HashSet<BPMNNode>();
         diagram.getOutEdges(node).forEach(e -> result.add(e.getSource()));
         return result;
+    }
+
+    public BPMNEdge getEdge(BPMNNode source, BPMNNode target) {
+        return diagram.getOutEdges(source).stream().filter(e -> e.getTarget() == target).findFirst().get();
     }
 }

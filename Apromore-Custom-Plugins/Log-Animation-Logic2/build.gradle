@@ -14,6 +14,6 @@ dependencies {
 	implementation project(':Apromore-ProcessMining-Collection')
 	implementation 'com.lodborg:interval-tree:1.0.0'
     implementation project(':Alignment-Service-Client')
-	
+    implementation project(':Apromore-Custom-Plugins:Log-Logic')
     
 }

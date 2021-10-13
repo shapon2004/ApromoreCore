@@ -23,8 +23,6 @@ package org.apromore.service.loganimation2.recording;
 
 import java.util.List;
 
-import org.apromore.service.loganimation2.replay.AnimationLog;
-
 /**
  * An <b>AnimationContext</b> captures the global setting for the animation.
  * 

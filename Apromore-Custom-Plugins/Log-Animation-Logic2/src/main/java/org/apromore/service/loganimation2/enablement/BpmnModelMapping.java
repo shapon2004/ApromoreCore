@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.modelmapping;
+package org.apromore.service.loganimation2.enablement;
 
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNEdge;

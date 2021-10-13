@@ -25,7 +25,6 @@
 package org.apromore.service.loganimation2.utils;
 
 import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-import org.apromore.service.loganimation2.replay.TraceNode;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

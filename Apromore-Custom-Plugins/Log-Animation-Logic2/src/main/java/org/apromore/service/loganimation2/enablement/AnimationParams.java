@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.service.loganimation2.replay;
+package org.apromore.service.loganimation2.enablement;
 
 public class AnimationParams {
     private int TimelineSlots;

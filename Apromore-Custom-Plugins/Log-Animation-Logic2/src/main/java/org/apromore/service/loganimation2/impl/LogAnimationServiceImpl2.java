@@ -24,18 +24,15 @@
 
 package org.apromore.service.loganimation2.impl;
 
-// Java 2 Standard Edition
 import java.util.List;
 
-        import org.apromore.plugin.DefaultParameterAwarePlugin;
+import org.apromore.logman.attribute.log.AttributeLog;
+import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.service.loganimation2.LogAnimationService2;
-import org.apromore.service.loganimation.replay.*;
-//import org.apromore.processmining.plugins.signaturediscovery.encoding.EncodeTraces;
-//import org.apromore.processmining.plugins.signaturediscovery.encoding.EncodingNotFoundException;
-import org.apromore.service.loganimation2.replay.AnimationData;
-import org.apromore.service.loganimation2.replay.AnimationParams;
-import org.apromore.service.loganimation2.replay.LogAnimation;
+import org.apromore.service.loganimation2.enablement.AnimationData;
+import org.apromore.service.loganimation2.enablement.AnimationParams;
+import org.apromore.service.loganimation2.enablement.LogAnimation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -48,21 +45,19 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
 
     @Override
-    public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<Log> logs) throws AnimationException {
-        LogProcessor.cleanLogs(logs);
+    public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws AnimationException {
         AnimationParams animationParams = ParamsReader.createAnimationParams(logs);
         return doCreateAnimation(bpmnDiagram, logs, animationParams, false);
     }
 
     @Override
-    public AnimationData createAnimationForGraph(BPMNDiagram bpmnDiagramNoGateways, List<Log> logs)
+    public AnimationData createAnimationForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs)
             throws AnimationException {
-        LogProcessor.cleanLogs(logs);
         AnimationParams animationParams = ParamsReader.createAnimationParams(logs);
         return doCreateAnimation(bpmnDiagramNoGateways, logs, animationParams, true);
     }
 
-    private AnimationData doCreateAnimation(BPMNDiagram bpmnDiagram, List<Log> logs, AnimationParams params, boolean isGraph) throws AnimationException {
+    private AnimationData doCreateAnimation(BPMNDiagram bpmnDiagram, List<AttributeLog> logs, AnimationParams params, boolean isGraph) throws AnimationException {
         return (new LogAnimation(bpmnDiagram, params, isGraph)).createAnimation(logs);
     }
 
