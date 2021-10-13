@@ -28,8 +28,11 @@ import java.util.Spliterator;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import org.apromore.calendar.model.CalendarModel;
 import org.apromore.logman.attribute.AttributeStore;
+import org.apromore.logman.attribute.IndexableAttribute;
 import org.apromore.logman.attribute.exception.InvalidAttributeLogStatusUpdateException;
+import org.apromore.logman.attribute.log.AttributeLog;
 import org.deckfour.xes.factory.XFactory;
 import org.deckfour.xes.factory.XFactoryNaiveImpl;
 import org.deckfour.xes.model.XLog;
@@ -64,7 +67,7 @@ public class ALog extends XLogImpl {
 	private final MutableList<ATrace> originalTraces = Lists.mutable.empty();
 	
 	// Metadata of all attributes
-	private final AttributeStore originalAttributeStore;
+	protected AttributeStore originalAttributeStore;
 	
 	// Filtered data
 	private BitSet originalTraceStatus;
@@ -84,10 +87,15 @@ public class ALog extends XLogImpl {
 			this.originalTraceStatus.set(index);
 			index++;
 		}
-		originalAttributeStore = new AttributeStore(this);
+
+		createAttributeStore();
 
 		setOriginalTraceStatus(originalTraceStatus);
 	}
+
+	protected void createAttributeStore() {
+        originalAttributeStore = new AttributeStore(this);
+    }
 	
 	public XLog getRawLog() {
 		return this.rawLog;
@@ -196,7 +204,11 @@ public class ALog extends XLogImpl {
         }
         return newLog;
     }
-    
+
+    public AttributeLog getAttributeLog(IndexableAttribute attribute, CalendarModel calendarModel) {
+        if (!originalAttributeStore.getIndexableEventAttribute().contains(attribute)) return null;
+        return new AttributeLog(this, attribute, calendarModel);
+    }
 
     @Override
     public XTrace remove(int index) {

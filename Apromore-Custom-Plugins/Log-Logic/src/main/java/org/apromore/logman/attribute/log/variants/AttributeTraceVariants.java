@@ -22,8 +22,8 @@
 
 package org.apromore.logman.attribute.log.variants;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.logman.attribute.log.AttributeTrace;
@@ -160,6 +160,16 @@ public class AttributeTraceVariants {
     public double getVariantRelativeFrequency(IntList variant) {
         if (attLog.getTraces().size() == 0) return 0;
         return 1.0*this.getFrequency(variant)/attLog.getTraces().size();
+    }
+
+    public List<String> getCaseIdsOfVariantIndex(int variantIndex) {
+        if (variantIndex < 0 || variantIndex >= traces.size()) return Collections.emptyList();
+        return traces.get(variantIndex).stream().map(trace -> trace.getTraceId()).collect(Collectors.toList());
+    }
+
+    public List<String> getActivityNamesOfVariantIndex(int variantIndex) {
+        if (variantIndex < 0 || variantIndex >= traces.size()) return Collections.emptyList();
+        return this.getVariantAtIndex(variantIndex).collect(value -> attLog.getStringFromValue(value)).toList();
     }
 
 }

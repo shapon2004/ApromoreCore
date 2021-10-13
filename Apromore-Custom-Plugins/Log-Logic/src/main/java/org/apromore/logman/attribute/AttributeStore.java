@@ -74,6 +74,8 @@ public class AttributeStore {
 	protected MutableMap<String, AbstractAttribute> keyLevelMap = Maps.mutable.empty(); //fasten attribute retrieval based on level+key
 	protected final String KEY_SEPARATOR = "@";
 
+	public AttributeStore() {}
+
 	public AttributeStore(ALog log) {
         registerXAttributes(log.getAttributes(), AttributeLevel.LOG);
         for (ATrace trace: log.getTraces()) {
@@ -87,10 +89,15 @@ public class AttributeStore {
 	protected String getLevelKey(String key, AttributeLevel level) {
 		return level.name() + KEY_SEPARATOR + key;
 	}
+
+	protected boolean isValidAttributeKey(String key) {
+		return true;
+	}
 	
 	protected ImmutableSet<AbstractAttribute> registerXAttributes(XAttributeMap attMap, AttributeLevel level) {
 	    MutableSet<AbstractAttribute> registeredAtts = Sets.mutable.empty();
 		for (String key : attMap.keySet()) {
+			if (!isValidAttributeKey(key)) continue;
 			XAttribute xatt = attMap.get(key);
 			String levelKey = getLevelKey(xatt.getKey(), level);
 			AbstractAttribute att = keyLevelMap.get(levelKey);
