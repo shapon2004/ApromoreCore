@@ -34,12 +34,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class TimeUtilities {
-    
-    //Convert from a sequence flow to an interval
-    public static Interval getInterval(SequenceFlow flow) {
-        return new Interval(((TraceNode)flow.getSourceRef()).getStart(),((TraceNode)flow.getTargetRef()).getComplete());
-    }
-    
     public static SortedSet<DateTime> sortDates(Set<DateTime> dateSet) {
         
         SortedSet<DateTime> timeline = new TreeSet<>(

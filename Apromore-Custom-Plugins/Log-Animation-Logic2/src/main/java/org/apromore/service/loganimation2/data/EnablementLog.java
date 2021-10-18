@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.service.loganimation2.enablement;
+package org.apromore.service.loganimation2.data;
 
 import lombok.NonNull;
 import org.apromore.alignmentautomaton.EnablementResult;
@@ -36,19 +36,18 @@ import java.util.stream.Collectors;
 
 /**
  * <b>EnablementLog</b> contains enablement data obtained for one {@link AttributeLog}.
- * Each enablement for one case is a set of {@link EnablementTuple}.
+ * Enablement includes aligning each trace in AttributeLog with a BPMN diagram and then calculating the enablement
+ * timestamp. Each enablement for one case is a set of {@link EnablementTuple}.
  */
 public class EnablementLog {
-    private final CaseMapping caseMapping; // mapping caseID to case index for space efficiency
+    private final CaseIdIndexing caseIdIndexing; // mapping caseID to case index for space efficiency
     private final Map<String, List<EnablementResult>> enablements;
-
-    private final String name = "";
-    private final String fileName = "";
-    private long startTimestamp = Instant.MAX.toEpochMilli();
-    private long endTimestamp = Instant.MIN.toEpochMilli();
+    private long startTimestamp = Long.MAX_VALUE;
+    private long endTimestamp = Long.MIN_VALUE;
+    private final String logName;
 
     public EnablementLog(@NonNull AttributeLog attLog, @NonNull Map<String, List<EnablementResult>> enablements) {
-        this.caseMapping = new CaseMapping(attLog);
+        this.caseIdIndexing = new CaseIdIndexing(attLog);
         this.enablements = enablements;
         attLog.getTraces().forEach(trace -> {
            if (trace.getStartTimeAtIndex(0) < startTimestamp) {
@@ -58,6 +57,11 @@ public class EnablementLog {
                endTimestamp = trace.getEndTimeAtIndex(trace.getValueTrace().size() - 1);
            }
         });
+        this.logName = attLog.getName();
+    }
+
+    public String getName() {
+        return this.logName;
     }
 
     public int size() {
@@ -71,16 +75,11 @@ public class EnablementLog {
     public List<EnablementTuple> getEnablementsByCaseId(String caseId) {
         return enablements.getOrDefault(caseId, Collections.emptyList())
                 .stream()
-                .map(e -> EnablementTuple.valueOf(e.getElementId(), e.isSkipped(), e.getEnablementTimestamp(), e.getEndTimestamp()))
+                .map(e -> EnablementTuple.valueOf(e.getElementId(),
+                            e.isSkipped(),
+                            e.getEnablementTimestamp() == null ? 0 : e.getEnablementTimestamp(),
+                            e.getEndTimestamp() == null ? 0 : e.getEndTimestamp()))
                 .collect(Collectors.toList());
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getFileName() {
-        return this.fileName;
     }
 
     public long getStartTimestamp() {
@@ -92,6 +91,6 @@ public class EnablementLog {
     }
 
     public int getCaseIndexFromId(String caseId) {
-        return caseMapping.getIndex(caseId);
+        return caseIdIndexing.getIndex(caseId);
     }
 }

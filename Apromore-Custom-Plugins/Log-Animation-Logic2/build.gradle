@@ -15,5 +15,7 @@ dependencies {
 	implementation 'com.lodborg:interval-tree:1.0.0'
     implementation project(':Alignment-Service-Client')
     implementation project(':Apromore-Custom-Plugins:Log-Logic')
-    
+    testImplementation('org.mockito:mockito-inline:3.4.0') // this is for mocking static methods
 }
+
+

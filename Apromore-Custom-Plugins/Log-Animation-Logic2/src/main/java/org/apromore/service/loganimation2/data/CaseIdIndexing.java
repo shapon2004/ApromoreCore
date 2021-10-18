@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.enablement;
+package org.apromore.service.loganimation2.data;
 
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
@@ -29,10 +29,10 @@ import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
  * @author Bruce Nguyen
  *
  */
-public class CaseMapping {
+public class CaseIdIndexing {
 	private final HashBiMap<String, Integer> mapping = new HashBiMap<>();
 
-	public CaseMapping(AttributeLog attLog) {
+	public CaseIdIndexing(AttributeLog attLog) {
 		attLog.getTraces().forEachWithIndex((trace, index) -> mapping.put(trace.getTraceId(), index));
 	}
 	

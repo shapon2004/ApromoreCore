@@ -20,27 +20,30 @@
  * #L%
  */
 
-package org.apromore.service.loganimation.recording;
+package org.apromore.service.loganimation2.recording;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apromore.alignmentautomaton.EnablementResult;
+import org.apromore.alignmentautomaton.client.AlignmentClient;
+import org.apromore.logman.ALog;
+import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.plugins.bpmn.plugins.BpmnImportPlugin;
 import org.apromore.service.loganimation2.LogAnimationService2;
+import org.apromore.service.loganimation2.data.EnablementLog;
 import org.apromore.service.loganimation2.impl.LogAnimationServiceImpl2;
 import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.replay.AnimationData;
-import org.apromore.service.loganimation2.replay.AnimationLog;
+import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.utils.BPMNDiagramHelper;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
 import org.json.JSONArray;
@@ -49,19 +52,67 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.google.common.collect.Lists;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 public class TestDataSetup {
-    private BpmnImportPlugin bpmnImport = new BpmnImportPlugin();
-    private LogAnimationService2 logAnimationService = new LogAnimationServiceImpl2();
-    
+    private final BpmnImportPlugin bpmnImport = new BpmnImportPlugin();
+
+    @Mock
+    protected AlignmentClient alignmentServiceClient;
+
+    protected LogAnimationService2 logAnimationService = null;
+
+    public static void main(String[] args) {
+        TestDataSetup testDataSetup = new TestDataSetup();
+        try {
+            System.out.println(System.getProperty("system.dir"));
+            SortedMap<String, List<EnablementResult>> test = testDataSetup.createEnablements(
+                    "C:/apromore\\ApromoreEE/ApromoreCore/Apromore-Custom-Plugins/Log-Animation-Logic2/" +
+                    "/src/test/logs/d1_1trace_complete_events_abd.json");
+            System.out.println(test);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private SortedMap<String, List<EnablementResult>> createEnablements(String jsonFile) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        FileInputStream is = new FileInputStream(jsonFile);
+        Map<String, List<EnablementResult>> results = objectMapper.readValue(new FileInputStream(jsonFile),
+                                            new TypeReference<>(){});
+        return new TreeMap<>(results);
+    }
+
+    public AnimationData animate_model_d1_1trace() throws Exception {
+        BPMNDiagram diagram = readBPMNDiagram("src/test/logs/d1.bpmn");
+        AttributeLog attLog = new ALog(readXESFile("src/test/logs/d1_1trace_complete_events_abd.xes"))
+                                    .getDefaultActivityLog();
+        LogAnimationService2 logAnimationService = new LogAnimationServiceImpl2(alignmentServiceClient);
+        Mockito.when(alignmentServiceClient.computeEnablement(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(createEnablements("src/test/logs/d1_1trace_complete_events_abd.json"));
+        return logAnimationService.createAnimationData(diagram, List.of(attLog));
+    }
+
+    public AnimationData animate_graph_d2_1trace() throws Exception {
+        BPMNDiagram diagram = readBPMNDiagram("src/test/logs/d2_graph.bpmn");
+        AttributeLog attLog = new ALog(readXESFile("src/test/logs/d2_1trace_a.xes"))
+                .getDefaultActivityLog();
+        LogAnimationService2 logAnimationService = new LogAnimationServiceImpl2(alignmentServiceClient);
+        Mockito.mockStatic(BPMNDiagramHelper.class).when(() -> BPMNDiagramHelper.createBPMNDiagramWithGateways(diagram))
+                .thenReturn(readBPMNDiagram("src/test/logs/d2_model.bpmn"));
+        Mockito.when(alignmentServiceClient.computeEnablement(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(createEnablements("src/test/logs/d2_1trace_a.json"));
+        return logAnimationService.createAnimationDataForGraph(diagram, List.of(attLog));
+    }
+
     public AnimationData animate_OneTraceAndCompleteEvents_Graph() throws Exception {
-        return this.replay(this.readLog_OneTraceAndCompleteEvents(),
-                            //this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways(),
-                            this.readBPNDiagram_OneTraceAndCompleteEvents_NoGateways());
+        return this.replay(List.of(this.readLog_OneTraceAndCompleteEvents()),
+                this.readBPNDiagram_OneTraceAndCompleteEvents_NoGateways());
     }
     
     public AnimationData animate_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
-        return this.replay(Arrays.asList(this.readLog_OneTraceAndCompleteEvents()),
+        return this.replay(List.of(this.readLog_OneTraceAndCompleteEvents()),
                             this.readBPNDiagram_OneTraceAndCompleteEvents_WithGateways());
     }
     
@@ -116,18 +167,13 @@ public class TestDataSetup {
     }
     
     private AnimationData replay(XLog log, BPMNDiagram diagramNoGateways) throws Exception {
-        LogAnimationService2.Log serviceLog = new LogAnimationService2.Log("", log);
-        return logAnimationService.createAnimationForGraph(diagramNoGateways,
-                                                                Arrays.asList(new LogAnimationService2.Log[] {serviceLog}));
+        return logAnimationService.createAnimationDataForGraph(diagramNoGateways, List.of(new ALog(log).getDefaultActivityLog()));
     }
     
     private AnimationData replay(List<XLog> logs, BPMNDiagram diagram) throws Exception {
-        List<LogAnimationService2.Log> serviceLogs = Lists.newArrayList();
-        logs.forEach(log -> {
-            LogAnimationService2.Log serviceLog = new LogAnimationService2.Log("", log);
-            serviceLogs.add(serviceLog);
-        });
-        return logAnimationService.createAnimation(diagram, serviceLogs);
+        List<AttributeLog> serviceLogs = Lists.newArrayList();
+        logs.forEach(log -> serviceLogs.add(new ALog(log).getDefaultActivityLog()));
+        return logAnimationService.createAnimationData(diagram, serviceLogs);
     }
     
     private XLog readLog_OneTraceOneEvent() throws Exception {
@@ -142,10 +188,9 @@ public class TestDataSetup {
         return this.readXESFile("src/test/logs/L1_1trace_complete_events_only.xes");
     }
 
-    public List<LogAnimationService2.Log> readLogs_OneTraceAndCompleteEvents() throws Exception {
-        return Arrays.asList(this.readXESFile("src/test/logs/L1_1trace_complete_events_only.xes"))
-                .stream()
-                .map(log -> new LogAnimationService2.Log("L1_1trace_complete_events_only.xes", log))
+    public List<AttributeLog> readLogs_OneTraceAndCompleteEvents() throws Exception {
+        return Stream.of(this.readXESFile("src/test/logs/L1_1trace_complete_events_only.xes"))
+                .map(log -> new ALog(log).getDefaultActivityLog())
                 .collect(Collectors.toList());
     }
     
@@ -157,10 +202,9 @@ public class TestDataSetup {
         return this.readXESFile("src/test/logs/ab.xes");
     }
 
-    public List<LogAnimationService2.Log> readLogs_ab() throws Exception {
-        return Arrays.asList(this.readXESFile("src/test/logs/ab.xes"))
-                .stream()
-                .map(log -> new LogAnimationService2.Log("ab.xes", log))
+    public List<AttributeLog> readLogs_ab() throws Exception {
+        return Stream.of(this.readXESFile("src/test/logs/ab.xes"))
+                .map(log -> new ALog(log).getDefaultActivityLog())
                 .collect(Collectors.toList());
     }
     
@@ -193,8 +237,8 @@ public class TestDataSetup {
         return parser.parse(new File(fullFilePath)).get(0);
     }
     
-    private BPMNDiagram readBPMNDiagram(String fullFilePath) throws FileNotFoundException, Exception {
-        return bpmnImport.importFromStreamToDiagram(new FileInputStream(new File(fullFilePath)), fullFilePath);
+    private BPMNDiagram readBPMNDiagram(String fullFilePath) throws Exception {
+        return bpmnImport.importFromStreamToDiagram(new FileInputStream(fullFilePath), fullFilePath);
     }
 
     private String readBPMNDiagramAsString(String fullFilePath) throws Exception {
@@ -202,10 +246,10 @@ public class TestDataSetup {
         return new String(encoded, StandardCharsets.UTF_8);
     }
     
-    protected List<AnimationIndex> createAnimationIndexes(List<AnimationLog> logs, ModelMapping modelMapping, AnimationContext context) throws ElementNotFoundException, CaseNotFoundException {
+    protected List<AnimationIndex> createAnimationIndexes(AnimationData animationData, AnimationContext context) {
         List<AnimationIndex> animationIndexes = new ArrayList<>();
-        for (AnimationLog log : logs) {
-            animationIndexes.add(new AnimationIndex(log, modelMapping, context));
+        for (EnablementLog log : animationData.getEnablementLogs()) {
+            animationIndexes.add(new AnimationIndex(log, animationData, context));
         }
         return animationIndexes;
     }

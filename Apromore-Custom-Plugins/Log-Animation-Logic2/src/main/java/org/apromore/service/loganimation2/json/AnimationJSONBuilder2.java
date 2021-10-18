@@ -24,68 +24,42 @@
 
 package org.apromore.service.loganimation2.json;
 
-import java.text.DecimalFormat;
-import java.time.ZoneId;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-
-import org.apromore.service.loganimation2.enablement.EnablementLog;
-import org.apromore.service.loganimation2.enablement.AnimationParams;
-import org.apromore.service.loganimation2.utils.TimeUtilities;
+import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.data.AnimationParams;
+import org.apromore.service.loganimation2.data.EnablementLog;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.ZoneId;
+
 /**
  * Generate the setup data for animation
  */
 public class AnimationJSONBuilder2 {
-    private List<EnablementLog> animations = null;
-    private Interval totalRealInterval = null; //total time interval of all logs
-    private AnimationParams params;
-    
-    public AnimationJSONBuilder2(List<EnablementLog> animations, AnimationParams params) {
-        this.animations = animations;
-        this.params = params;
-        
-        Set<DateTime> dateSet = new HashSet<>();
-        for (EnablementLog animationLog : animations) {
-            dateSet.add(new DateTime(animationLog.getStartTimestamp()));
-            dateSet.add(new DateTime(animationLog.getEndTimestamp()));
-        }
-        SortedSet<DateTime> sortedDates = TimeUtilities.sortDates(dateSet);
-        totalRealInterval = new Interval(sortedDates.first(), sortedDates.last());
-    }
-    
-    //Proportion between animation and data time
-    protected double getTimeConversionRatio() {
-        return 1.0*params.getTotalEngineSeconds()/(totalRealInterval.toDurationMillis()/1000);
-    }
-    
-    public JSONObject parseLogCollection() throws JSONException {
+
+    public static JSONObject parseLogCollection(AnimationData animationData, AnimationParams params) throws JSONException {
         JSONObject collectionObj = new JSONObject();
         
         JSONArray logs = new JSONArray();
-        for(EnablementLog log : this.animations) {
-            logs.put(this.parseLog(log));
+        for(EnablementLog log : animationData.getEnablementLogs()) {
+            logs.put(parseLog(log, params));
         }
-        
         collectionObj.put("logs", logs);
-        collectionObj.put("timeline", this.parseTimeline(animations));
+
+        collectionObj.put("timeline", parseTimeline(
+                new Interval(animationData.getStartTimestamp(), animationData.getEndTimestamp()),
+                params));
+
         return collectionObj;
     }
     
-    public JSONObject parseLog(EnablementLog animationLog) throws JSONException {
-        DecimalFormat df = new DecimalFormat("#.###");
+    private static JSONObject parseLog(EnablementLog animationLog, AnimationParams params) throws JSONException {
         JSONObject json = new JSONObject();
         
         json.put("name", animationLog.getName());
-        json.put("filename", animationLog.getFileName());
         json.put("color", "");
         json.put("total", animationLog.size());
         json.put("play", animationLog.size());
@@ -100,7 +74,7 @@ public class AnimationJSONBuilder2 {
         return json;
     }
     
-    protected JSONObject parseTimeline(Collection<EnablementLog> animations) throws JSONException {
+    private static JSONObject parseTimeline(Interval totalRealInterval, AnimationParams params) throws JSONException {
         JSONObject json = new JSONObject();
         
         json.put("startDateLabel", totalRealInterval.getStart().toString());

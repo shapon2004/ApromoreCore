@@ -19,13 +19,12 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.enablement;
+package org.apromore.service.loganimation2.data;
 
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNEdge;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNNode;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Activity;
-import org.apromore.service.loganimation2.recording.ModelMapping;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,11 +35,11 @@ import org.json.JSONObject;
  * @author Bruce Nguyen
  *
  */
-public class BpmnModelMapping implements ModelMapping {
-	private HashBiMap<String, Integer> elementIdToIndexMap = new HashBiMap<>();
-	private HashBiMap<String, Integer> elementIdToSkipIndexMap = new HashBiMap<>();
+public class ElementIdIndexing {
+	private final HashBiMap<String, Integer> elementIdToIndexMap = new HashBiMap<>();
+	private final HashBiMap<String, Integer> elementIdToSkipIndexMap = new HashBiMap<>();
 	
-    public BpmnModelMapping(BPMNDiagram diagram) {
+    public ElementIdIndexing(BPMNDiagram diagram) {
         int index=0;
         for (BPMNNode node : diagram.getNodes()) {
             elementIdToIndexMap.put(node.getId().toString(), index);
@@ -57,32 +56,26 @@ public class BpmnModelMapping implements ModelMapping {
         }
     }
 	
-	@Override
     public int getIndex(String elementId) {
 		return elementIdToIndexMap.getIfAbsent(elementId, () -> -1);
 	}
 	
-    @Override
     public int getSkipIndex(String elementId) {
         return elementIdToSkipIndexMap.getIfAbsent(elementId, () -> -1);
     }
 	
-	@Override
     public String getId(int index) {
 		return elementIdToIndexMap.inverse().getIfAbsent(index, () -> "");
 	}
 	
-	@Override
     public String getIdFromSkipIndex(int index) {
 	    return elementIdToSkipIndexMap.inverse().getIfAbsent(index, () -> "");
 	}
 
-	@Override
     public int size() {
         return elementIdToIndexMap.size() + elementIdToSkipIndexMap.size();
     }
     
-	@Override
     public void clear() {
 		this.elementIdToIndexMap.clear();
 		this.elementIdToSkipIndexMap.clear();
@@ -90,7 +83,6 @@ public class BpmnModelMapping implements ModelMapping {
 	
 	// two arrays, first is the mapping from id to normal index
 	// second is mapping from id to skip index
-	@Override
     public JSONArray getElementJSON() throws JSONException {
 	    JSONArray jsonArray = new JSONArray();
         jsonArray.put(this.getJSONMap(this.elementIdToIndexMap));

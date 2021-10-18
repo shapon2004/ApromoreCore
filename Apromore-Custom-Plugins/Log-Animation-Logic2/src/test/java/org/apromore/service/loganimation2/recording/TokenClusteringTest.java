@@ -19,30 +19,27 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation.recording;
+package org.apromore.service.loganimation2.recording;
 
 import java.util.Arrays;
 
-import org.apromore.service.loganimation2.modelmapping.OldBpmnModelMapping;
 import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.replay.AnimationData;
+import org.apromore.service.loganimation2.data.AnimationData;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TokenClusteringTest extends TestDataSetup {
     protected Movie createAnimationMovie_OneTraceOneEvent_OneTaskGrap() throws Exception {
         AnimationData result = this.animate_OneTraceOneEvent_OneTaskGraph();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoTracesOneEvent_OneTaskGrap() throws Exception {
         AnimationData result = this.animate_TwoTracesOneEvent_OneTaskGraph();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
     

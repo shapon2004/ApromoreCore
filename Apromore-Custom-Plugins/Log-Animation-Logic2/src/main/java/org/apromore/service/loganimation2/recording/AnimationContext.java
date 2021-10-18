@@ -21,8 +21,6 @@
  */
 package org.apromore.service.loganimation2.recording;
 
-import java.util.List;
-
 /**
  * An <b>AnimationContext</b> captures the global setting for the animation.
  * 
@@ -33,7 +31,7 @@ public class AnimationContext {
 	private int recordingFrameRate = 60; //frames per second
     private int recordingDuration = 600; //seconds
     private double recordingFrameInterval = 0; //milliseconds between two consecutive frames
-    
+
     private long minLogStartTimestamp = Long.MAX_VALUE;
     private long maxLogEndTimestamp = Long.MIN_VALUE;
     private double logToRecordingTimeRatio = 1; //a second on the animation timeline is converted to actual seconds
@@ -41,17 +39,15 @@ public class AnimationContext {
     
     private int frameSkip = 0;
     
-    public AnimationContext(List<AnimationLog> logs) {
-        for (AnimationLog log: logs) {
-            if (minLogStartTimestamp > log.getStartDate().getMillis()) minLogStartTimestamp = log.getStartDate().getMillis();
-            if (maxLogEndTimestamp < log.getEndDate().getMillis()) maxLogEndTimestamp = log.getEndDate().getMillis();
-        }
+    public AnimationContext(long minLogStartTimestamp, long maxLogEndTimestamp) {
+        this.minLogStartTimestamp = minLogStartTimestamp;
+        this.maxLogEndTimestamp = maxLogEndTimestamp;
         this.setRecordingFrameRate(this.recordingFrameRate);
         this.setRecordingDuration(this.recordingDuration);
     }
     
-    public AnimationContext(List<AnimationLog> logs, int recordingFrameRate, int recordingDuration) {
-        this(logs);
+    public AnimationContext(long minLogStartTimestamp, long maxLogEndTimestamp, int recordingFrameRate, int recordingDuration) {
+        this(minLogStartTimestamp, maxLogEndTimestamp);
         this.setRecordingFrameRate(recordingFrameRate);
         this.setRecordingDuration(recordingDuration);
     }
@@ -79,11 +75,11 @@ public class AnimationContext {
     public double getRecordingLogFrameInterval() {
         return this.logTimeFrameInterval;
     }
-    
+
     public long getMinLogStartTimestamp() {
         return this.minLogStartTimestamp;
     }
-    
+
     public long getMaxLogEndTimestamp() {
         return this.maxLogEndTimestamp;
     }

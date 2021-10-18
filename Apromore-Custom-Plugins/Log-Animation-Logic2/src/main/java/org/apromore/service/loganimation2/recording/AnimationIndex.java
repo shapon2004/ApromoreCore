@@ -27,8 +27,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import org.apromore.service.loganimation2.enablement.EnablementLog;
-import org.apromore.service.loganimation2.enablement.EnablementTuple;
+import lombok.NonNull;
+import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.data.EnablementLog;
+import org.apromore.service.loganimation2.data.EnablementTuple;
 import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
 import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
 import org.eclipse.collections.api.set.primitive.MutableIntSet;
@@ -44,7 +46,7 @@ import com.lodborg.intervaltree.Interval.Bounded;
 import com.lodborg.intervaltree.IntervalTree;
 
 /**
- * An <b>AnimationIndex</b> is an index of an AnimationLog.<br>
+ * An <b>AnimationIndex</b> is an index of an EnablementLog.<br>
  * Note that each replay element is given a unique sequential number (called replay element index, or token index)
  * The animation index is built for each replay element to point to its modelling elements, replay trace and frame indexes.
  * 
@@ -66,16 +68,17 @@ public class AnimationIndex {
     private IntervalTree<Integer> intervalTree = new IntervalTree<>();
     private Map<IntegerInterval, MutableIntSet> intervalToReplayElement = new HashMap<>();
     
-    public AnimationIndex(EnablementLog log, ModelMapping modelMapping, AnimationContext animateContext)
-            throws ElementNotFoundException, CaseNotFoundException {
+    public AnimationIndex(@NonNull EnablementLog log, @NonNull AnimationData animationData,
+                          @NonNull AnimationContext animateContext) {
+        if (!animationData.getEnablementLogs().contains(log)) throw new IllegalArgumentException("Invalid log or animation data");
         this.animationContext = animateContext;
         int replayElementIndex = 0;
         for (String caseId : log.getCaseIDs()) {
             for (EnablementTuple tuple : log.getEnablementsByCaseId(caseId)) {
                 int caseIndex = log.getCaseIndexFromId(caseId);
-                if (caseIndex < 0) throw new CaseNotFoundException("Couldn't find case with id = " + caseId);
-                int elementIndex = !tuple.isSkip() ?  modelMapping.getIndex(tuple.getElementId())
-                                    : modelMapping.getSkipIndex(tuple.getElementId());
+                if (caseIndex < 0) throw new IllegalArgumentException("Couldn't find case with id = " + caseId);
+                int elementIndex = animationData.getElementIndex(tuple.getElementId(), tuple.isSkip());
+                if (elementIndex < 0) throw new IllegalArgumentException("Couldn't find element with id = " + tuple.getElementId());
                 index(replayElementIndex, elementIndex, caseIndex, tuple.getStartTimestamp(), tuple.getEndTimestamp());
                 replayElementIndex++;
             }

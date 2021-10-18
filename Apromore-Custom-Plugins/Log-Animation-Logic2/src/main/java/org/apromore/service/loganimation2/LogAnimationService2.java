@@ -28,20 +28,12 @@ import java.util.List;
 
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
-import org.apromore.service.loganimation2.enablement.AnimationData;
-import org.deckfour.xes.model.XLog;
+import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.data.AnimationParams;
+import org.json.JSONObject;
 
 public interface LogAnimationService2 {
-
-   class Log {
-       public String fileName;
-       public XLog   xlog;
-       public Log(String fileName, XLog xlog) {
-           this.fileName = fileName;
-           this.xlog = xlog;
-       }
-   }
-
-   public AnimationData createAnimation(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws Exception;
-   public AnimationData createAnimationForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs) throws Exception;
+   public AnimationData createAnimationData(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws Exception;
+   public AnimationData createAnimationDataForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs) throws Exception;
+   public JSONObject createSetupData(AnimationData animationData, AnimationParams params) throws Exception;
 }

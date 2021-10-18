@@ -22,12 +22,11 @@
  * #L%
  */
 
-package org.apromore.service.loganimation2.enablement;
+package org.apromore.service.loganimation2.data;
 
 public class AnimationParams {
     private int TimelineSlots;
     private int TotalEngineSeconds;
-    private int ProgressCircleBarRadius;
     private int StartEventToFirstEventDuration = 60; // default is 1 minute
     private int LastEventToEndEventDuration = 24*3600; // default is 1 day
     

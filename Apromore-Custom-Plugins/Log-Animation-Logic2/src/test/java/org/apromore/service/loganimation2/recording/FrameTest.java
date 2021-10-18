@@ -19,13 +19,11 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation.recording;
+package org.apromore.service.loganimation2.recording;
 
-import java.util.Arrays;
-
-import org.apromore.service.loganimation2.modelmapping.OldBpmnModelMapping;
+import java.util.List;
 import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.replay.AnimationData;
+import org.apromore.service.loganimation2.data.AnimationData;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,34 +31,29 @@ import org.junit.Test;
 public class FrameTest extends TestDataSetup {
     protected Movie createAnimationMovie_OneTraceAndCompleteEvents_Graph() throws Exception {
         AnimationData result = this.animate_OneTraceAndCompleteEvents_Graph();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
-        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
 
     protected Movie createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
         AnimationData result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
-        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoTraceAndCompleteEvents_Graph() throws Exception {
         AnimationData result = this.animate_TwoTraceAndCompleteEvents_Graph();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        AnimationIndex animationIndex = new AnimationIndex(result.getAnimationLogs().get(0), modelMapping, animationContext);
-        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoLogs() throws Exception {
         AnimationData result = this.animate_TwoLogs_With_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getAnimationLogs(), 60, 600);
-        ModelMapping modelMapping = new OldBpmnModelMapping(result.getBpmnDiagram());
-        return FrameRecorder.record(createAnimationIndexes(result.getAnimationLogs(), modelMapping, animationContext),
-                                    animationContext);
+        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
+        return FrameRecorder.record(createAnimationIndexes(result, animationContext), animationContext);
     }
     
     @Test

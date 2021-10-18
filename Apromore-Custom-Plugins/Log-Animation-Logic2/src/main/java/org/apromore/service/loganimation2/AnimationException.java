@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.impl;
+package org.apromore.service.loganimation2;
 
 public class AnimationException extends RuntimeException {
     public AnimationException(String message) {

@@ -24,24 +24,11 @@
 
 package org.apromore.service.loganimation2.utils;
 
-import de.hpi.bpmn2_0.model.*;
-import de.hpi.bpmn2_0.model.Process;
-import de.hpi.bpmn2_0.model.connector.SequenceFlow;
-import de.hpi.bpmn2_0.model.event.EndEvent;
-import de.hpi.bpmn2_0.model.event.StartEvent;
-import de.hpi.bpmn2_0.model.gateway.ExclusiveGateway;
-import de.hpi.bpmn2_0.model.gateway.InclusiveGateway;
-import de.hpi.bpmn2_0.model.gateway.ParallelGateway;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagramFactory;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNEdge;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNNode;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Gateway;
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class BPMNDiagramHelper {
     public static BPMNDiagram createBPMNDiagramWithGateways(BPMNDiagram diagram) {

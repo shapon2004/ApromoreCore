@@ -1,0 +1,184 @@
+{
+  "Case3.0" : [ 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "StartEvent_13jlt06",
+        "enTS" : "",
+        "eTS" : "",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0p5ie2x",
+        "enTS" : "",
+        "eTS" : "",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    },    
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Activity_08c2a6r",
+        "enTS" : "",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_1hor0wq",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Gateway_1himj9s",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0spidhr",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Gateway_11wnsyy",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_01wj4a9",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Activity_0q3anvm",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042860000",
+        "ct" : 60000,
+        "isSk" : false,
+        "isSeq" : false
+    }, 
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0tebq48",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042860000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_02an7zo",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : true,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Activity_0tuf2hf",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042800000",
+        "ct" : 0,
+        "isSk" : true,
+        "isSeq" : false
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0zui7au",
+        "enTS" : "1633042800000",        
+        "eTS" : "1633042860000",
+        "ct" : 60000,
+        "isSk" : true,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Gateway_10gug50",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042860000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0v14yh1",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042860000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Gateway_08q3wxc",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042860000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0spkzgr",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042860000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Activity_0wx1wp2",
+        "enTS" : "1633042860000",        
+        "eTS" : "1633042920000",
+        "ct" : 60000,
+        "isSk" : false,
+        "isSeq" : false
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Flow_0cau0oh",
+        "enTS" : "1633042920000",        
+        "eTS" : "1633042920000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : true
+    },
+    {
+        "caseId" : "Case3.0",
+        "eId" : "Event_1ecc5ul",
+        "enTS" : "1633042920000",        
+        "eTS" : "1633042920000",
+        "ct" : 0,
+        "isSk" : false,
+        "isSeq" : false
+    }
+  ]
+}

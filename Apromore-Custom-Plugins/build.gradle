@@ -19,6 +19,7 @@ dependencies {
 
 //	runtime project(':Apromore-Custom-Plugins:Generic-Portal-Plugin')
 	runtimeOnly project(':Apromore-Custom-Plugins:Log-Animation-Logic')
+	runtimeOnly project(':Apromore-Custom-Plugins:Log-Animation-Logic2')
 //	runtimeOnly project(':Apromore-Custom-Plugins:Log-Animation-Portal-Plugin')
 	runtimeOnly project(':Apromore-Custom-Plugins:Log-Animation-Portal-Plugin-API')
 	runtimeOnly project(':Apromore-Custom-Plugins:Log-Logic')
