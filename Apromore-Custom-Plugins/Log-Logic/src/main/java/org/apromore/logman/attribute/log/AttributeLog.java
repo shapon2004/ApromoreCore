@@ -118,6 +118,10 @@ public class AttributeLog {
         variantView.finalUpdate();
         graphView.finalUpdate();
 	}
+
+	public String getName() {
+	    return fullLog.getName();
+    }
 	
     public IndexableAttribute getAttribute() {
         return this.attribute;

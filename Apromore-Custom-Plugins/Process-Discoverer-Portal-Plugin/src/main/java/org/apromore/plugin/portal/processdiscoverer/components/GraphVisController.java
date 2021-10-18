@@ -49,7 +49,7 @@ import org.apromore.service.loganimation2.recording.FrameRecorder;
 import org.apromore.service.loganimation2.recording.ModelMapping;
 import org.apromore.service.loganimation2.recording.Movie;
 import org.apromore.service.loganimation2.recording.Stats;
-import org.apromore.service.loganimation2.enablement.AnimationLog;
+import org.apromore.service.loganimation2.data.AnimationLog;
 import org.deckfour.xes.model.XLog;
 import org.json.JSONArray;
 import org.json.JSONObject;

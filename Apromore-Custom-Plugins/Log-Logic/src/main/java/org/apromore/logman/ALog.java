@@ -63,6 +63,7 @@ import org.eclipse.collections.impl.factory.Lists;
  */
 public class ALog extends XLogImpl {
     // Original data
+    private String logName = "";
 	private final XLog rawLog;
 	private final MutableList<ATrace> originalTraces = Lists.mutable.empty();
 	
@@ -93,10 +94,19 @@ public class ALog extends XLogImpl {
 		setOriginalTraceStatus(originalTraceStatus);
 	}
 
+    public ALog(XLog log, String logName) {
+	    this(log);
+	    this.logName = logName;
+    }
+
 	protected void createAttributeStore() {
         originalAttributeStore = new AttributeStore(this);
     }
-	
+
+    public String getName() {
+	    return logName;
+    }
+
 	public XLog getRawLog() {
 		return this.rawLog;
 	}
@@ -208,6 +218,10 @@ public class ALog extends XLogImpl {
     public AttributeLog getAttributeLog(IndexableAttribute attribute, CalendarModel calendarModel) {
         if (!originalAttributeStore.getIndexableEventAttribute().contains(attribute)) return null;
         return new AttributeLog(this, attribute, calendarModel);
+    }
+
+    public AttributeLog getDefaultActivityLog() {
+	    return getAttributeLog(originalAttributeStore.getStandardEventConceptName(), CalendarModel.ABSOLUTE_CALENDAR);
     }
 
     @Override

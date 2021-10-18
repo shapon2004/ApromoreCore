@@ -126,7 +126,7 @@ public class PDAnalyst {
         }
 
         long timer = System.currentTimeMillis();
-        this.aLog = new ALog(xlog);
+        this.aLog = new ALog(xlog, contextData.getLogName());
         LOGGER.debug("ALog.constructor: {} ms.", System.currentTimeMillis() - timer);
         indexableAttributes = aLog.getAttributeStore().getPerspectiveEventAttributes(configData.getMaxNumberOfUniqueValues(), perspectiveAttKeys);
         if (indexableAttributes == null || indexableAttributes.isEmpty()) {
