@@ -28,7 +28,16 @@ public class NodeID implements Comparable<NodeID>, Serializable {
 
 	private static final long serialVersionUID = -6457455085857447745L;
 
-	private final UUID id = UUID.randomUUID();
+	//private final UUID id = UUID.randomUUID();
+	private String id = "";
+
+	public NodeID() {
+		id = UUID.randomUUID().toString();
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	@Override
     public int compareTo(NodeID node) {

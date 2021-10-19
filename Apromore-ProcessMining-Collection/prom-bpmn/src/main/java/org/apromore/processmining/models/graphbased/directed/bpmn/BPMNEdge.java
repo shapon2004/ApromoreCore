@@ -32,7 +32,6 @@ public abstract class BPMNEdge<S extends BPMNNode, T extends BPMNNode> extends A
 
 	private static final String NO_LABEL = "no label";
 	
-	private final EdgeID id = new EdgeID();
 	private ContainingDirectedGraphNode parent;
 
 	public BPMNEdge(S source, T target) {
@@ -73,10 +72,6 @@ public abstract class BPMNEdge<S extends BPMNNode, T extends BPMNNode> extends A
 	
 	public void setParent(ContainingDirectedGraphNode node) {
 		this.parent=node;
-	}
-	
-	public EdgeID getEdgeID() {
-		return id;
 	}
 	
 	@Override

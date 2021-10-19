@@ -26,6 +26,7 @@ import org.apromore.processmining.models.graphbased.directed.AbstractDirectedGra
 public abstract class AbstractGraphEdge<S, T> extends AbstractGraphElement implements
 		Comparable<AbstractGraphEdge<S, T>> {
 
+	protected final EdgeID id = new EdgeID();
 	protected final int hash;
 	protected final S source;
 	protected final T target;
@@ -35,6 +36,16 @@ public abstract class AbstractGraphEdge<S, T> extends AbstractGraphElement imple
 		this.source = source;
 		this.target = target;
 		this.hash = source.hashCode() + 37 * target.hashCode();
+	}
+
+	public EdgeID getEdgeID() {
+		return id;
+	}
+
+	// The caller manages the uniqueness of IDs if setting them manually
+	public AbstractGraphEdge setId(String newId) {
+		id.setId(newId);
+		return this;
 	}
 
 	@Override

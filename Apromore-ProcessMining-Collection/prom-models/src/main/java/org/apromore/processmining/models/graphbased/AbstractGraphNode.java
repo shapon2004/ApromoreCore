@@ -45,4 +45,10 @@ public abstract class AbstractGraphNode extends AbstractGraphElement {
 		return id;
 	}
 
+	// The caller manages the uniqueness of IDs if setting them manually
+	public AbstractGraphNode setId(String newId) {
+		id.setId(newId);
+		return this;
+	}
+
 }
