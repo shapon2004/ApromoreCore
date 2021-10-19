@@ -331,16 +331,16 @@ public class BpmnSubProcess extends BpmnIncomingOutgoing {
 			triggerByEvent = true;
 		}
 		if (multiInstanceLoopCharacteristics != null) {
-			subProcess = diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent,
-					lane);
+			subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent,
+					lane).setId(id);
 			id2node.put(id, subProcess);
 		} else if(standardLoopCharacteristics != null) {
-			subProcess = diagram.addSubProcess(name, true, false, false, false, true, triggerByEvent,
-					lane);
+			subProcess = (SubProcess) diagram.addSubProcess(name, true, false, false, false, true, triggerByEvent,
+					lane).setId(id);
 			id2node.put(id, subProcess);
 		} else {
-			subProcess = diagram.addSubProcess(name, false, false, false, false,
-					false, triggerByEvent, lane);
+			subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false, false,
+					false, triggerByEvent, lane).setId(id);
 			id2node.put(id, subProcess);
 		}
 		if(ioSpecification != null) {
@@ -412,16 +412,16 @@ public class BpmnSubProcess extends BpmnIncomingOutgoing {
 			triggerByEvent = true;
 		}
 		if (multiInstanceLoopCharacteristics != null) {
-			subProcess = diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent,
-					parentSubProcess);
+			subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent,
+					parentSubProcess).setId(id);
 			id2node.put(id, subProcess);
 		} else if(standardLoopCharacteristics != null) {
-			subProcess = diagram.addSubProcess(name, true, false, false, false, true, triggerByEvent,
-					parentSubProcess);
+			subProcess = (SubProcess) diagram.addSubProcess(name, true, false, false, false, true, triggerByEvent,
+					parentSubProcess).setId(id);
 			id2node.put(id, subProcess);
 		} else {
-			subProcess = diagram.addSubProcess(name, false, false, false, false,
-					false, triggerByEvent, parentSubProcess);
+			subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false, false,
+					false, triggerByEvent, parentSubProcess).setId(id);
 			id2node.put(id, subProcess);
 		}
 		if(ioSpecification != null) {
@@ -496,12 +496,12 @@ public class BpmnSubProcess extends BpmnIncomingOutgoing {
 
 		if (elements.contains(id)) {
 			if (multiInstanceLoopCharacteristics != null) {
-				subProcess = diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent, parentSubProcess);
-				subProcess.getAttributeMap().put("Original id", id);
+				subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false,
+						true, true, triggerByEvent, parentSubProcess).setId(id);
 				id2node.put(id, subProcess);
 			} else {
-				subProcess = diagram.addSubProcess(name, false, false, false, false, false, triggerByEvent, parentSubProcess);
-				subProcess.getAttributeMap().put("Original id", id);
+				subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false,
+						false, false, triggerByEvent, parentSubProcess).setId(id);
 				id2node.put(id, subProcess);
 			}
 			
@@ -518,7 +518,6 @@ public class BpmnSubProcess extends BpmnIncomingOutgoing {
 			Map<String, BPMNNode> id2nodeSubProcess = new HashMap<String, BPMNNode>();
 
 			for (BpmnStartEvent startEvent : startEvents) {
-				System.out.println(startEvent.id);
 				startEvent.unmarshall(diagram, elements, id2nodeSubProcess, subProcess);
 			}
 			for (BpmnTask task : tasks) {
@@ -581,12 +580,12 @@ public class BpmnSubProcess extends BpmnIncomingOutgoing {
 
 		if (elements.contains(id)) {
 			if (multiInstanceLoopCharacteristics != null) {
-				subProcess = diagram.addSubProcess(name, false, false, false, true, true, triggerByEvent, lane);
-				subProcess.getAttributeMap().put("Original id", id);
+				subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false,
+						true, true, triggerByEvent, lane).setId(id);
 				id2node.put(id, subProcess);
 			} else {
-				subProcess = diagram.addSubProcess(name, false, false, false, false, false, triggerByEvent, lane);
-				subProcess.getAttributeMap().put("Original id", id);
+				subProcess = (SubProcess) diagram.addSubProcess(name, false, false, false,
+						false, false, triggerByEvent, lane).setId(id);
 				id2node.put(id, subProcess);
 			}
 			

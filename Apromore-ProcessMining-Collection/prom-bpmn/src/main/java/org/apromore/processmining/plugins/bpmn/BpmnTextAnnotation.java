@@ -57,15 +57,13 @@ public class BpmnTextAnnotation extends BpmnId {
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node) {
-        TextAnnotation textAnnotation = diagram.addTextAnnotation(text.getText());
-        textAnnotation.getAttributeMap().put("Original id", id);
+        TextAnnotation textAnnotation = (TextAnnotation) diagram.addTextAnnotation(text.getText()).setId(id);
         id2node.put(id, textAnnotation);
 	}
 
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node) {
 		if (elements.contains(id)) {
-			TextAnnotation textAnnotation = diagram.addTextAnnotation(text.getText());
-			textAnnotation.getAttributeMap().put("Original id", id);
+			TextAnnotation textAnnotation = (TextAnnotation) diagram.addTextAnnotation(text.getText()).setId(id);
 			id2node.put(id, textAnnotation);
 		}
 	}

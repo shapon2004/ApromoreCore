@@ -32,10 +32,12 @@ import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNNode;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.SubProcess;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Swimlane;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.SwimlaneType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 
 public class BpmnLane extends BpmnIdName {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(BpmnLane.class);
 	private Collection<BpmnText> flowNodeRefs;
 	private BpmnLaneSet childLaneSet;
 	private String partitionElement;
@@ -106,7 +108,7 @@ public class BpmnLane extends BpmnIdName {
 
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node,
 			Map<String, Swimlane> id2lane, ContainingDirectedGraphNode parent) {
-		Swimlane lane = diagram.addSwimlane(name, parent, SwimlaneType.LANE);
+		Swimlane lane = (Swimlane) diagram.addSwimlane(name, parent, SwimlaneType.LANE).setId(id);
 		lane.setPartitionElement(partitionElement);
 		id2lane.put(id, lane);
 		if(childLaneSet != null) {
@@ -115,15 +117,18 @@ public class BpmnLane extends BpmnIdName {
 		if(flowNodeRefs != null) {
 			for(BpmnText flowNodeRef : flowNodeRefs) {
 				String id = flowNodeRef.getText();
-				BPMNNode node = id2node.get(id);
-				if(node!=null){
-				if(parent != null) {
-					if (parent instanceof SubProcess) {
-						((SubProcess)parent).getChildren().remove(node);
+				if (id2node.containsKey(id)){
+					BPMNNode node = id2node.get(id);
+					if(parent != null) {
+						if (parent instanceof SubProcess) {
+							((SubProcess)parent).getChildren().remove(node);
+						}
 					}
+					node.setParentSubprocess(null);
+					node.setParentSwimlane(lane);
 				}
-				node.setParentSubprocess(null);
-				node.setParentSwimlane(lane);
+				else {
+					LOGGER.error("Couldn't match flowNodeRef {} of lane {} with a corresponding node ID", id, this.id);
 				}
 			}
 		}
@@ -131,7 +136,7 @@ public class BpmnLane extends BpmnIdName {
 
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node,
 			Map<String, Swimlane> id2lane, ContainingDirectedGraphNode parent) {
-		Swimlane lane = diagram.addSwimlane(name, parent, SwimlaneType.LANE);
+		Swimlane lane = (Swimlane) diagram.addSwimlane(name, parent, SwimlaneType.LANE).setId(id);
 		lane.setPartitionElement(partitionElement);
 		id2lane.put(id, lane);
 		if(childLaneSet != null) {
@@ -153,7 +158,7 @@ public class BpmnLane extends BpmnIdName {
 	 * Constructs a process model from a diagram
 	 * 
 	 * @param diagram
-	 * @param lane
+	 * @param swimlane
 	 * @return "true" if at least one element has been added
 	 */
 	public boolean marshall(BPMNDiagram diagram, Swimlane swimlane) {

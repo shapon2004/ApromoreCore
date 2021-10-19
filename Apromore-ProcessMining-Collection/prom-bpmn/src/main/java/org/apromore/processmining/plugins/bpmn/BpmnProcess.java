@@ -285,9 +285,11 @@ public class BpmnProcess extends BpmnIdName {
 	}
 
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, Map<String, Swimlane> id2lane) {
-		Swimlane lane = id2lane.get(id);
-		if(laneSet != null) {
-			laneSet.unmarshall(diagram, id2node,  id2lane, lane);
+		if (!id2lane.containsKey(id)) {
+			Swimlane lane = id2lane.get(id);
+			if(laneSet != null) {
+				laneSet.unmarshall(diagram, id2node,  id2lane, lane);
+			}
 		}
 		for (BpmnStartEvent startEvent : startEvents) {
 			startEvent.unmarshall(diagram, id2node, retrieveParentSwimlane(startEvent, id2lane));

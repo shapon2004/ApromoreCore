@@ -91,24 +91,24 @@ public class BpmnEvent extends BpmnIncomingOutgoing {
 
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node, Swimlane lane) {
 		if (elements.contains(id)) {
-			Event startEvent = diagram.addEvent(name, eventType, eventTrigger, eventUse, lane, isInterrupting, null);
-			startEvent.getAttributeMap().put("Original id", id);
+			Event startEvent = (Event)diagram.addEvent(name, eventType, eventTrigger, eventUse, lane, isInterrupting,
+					null).setId(id);
 			id2node.put(id, startEvent);
 		}
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node, SubProcess subProcess) {
 		if (elements.contains(id)) {
-			Event event = diagram.addEvent(name, eventType, eventTrigger, eventUse, subProcess, isInterrupting, null);
-			event.getAttributeMap().put("Original id", id);
+			Event event = (Event)diagram.addEvent(name, eventType, eventTrigger, eventUse, subProcess, isInterrupting,
+					null).setId(id);
 			id2node.put(id, event);
 		}
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node, Swimlane lane, Activity boundaryNode) {
 		if (elements.contains(id)) {
-			Event event = diagram.addEvent(name, eventType, eventTrigger, eventUse, lane, isInterrupting, boundaryNode);
-			event.getAttributeMap().put("Original id", id);
+			Event event = (Event)diagram.addEvent(name, eventType, eventTrigger, eventUse, lane, isInterrupting,
+					boundaryNode).setId(id);
 			id2node.put(id, event);
 		}
 	}

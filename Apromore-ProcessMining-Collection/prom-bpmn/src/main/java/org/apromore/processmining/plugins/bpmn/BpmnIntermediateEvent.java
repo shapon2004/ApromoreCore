@@ -31,10 +31,12 @@ import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Swiml
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Event.EventTrigger;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Event.EventType;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Event.EventUse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 
 public class BpmnIntermediateEvent extends BpmnEvent {
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(BpmnIntermediateEvent.class);
 	BpmnMessageEventDefinition messageDefinition;
 	BpmnTimerEventDefinition timerDefinition;
 	BpmnErrorEventDefinition errorDefinition;
@@ -116,9 +118,17 @@ public class BpmnIntermediateEvent extends BpmnEvent {
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, Swimlane lane) {
-		if ((attachedToRef != null) && (id2node.get(attachedToRef) instanceof Activity)){
-			Activity boundaryNode = (Activity)id2node.get(attachedToRef);
-			super.unmarshall(diagram, id2node, lane, boundaryNode);
+		if (attachedToRef != null) {
+			if (id2node.containsKey(attachedToRef)) {
+				if (id2node.get(attachedToRef) instanceof Activity) {
+					Activity boundaryNode = (Activity) id2node.get(attachedToRef);
+					super.unmarshall(diagram, id2node, lane, boundaryNode);
+				}
+			}
+			else {
+				LOGGER.error("Couldn't match attachedToRef {} of intermediate event {} with a corresponding node ID",
+						attachedToRef, id);
+			}
 		} else {
 			super.unmarshall(diagram, id2node, lane);
 		}

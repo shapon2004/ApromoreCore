@@ -38,29 +38,25 @@ public class BpmnInclusiveGateway extends BpmnAbstractGateway {
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, Swimlane lane) {
-		Gateway gateway = diagram.addGateway(name, GatewayType.INCLUSIVE, lane);
-		gateway.getAttributeMap().put("Original id", id);
+		Gateway gateway = (Gateway) diagram.addGateway(name, GatewayType.INCLUSIVE, lane).setId(id);
 		id2node.put(id, gateway);
 	}
 
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node, Swimlane lane) {
 		if (elements.contains(id)) {
-			Gateway gateway = diagram.addGateway(name, GatewayType.INCLUSIVE, lane);
-			gateway.getAttributeMap().put("Original id", id);
+			Gateway gateway = (Gateway) diagram.addGateway(name, GatewayType.INCLUSIVE, lane).setId(id);
 			id2node.put(id, gateway);
 		}
 	}
 	
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, SubProcess subProcess) {
-		Gateway gateway = diagram.addGateway(name, GatewayType.INCLUSIVE, subProcess);
-		gateway.getAttributeMap().put("Original id", id);
+		Gateway gateway = (Gateway) diagram.addGateway(name, GatewayType.INCLUSIVE, subProcess).setId(id);
 		id2node.put(id, gateway);
 	}
 
 	public void unmarshall(BPMNDiagram diagram, Collection<String> elements, Map<String, BPMNNode> id2node, SubProcess subProcess) {
 		if (elements.contains(id)) {
-			Gateway gateway = diagram.addGateway(name, GatewayType.INCLUSIVE, subProcess);
-			gateway.getAttributeMap().put("Original id", id);
+			Gateway gateway = (Gateway) diagram.addGateway(name, GatewayType.INCLUSIVE, subProcess).setId(id);
 			id2node.put(id, gateway);
 		}
 	}

@@ -150,11 +150,14 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, Swimlane lane) {
 		Activity activity;
 		if (multiInstanceLoopCharacteristics != null) {
-			activity = diagram.addActivity(name, false, false, false, true, false, lane);
+			activity = (Activity) diagram.addActivity(name, false, false, false, true,
+					false, lane).setId(id);
 		} else if(standardLoopCharacteristics != null) {
-			activity = diagram.addActivity(name, true, false, false, false, false, lane);
+			activity = (Activity) diagram.addActivity(name, true, false, false, false,
+					false, lane).setId(id);
 		} else {
-			activity = diagram.addActivity(name, false, false, false, false, false, lane);
+			activity = (Activity) diagram.addActivity(name, false, false, false, false,
+					false, lane).setId(id);
 			if(this.getTag()=="sendTask"){
 				activity.setBSend(true);
 			}else if(this.getTag()=="receiveTask"){
@@ -183,11 +186,14 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, SubProcess subProcess) {
 		Activity activity;
 		if (multiInstanceLoopCharacteristics != null) {
-			activity = diagram.addActivity(name, false, false, false, true, false, subProcess);
+			activity = (Activity) diagram.addActivity(name, false, false, false, true,
+					false, subProcess).setId(id);
 		} else if(standardLoopCharacteristics != null) {
-			activity = diagram.addActivity(name, true, false, false, false, false, subProcess);
+			activity = (Activity) diagram.addActivity(name, true, false, false, false,
+					false, subProcess).setId(id);
 		} else {
-			activity = diagram.addActivity(name, false, false, false, false, false, subProcess);
+			activity = (Activity) diagram.addActivity(name, false, false, false, false,
+					false, subProcess).setId(id);
 			if(this.getTag()=="sendTask"){
 				activity.setBSend(true);
 			}else if(this.getTag()=="receiveTask"){
@@ -217,11 +223,14 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 		if (elements.contains(id)) {
 			Activity activity;
 			if (multiInstanceLoopCharacteristics != null) {
-				activity = diagram.addActivity(name, false, false, false, true, false, lane);
+				activity = (Activity) diagram.addActivity(name, false, false, false, true,
+						false, lane).setId(id);
 			} else if(standardLoopCharacteristics != null) {
-				activity = diagram.addActivity(name, true, false, false, false, false, lane);
+				activity = (Activity) diagram.addActivity(name, true, false, false, false,
+						false, lane).setId(id);
 			} else {
-				activity = diagram.addActivity(name, false, false, false, false, false, lane);
+				activity = (Activity) diagram.addActivity(name, false, false, false, false,
+						false, lane).setId(id);
 				if(this.getTag()=="sendTask"){
 					activity.setBSend(true);
 				}else if(this.getTag()=="receiveTask"){
@@ -244,7 +253,6 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 					id2node.put(dataOutgoing.getId(), activity);
 				}
 			}
-			activity.getAttributeMap().put("Original id", id);
 			id2node.put(id, activity);
 		}
 	}
@@ -253,11 +261,14 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 		if (elements.contains(id)) {
 			Activity activity;
 			if (multiInstanceLoopCharacteristics != null) {
-				activity = diagram.addActivity(name, false, false, false, true, false, subProcess);
+				activity = (Activity) diagram.addActivity(name, false, false, false, true,
+						false, subProcess).setId(id);
 			} else if(standardLoopCharacteristics != null) {
-				activity = diagram.addActivity(name, true, false, false, false, false, subProcess);
+				activity = (Activity) diagram.addActivity(name, true, false, false, false,
+						false, subProcess).setId(id);
 			} else {
-				activity = diagram.addActivity(name, false, false, false, false, false, subProcess);
+				activity = (Activity) diagram.addActivity(name, false, false, false, false,
+						false, subProcess).setId(id);
 				if(this.getTag()=="sendTask"){
 					activity.setBSend(true);
 				}else if(this.getTag()=="receiveTask"){
@@ -280,7 +291,6 @@ public class BpmnTask extends BpmnIncomingOutgoing {
 					id2node.put(dataOutgoing.getId(), activity);
 				}
 			}
-			activity.getAttributeMap().put("Original id", id);
 			id2node.put(id, activity);
 		}
 	}

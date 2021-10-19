@@ -30,10 +30,13 @@ import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNNode;
 import org.apromore.processmining.models.graphbased.directed.bpmn.elements.SubProcess;
 import org.apromore.processmining.plugins.bpmn.Bpmn;
 import org.apromore.processmining.plugins.bpmn.BpmnIdName;
+import org.apromore.processmining.plugins.bpmn.BpmnLane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xmlpull.v1.XmlPullParser;
 
 public class BpmnDiagram extends BpmnIdName {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(BpmnDiagram.class);
 	protected Collection<BpmnDiPlane> planes;
 	
 	public BpmnDiagram(String tag) {
@@ -97,10 +100,15 @@ public class BpmnDiagram extends BpmnIdName {
 			Collection<BpmnDiShape> shapes = plane.getShapes();
 			for (BpmnDiShape shape : shapes) {
 				String bpmnElement = shape.getBpmnElement();
-				Object o = id2node.get(bpmnElement);
-				if (o instanceof SubProcess) {
-					SubProcess subProcess = (SubProcess)o;
-					subProcess.setBCollapsed(!shape.isExpanded());
+				if (id2node.containsKey(bpmnElement)) {
+					Object o = id2node.get(bpmnElement);
+					if (o instanceof SubProcess) {
+						SubProcess subProcess = (SubProcess) o;
+						subProcess.setBCollapsed(!shape.isExpanded());
+					}
+				}
+				else {
+					LOGGER.error("Couldn't match bpmnElement {} of diagram DI {} with a corresponding element ID", bpmnElement, id);
 				}
 			}
 		}
