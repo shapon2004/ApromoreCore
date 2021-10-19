@@ -53,6 +53,26 @@ import org.apromore.processmining.plugins.bpmn.diagram.BpmnDiWaypoint;
 import org.apromore.processmining.plugins.bpmn.diagram.BpmnDiagram;
 import org.xmlpull.v1.XmlPullParser;
 
+/**
+ * <b>BpmnDefinitions</b> is the root class representing the top <definitions> tag in BPMN 2.0 files.<br>
+ * All contained elements and sub-elements represent other hierarchical elements in the file.<br>
+ * Altogether, they literally represent tags in BPMN 2.0 files after import, i.e. they are not object references<br>
+ * For example, a sequence flow tag only contains attributes, no links to its source and target node objects.<br>
+ *
+ * <b>Key operations:</b><br>
+ * <ul>
+ *     <li>Importing is the process of importing a .bpmn file into a BpmnDefinitions object.</li>
+ *     <li>Exporting is the process of exporting a BpmnDefinitions object to a .bpmn file representation (string)</li>
+ *     <li>Marshalling is the process of converting a BpmnDefinitions to {@link BPMNDiagram} object. Attributes are read and
+ *     objects are linked.</li>
+ *     <li>Unmarshalling is the reverse process of converting from a BPMNDiagram object to BpmnDefinitions.</li>
+ * </ul>
+ * In general, the importing and unmarshalling processes try to create as many elements as possible, exceptions if occur
+ * will be logged for reporting.
+ *
+ * @author Bruce Nguyen:
+ * 	19 Oct 2021: Add this class comments
+ */
 public class BpmnDefinitions extends BpmnElement {
 
 	protected Collection<BpmnResource> resources;
@@ -115,7 +135,6 @@ public class BpmnDefinitions extends BpmnElement {
 		/**
 		 * Build BpmnDefinitions from BPMNDiagram (BPMN picture)
 		 * 
-		 * @param context if null, then graphics info is not added
 		 * @param diagram
 		 */
 		private void buildFromDiagram(BPMNDiagram diagram, ProMJGraph layoutInfo) {
@@ -204,7 +223,6 @@ public class BpmnDefinitions extends BpmnElement {
 		/**
 		 * Fill graphics info
 		 * 
-		 * @param context
 		 * @param diagram
 		 * @param bpmnDiagram
 		 * @param plane
@@ -406,7 +424,15 @@ public class BpmnDefinitions extends BpmnElement {
 		}
 		return s;
 	}
-	
+
+	/**
+	 * Convert this object to a BPMNDiagram.
+	 * @param diagram: the target diagram to be created
+	 * @param id2node: temporary mapping from id to node for use when later marshalling connection objects
+	 *                  like flow and association to be associated with source/target nodes
+	 * @param id2lane: temporary mapping from process id to lane for use when later marshalling lane/laneset
+	 *                  to be associated with the containing pool
+	 */
 	public void unmarshall(BPMNDiagram diagram, Map<String, BPMNNode> id2node, Map<String, Swimlane> id2lane) {
 		for (BpmnCollaboration collaboration : collaborations) {
 			collaboration.unmarshallParticipants(diagram, id2node, id2lane);
@@ -439,6 +465,7 @@ public class BpmnDefinitions extends BpmnElement {
 		for (BpmnDiagram bpmnDiagram : diagrams) {
 			bpmnDiagram.unmarshallIsExpanded(id2node);
 		}
+
 	}
 	
 	public Collection<BpmnResource> getResources() {
