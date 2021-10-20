@@ -90,6 +90,7 @@ public class Calendars extends SelectorComposer<Window> implements LabelSupplier
 
     private Long appliedCalendarId;
     private boolean canEdit;
+    private EventListener eventHandler;
 
     public Calendars() throws Exception {
     }
@@ -103,7 +104,8 @@ public class Calendars extends SelectorComposer<Window> implements LabelSupplier
 
             @Override
             public void onEvent(Event event) throws Exception {
-                 EventQueues.remove(CalendarService.EVENT_TOPIC);
+                calendarEventQueue.subscribe(eventHandler);
+                EventQueues.remove(CalendarService.EVENT_TOPIC);
             }
         });
     }
@@ -122,6 +124,27 @@ public class Calendars extends SelectorComposer<Window> implements LabelSupplier
         calendarListModel.setMultiple(false);
         populateCalendarList();
 
+        eventHandler = (Event event) -> {
+            // Abandon newly created calendar
+            if (CalendarEvents.ON_CALENDAR_ABANDON.equals(event.getName())) {
+                Long calendarId = (Long) event.getData();
+                try {
+                    calendarService.deleteCalendar(calendarId);
+                } catch (Exception e) {
+                    LOGGER.warn("Double deletion might have occurred");
+                }
+                populateCalendarList();
+            } else if (CalendarEvents.ON_CALENDAR_BEFORE_REMOVE.equals(event.getName())) {
+                CalendarModel calendarItem = (CalendarModel) event.getData();
+                beforeRemoveCalendar(calendarItem);
+            } else if (CalendarEvents.ON_CALENDAR_REMOVE.equals(event.getName())) {
+                CalendarModel calendarItem = (CalendarModel) event.getData();
+                removeCalendar(calendarItem);
+            }
+        };
+
+        calendarEventQueue.subscribe(eventHandler);
+        /*
         calendarEventQueue.subscribe((Event event) -> {
             // Abandon newly created calendar
             if (CalendarEvents.ON_CALENDAR_ABANDON.equals(event.getName())) {
@@ -139,7 +162,7 @@ public class Calendars extends SelectorComposer<Window> implements LabelSupplier
                 CalendarModel calendarItem = (CalendarModel) event.getData();
                 removeCalendar(calendarItem);
             }
-        });
+        });*/
     }
 
     public void populateCalendarList() {
