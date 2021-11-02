@@ -113,7 +113,7 @@
                     </listitem>
                 </template>
             </listbox>
-            <listbox id="artifactListbox" multiple="false" checkmark="false" nonselectableTags="*" vflex="1" hflex="1"
+            <listbox id="artifactListbox" sclass="ap-share-associated" multiple="false" checkmark="false" nonselectableTags="*" vflex="1" hflex="1"
                      visible="false">
                 <listhead>
                     <listheader align="center" label="" width="80px"/><!-- type icon -->
@@ -123,7 +123,7 @@
                 <template name="model">
                     <listitem>
                         <listcell>
-                            <span sclass="ap-icon ap-icon-static ${(each.type == 'FILTER') ? 'ap-icon-filter' : 'ap-icon-speed'}"
+                            <span sclass="ap-icon ap-icon-static ${(each.type == 'FILTER') ? 'ap-icon-filter' : 'ap-icon-dashboard'}"
                                   style="display: inline-block; vertical-align: middle"/>
                         </listcell>
                         <listcell label="${each.name}"/>

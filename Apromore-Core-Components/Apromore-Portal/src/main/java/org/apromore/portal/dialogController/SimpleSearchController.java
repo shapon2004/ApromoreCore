@@ -96,7 +96,11 @@ public class SimpleSearchController {
         simpleSearchesBu.addEventListener(ON_CLICK, event -> processSearch());
         simpleSearchW.addEventListener("onOK", event -> processSearch());
         previousSearchesCB.addEventListener("onOK", event -> processSearch());
-        previousSearchesCB.addEventListener("onSelect", event -> setVisibility(clearSearchBtn, true));
+        previousSearchesCB.addEventListener("onEnter", event -> processSearch());
+        previousSearchesCB.addEventListener("onSelect", event -> {
+            setVisibility(clearSearchBtn, true);
+            processSearch();
+        });
         previousSearchesCB.addEventListener("onChanging", (InputEvent event) -> {
             setVisibility(clearSearchBtn, true);
             if (!event.isChangingBySelectBack()) {

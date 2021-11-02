@@ -22,6 +22,8 @@
 package org.apromore.plugin.portal.calendar.controllers;
 
 import java.util.List;
+
+import org.apromore.plugin.portal.calendar.Constants;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventQueue;
@@ -39,8 +41,8 @@ import org.apromore.calendar.model.CalendarModel;
 import org.apromore.calendar.service.CalendarService;
 import org.apromore.commons.datetime.DateTimeUtils;
 import org.apromore.dao.model.Log;
-import org.apromore.plugin.portal.calendar.CalendarEvents;
-import org.apromore.plugin.portal.calendar.LabelSupplier;
+import org.apromore.zk.event.CalendarEvents;
+import org.apromore.zk.label.LabelSupplier;
 import org.apromore.service.EventLogService;
 
 @VariableResolver(org.zkoss.zkplus.spring.DelegatingVariableResolver.class)
@@ -83,6 +85,11 @@ public class DeleteConfirm extends SelectorComposer<Window> implements LabelSupp
     }
 
     @Override
+    public String getBundleName() {
+        return Constants.BUNDLE_NAME;
+    }
+
+    @Override
     public void doAfterCompose(Window win) throws Exception {
         super.doAfterCompose(win);
 
@@ -106,7 +113,7 @@ public class DeleteConfirm extends SelectorComposer<Window> implements LabelSupp
 
     @Listen("onClick = #continueBtn")
     public void onClickContinueBtn() {
-        EventQueue<Event> calendarEventQueue = EventQueues.lookup(CalendarService.EVENT_TOPIC, EventQueues.DESKTOP,true);
+        EventQueue<Event> calendarEventQueue = EventQueues.lookup(Calendars.LOCAL_TOPIC, EventQueues.DESKTOP,true);
         calendarEventQueue.publish(new Event(CalendarEvents.ON_CALENDAR_REMOVE, null, calendarItem));
         getSelf().detach();
     }

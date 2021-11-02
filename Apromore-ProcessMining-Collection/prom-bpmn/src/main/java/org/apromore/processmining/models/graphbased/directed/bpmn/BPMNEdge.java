@@ -22,7 +22,6 @@
 package org.apromore.processmining.models.graphbased.directed.bpmn;
 
 import org.apromore.processmining.models.graphbased.AttributeMap;
-import org.apromore.processmining.models.graphbased.EdgeID;
 import org.apromore.processmining.models.graphbased.directed.AbstractDirectedGraphEdge;
 import org.apromore.processmining.models.graphbased.directed.ContainableDirectedGraphElement;
 import org.apromore.processmining.models.graphbased.directed.ContainingDirectedGraphNode;
@@ -35,7 +34,7 @@ public abstract class BPMNEdge<S extends BPMNNode, T extends BPMNNode> extends A
 	private ContainingDirectedGraphNode parent;
 
 	public BPMNEdge(S source, T target) {
-		super(source, target);
+		super(((BPMNDiagram)source.getGraph()).getNextId(LocalIDGenerator.ID_PREFIX_EDGE), source, target);
 	}
 
 	public BPMNEdge(S source, T target, ContainingDirectedGraphNode parent) {

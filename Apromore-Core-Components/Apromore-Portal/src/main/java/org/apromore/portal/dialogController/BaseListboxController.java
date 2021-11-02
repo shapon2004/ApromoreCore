@@ -70,6 +70,8 @@ import org.zkoss.zul.ListitemRenderer;
 import org.zkoss.zul.Messagebox;
 import org.zkoss.zul.Span;
 
+import org.apromore.zk.event.CalendarEvents;
+
 public abstract class BaseListboxController extends BaseController {
 
   private static final long serialVersionUID = -4693075788311730404L;
@@ -364,7 +366,6 @@ public abstract class BaseListboxController extends BaseController {
 
         LogSummaryType selectedItem = (LogSummaryType) selections.iterator().next();
         launchCalendar(selectedItem.getName(), selectedItem.getId());
-
       }
     });
   }
@@ -413,11 +414,17 @@ public abstract class BaseListboxController extends BaseController {
   }
 
   public void unselectAll() {
-    getListBox().clearSelection();
+    getListModel().clearSelection();
+    getMainController().clearProcessVersions();
   }
 
   public void selectAll() {
-    getListBox().selectAll();
+    ListModelList model = getListModel();
+    for (int i = 0; i < model.getSize(); i++) {
+      Object obj = model.getElementAt(i);
+      getListModel().addToSelection(obj);
+    }
+    getMainController().clearProcessVersions();
   }
 
   protected void importFile() throws InterruptedException {
@@ -842,34 +849,19 @@ public abstract class BaseListboxController extends BaseController {
     }
   }
 
-  protected void launchCalendar(String artifactName, Integer logId) {
+  public void launchCalendar(String artifactName, Integer logId) {
     PortalPlugin calendarPlugin;
-    getMainController().eraseMessage();
-
-   final EventQueue<Event> queue = EventQueues.lookup("org/apromore/service/CALENDAR", true);
-
     Long calendarId = getMainController().getEventLogService().getCalendarIdFromLog(logId);
-
-    queue.subscribe(new EventListener<Event>() {
-      @Override
-      public void onEvent(Event event) {
-        if ("onCalendarPublish".equals(event.getName())) {
-          Long data = (Long) event.getData();
-          getMainController().getEventLogService().updateCalendarForLog(logId, data);
-        }
-        queue.unsubscribe(this);
-      }
-    });
 
     try {
       Map<String, Object> attrMap = new HashMap<String, Object>();
       attrMap.put("portalContext", portalContext);
       attrMap.put("artifactName", artifactName);
+      attrMap.put("logId", logId);
       attrMap.put("calendarId", calendarId);
       calendarPlugin = portalPluginMap.get(PluginCatalog.PLUGIN_CALENDAR);
       calendarPlugin.setSimpleParams(attrMap);
       calendarPlugin.execute(portalContext);
-
     } catch (Exception e) {
       LOGGER.error(Labels.getLabel("portal_failedLaunchCustomCalendar_message"), e);
       Messagebox.show(Labels.getLabel("portal_failedLaunchCustomCalendar_message"));

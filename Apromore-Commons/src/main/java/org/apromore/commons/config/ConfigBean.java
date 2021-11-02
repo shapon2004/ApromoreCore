@@ -55,6 +55,7 @@ public class ConfigBean {
     private String volumeExportDir;
     private String volumeFileDir;
     private boolean templateEnabled;
+    private boolean newdldash;
 
     @Data
     public class Logs {
@@ -92,6 +93,7 @@ public class ConfigBean {
     private boolean enableFullUserReg;
     private boolean enableSubscription;
     private boolean enableEtl;
+    private boolean enableSimilaritySearch;
 
     // Switch for custom calendar
     private boolean enableCalendar;

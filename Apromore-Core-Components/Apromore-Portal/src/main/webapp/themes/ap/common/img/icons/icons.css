@@ -51,6 +51,10 @@
     border: none !important;
 }
 
+.ap-icon.ap-icon-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
     /* Do not set filter as important due to light/dark */
 
 .ap-icon img {
@@ -328,6 +332,11 @@
     width: 28.5px !important;
 }
 
+.ap-icon-globe-americas {
+    background-image: url('globe-americas.svg') !important;
+    width: 26px !important;
+}
+
 .ap-icon-holiday {
     background-image: url('holiday.svg') !important;
     width: 23.5px !important;
@@ -391,6 +400,11 @@
 .ap-icon-id-label {
     background-image: url('id-label.svg') !important;
     width: 28.5px !important;
+}
+
+.ap-icon-info {
+    background-image: url('info.svg') !important;
+    width: 26px !important;
 }
 
 .ap-icon-key {
@@ -587,6 +601,11 @@
 .ap-icon-speed {
     background-image: url('speed.svg') !important;
     width: 28.5px !important;
+}
+
+.ap-icon-dashboard {
+    background-image: url('dashboard.svg') !important;
+    width: 26px !important;
 }
 
 .ap-icon-stage-discover {

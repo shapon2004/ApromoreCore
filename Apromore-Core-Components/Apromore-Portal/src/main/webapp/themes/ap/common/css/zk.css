@@ -674,6 +674,10 @@ input[type="radio"]:checked:before {
     background-color: transparent;
 }
 
+.z-listheader-sort .z-listheader-content:active {
+    background: transparent;
+}
+
 .z-listheader-sort .z-listheader-sorticon {
     position: relative;
     display: inline-block;
@@ -742,6 +746,11 @@ button > [class*=" z-icon-"] {
 .z-slider-area,
 .z-slider-button {
     background-color: var(--ap-c-widget);
+}
+
+.z-slider-button:active,
+.z-slider-button:hover {
+    background: var(--ap-c-widget-hover);
 }
 
 .z-slider-center {

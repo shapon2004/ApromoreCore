@@ -21,15 +21,7 @@
  */
 package org.apromore.processmining.models.graphbased.directed.bpmn;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.swing.SwingConstants;
 
@@ -82,6 +74,9 @@ public class BPMNDiagramImpl extends AbstractDirectedGraph<BPMNNode, BPMNEdge<? 
 	protected final List<Swimlane> swimlanes;
     protected final Set<CallActivity> callActivities;
 
+    private LocalIDGenerator idGenerator = new LocalIDGenerator();
+    private String nextId = "";
+
 	public BPMNDiagramImpl(String label) {
 		super();
 		events = new LinkedHashSet<Event>();
@@ -98,6 +93,18 @@ public class BPMNDiagramImpl extends AbstractDirectedGraph<BPMNNode, BPMNEdge<? 
         callActivities = new LinkedHashSet<CallActivity>();
 		getAttributeMap().put(AttributeMap.PREF_ORIENTATION, SwingConstants.WEST);
 		getAttributeMap().put(AttributeMap.LABEL, label);
+	}
+
+	@Override
+	public String getNextId(String idPrefix) {
+		String id = nextId.isEmpty() ? idGenerator.nextId(idPrefix) : nextId;
+		nextId = "";
+		return id;
+	}
+
+	@Override
+	public void setNextId(String id) {
+		nextId = id;
 	}
 
 	@Override

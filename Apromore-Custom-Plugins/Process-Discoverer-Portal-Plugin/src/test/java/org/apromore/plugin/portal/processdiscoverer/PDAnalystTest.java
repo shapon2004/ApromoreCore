@@ -70,7 +70,7 @@ public class PDAnalystTest extends TestDataSetup {
     public void test_AnalystConstructor_MissingActivityPerspective() throws Exception {
         XLog validLog = readLogWithOneTraceOneEvent();
         ContextData contextData = ContextData.valueOf("domain1", "username1", 0,
-                "logName", 0, "folderName");
+                "logName", 0, "folderName", false);
         Mockito.when(eventLogService.getXLog(contextData.getLogId())).thenReturn(validLog);
         Mockito.when(eventLogService.getAggregatedLog(contextData.getLogId())).thenReturn(
                 XLogToImmutableLog.convertXLog("ProcessLog", validLog));
@@ -83,7 +83,7 @@ public class PDAnalystTest extends TestDataSetup {
     public void test_AnalystConstructor_NoPerspectiveAttributes() throws Exception {
         XLog validLog = readLogWithOneTraceOneEvent();
         ContextData contextData = ContextData.valueOf("domain1", "username1", 0,
-                "logName", 0, "folderName");
+                "logName", 0, "folderName", false);
         Mockito.when(eventLogService.getXLog(contextData.getLogId())).thenReturn(validLog);
         Mockito.when(eventLogService.getAggregatedLog(contextData.getLogId())).thenReturn(
                 XLogToImmutableLog.convertXLog("ProcessLog", validLog));
@@ -96,7 +96,7 @@ public class PDAnalystTest extends TestDataSetup {
     public void test_AnalystConstructor_TooManyPerspectiveAttributeValues() throws Exception {
         XLog validLog = readLogWithTwoTraceEachTwoEvents();
         ContextData contextData = ContextData.valueOf("domain1", "username1", 0,
-                "logName", 0, "folderName");
+                "logName", 0, "folderName", false);
         Mockito.when(eventLogService.getXLog(contextData.getLogId())).thenReturn(validLog);
         Mockito.when(eventLogService.getAggregatedLog(contextData.getLogId())).thenReturn(
                 XLogToImmutableLog.convertXLog("ProcessLog", validLog));
@@ -128,7 +128,7 @@ public class PDAnalystTest extends TestDataSetup {
         assertEquals(0, caseVariantDetails.get(0).getAvgDuration(), 0);
         assertEquals("instant", caseVariantDetails.get(0).getAvgDurationStr());
         assertEquals(0.5, caseVariantDetails.get(0).getFreq(), 0);
-        assertEquals("50%", caseVariantDetails.get(0).getFreqStr());
+        assertEquals("50", caseVariantDetails.get(0).getFreqStr());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class PDAnalystTest extends TestDataSetup {
         assertEquals(0, caseVariantDetails.get(0).getAvgDuration(), 0);
         assertEquals("instant", caseVariantDetails.get(0).getAvgDurationStr());
         assertEquals(1, caseVariantDetails.get(0).getFreq(), 0);
-        assertEquals("100%", caseVariantDetails.get(0).getFreqStr());
+        assertEquals("100", caseVariantDetails.get(0).getFreqStr());
     }
 
     @Test
