@@ -24,6 +24,7 @@
 
 package org.apromore.service.loganimation2.impl;
 
+import one.util.streamex.StreamEx;
 import org.apromore.alignmentautomaton.EnablementResult;
 import org.apromore.alignmentautomaton.client.AlignmentClient;
 import org.apromore.logman.attribute.log.AttributeLog;
@@ -39,6 +40,7 @@ import org.apromore.service.loganimation2.data.ApromLogAdapter;
 import org.apromore.service.loganimation2.data.EnablementLog;
 import org.apromore.service.loganimation2.json.AnimationJSONBuilder2;
 import org.apromore.service.loganimation2.utils.BPMNDiagramHelper;
+import org.eclipse.collections.api.tuple.Pair;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,9 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service("logAnimationService2")
 @Qualifier("logAnimationService2")
@@ -94,7 +98,7 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
                     ApromLogAdapter.adaptLog(log),
                     ApromLogAdapter.adaptCaseVariants(log),
                     Collections.emptyMap());
-            if (isGraph) enablements = convertEnablements(enablements, diagram, diagramWithGateways);
+            if (isGraph) enablements = convertEnablements(enablements, diagram);
             return new EnablementLog(log, enablements);
         }
         catch (Exception ex) {
@@ -103,38 +107,68 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
         }
     }
 
-    // Convert elementId in the enablements to the graph diagram
+    /**
+     * Convert log enablements to match a diagram
+     * @param enablements the log enablement to convert
+     * @param diagram the diagram to match
+     * @return new log enablement
+     */
     private Map<String, List<EnablementResult>> convertEnablements(Map<String, List<EnablementResult>> enablements,
-                                                BPMNDiagram diagram, BPMNDiagram diagramWithGateways) {
-        Map<String, String> taskNodeMapping = getTaskNodeIDMapping(diagram, diagramWithGateways);
-        BPMNDiagramMapping diagramMapping = new BPMNDiagramMapping(diagram);
-        Map<String, List<EnablementResult>> newEnablements = new HashMap<>();
-        for (Map.Entry<String, List<EnablementResult>> caseEnablement : enablements.entrySet()) {
-            String caseID = caseEnablement.getKey();
-            List<EnablementResult> newCaseEnablement = new ArrayList<>();
-            List<EnablementResult> taskEnablements = caseEnablement.getValue()
-                    .stream()
-                    .filter(e -> taskNodeMapping.containsKey(e.getElementId()))
-                    .collect(Collectors.toList());
-            if (taskEnablements.size() == 1) newCaseEnablement.addAll(taskEnablements);
-            for (int i=1; i<taskEnablements.size(); i++) {
-                newCaseEnablement.add(taskEnablements.get(i - 1));
-                String sourceId = taskNodeMapping.get(taskEnablements.get(i - 1).getElementId());
-                String targetId = taskNodeMapping.get(taskEnablements.get(i).getElementId());
-                String edgeId = diagramMapping.getEdgeId(sourceId, targetId);
-                newCaseEnablement.add(new EnablementResult(caseID, edgeId,
-                        taskEnablements.get(i - 1).getEnablementTimestamp(),
-                        taskEnablements.get(i - 1).getEnablementTimestamp(),
-                        true, false));
-                if (i == (taskEnablements.size()-1)) newCaseEnablement.add(taskEnablements.get(i));
-            }
-            newEnablements.put(caseID, newCaseEnablement);
-        }
-        return newEnablements;
+                                                BPMNDiagram diagram) {
+        return enablements.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            entry -> convertCaseEnablement(entry.getValue(), new BPMNDiagramMapping(diagram))));
+    }
+
+    // Convert
+    private List<EnablementResult> convertCaseEnablement(List<EnablementResult> caseEnablement,
+                                                         BPMNDiagramMapping diagramMapping) {
+        // Select tasks
+        List<EnablementResult> taskEnablements = caseEnablement.stream()
+                                                .filter(e -> diagramMapping.getTaskIDs().contains(e.getElementId()))
+                                                .collect(Collectors.toList());
+
+        // Add the only one
+        List<EnablementResult> newCaseEnablement = taskEnablements.size() == 1
+                                                    ? new ArrayList<>(List.of(taskEnablements.get(0)))
+                                                    : new ArrayList<>();
+
+        // Add pairs of source and outgoing flow if there are more than one
+        newCaseEnablement.addAll(
+                StreamEx.of(taskEnablements.stream())
+                        .pairMap(Map::entry)
+                        .map(p -> collectSourceAndFlow(p, diagramMapping))
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList()));
+
+        // Add the last one if there are more than one
+        newCaseEnablement.addAll(taskEnablements.size() > 1
+                        ? List.of(taskEnablements.get(taskEnablements.size()-1))
+                        : List.of());
+
+
+        return newCaseEnablement;
     }
 
     /**
-     * Get task node ID mapping from otherDiagram  to diagram.
+     * Collect source, flow, target enablement from a pair
+     * @param pair pair of EnablementResult including source and target
+     * @return list of enablement result including source, flow and target
+     */
+    private List<EnablementResult> collectSourceAndFlow(Map.Entry<EnablementResult, EnablementResult> pair,
+                                                   BPMNDiagramMapping diagramMapping) {
+        return List.of(
+                pair.getKey(),
+                new EnablementResult(
+                        pair.getKey().getCaseId(),
+                        diagramMapping.getEdgeId(pair.getKey().getElementId(), pair.getValue().getElementId()),
+                        pair.getKey().getEnablementTimestamp(),
+                        pair.getKey().getEnablementTimestamp(),
+                        true, false));
+    }
+
+    /**
+     * Get task node ID mapping from otherDiagram to diagram.
      * This is used for converting from the diagram with XORs to the original graph diagram.
      * @param diagram: diagram without gateways
      * @param otherDiagram: diagram with gateways
@@ -143,13 +177,10 @@ public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implem
     private Map<String,String> getTaskNodeIDMapping(BPMNDiagram diagram, BPMNDiagram otherDiagram) {
         BPMNDiagramMapping diagramMapping = new BPMNDiagramMapping(diagram);
         BPMNDiagramMapping otherDiagramMapping = new BPMNDiagramMapping(otherDiagram);
-        Map<String,String> mapping = new HashMap<>();
-        otherDiagramMapping.getNodeLabels().forEach(label -> {
-            String id = diagramMapping.getNodeIdFromLabel(label);
-            String otherId = otherDiagramMapping.getNodeIdFromLabel(label);
-            if (!id.isEmpty() && !otherId.isEmpty()) mapping.put(otherId, id);
-        });
-        return mapping;
+        return otherDiagramMapping.getNodeLabels().stream()
+                .map(label -> Map.entry(diagramMapping.getNodeIdFromLabel(label), otherDiagramMapping.getNodeIdFromLabel(label)))
+                .filter(entry -> !entry.getKey().isEmpty() && !entry.getValue().isEmpty())
+                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
     }
 
 }

@@ -71,7 +71,7 @@ public class AnimationDataTest extends TestDataSetup {
         assertEquals(1633042800000L, enablementLog.getEndTimestamp());
         assertEquals(Set.of("Case1"), enablementLog.getCaseIDs());
         assertEquals(0, enablementLog.getCaseIndexFromId("Case1"));
-        assertEquals(9, enablementLog.getEnablementsByCaseId("Case1").size());
+        assertEquals(5, enablementLog.getEnablementsByCaseId("Case1").size());
 
         EnablementTuple tuple0 = enablementLog.getEnablementsByCaseId("Case1").get(0);
         assertEquals("StartEvent_0ea7paa", tuple0.getElementId()); // verify: converted to graph diagram
