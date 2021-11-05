@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-package org.apromore.service.loganimation2.data;
+package org.apromore.service.loganimation2.enablement;
 
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.eclipse.collections.impl.bimap.mutable.HashBiMap;

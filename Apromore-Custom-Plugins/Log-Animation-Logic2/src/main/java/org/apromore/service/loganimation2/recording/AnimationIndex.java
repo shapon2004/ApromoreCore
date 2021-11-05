@@ -28,9 +28,10 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import lombok.NonNull;
-import org.apromore.service.loganimation2.data.AnimationData;
-import org.apromore.service.loganimation2.data.EnablementLog;
-import org.apromore.service.loganimation2.data.EnablementTuple;
+import org.apromore.service.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
+import org.apromore.service.loganimation2.enablement.AttributeLogEnablement;
+import org.apromore.service.loganimation2.enablement.EnablementTuple;
 import org.eclipse.collections.api.map.primitive.MutableIntIntMap;
 import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
 import org.eclipse.collections.api.set.primitive.MutableIntSet;
@@ -68,9 +69,9 @@ public class AnimationIndex {
     private IntervalTree<Integer> intervalTree = new IntervalTree<>();
     private Map<IntegerInterval, MutableIntSet> intervalToReplayElement = new HashMap<>();
     
-    public AnimationIndex(@NonNull EnablementLog log, @NonNull AnimationData animationData,
+    public AnimationIndex(@NonNull AttributeLogEnablement log, @NonNull CompositeAttributeLogEnablement animationData,
                           @NonNull AnimationContext animateContext) {
-        if (!animationData.getEnablementLogs().contains(log)) throw new IllegalArgumentException("Invalid log or animation data");
+        if (!animationData.getEnablements().contains(log)) throw new IllegalArgumentException("Invalid log or animation data");
         this.animationContext = animateContext;
         int replayElementIndex = 0;
         for (String caseId : log.getCaseIDs()) {

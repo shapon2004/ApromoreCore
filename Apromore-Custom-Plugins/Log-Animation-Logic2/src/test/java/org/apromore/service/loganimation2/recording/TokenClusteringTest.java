@@ -23,23 +23,23 @@ package org.apromore.service.loganimation2.recording;
 
 import java.util.Arrays;
 
-import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TokenClusteringTest extends TestDataSetup {
     protected Movie createAnimationMovie_OneTraceOneEvent_OneTaskGrap() throws Exception {
-        AnimationData result = this.animate_OneTraceOneEvent_OneTaskGraph();
+        CompositeAttributeLogEnablement result = this.animate_OneTraceOneEvent_OneTaskGraph();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoTracesOneEvent_OneTaskGrap() throws Exception {
-        AnimationData result = this.animate_TwoTracesOneEvent_OneTaskGraph();
+        CompositeAttributeLogEnablement result = this.animate_TwoTracesOneEvent_OneTaskGraph();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
     }
     

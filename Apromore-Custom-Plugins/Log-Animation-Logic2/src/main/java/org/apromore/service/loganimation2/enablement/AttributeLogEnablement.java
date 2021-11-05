@@ -22,12 +22,11 @@
  * #L%
  */
 
-package org.apromore.service.loganimation2.data;
+package org.apromore.service.loganimation2.enablement;
 
 import lombok.NonNull;
 import org.apromore.alignmentautomaton.EnablementResult;
 import org.apromore.logman.attribute.log.AttributeLog;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,18 +34,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * <b>EnablementLog</b> contains enablement data obtained for one {@link AttributeLog}.
- * Enablement includes aligning each trace in AttributeLog with a BPMN diagram and then calculating the enablement
- * timestamp. Each enablement for one case is a set of {@link EnablementTuple}.
+ * <b>AttributeLogEnablement</b> contains enablement data obtained for one {@link AttributeLog}.
+ * Enablement includes alignment of each trace in AttributeLog with a BPMN diagram augmented with enablement
+ * timestamp for each diagram element. Each enablement for one case is a set of {@link EnablementTuple}.
  */
-public class EnablementLog {
+public class AttributeLogEnablement {
     private final CaseIdIndexing caseIdIndexing; // mapping caseID to case index for space efficiency
     private final Map<String, List<EnablementResult>> enablements;
     private long startTimestamp = Long.MAX_VALUE;
     private long endTimestamp = Long.MIN_VALUE;
     private final String logName;
 
-    public EnablementLog(@NonNull AttributeLog attLog, @NonNull Map<String, List<EnablementResult>> enablements) {
+    public AttributeLogEnablement(@NonNull AttributeLog attLog, @NonNull Map<String, List<EnablementResult>> enablements) {
         this.caseIdIndexing = new CaseIdIndexing(attLog);
         this.enablements = enablements;
         attLog.getTraces().forEach(trace -> {

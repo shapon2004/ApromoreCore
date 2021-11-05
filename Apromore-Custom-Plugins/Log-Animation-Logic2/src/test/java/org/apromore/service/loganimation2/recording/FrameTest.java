@@ -22,36 +22,37 @@
 package org.apromore.service.loganimation2.recording;
 
 import java.util.List;
-import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.data.AnimationData;
+
+import org.apromore.service.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class FrameTest extends TestDataSetup {
     protected Movie createAnimationMovie_OneTraceAndCompleteEvents_Graph() throws Exception {
-        AnimationData result = this.animate_OneTraceAndCompleteEvents_Graph();
+        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_Graph();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
 
     protected Movie createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
-        AnimationData result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
+        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoTraceAndCompleteEvents_Graph() throws Exception {
-        AnimationData result = this.animate_TwoTraceAndCompleteEvents_Graph();
+        CompositeAttributeLogEnablement result = this.animate_TwoTraceAndCompleteEvents_Graph();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         return FrameRecorder.record(List.of(animationIndex), animationContext);
     }
     
     protected Movie createAnimationMovie_TwoLogs() throws Exception {
-        AnimationData result = this.animate_TwoLogs_With_BPMNDiagram();
+        CompositeAttributeLogEnablement result = this.animate_TwoLogs_With_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
         return FrameRecorder.record(createAnimationIndexes(result, animationContext), animationContext);
     }

@@ -24,9 +24,9 @@
 
 package org.apromore.service.loganimation2.json;
 
-import org.apromore.service.loganimation2.data.AnimationData;
-import org.apromore.service.loganimation2.data.AnimationParams;
-import org.apromore.service.loganimation2.data.EnablementLog;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
+import org.apromore.service.loganimation2.AnimationParams;
+import org.apromore.service.loganimation2.enablement.AttributeLogEnablement;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONArray;
@@ -40,11 +40,11 @@ import java.time.ZoneId;
  */
 public class AnimationJSONBuilder2 {
 
-    public static JSONObject parseLogCollection(AnimationData animationData, AnimationParams params) throws JSONException {
+    public static JSONObject parseLogCollection(CompositeAttributeLogEnablement animationData, AnimationParams params) throws JSONException {
         JSONObject collectionObj = new JSONObject();
         
         JSONArray logs = new JSONArray();
-        for(EnablementLog log : animationData.getEnablementLogs()) {
+        for(AttributeLogEnablement log : animationData.getEnablements()) {
             logs.put(parseLog(log, params));
         }
         collectionObj.put("logs", logs);
@@ -56,7 +56,7 @@ public class AnimationJSONBuilder2 {
         return collectionObj;
     }
     
-    private static JSONObject parseLog(EnablementLog animationLog, AnimationParams params) throws JSONException {
+    private static JSONObject parseLog(AttributeLogEnablement animationLog, AnimationParams params) throws JSONException {
         JSONObject json = new JSONObject();
         
         json.put("name", animationLog.getName());

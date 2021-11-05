@@ -19,7 +19,6 @@ package org.apromore.service.loganimation2;
 
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.logman.attribute.log.AttributeTrace;
-import org.apromore.service.loganimation2.data.AnimationParams;
 
 import java.io.IOException;
 import java.io.InputStream;

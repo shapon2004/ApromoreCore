@@ -24,16 +24,13 @@
 
 package org.apromore.service.loganimation2;
 
-import java.util.List;
-
 import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
-import org.apromore.service.loganimation2.data.AnimationData;
-import org.apromore.service.loganimation2.data.AnimationParams;
-import org.json.JSONObject;
+import org.apromore.service.loganimation2.recording.Movie;
+
+import java.util.List;
 
 public interface LogAnimationService2 {
-   public AnimationData createAnimationData(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws Exception;
-   public AnimationData createAnimationDataForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs) throws Exception;
-   public JSONObject createSetupData(AnimationData animationData, AnimationParams params) throws Exception;
+   public Movie createAnimationMovie(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws Exception;
+   public Movie createAnimationMovieForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs) throws Exception;
 }

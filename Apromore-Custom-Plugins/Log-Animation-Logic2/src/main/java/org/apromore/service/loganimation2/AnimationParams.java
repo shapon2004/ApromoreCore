@@ -22,7 +22,7 @@
  * #L%
  */
 
-package org.apromore.service.loganimation2.data;
+package org.apromore.service.loganimation2;
 
 public class AnimationParams {
     private int TimelineSlots;

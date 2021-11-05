@@ -23,31 +23,96 @@ package org.apromore.service.loganimation2.recording;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import org.apromore.service.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.AnimationParams;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * <b>Movie</b> is a sequence of ({@link Frame} recorded at a certain frame rate. 
- * In other words, it is the animation movie to be played back.
- * 
- * @see FrameRecorder
- * 
+ * <b>Movie</b> is a sequence of ({@link Frame} recorded at a certain frame rate.
+ * It is created from {@link CompositeAttributeLogEnablement} which contains enablement data for multiple logs
+ * after being aligned with a BPMN diagram. Enablement data is alignment data plus calculated enablement
+ * timestamp for each model element. Each case has its own enablement.<br>
+ * Visually, a log enablement can be seen as below where each line is a case enablement and each segment is
+ * the start enablement and end of enablement timestamp for one model element.
+ * #1: |---------------|--------|--------------------------|
+ * #2:      |-------|----------------|---------------------------|-----------|
+ * #3:  |------------------|--------------------|----------------------|
+ *
+ * Each frame is a snapshot (a cut) of the log enablement at a point in time. Visually, it is a vertical cut
+ * across the visualization above. Each cut results in a frame which contain some model elements.
+ * Depending on the resolution of the animation, each cut can be done every few milliseconds in time. Consequently,
+ * a <b>Movie</b> contains a large collection of frames to be played back on the browser. Each frame is given
+ * a frame index, e.g. from 1 to 36,000.<br>
+ *
+ * Each Frame contains a number of model elements. Each occurrence of one model element in a frame is called
+ * a <b>token</b>, visualized as a dot in the animation. Thus, each token is identified by: a modelling element, a case,
+ * and a frame index.<br>
+ *
+ * Given a cut at a point in time and a log enablement, a question is what modelling elements will be cut and included in the frame.
+ * It is inefficient to check all the cases and each model element in each case<br>
+ *
+ * <b>AnimationIndex</b> is an indexed data structure used to support this operation. An AnimationIndex is created by
+ * scanning the animation log and creating indexes from each token to the modelling elements, cases and the frame.
+ * Once an AnimationIndex has been created, given a cut in time, it is possible to query what model
+ * elements (a segment above) are included in the cut.<br>
+ *
+ * As an AnimationIndex is a collection of intervals (i.e. segments), a binary interval tree is created to support
+ * fast finding the cut intervals. Note that each interval above is marked by a starting and ending time. These points in time can be
+ * converted (approximately) to a frame index. Thus, each interval is marked by starting and ending frame indexes. Each cut in time corresponds
+ * to a frame index, thus, given a frame index, it is to search the interval tree to find the cut intervals containing that index. As each
+ * cut interval corresponds to a set of modelling elements and traces, it it possible to identify information of all tokens in the frame.
+ *
  * @author Bruce Nguyen
  *
  */
 public class Movie extends ArrayList<Frame> {
-	private AnimationContext animateContext;
-	
-	public Movie(AnimationContext animateContext, List<AnimationIndex> animationIndexes) {
-		this.animateContext = animateContext;
-		for (int frameIndex=0; frameIndex<animateContext.getMaxNumberOfFrames(); frameIndex++) {
-            add(new Frame(frameIndex, animationIndexes));
-        }
+	private final AnimationContext animateContext;
+	private final JSONObject setupData;
+
+	public Movie(CompositeAttributeLogEnablement enablement, AnimationParams animationParams) throws Exception {
+		animateContext = new AnimationContext(enablement.getStartTimestamp(), enablement.getEndTimestamp());
+		setupData = enablement.createSetupData(animationParams);
+		generateFrameData(enablement);
+	}
+
+	private void generateFrameData(CompositeAttributeLogEnablement compositeEnablement) {
+		// Create indexes
+		List<AnimationIndex> animationIndexes = compositeEnablement.getEnablements()
+				.stream()
+				.map(e -> new AnimationIndex(e, compositeEnablement, animateContext))
+				.collect(Collectors.toList());
+
+		// Create frames
+		IntStream.range(0, animateContext.getMaxNumberOfFrames()).forEach(frameIndex ->
+				add(new Frame(frameIndex, animationIndexes))
+		);
+
+		// Add tokens
+		this.parallelStream().forEach(frame -> {
+			IntStream.range(0, animationIndexes.size()).forEach(logIndex ->
+					frame.addTokens(logIndex,
+							animationIndexes.get(logIndex).getReplayElementIndexesByFrame(frame.getIndex()))
+			);
+		});
+
+		// Cluster tokens
+		this.parallelStream().forEach(frame -> {
+			IntStream.range(0, animationIndexes.size()).forEach(logIndex -> frame.clusterTokens(logIndex));
+		});
 	}
 	
 	public AnimationContext getAnimationContext() {
 		return this.animateContext;
+	}
+
+	public JSONObject getSetupData() {
+		return this.setupData;
 	}
 	
 	/**

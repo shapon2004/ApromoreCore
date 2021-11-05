@@ -23,8 +23,8 @@ package org.apromore.service.loganimation2.recording;
 
 import java.util.List;
 
-import org.apromore.service.loganimation2.recording.*;
-import org.apromore.service.loganimation2.data.AnimationData;
+import org.apromore.service.loganimation2.AnimationContext;
+import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.json.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,9 +33,9 @@ public class MovieTest extends TestDataSetup {
     
     @Test
     public void test_getChunkJSON_OneLog() throws Exception {
-        AnimationData result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
+        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablementLogs().get(0), result, animationContext);
+        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
         Movie movie = FrameRecorder.record(List.of(animationIndex), animationContext);
         
         Assert.assertEquals(36000, movie.size());
@@ -51,7 +51,7 @@ public class MovieTest extends TestDataSetup {
     
     @Test
     public void test_getChunkJSON_TwoLogs() throws Exception {
-        AnimationData result = this.animate_TwoLogs_With_BPMNDiagram();
+        CompositeAttributeLogEnablement result = this.animate_TwoLogs_With_BPMNDiagram();
         AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
         Movie movie = FrameRecorder.record(createAnimationIndexes(result, animationContext), animationContext);
         
