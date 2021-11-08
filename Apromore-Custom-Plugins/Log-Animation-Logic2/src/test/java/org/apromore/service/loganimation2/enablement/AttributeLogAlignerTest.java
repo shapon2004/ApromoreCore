@@ -1,46 +1,51 @@
-/**
- * #%L
- * This file is part of "Apromore Enterprise Edition".
- * %%
- * Copyright (C) 2019 - 2021 Apromore Pty Ltd. All Rights Reserved.
- * %%
- * NOTICE:  All information contained herein is, and remains the
- * property of Apromore Pty Ltd and its suppliers, if any.
- * The intellectual and technical concepts contained herein are
- * proprietary to Apromore Pty Ltd and its suppliers and may
- * be covered by U.S. and Foreign Patents, patents in process,
- * and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this
- * material is strictly forbidden unless prior written permission
- * is obtained from Apromore Pty Ltd.
- * #L%
- */
-package org.apromore.service.loganimation2.data;
+package org.apromore.service.loganimation2.enablement;
 
-import org.apromore.service.loganimation2.enablement.AttributeLogEnablement;
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
-import org.apromore.service.loganimation2.enablement.EnablementTuple;
-import org.apromore.service.loganimation2.recording.TestDataSetup;
+import org.apromore.alignmentautomaton.client.AlignmentClient;
+import org.apromore.logman.ALog;
+import org.apromore.logman.attribute.log.AttributeLog;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.service.loganimation2.LogAnimationService2;
+import org.apromore.service.loganimation2.TestDataSetup;
+import org.apromore.service.loganimation2.impl.LogAnimationServiceImpl2;
+import org.apromore.service.loganimation2.utils.BPMNDiagramHelper;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AnimationDataTest extends TestDataSetup {
+public class AttributeLogAlignerTest extends TestDataSetup {
+
+    @Mock
+    private AlignmentClient alignmentClient;
+
+    @InjectMocks
+    private AttributeLogAligner aligner;
+
+    @Before
+    public void init() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
     public void test_AnimationData_BPMN() throws Exception {
-        CompositeAttributeLogEnablement animationData = animate_model_d1_1trace();
+        CompositeLogEnablement animationData = createEnablement_d1_1trace();
 
         assertEquals(1633042800000L, animationData.getStartTimestamp());
         assertEquals(1633042920000L, animationData.getEndTimestamp());
         assertEquals(1, animationData.getEnablements().size());
 
         //EnablementLog
-        AttributeLogEnablement enablementLog = animationData.getEnablements().get(0);
+        LogEnablement enablementLog = animationData.getEnablements().get(0);
         assertEquals(1633042800000L, enablementLog.getStartTimestamp());
         assertEquals(1633042920000L, enablementLog.getEndTimestamp());
         assertEquals(Set.of("Case3.0"), enablementLog.getCaseIDs());
@@ -60,14 +65,14 @@ public class AnimationDataTest extends TestDataSetup {
 
     @Test
     public void test_AnimationData_Graph() throws Exception {
-        CompositeAttributeLogEnablement animationData = animate_graph_d2_1trace();
+        CompositeLogEnablement animationData = createEnablement_d2_1trace();
 
         assertEquals(1633042800000L, animationData.getStartTimestamp());
         assertEquals(1633042800000L, animationData.getEndTimestamp());
         assertEquals(1, animationData.getEnablements().size());
 
         //EnablementLog
-        AttributeLogEnablement enablementLog = animationData.getEnablements().get(0);
+        LogEnablement enablementLog = animationData.getEnablements().get(0);
         assertEquals(1633042800000L, enablementLog.getStartTimestamp());
         assertEquals(1633042800000L, enablementLog.getEndTimestamp());
         assertEquals(Set.of("Case1"), enablementLog.getCaseIDs());
@@ -83,5 +88,25 @@ public class AnimationDataTest extends TestDataSetup {
         assertEquals("Flow_0enzyac", tuple1.getElementId()); // verify: converted to graph diagram
         assertEquals(0, tuple1.getStartTimestamp());
         assertEquals(0, tuple1.getEndTimestamp());
+    }
+
+    private CompositeLogEnablement createEnablement_d1_1trace() throws Exception {
+        BPMNDiagram diagram = readBPMNDiagram("src/test/logs/d1.bpmn");
+        AttributeLog attLog = new ALog(readXESFile("src/test/logs/d1_1trace_complete_events_abd.xes"))
+                .getDefaultActivityLog();
+        Mockito.when(alignmentClient.computeEnablement(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(createEnablements("src/test/logs/d1_1trace_complete_events_abd.json"));
+        return aligner.createEnablement(diagram, List.of(attLog));
+    }
+
+    private CompositeLogEnablement createEnablement_d2_1trace() throws Exception {
+        BPMNDiagram diagram = readBPMNDiagram("src/test/logs/d2_graph.bpmn");
+        AttributeLog attLog = new ALog(readXESFile("src/test/logs/d2_1trace_a.xes"))
+                .getDefaultActivityLog();
+        Mockito.mockStatic(BPMNDiagramHelper.class).when(() -> BPMNDiagramHelper.createBPMNDiagramWithGateways(diagram))
+                .thenReturn(readBPMNDiagram("src/test/logs/d2_model.bpmn"));
+        Mockito.when(alignmentClient.computeEnablement(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(createEnablements("src/test/logs/d2_1trace_a.json"));
+        return aligner.createEnablementForGraph(diagram, List.of(attLog));
     }
 }

@@ -29,8 +29,11 @@ import org.apromore.plugin.DefaultParameterAwarePlugin;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.service.loganimation2.LogAnimationService2;
 import org.apromore.service.loganimation2.ParamsReader;
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
+import org.apromore.service.loganimation2.enablement.AttributeLogAligner;
+import org.apromore.service.loganimation2.enablement.CompositeLogEnablement;
+import org.apromore.service.loganimation2.recording.Frame;
 import org.apromore.service.loganimation2.recording.Movie;
+import org.apromore.service.loganimation2.recording.TokenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,16 +45,33 @@ import java.util.List;
 @Qualifier("logAnimationService2")
 public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implements LogAnimationService2 {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
+    private final AttributeLogAligner aligner = new AttributeLogAligner();
 
+    /**
+     * Create animation movie from a {@link BPMNDiagram} and a list of {@link AttributeLog}s. Each movie is a sequence of
+     * {@link Frame}s.
+     * <p>
+     * The data transformation is: the diagram and logs are aligned to have list of EnablementResult, one for each log,
+     * which is bundled as a {@link CompositeLogEnablement}, which is then converted to a list of {@link TokenMap},
+     * one for each log, which is then used to create frames in the movie.
+     * </p>
+     * @param diagram the diagram
+     * @param logs the list of logs
+     * @return movie
+     */
     @Override
-    public Movie createAnimationMovie(BPMNDiagram diagram, List<AttributeLog> logs) throws Exception {
-        return new Movie(CompositeAttributeLogEnablement.createEnablement(diagram, logs),
-                        ParamsReader.createAnimationParams(logs));
+    public Movie createAnimationMovie(BPMNDiagram diagram, List<AttributeLog> logs) {
+        return new Movie(aligner.createEnablement(diagram, logs), ParamsReader.createAnimationParams(logs));
     }
 
+    /**
+     * Similar to {@link #createAnimationMovie(BPMNDiagram, List)} but the diagram is a graph.
+     * @param diagram a graph diagram (without gateways)
+     * @param logs the list of logs
+     * @return movie
+     */
     @Override
-    public Movie createAnimationMovieForGraph(BPMNDiagram diagram, List<AttributeLog> logs) throws Exception {
-        return new Movie(CompositeAttributeLogEnablement.createEnablementForGraph(diagram, logs),
-                        ParamsReader.createAnimationParams(logs));
+    public Movie createAnimationMovieForGraph(BPMNDiagram diagram, List<AttributeLog> logs) {
+        return new Movie(aligner.createEnablementForGraph(diagram, logs), ParamsReader.createAnimationParams(logs));
     }
 }

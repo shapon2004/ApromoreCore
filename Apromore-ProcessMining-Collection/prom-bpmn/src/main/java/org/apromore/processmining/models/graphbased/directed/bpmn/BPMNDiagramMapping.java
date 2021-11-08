@@ -1,23 +1,29 @@
 package org.apromore.processmining.models.graphbased.directed.bpmn;
 
 import lombok.NonNull;
+import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Activity;
+import org.apromore.processmining.models.graphbased.directed.bpmn.elements.Event;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class BPMNDiagramMapping {
-    private Map<String, BPMNNode> nodeIdToNodeMapping = new HashMap<>();
-    private Map<String, BPMNNode> nodeLabelToNodeMapping = new HashMap<>();
-    private Map<Map.Entry<String,String>, BPMNEdge> nodeIdToEdgeMapping = new HashMap<>();
+    private final Map<String, BPMNNode> nodeIdToNodeMapping;
+    private final Map<String, BPMNNode> nodeLabelToNodeMapping;
+    private final Map<Map.Entry<String,String>, BPMNEdge> nodeIdToEdgeMapping;
 
     public BPMNDiagramMapping(@NonNull BPMNDiagram d) {
-        d.getNodes().forEach(n -> {
-            nodeIdToNodeMapping.put(n.getId().toString(), n);
-            if (!n.getLabel().isEmpty()) nodeLabelToNodeMapping.put(n.getLabel(), n);
-        });
-        d.getEdges().forEach(e -> nodeIdToEdgeMapping.put(Map.entry(e.getSource().getId().toString(),
-                                                                    e.getTarget().getId().toString()), e));
+        nodeIdToNodeMapping = d.getNodes().stream().collect(Collectors.toMap((BPMNNode n) -> n.getId().toString(), Function.identity()));
+        nodeLabelToNodeMapping = d.getNodes().stream()
+                                    .filter(n -> n.getLabel() != null && !n.getLabel().isEmpty())
+                                    .collect(Collectors.toMap(BPMNNode::getLabel, Function.identity()));
+        nodeIdToEdgeMapping = d.getEdges().stream().collect(Collectors.toMap(
+                (BPMNEdge<? extends BPMNNode, ? extends BPMNNode> e) ->
+                        Map.entry(e.getSource().getId().toString(), e.getTarget().getId().toString()),
+                Function.identity()));
     }
 
     public BPMNNode getNodeFromId(@NonNull String nodeId) {
@@ -53,5 +59,12 @@ public class BPMNDiagramMapping {
     public String getEdgeId(String sourceId, String targetId) {
         BPMNEdge edge = getEdge(sourceId, targetId);
         return edge == null ? "" : edge.getEdgeID().toString();
+    }
+
+    public Collection<String> getTaskIDs() {
+        return nodeIdToNodeMapping.values().stream()
+                .filter(n -> n instanceof Activity || n instanceof Event)
+                .map(n -> n.getId().toString())
+                .collect(Collectors.toSet());
     }
 }

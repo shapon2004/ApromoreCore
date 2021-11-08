@@ -24,9 +24,9 @@
 
 package org.apromore.service.loganimation2.json;
 
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
+import org.apromore.service.loganimation2.enablement.CompositeLogEnablement;
 import org.apromore.service.loganimation2.AnimationParams;
-import org.apromore.service.loganimation2.enablement.AttributeLogEnablement;
+import org.apromore.service.loganimation2.enablement.LogEnablement;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.json.JSONArray;
@@ -40,33 +40,33 @@ import java.time.ZoneId;
  */
 public class AnimationJSONBuilder2 {
 
-    public static JSONObject parseLogCollection(CompositeAttributeLogEnablement animationData, AnimationParams params) throws JSONException {
+    public static JSONObject parseLogCollection(CompositeLogEnablement enablementData, AnimationParams params) throws JSONException {
         JSONObject collectionObj = new JSONObject();
         
         JSONArray logs = new JSONArray();
-        for(AttributeLogEnablement log : animationData.getEnablements()) {
+        for(LogEnablement log : enablementData.getEnablements()) {
             logs.put(parseLog(log, params));
         }
         collectionObj.put("logs", logs);
 
         collectionObj.put("timeline", parseTimeline(
-                new Interval(animationData.getStartTimestamp(), animationData.getEndTimestamp()),
+                new Interval(enablementData.getStartTimestamp(), enablementData.getEndTimestamp()),
                 params));
 
         return collectionObj;
     }
     
-    private static JSONObject parseLog(AttributeLogEnablement animationLog, AnimationParams params) throws JSONException {
+    private static JSONObject parseLog(LogEnablement logEnablement, AnimationParams params) throws JSONException {
         JSONObject json = new JSONObject();
         
-        json.put("name", animationLog.getName());
+        json.put("name", logEnablement.getName());
         json.put("color", "");
-        json.put("total", animationLog.size());
-        json.put("play", animationLog.size());
-        json.put("startDateLabel", new DateTime(animationLog.getStartTimestamp()).toString());
-        json.put("endDateLabel", new DateTime(animationLog.getEndTimestamp()).toString());
-        json.put("startLogDateLabel", new DateTime(animationLog.getStartTimestamp()).plus(((long)params.getStartEventToFirstEventDuration())*1000));
-        json.put("endLogDateLabel", new DateTime(animationLog.getEndTimestamp()).minus(((long)params.getLastEventToEndEventDuration())*1000));
+        json.put("total", logEnablement.size());
+        json.put("play", logEnablement.size());
+        json.put("startDateLabel", new DateTime(logEnablement.getStartTimestamp()).toString());
+        json.put("endDateLabel", new DateTime(logEnablement.getEndTimestamp()).toString());
+        json.put("startLogDateLabel", new DateTime(logEnablement.getStartTimestamp()).plus(((long)params.getStartEventToFirstEventDuration())*1000));
+        json.put("endLogDateLabel", new DateTime(logEnablement.getEndTimestamp()).minus(((long)params.getLastEventToEndEventDuration())*1000));
         json.put("reliable", "0");
         json.put("unreliableTraces", "0");
         json.put("exactTraceFitness", "0.0");

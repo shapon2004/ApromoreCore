@@ -31,6 +31,6 @@ import org.apromore.service.loganimation2.recording.Movie;
 import java.util.List;
 
 public interface LogAnimationService2 {
-   public Movie createAnimationMovie(BPMNDiagram bpmnDiagram, List<AttributeLog> logs) throws Exception;
-   public Movie createAnimationMovieForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs) throws Exception;
+   public Movie createAnimationMovie(BPMNDiagram bpmnDiagram, List<AttributeLog> logs);
+   public Movie createAnimationMovieForGraph(BPMNDiagram bpmnDiagramNoGateways, List<AttributeLog> logs);
 }

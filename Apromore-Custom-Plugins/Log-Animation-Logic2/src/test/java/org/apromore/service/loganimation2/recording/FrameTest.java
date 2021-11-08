@@ -21,79 +21,43 @@
  */
 package org.apromore.service.loganimation2.recording;
 
-import java.util.List;
-
-import org.apromore.service.loganimation2.AnimationContext;
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class FrameTest extends TestDataSetup {
-    protected Movie createAnimationMovie_OneTraceAndCompleteEvents_Graph() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_Graph();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        return FrameRecorder.record(List.of(animationIndex), animationContext);
-    }
-
-    protected Movie createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        return FrameRecorder.record(List.of(animationIndex), animationContext);
-    }
-    
-    protected Movie createAnimationMovie_TwoTraceAndCompleteEvents_Graph() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_TwoTraceAndCompleteEvents_Graph();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        return FrameRecorder.record(List.of(animationIndex), animationContext);
-    }
-    
-    protected Movie createAnimationMovie_TwoLogs() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_TwoLogs_With_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        return FrameRecorder.record(createAnimationIndexes(result, animationContext), animationContext);
-    }
-    
+public class FrameTest extends MovieTest {
     @Test
-        public void test_FrameData_OneTraceLog() throws Exception {
-            Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_Graph();
+    public void test_FrameData_OneTraceLog() throws Exception {
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         Frame frame0 = animationMovie.get(0);
         Assert.assertEquals(0, frame0.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame0.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {13}, frame0.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {0}, frame0.getOriginalTokens(0));
-        Assert.assertArrayEquals(new int[] {}, frame0.getOriginalTokensByElement(0,0));
-        Assert.assertArrayEquals(new int[] {0}, frame0.getOriginalTokensByElement(0, 13));
-        
+        Assert.assertArrayEquals(new int[] {0}, frame0.getTokens(0));
+        Assert.assertArrayEquals(new int[] {}, frame0.getTokensByElement(0,0));
+        Assert.assertArrayEquals(new int[] {0}, frame0.getTokensByElement(0, 13));
+
         Frame frame299 = animationMovie.get(299);
         Assert.assertEquals(299, frame299.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame299.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {13}, frame299.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {0}, frame299.getOriginalTokens(0));
-        Assert.assertArrayEquals(new int[] {}, frame299.getOriginalTokensByElement(0,0));
-        Assert.assertArrayEquals(new int[] {0}, frame299.getOriginalTokensByElement(0,13));
-       
+        Assert.assertArrayEquals(new int[] {0}, frame299.getTokens(0));
+        Assert.assertArrayEquals(new int[] {}, frame299.getTokensByElement(0,0));
+        Assert.assertArrayEquals(new int[] {0}, frame299.getTokensByElement(0,13));
+
         Frame frame35999 = animationMovie.get(35999);
         Assert.assertEquals(35999, frame35999.getIndex());
         Assert.assertArrayEquals(new int[] {0}, frame35999.getCaseIndexes(0));
         Assert.assertArrayEquals(new int[] {11}, frame35999.getElementIndexes(0));
-        Assert.assertArrayEquals(new int[] {3}, frame35999.getOriginalTokens(0));
-        Assert.assertArrayEquals(new int[] {}, frame35999.getOriginalTokensByElement(0,0));
-        Assert.assertArrayEquals(new int[] {3}, frame35999.getOriginalTokensByElement(0,11));
-    }
-
-    @Test
-    public void test_FrameData_OneTraceLog_BPMNDiagram() throws Exception {
-        Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_BPMNDiagram();
+        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokens(0));
+        Assert.assertArrayEquals(new int[] {}, frame35999.getTokensByElement(0,0));
+        Assert.assertArrayEquals(new int[] {3}, frame35999.getTokensByElement(0,11));
     }
     
     @Test
     public void test_FrameJSON_OneTraceLog() throws Exception {
-        Movie animationMovie = createAnimationMovie_OneTraceAndCompleteEvents_Graph();
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         JSONObject frame0 = animationMovie.get(0).getJSON();
         JSONObject frame0Expect = this.readFrame_OneTraceAndCompleteEvents(0);
@@ -114,30 +78,30 @@ public class FrameTest extends TestDataSetup {
     
     @Test
     public void test_FrameData_TwoLogs() throws Exception {
-        Movie animationMovie = createAnimationMovie_TwoLogs();
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         // This frame only has one token for the 2nd log
         Frame firstFrame = animationMovie.get(0);
         Assert.assertEquals(0, firstFrame.getIndex());
-        Assert.assertEquals(true, firstFrame.getOriginalTokens(0).length > 0);
-        Assert.assertEquals(true, firstFrame.getOriginalTokens(1).length == 0); // no token for the 2nd log in this frame
+        Assert.assertEquals(true, firstFrame.getTokens(0).length > 0);
+        Assert.assertEquals(true, firstFrame.getTokens(1).length == 0); // no token for the 2nd log in this frame
         
         // This frame has one token for both logs
         Frame frameTwoTokens = animationMovie.get(19036);
         Assert.assertEquals(19036, frameTwoTokens.getIndex());
-        Assert.assertEquals(true, frameTwoTokens.getOriginalTokens(0).length > 0);
-        Assert.assertEquals(true, frameTwoTokens.getOriginalTokens(1).length > 0);
+        Assert.assertEquals(true, frameTwoTokens.getTokens(0).length > 0);
+        Assert.assertEquals(true, frameTwoTokens.getTokens(1).length > 0);
        
         // This frame only has one token for the 1st log
         Frame lastFrame = animationMovie.get(35999);
         Assert.assertEquals(35999, lastFrame.getIndex());
-        Assert.assertEquals(true, lastFrame.getOriginalTokens(1).length > 0);
-        Assert.assertEquals(true, lastFrame.getOriginalTokens(0).length == 0); // no token for the 1st log in this frame
+        Assert.assertEquals(true, lastFrame.getTokens(1).length > 0);
+        Assert.assertEquals(true, lastFrame.getTokens(0).length == 0); // no token for the 1st log in this frame
     }
     
     @Test
     public void test_FrameJSON_TwoLogs() throws Exception {
-        Movie animationMovie = createAnimationMovie_TwoLogs();
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         JSONObject testFrame = animationMovie.get(19036).getJSON();
         JSONObject expectedFrame = this.readFrame_TwoLogs(19036);

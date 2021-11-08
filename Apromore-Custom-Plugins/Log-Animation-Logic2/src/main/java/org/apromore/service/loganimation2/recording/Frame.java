@@ -45,44 +45,38 @@ import org.roaringbitmap.RoaringBitmap;
 
 /**
  * A <b>Frame</b> is an animation frame to be played back. It contains a set of <b>tokens</b>. Each token is
- * identified by a modelling element, replay trace (or case). So, it is possible to query all tokens, modelling elements
- * and replay traces from a frame.<br>
- * 
- * As the number of tokens in the animation can be very large, a compressed bitmap is used to store tokens.
- * 
- * @see FrameRecorder
+ * identified by a modelling element and a case.
  * 
  * @author Bruce Nguyen
  *
  */
 public class Frame {
     private int frameIndex;
+
+    // Token map for the log
+    private List<TokenMap> tokenMap;
     
-    // One index for each log
-    private List<AnimationIndex> animationIndexes;
+    // One compressed bitmap is used for each log. In one bitmap: a true value at index ith represents a token.
+    private List<RoaringBitmap> tokenBitmap = new ArrayList<>();
     
-    // One bitmap for each log
-    // Each bitmap: a true value at index ith is a replay element on this frame, also called a token index
-    private List<RoaringBitmap> replayElementMaps = new ArrayList<>();
-    
-    // One count map for each log
-    // Each map: map from a token index to the number of tokens in a cluster that it represents
+    // One count map for each log. In each map: map from a token index to the number of that token in a cluster.
     private List<MutableIntIntMap> tokenClusterMap = new ArrayList<>();
-    
+
+    // Distance factor to cluster tokens
     private final double TOKEN_CLUSTERING_GAP = 0.01;
     
-    public Frame(int frameIndex, List<AnimationIndex> animationIndexes) {
+    public Frame(int frameIndex, List<TokenMap> tokenMap) {
         this.frameIndex = frameIndex;
-        this.animationIndexes = animationIndexes;
-        animationIndexes.forEach(animationIndex -> {
-            replayElementMaps.add(new RoaringBitmap());
+        this.tokenMap = tokenMap;
+        tokenMap.forEach(animationIndex -> {
+            tokenBitmap.add(new RoaringBitmap());
             tokenClusterMap.add(IntIntMaps.mutable.empty());
         });
     }
     
     public void addTokens(int logIndex, int[] tokenIndexes) {
         if (!isValidLogIndex(logIndex)) return;
-        replayElementMaps.get(logIndex).add(tokenIndexes);
+        tokenBitmap.get(logIndex).add(tokenIndexes);
     }
     
     public int getIndex() {
@@ -90,47 +84,73 @@ public class Frame {
     }
     
     private boolean isValidLogIndex(int logIndex) {
-        return logIndex >= 0 && logIndex < animationIndexes.size();
-    }
-    
-    public int[] getLogIndexes() {
-        return IntStream.range(0, animationIndexes.size()).toArray();
+        return logIndex >= 0 && logIndex < tokenBitmap.size();
     }
 
-    public int[] getOriginalTokens(int logIndex) {
-        if (!isValidLogIndex(logIndex)) return new int[] {};
-        return replayElementMaps.get(logIndex).toArray();
+    /**
+     * Get all log indexes on this frame.
+     * @return
+     */
+    public int[] getLogIndexes() {
+        return IntStream.range(0, tokenBitmap.size()).toArray();
     }
-    
-    public int[] getOriginalTokensByElement(int logIndex, int elementIndex) {
+
+    /**
+     * Get all tokens of a log on this frame.
+     * @param logIndex
+     * @return
+     */
+    public int[] getTokens(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
-        return Arrays.stream(getOriginalTokens(logIndex))
-                .filter(tokenIndex -> animationIndexes.get(logIndex).getElementIndex(tokenIndex) == elementIndex)
+        return tokenBitmap.get(logIndex).toArray();
+    }
+
+    /**
+     * Get all tokens of a log on a modelling element on this frame.
+     * @param logIndex
+     * @param elementIndex
+     * @return
+     */
+    public int[] getTokensByElement(int logIndex, int elementIndex) {
+        if (!isValidLogIndex(logIndex)) return new int[] {};
+        return Arrays.stream(getTokens(logIndex))
+                .filter(tokenIndex -> tokenMap.get(logIndex).getElementIndex(tokenIndex) == elementIndex)
                 .toArray();
     }
-    
+
+    /**
+     * Get all modelling element indexes on this frame.
+     * @param logIndex
+     * @return
+     */
     public int[] getElementIndexes(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
-        return Arrays.stream(getOriginalTokens(logIndex))
-                .map(token -> animationIndexes.get(logIndex).getElementIndex(token))
+        return Arrays.stream(getTokens(logIndex))
+                .map(token -> tokenMap.get(logIndex).getElementIndex(token))
                 .distinct().toArray();
     }
-    
+
+    /**
+     * Get all cases in a log on this frame.
+     * @param logIndex
+     * @return
+     */
     public int[] getCaseIndexes(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
-        return Arrays.stream(getOriginalTokens(logIndex))
-                .map(tokenIndex -> animationIndexes.get(logIndex).getTraceIndex(tokenIndex))
+        return Arrays.stream(getTokens(logIndex))
+                .map(tokenIndex -> tokenMap.get(logIndex).getTraceIndex(tokenIndex))
                 .distinct().toArray();
     }
     
     /**
      * This is the percentage from the start of the element (0..1) based on frame indexes
-     * This distance is suitable to be used as relative position of tokens on a modeling element
+     * This distance is suitable to be used as the relative position of tokens on a modeling element.
      */
     private double getRelativeTokenDistance(int logIndex, int token) {
         if (!isValidLogIndex(logIndex)) return 0;
-        int startFrameIndex = animationIndexes.get(logIndex).getStartFrameIndex(token);
-        int endFrameIndex = animationIndexes.get(logIndex).getEndFrameIndex(token);
+        int startFrameIndex = tokenMap.get(logIndex).getStartFrameIndex(token);
+        int endFrameIndex = tokenMap.get(logIndex).getEndFrameIndex(token);
+        if (startFrameIndex < 0 || endFrameIndex < 0) return 0;
         int maxLength = endFrameIndex - startFrameIndex;
         return (maxLength == 0) ? 0 : (double)(frameIndex - startFrameIndex)/maxLength;
     }
@@ -183,14 +203,14 @@ public class Frame {
      * @param elementIndex
      */
     private IntIntMap clusterTokensOnElement(int logIndex, int elementIndex) {
-        // Collect tokens and their distances
+        // Collect tokenMap and their distances
         MutableList<IntDoublePair> tokenDistances = Lists.mutable.empty();
-        for (int token : getOriginalTokensByElement(logIndex, elementIndex)) {
+        for (int token : getTokensByElement(logIndex, elementIndex)) {
             tokenDistances.add(PrimitiveTuples.pair(token, getRelativeTokenDistance(logIndex, token)));
         }
         tokenDistances.sortThisBy(pair -> pair.getTwo()); // sort by distance
         
-        // Group tokens within close distances
+        // Group tokenMap within close distances
         Set<MutableIntList> tokenClusters = new HashSet<>();
         MutableIntList tokenCluster = IntLists.mutable.empty();
         double clusterTotalDist = 0;
@@ -226,7 +246,7 @@ public class Frame {
     public int[] getClustersByElement(int logIndex, int elementIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
         return Arrays.stream(getClusters(logIndex))
-                .filter(token -> animationIndexes.get(logIndex).getElementIndex(token) == elementIndex)
+                .filter(token -> tokenMap.get(logIndex).getElementIndex(token) == elementIndex)
                 .toArray();
     }
     

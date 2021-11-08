@@ -21,22 +21,46 @@
  */
 package org.apromore.service.loganimation2.recording;
 
-import java.util.List;
-
-import org.apromore.service.loganimation2.AnimationContext;
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
+import org.apromore.logman.ALog;
+import org.apromore.logman.attribute.log.AttributeLog;
+import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
+import org.apromore.service.loganimation2.LogAnimationService2;
+import org.apromore.service.loganimation2.TestDataSetup;
+import org.apromore.service.loganimation2.enablement.AttributeLogAligner;
+import org.apromore.service.loganimation2.enablement.CompositeLogEnablement;
+import org.apromore.service.loganimation2.enablement.LogEnablement;
+import org.apromore.service.loganimation2.impl.LogAnimationServiceImpl2;
 import org.json.JSONArray;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.util.List;
+
+@RunWith(MockitoJUnitRunner.class)
 public class MovieTest extends TestDataSetup {
-    
+
+    @Mock
+    private AttributeLogAligner aligner;
+
+    @InjectMocks
+    private LogAnimationService2 logAnimationService;
+
+    @Before
+    public void init() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
     public void test_getChunkJSON_OneLog() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_OneTraceAndCompleteEvents_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        Movie movie = FrameRecorder.record(List.of(animationIndex), animationContext);
+        Movie movie = this.createMovie_d1_1trace();
         
         Assert.assertEquals(36000, movie.size());
         
@@ -51,9 +75,7 @@ public class MovieTest extends TestDataSetup {
     
     @Test
     public void test_getChunkJSON_TwoLogs() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_TwoLogs_With_BPMNDiagram();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        Movie movie = FrameRecorder.record(createAnimationIndexes(result, animationContext), animationContext);
+        Movie movie = this.createMovie_d1_1trace();
         
         Assert.assertEquals(36000, movie.size());
         
@@ -64,5 +86,24 @@ public class MovieTest extends TestDataSetup {
         JSONArray lastChunk = movie.getChunkJSON(35744, 300);
         JSONArray lastChunkExpect = this.readChunk_TwoLogs(0);
         Assert.assertEquals(true, firstChunk.similar(firstChunkExpect));
+    }
+
+    protected Movie createMovie_d1_1trace() throws Exception {
+        BPMNDiagram diagram = readBPMNDiagram("src/test/logs/d1.bpmn");
+        AttributeLog log = new ALog(readXESFile("src/test/logs/d1_1trace_complete_events_abd.xes"))
+                .getDefaultActivityLog();
+        Mockito.when(aligner.createEnablement(Mockito.any(), Mockito.any()))
+                .thenReturn(createCompositeLogEnablement(diagram, log, "src/test/logs/d2_1trace_a.json"));
+        return logAnimationService.createAnimationMovie(diagram, List.of(log));
+    }
+
+    private CompositeLogEnablement createCompositeLogEnablement(BPMNDiagram diagram,
+                                                                AttributeLog log,
+                                                                String enablementFile) throws Exception {
+        return new CompositeLogEnablement(diagram, List.of(createLogEnablement(log, enablementFile)));
+    }
+
+    private LogEnablement createLogEnablement(AttributeLog log, String jSonFile) throws IOException {
+        return new LogEnablement(log, createEnablements(jSonFile));
     }
 }

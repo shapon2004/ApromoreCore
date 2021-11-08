@@ -38,14 +38,14 @@ import java.util.stream.Collectors;
  * Enablement includes alignment of each trace in AttributeLog with a BPMN diagram augmented with enablement
  * timestamp for each diagram element. Each enablement for one case is a set of {@link EnablementTuple}.
  */
-public class AttributeLogEnablement {
+public class LogEnablement {
     private final CaseIdIndexing caseIdIndexing; // mapping caseID to case index for space efficiency
     private final Map<String, List<EnablementResult>> enablements;
     private long startTimestamp = Long.MAX_VALUE;
     private long endTimestamp = Long.MIN_VALUE;
     private final String logName;
 
-    public AttributeLogEnablement(@NonNull AttributeLog attLog, @NonNull Map<String, List<EnablementResult>> enablements) {
+    public LogEnablement(@NonNull AttributeLog attLog, @NonNull Map<String, List<EnablementResult>> enablements) {
         this.caseIdIndexing = new CaseIdIndexing(attLog);
         this.enablements = enablements;
         attLog.getTraces().forEach(trace -> {
@@ -71,6 +71,13 @@ public class AttributeLogEnablement {
         return enablements.keySet();
     }
 
+    /**
+     * Return a list of {@link EnablementTuple} for a case ID. EnablementTuple is used here
+     * instead of {@link EnablementResult} to stop deeper dependency {@link EnablementResult} of the AlignmentClient library
+     * as it is under a different cycle of changes.
+     * @param caseId
+     * @return
+     */
     public List<EnablementTuple> getEnablementsByCaseId(String caseId) {
         return enablements.getOrDefault(caseId, Collections.emptyList())
                 .stream()

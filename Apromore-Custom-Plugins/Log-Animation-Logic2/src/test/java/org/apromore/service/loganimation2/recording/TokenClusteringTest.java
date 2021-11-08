@@ -21,32 +21,15 @@
  */
 package org.apromore.service.loganimation2.recording;
 
-import java.util.Arrays;
-
-import org.apromore.service.loganimation2.AnimationContext;
-import org.apromore.service.loganimation2.enablement.CompositeAttributeLogEnablement;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TokenClusteringTest extends TestDataSetup {
-    protected Movie createAnimationMovie_OneTraceOneEvent_OneTaskGrap() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_OneTraceOneEvent_OneTaskGraph();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
-    }
-    
-    protected Movie createAnimationMovie_TwoTracesOneEvent_OneTaskGrap() throws Exception {
-        CompositeAttributeLogEnablement result = this.animate_TwoTracesOneEvent_OneTaskGraph();
-        AnimationContext animationContext = new AnimationContext(result.getStartTimestamp(), result.getEndTimestamp(), 60, 600);
-        AnimationIndex animationIndex = new AnimationIndex(result.getEnablements().get(0), result, animationContext);
-        return FrameRecorder.record(Arrays.asList(animationIndex), animationContext);
-    }
+public class TokenClusteringTest extends MovieTest {
     
     @Test
     // No token clustering
     public void test_TokenClustering_OneTraceLog() throws Exception {
-        Movie animationMovie = createAnimationMovie_OneTraceOneEvent_OneTaskGrap();
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         Frame frame0 = animationMovie.get(0);
         Assert.assertEquals(1, frame0.getClusters(0).length);
@@ -66,7 +49,7 @@ public class TokenClusteringTest extends TestDataSetup {
     // This log has two identical traces.
     // As a result, only one token left on all modelling elements, but its count is 2.
     public void test_TokenClustering_TwoTraceLog() throws Exception {
-        Movie animationMovie = createAnimationMovie_TwoTracesOneEvent_OneTaskGrap();
+        Movie animationMovie = this.createMovie_d1_1trace();
         
         Frame frame0 = animationMovie.get(0);
         Assert.assertEquals(1, frame0.getClusters(0).length);
