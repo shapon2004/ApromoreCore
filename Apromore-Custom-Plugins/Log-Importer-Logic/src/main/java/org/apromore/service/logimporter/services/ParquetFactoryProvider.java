@@ -38,6 +38,7 @@ public class ParquetFactoryProvider {
     public ParquetImporterFactory getParquetFactory(String fileExtension) {
 
         LOGGER.info("File Format: " + fileExtension);
+        LOGGER.debug("Debugging branch Karthik");
         if (fileExtension == null) {
             return null;
         }
