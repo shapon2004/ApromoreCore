@@ -45,7 +45,11 @@ import java.util.List;
 @Qualifier("logAnimationService2")
 public class LogAnimationServiceImpl2 extends DefaultParameterAwarePlugin implements LogAnimationService2 {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogAnimationServiceImpl2.class);
-    private final AttributeLogAligner aligner = new AttributeLogAligner();
+    private AttributeLogAligner aligner;
+
+    public LogAnimationServiceImpl2() {
+        aligner = new AttributeLogAligner();
+    }
 
     /**
      * Create animation movie from a {@link BPMNDiagram} and a list of {@link AttributeLog}s. Each movie is a sequence of

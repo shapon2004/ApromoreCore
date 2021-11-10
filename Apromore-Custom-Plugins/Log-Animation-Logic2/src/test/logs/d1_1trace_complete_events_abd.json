@@ -3,8 +3,8 @@
     {
         "caseId" : "Case3.0",
         "eId" : "StartEvent_13jlt06",
-        "enTS" : "",
-        "eTS" : "",
+        "enTS" : "1633042800000",
+        "eTS" : "1633042800000",
         "ct" : 0,
         "isSk" : false,
         "isSeq" : false
@@ -12,8 +12,8 @@
     {
         "caseId" : "Case3.0",
         "eId" : "Flow_0p5ie2x",
-        "enTS" : "",
-        "eTS" : "",
+        "enTS" : "1633042800000",
+        "eTS" : "1633042800000",
         "ct" : 0,
         "isSk" : false,
         "isSeq" : true

@@ -22,8 +22,10 @@
 package org.apromore.service.loganimation2.recording;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class TokenClusteringTest extends MovieTest {
     
     @Test

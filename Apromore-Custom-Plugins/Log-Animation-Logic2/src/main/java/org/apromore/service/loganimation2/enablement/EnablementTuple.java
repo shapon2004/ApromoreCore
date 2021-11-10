@@ -17,6 +17,7 @@
  */
 package org.apromore.service.loganimation2.enablement;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -29,17 +30,15 @@ import lombok.NonNull;
 public class EnablementTuple {
     private final String elementId;
     private final boolean isSkip;
+    private final boolean isSequenceFlow;
     private final long startTimestamp;
     private final long endTimestamp;
 
-    public static EnablementTuple valueOf(@NonNull String elementId, boolean isSkip,
-                                          long startTimestamp, long endTimestamp) {
-        return new EnablementTuple(elementId, isSkip, startTimestamp, endTimestamp);
-    }
-
-    private EnablementTuple(String elementId, boolean isSkip, long startTimestamp, long endTimestamp) {
+    public EnablementTuple(final String elementId, boolean isSkip, boolean isSequenceFlow,
+            long startTimestamp, long endTimestamp) {
         this.elementId = elementId;
         this.isSkip = isSkip;
+        this.isSequenceFlow = isSequenceFlow;
         this.startTimestamp = startTimestamp;
         this.endTimestamp = endTimestamp;
     }

@@ -24,12 +24,16 @@ package org.apromore.service.loganimation2;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apromore.alignmentautomaton.EnablementResult;
+import org.apromore.logman.ALog;
+import org.apromore.logman.attribute.log.AttributeLog;
 import org.apromore.processmining.models.graphbased.directed.bpmn.BPMNDiagram;
 import org.apromore.processmining.plugins.bpmn.plugins.BpmnImportPlugin;
+import org.apromore.service.loganimation2.enablement.CompositeLogEnablement;
 import org.deckfour.xes.in.XesXmlParser;
 import org.deckfour.xes.model.XLog;
 import org.json.JSONArray;
@@ -59,34 +63,15 @@ public class TestDataSetup {
             e.printStackTrace();
         }
     }
-    
-    public JSONObject readFrame_OneTraceAndCompleteEvents(int frameIndex) throws JSONException, FileNotFoundException {
-        String fileName = "frame" + frameIndex + ".json";
-        JSONTokener tokener = new JSONTokener(new FileReader("src/test/logs/" + fileName));
-        return new JSONObject(tokener);
-    }
-    
-    public JSONObject readFrame_TwoLogs(int frameIndex) throws JSONException, FileNotFoundException {
-        String fileName = "twologs_frame" + frameIndex + ".json";
-        JSONTokener tokener = new JSONTokener(new FileReader("src/test/logs/" + fileName));
-        return new JSONObject(tokener);
-    }
-    
-    public JSONArray readChunk_OneTraceAndCompleteEvents(int startFrameIndex) throws JSONException, FileNotFoundException {
-        String fileName = "chunk" + startFrameIndex + ".json";
-        JSONTokener tokener = new JSONTokener(new FileReader("src/test/logs/" + fileName));
-        return new JSONArray(tokener);
-    }
-    
-    public JSONArray readChunk_TwoLogs(int startFrameIndex) throws JSONException, FileNotFoundException {
-        String fileName = "twologs_chunk" + startFrameIndex + ".json";
-        JSONTokener tokener = new JSONTokener(new FileReader("src/test/logs/" + fileName));
-        return new JSONArray(tokener);
-    }
-    
+
     public XLog readXESFile(String fullFilePath) throws Exception {
         XesXmlParser parser = new XesXmlParser();
         return parser.parse(new File(fullFilePath)).get(0);
+    }
+
+    public AttributeLog readAttributeLog(String logFile) throws Exception {
+        return new ALog(readXESFile("src/test/logs/d1_1trace_complete_events_abd.xes"))
+                .getDefaultActivityLog();
     }
     
     public BPMNDiagram readBPMNDiagram(String fullFilePath) throws Exception {
@@ -99,5 +84,11 @@ public class TestDataSetup {
         Map<String, List<EnablementResult>> results = objectMapper.readValue(new FileInputStream(jsonFile),
                 new TypeReference<>(){});
         return new TreeMap<>(results);
+    }
+
+    public List<String> getElementIDs(int[] elementIndexes, CompositeLogEnablement logEnablement) {
+        return Arrays.stream(elementIndexes)
+                .mapToObj(index -> logEnablement.getElementId(index))
+                .collect(Collectors.toList());
     }
 }

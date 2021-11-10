@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * <b>AttributeLogEnablement</b> contains enablement data obtained for one {@link AttributeLog}.
+ * <b>LogEnablement</b> contains enablement data obtained for one log.
  * Enablement includes alignment of each trace in AttributeLog with a BPMN diagram augmented with enablement
  * timestamp for each diagram element. Each enablement for one case is a set of {@link EnablementTuple}.
  */
@@ -81,8 +81,8 @@ public class LogEnablement {
     public List<EnablementTuple> getEnablementsByCaseId(String caseId) {
         return enablements.getOrDefault(caseId, Collections.emptyList())
                 .stream()
-                .map(e -> EnablementTuple.valueOf(e.getElementId(),
-                            e.isSkipped(),
+                .map(e -> new EnablementTuple(e.getElementId(),
+                            e.isSkipped(), e.isSequenceFlow(),
                             e.getEnablementTimestamp() == null ? 0 : e.getEnablementTimestamp(),
                             e.getEndTimestamp() == null ? 0 : e.getEndTimestamp()))
                 .collect(Collectors.toList());

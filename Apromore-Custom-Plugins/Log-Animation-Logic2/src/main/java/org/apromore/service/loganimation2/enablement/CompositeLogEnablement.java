@@ -58,6 +58,11 @@ public class CompositeLogEnablement {
         return isSkip ? elementIdIndexing.getSkipIndex(elementId) : elementIdIndexing.getIndex(elementId);
     }
 
+    public String getElementId(int elementIndex) {
+        String id = elementIdIndexing.getId(elementIndex);
+        return !id.isEmpty() ? id : elementIdIndexing.getIdFromSkipIndex(elementIndex);
+    }
+
     public long getStartTimestamp() {
         return this.startTimestamp;
     }

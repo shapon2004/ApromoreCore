@@ -46,9 +46,9 @@ import com.lodborg.intervaltree.Interval.Bounded;
 import com.lodborg.intervaltree.IntervalTree;
 
 /**
- * A <b>TokenMap</b> contains all animation tokens for an {@link LogEnablement}. Each token belongs to
- * a case and a modelling element. Each token lasts between starting and ending frame indexes. Each token is visualized
- * as a dot in an animation.
+ * In an animation, tokens are shown as dots flowing through modelling elements. A <b>TokenMap</b> contains all
+ * tokens for a {@link LogEnablement}. Each token belongs to a case and a modelling element, and lasts between
+ * starting and ending frame indexes. Each token is identified by an integer number.
  *
  * @see Movie
  * 
@@ -60,7 +60,7 @@ public class TokenMap {
 
     private MutableIntIntMap tokenToElement = IntIntMaps.mutable.empty(); // token index => element index
     private MutableIntIntMap tokenToTrace = IntIntMaps.mutable.empty(); // token index => trace index
-    private MutableIntObjectMap<IntIntPair> tokenToFrames = IntObjectMaps.mutable.empty(); //replayElement index => start/end Frame index
+    private MutableIntObjectMap<IntIntPair> tokenToFrames = IntObjectMaps.mutable.empty(); //token index => start/end Frame index
     
     // As each token is played within an interval of two frame indexes, an interval tree is used
     // as an efficient data structure to query, e.g. retrieve all tokens contained at a frame index
@@ -76,7 +76,8 @@ public class TokenMap {
             for (EnablementTuple tuple : logEnablement.getEnablementsByCaseId(caseId)) {
                 int caseIndex = logEnablement.getCaseIndexFromId(caseId);
                 if (caseIndex < 0) throw new IllegalArgumentException("Couldn't find case with id = " + caseId);
-                int elementIndex = enablementData.getElementIndex(tuple.getElementId(), tuple.isSkip());
+                int elementIndex = enablementData.getElementIndex(tuple.getElementId(),
+                                                            tuple.isSkip() && !tuple.isSequenceFlow());
                 if (elementIndex < 0) throw new IllegalArgumentException("Couldn't find element with id = " + tuple.getElementId());
                 index(tokenIndex, elementIndex, caseIndex, tuple.getStartTimestamp(), tuple.getEndTimestamp());
                 tokenIndex++;
@@ -99,7 +100,7 @@ public class TokenMap {
         intervalTree.add(interval);
         
         // IntervalTree doesn't keep duplicate intervals (only keeps one).
-        // intervalToReplayElement must store value as a set of replay element indexes.
+        // intervalToReplayElement must store value as a set of token indexes.
         if (!intervalToTokens.containsKey(interval)) intervalToTokens.put(interval, IntSets.mutable.empty());
         intervalToTokens.get(interval).add(token);
     }

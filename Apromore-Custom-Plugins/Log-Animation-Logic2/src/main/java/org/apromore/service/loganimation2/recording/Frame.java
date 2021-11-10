@@ -44,39 +44,42 @@ import org.json.JSONObject;
 import org.roaringbitmap.RoaringBitmap;
 
 /**
- * A <b>Frame</b> is an animation frame to be played back. It contains a set of <b>tokens</b>. Each token is
- * identified by a modelling element and a case.
+ * A <b>Frame</b> is an animation frame to be played back. It contains a set of <b>tokens</b>, each identified by
+ * an integer number. Each frame is identified by an integer called frame index.
+ *
+ * @see TokenMap
  * 
  * @author Bruce Nguyen
  *
  */
 public class Frame {
-    private int frameIndex;
+    private final int frameIndex;
 
     // Token map for the log
-    private List<TokenMap> tokenMap;
+    private final List<TokenMap> tokenMaps;
     
-    // One compressed bitmap is used for each log. In one bitmap: a true value at index ith represents a token.
-    private List<RoaringBitmap> tokenBitmap = new ArrayList<>();
+    // Tokens on this frame are stored in a compressed bitmap.
+    // In each bitmap: a true value at index ith represents a token identified by the integer i.
+    private final List<RoaringBitmap> tokenBitmaps = new ArrayList<>();
     
     // One count map for each log. In each map: map from a token index to the number of that token in a cluster.
-    private List<MutableIntIntMap> tokenClusterMap = new ArrayList<>();
+    private final List<MutableIntIntMap> tokenClusterMaps = new ArrayList<>();
 
     // Distance factor to cluster tokens
-    private final double TOKEN_CLUSTERING_GAP = 0.01;
+    private static final double TOKEN_CLUSTERING_GAP = 0.01;
     
     public Frame(int frameIndex, List<TokenMap> tokenMap) {
         this.frameIndex = frameIndex;
-        this.tokenMap = tokenMap;
+        this.tokenMaps = tokenMap;
         tokenMap.forEach(animationIndex -> {
-            tokenBitmap.add(new RoaringBitmap());
-            tokenClusterMap.add(IntIntMaps.mutable.empty());
+            tokenBitmaps.add(new RoaringBitmap());
+            tokenClusterMaps.add(IntIntMaps.mutable.empty());
         });
     }
     
     public void addTokens(int logIndex, int[] tokenIndexes) {
         if (!isValidLogIndex(logIndex)) return;
-        tokenBitmap.get(logIndex).add(tokenIndexes);
+        tokenBitmaps.get(logIndex).add(tokenIndexes);
     }
     
     public int getIndex() {
@@ -84,7 +87,7 @@ public class Frame {
     }
     
     private boolean isValidLogIndex(int logIndex) {
-        return logIndex >= 0 && logIndex < tokenBitmap.size();
+        return logIndex >= 0 && logIndex < tokenBitmaps.size();
     }
 
     /**
@@ -92,7 +95,7 @@ public class Frame {
      * @return
      */
     public int[] getLogIndexes() {
-        return IntStream.range(0, tokenBitmap.size()).toArray();
+        return IntStream.range(0, tokenBitmaps.size()).toArray();
     }
 
     /**
@@ -102,7 +105,7 @@ public class Frame {
      */
     public int[] getTokens(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
-        return tokenBitmap.get(logIndex).toArray();
+        return tokenBitmaps.get(logIndex).toArray();
     }
 
     /**
@@ -114,7 +117,7 @@ public class Frame {
     public int[] getTokensByElement(int logIndex, int elementIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
         return Arrays.stream(getTokens(logIndex))
-                .filter(tokenIndex -> tokenMap.get(logIndex).getElementIndex(tokenIndex) == elementIndex)
+                .filter(tokenIndex -> tokenMaps.get(logIndex).getElementIndex(tokenIndex) == elementIndex)
                 .toArray();
     }
 
@@ -126,7 +129,7 @@ public class Frame {
     public int[] getElementIndexes(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
         return Arrays.stream(getTokens(logIndex))
-                .map(token -> tokenMap.get(logIndex).getElementIndex(token))
+                .map(token -> tokenMaps.get(logIndex).getElementIndex(token))
                 .distinct().toArray();
     }
 
@@ -138,7 +141,7 @@ public class Frame {
     public int[] getCaseIndexes(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
         return Arrays.stream(getTokens(logIndex))
-                .map(tokenIndex -> tokenMap.get(logIndex).getTraceIndex(tokenIndex))
+                .map(tokenIndex -> tokenMaps.get(logIndex).getTraceIndex(tokenIndex))
                 .distinct().toArray();
     }
     
@@ -148,8 +151,8 @@ public class Frame {
      */
     private double getRelativeTokenDistance(int logIndex, int token) {
         if (!isValidLogIndex(logIndex)) return 0;
-        int startFrameIndex = tokenMap.get(logIndex).getStartFrameIndex(token);
-        int endFrameIndex = tokenMap.get(logIndex).getEndFrameIndex(token);
+        int startFrameIndex = tokenMaps.get(logIndex).getStartFrameIndex(token);
+        int endFrameIndex = tokenMaps.get(logIndex).getEndFrameIndex(token);
         if (startFrameIndex < 0 || endFrameIndex < 0) return 0;
         int maxLength = endFrameIndex - startFrameIndex;
         return (maxLength == 0) ? 0 : (double)(frameIndex - startFrameIndex)/maxLength;
@@ -191,9 +194,9 @@ public class Frame {
     
     public void clusterTokens(int logIndex) {
         if (!isValidLogIndex(logIndex)) return ;
-        tokenClusterMap.get(logIndex).clear();
+        tokenClusterMaps.get(logIndex).clear();
         for (int elementIndex : getElementIndexes(logIndex)) {
-            tokenClusterMap.get(logIndex).putAll(clusterTokensOnElement(logIndex, elementIndex));
+            tokenClusterMaps.get(logIndex).putAll(clusterTokensOnElement(logIndex, elementIndex));
         }
     }
     
@@ -239,21 +242,21 @@ public class Frame {
     // Return IndexOutOfBound if token clustering is not executed
     public int[] getClusters(int logIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
-        return tokenClusterMap.get(logIndex).keySet().toArray();
+        return tokenClusterMaps.get(logIndex).keySet().toArray();
     }
     
     // Return IndexOutOfBound if token clustering is not executed
     public int[] getClustersByElement(int logIndex, int elementIndex) {
         if (!isValidLogIndex(logIndex)) return new int[] {};
         return Arrays.stream(getClusters(logIndex))
-                .filter(token -> tokenMap.get(logIndex).getElementIndex(token) == elementIndex)
+                .filter(token -> tokenMaps.get(logIndex).getElementIndex(token) == elementIndex)
                 .toArray();
     }
     
     // Return IndexOutOfBound if token clustering is not executed
     public int getClusterSize(int logIndex, int token) {
         if (!isValidLogIndex(logIndex)) return 0;
-        return tokenClusterMap.get(logIndex).containsKey(token) ? tokenClusterMap.get(logIndex).get(token) : 0;
+        return tokenClusterMaps.get(logIndex).containsKey(token) ? tokenClusterMaps.get(logIndex).get(token) : 0;
     }
     
     // A cluster distance is equal to its representative token distance
