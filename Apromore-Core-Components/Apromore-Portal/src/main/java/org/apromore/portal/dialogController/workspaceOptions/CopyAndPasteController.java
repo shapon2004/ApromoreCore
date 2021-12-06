@@ -344,9 +344,9 @@ public class CopyAndPasteController extends BaseController {
       LOGGER.error(e.getMessage());
     }
   }
-  
+
   public void drop(Set<Object> selections, int selectionCount, FolderType currentFolder) throws Exception {
-	  
+
 	   if (currentFolder == null) {
 	      Notification.error(Labels.getLabel("portal_failedFind_message"));
 	      return;
@@ -355,16 +355,18 @@ public class CopyAndPasteController extends BaseController {
 	      Notification.error(Labels.getLabel("portal_onlyOwnerCanPasteToCurrent_message"));
 	      return;
 	    }
-	  
+
 		if (checkContext(selections, selectionCount, currentFolder)) {
 			try {
 				if (!checkImmediateOwnership(selections)) {
-					Notification.error(Labels.getLabel("portal_onlyOwnerCanCutItems"));
+					Notification.error(Labels.getLabel("portal_onlyOwnerCanCutItems_message"));
+					return;
 				} else if (ItemHelpers.isOwner(this.currentUser, currentFolder)) {
 					isCut = true;
 					updateSelectedItems(selections);
 				} else {
 					Notification.error(Labels.getLabel("portal_onlyOwnerCanCutFromCurrent_message"));
+					return;
 				}
 			} catch (Exception e) {
 				Messagebox.show(Labels.getLabel("portal_failedCut_message"), "Apromore", Messagebox.OK,
