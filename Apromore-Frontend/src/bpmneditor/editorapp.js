@@ -102,9 +102,11 @@ export default class EditorApp {
         }
         this.fullscreen = config.fullscreen !== false;
         this.useSimulationPanel = config.useSimulationPanel || false;
+        this.isPublished = config.isPublished || false;
         this.disabledButtons = config.disabledButtons; // undefined means all plugins are enabled
 
         this.editorCommandStackListeners = [];
+        this.publishStateListeners = [];
     }
 
     /**
@@ -120,6 +122,8 @@ export default class EditorApp {
         await this._loadData(config);
 
         await this._initUI();
+
+        return this.editor && this.editor.actualEditor
     }
 
     /**
@@ -146,7 +150,7 @@ export default class EditorApp {
     async _collapsePanels() {
         let me = this;
         return new Promise(async (resolve, reject) => {
-            await Utils.delay(200);
+            await Utils.delay(300);
             this.useSimulationPanel ? me.layout_regions.east.collapse() : me.layout_regions.east.hide();
             me.layout_regions.west.hide();
             resolve('PanelCollapsedCompleted');
@@ -196,7 +200,7 @@ export default class EditorApp {
                 expandTriggerAll: true,
                 collapsible: true,
                 width: this.useSimulationPanel ? 450 : 0,
-                split: true,
+                split: false,
                 title: "Properties",
                 id: 'ap-editor-props-container',
                 items: [
@@ -265,7 +269,6 @@ export default class EditorApp {
 
         if (this.useSimulationPanel) {
             this.layout_regions.center.addListener('resize', function () {
-                console.log('Center Panel resize resize');
                 me.zoomFitToModel();
             });
         }
@@ -309,7 +312,10 @@ export default class EditorApp {
                             })
                             $('#ap-editor-props-simulation').on('click', () => {
                               selectTab('simulation');
-                              $('#ap-editor-props-container .bpp-properties-tabs-links > li:not(.bpp-hidden):not(:first-child):not(:nth-child(2)) a')[0].click();
+                              var tabLink = $('#ap-editor-props-container .bpp-properties-tabs-links > li:not(.bpp-hidden):not(:first-child):not(:nth-child(2)) a');
+                              if (tabLink && tabLink[0]) {
+                                tabLink[0].click();
+                              }
                             })
                         }, 1000);
                     }
@@ -403,6 +409,10 @@ export default class EditorApp {
                     if (plugin.editorCommandStackChanged) {
                         me.editorCommandStackListeners.push(plugin);
                     }
+
+                    if (plugin.onPublishStateUpdate) {
+                        me.publishStateListeners.push(plugin);
+                    }
                 }
             } catch (e) {
                 Log.warn("Plugin %0 is not available", value.name);
@@ -488,6 +498,7 @@ export default class EditorApp {
                     offer: this.offer.bind(this),
                     getEastPanel: this.getEastPanel.bind(this),
                     useSimulationPanel: this.useSimulationPanel,
+                    isPublished: this.isPublished,
                     getXML: this.getXML.bind(this),
                     getSVG: this.getSVG.bind(this),
                     addToRegion: this.addToRegion.bind(this),
@@ -566,7 +577,7 @@ export default class EditorApp {
           options.keyboard = { bindTo: window };
           options.propertiesPanel = me.useSimulationPanel ? { parent: '#js-properties-panel' } : undefined
         }
-
+        options.username = config.username || '';
         await me.editor.attachEditor(new BpmnJS(options));
 
         if (config && config.xml) {
@@ -583,6 +594,10 @@ export default class EditorApp {
         let me = this;
         this.editorCommandStackListeners.forEach(listener =>
             listener.editorCommandStackChanged(me.editor.canUndo(), me.editor.canRedo()))
+    }
+
+    _onPublishStateUpdate(isPublished) {
+        this.publishStateListeners.forEach(listener => listener.onPublishStateUpdate(isPublished))
     }
 
     /**

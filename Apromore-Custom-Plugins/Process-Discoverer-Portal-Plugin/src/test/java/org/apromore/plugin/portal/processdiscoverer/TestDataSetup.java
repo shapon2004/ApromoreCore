@@ -22,11 +22,6 @@
 
 package org.apromore.plugin.portal.processdiscoverer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.Arrays;
-
 import org.apromore.apmlog.xes.XLogToImmutableLog;
 import org.apromore.calendar.builder.CalendarModelBuilder;
 import org.apromore.calendar.model.CalendarModel;
@@ -48,6 +43,11 @@ import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Arrays;
 
 public class TestDataSetup {
     @Mock
@@ -111,9 +111,17 @@ public class TestDataSetup {
     public XLog readLogWithThreeTraceOneVariant() {
         return this.readXESFile("src/test/logs/L1_3traces_1variant.xes");
     }
+
+    public XLog readLogWithThreeTraceOneVariantMissingValues() {
+        return this.readXESFile("src/test/logs/L1_3traces_1variant_missing_values.xes");
+    }
     
     public XLog readLogWithStartCompleteEventsNonOverlapping() {
         return this.readXESFile("src/test/logs/L1_start_complete_no_overlapping.xes");
+    }
+
+    public XLog readLogWithOneTraceStartCompleteEventsNonOverlapping() {
+        return this.readXESFile("src/test/logs/L1_1trace_start_complete_events_non_overlapping.xes");
     }
     
     public JSONArray readJSON_DFG_Frequency_LogWithStartCompleteEventsNonOverlapping_100_100() throws JSONException, FileNotFoundException {

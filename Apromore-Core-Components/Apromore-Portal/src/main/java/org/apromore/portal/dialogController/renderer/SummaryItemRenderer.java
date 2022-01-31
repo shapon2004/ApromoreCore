@@ -45,8 +45,10 @@ import org.apromore.portal.model.PermissionType;
 import org.apromore.portal.model.ProcessSummaryType;
 import org.apromore.portal.model.SummaryType;
 import org.apromore.portal.model.VersionSummaryType;
+import org.apromore.zk.notification.Notification;
 import org.slf4j.Logger;
 import org.zkoss.spring.SpringUtil;
+import org.zkoss.util.resource.Labels;
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Executions;
 import org.zkoss.zk.ui.event.DropEvent;
@@ -72,6 +74,7 @@ public class SummaryItemRenderer implements ListitemRenderer {
     private static final String CENTRE_ALIGN = "vertical-align: middle; text-align:center";
     private static final String VERTICAL_ALIGN = "vertical-align: middle;";
     private static final String LEFT_ALIGN = "text-align:left";
+    private static final String PARENT_CONTROLLER = "PARENT_CONTROLLER";
 
     private MainController mainController;
     private DateTimeFormatter dateTimeFormatter;
@@ -128,33 +131,37 @@ public class SummaryItemRenderer implements ListitemRenderer {
             listItem.appendChild(plugin.getListcell(process));
         }
 
-        if (mainController.getPortalContext().getCurrentUser().hasAnyPermission(
-                PermissionType.MODEL_EDIT, PermissionType.MODEL_VIEW)) {
-            listItem.addEventListener(Events.ON_DOUBLE_CLICK, new EventListener<>() {
-                @Override
-                public void onEvent(Event event) throws Exception {
+        listItem.addEventListener(Events.ON_DOUBLE_CLICK, new EventListener<>() {
+            @Override
+            public void onEvent(Event event) throws Exception {
+                if (mainController.getPortalContext().getCurrentUser().hasAnyPermission(
+                        PermissionType.MODEL_EDIT, PermissionType.MODEL_VIEW)) {
                     VersionSummaryType version = getLatestVersion(process.getVersionSummaries());
                     LOGGER.info("Open process model {} (id {}) version {}", process.getName(), process.getId(), version.getVersionNumber());
                     mainController.editProcess2(process, version, getNativeType(process.getOriginalNativeType()), new HashSet<RequestParameterType<?>>(), false);
                     Clients.evalJavaScript("clearSelection('')");
+                } else {
+                    Notification.error(Labels.getLabel("portal_unauthorizedRoleAccess_message",
+                            "You don't have the right role to perform this operation"));
                 }
+            }
 
-                /* Sometimes we have merged models with no native type, we should give them a default so they can be edited. */
-                private String getNativeType(String origNativeType) {
-                    String nativeType = origNativeType;
-                    if (origNativeType == null || origNativeType.isEmpty()) {
-                        nativeType = "BPMN 2.0";
-                    }
-                    return nativeType;
+            /* Sometimes we have merged models with no native type, we should give them a default so they can be edited. */
+            private String getNativeType(String origNativeType) {
+                String nativeType = origNativeType;
+                if (origNativeType == null || origNativeType.isEmpty()) {
+                    nativeType = "BPMN 2.0";
                 }
-            });
-        }
+                return nativeType;
+            }
+        });
         
         listItem.addEventListener(Events.ON_RIGHT_CLICK, new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
                 Map args = new HashMap();
-                  args.put("POPUP_TYPE", "PROCESS");
+                args.put("POPUP_TYPE", "PROCESS");
+                args.put(PARENT_CONTROLLER,mainController);
                 Menupopup menupopup = (Menupopup)Executions.createComponents("~./macros/popupMenu.zul", null, args);
                 menupopup.open(event.getTarget(), "at_pointer");
             }
@@ -180,20 +187,24 @@ public class SummaryItemRenderer implements ListitemRenderer {
             listItem.appendChild(plugin.getListcell(log));
         }
 
-        if (mainController.getPortalContext().getCurrentUser()
-                .hasAnyPermission(PermissionType.MODEL_DISCOVER_EDIT, PermissionType.MODEL_DISCOVER_VIEW)) {
-            listItem.addEventListener(Events.ON_DOUBLE_CLICK, event -> {
+        listItem.addEventListener(Events.ON_DOUBLE_CLICK, event -> {
+            if (mainController.getPortalContext().getCurrentUser()
+                    .hasAnyPermission(PermissionType.MODEL_DISCOVER_EDIT, PermissionType.MODEL_DISCOVER_VIEW)) {
                 LOGGER.info("Open log {} (id {})", log.getName(), log.getId());
                 mainController.visualizeLog();
                 Clients.evalJavaScript("clearSelection('')");
-            });
-        }
+            } else {
+                Notification.error(Labels.getLabel("portal_unauthorizedRoleAccess_message",
+                        "You don't have the right role to perform this operation"));
+            }
+        });
         
         listItem.addEventListener(Events.ON_RIGHT_CLICK, new EventListener<Event>() {
             @Override
             public void onEvent(Event event) throws Exception {
                 Map args = new HashMap();
-                  args.put("POPUP_TYPE", "LOG");
+                args.put("POPUP_TYPE", "LOG");
+                args.put(PARENT_CONTROLLER,mainController);
                 Menupopup menupopup = (Menupopup)Executions.createComponents("~./macros/popupMenu.zul", null, args);
                 menupopup.open(event.getTarget(), "at_pointer");
             }
@@ -303,8 +314,9 @@ public class SummaryItemRenderer implements ListitemRenderer {
             @Override
             public void onEvent(Event event) throws Exception {
                 Map args = new HashMap();
-                  args.put("POPUP_TYPE", "FOLDER");
-                  args.put("SELECTED_FOLDER", ((Listitem)event.getTarget()).getValue());
+                args.put("POPUP_TYPE", "FOLDER");
+                args.put("SELECTED_FOLDER", ((Listitem)event.getTarget()).getValue());
+                args.put(PARENT_CONTROLLER,mainController);
                 Menupopup menupopup = (Menupopup)Executions.createComponents("~./macros/popupMenu.zul", null, args);
                 menupopup.open(event.getTarget(), "at_pointer");
                 

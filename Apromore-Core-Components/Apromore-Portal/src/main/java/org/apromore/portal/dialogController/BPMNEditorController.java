@@ -24,9 +24,12 @@
 
 package org.apromore.portal.dialogController;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apromore.dao.model.ProcessPublish;
 import org.apromore.dao.model.User;
 import org.apromore.plugin.editor.EditorPlugin;
 import org.apromore.plugin.portal.PortalContext;
@@ -107,15 +110,15 @@ public class BPMNEditorController extends BaseController implements Composer<Com
   public BPMNEditorController() {
     super();
 
+    currentUserType = UserSessionManager.getCurrentUser();
+    if (currentUserType == null) {
+      throw new AssertionError("Cannot open the editor without any login user!");
+    }
+
     isViewLink = Boolean.valueOf(Executions.getCurrent().getParameter("view"));
     if (isViewLink) {
       openViewLink();
       return;
-    }
-
-    currentUserType = UserSessionManager.getCurrentUser();
-    if (currentUserType == null) {
-      throw new AssertionError("Cannot open the editor without any login user!");
     }
 
     String id = Executions.getCurrent().getParameter("id");
@@ -218,6 +221,7 @@ public class BPMNEditorController extends BaseController implements Composer<Com
       List<EditorPlugin> editorPlugins = EditorPluginResolver.resolve("bpmnEditorPlugins");
       param.put("plugins", editorPlugins);
       param.put("langTag", langTag);
+      param.put("username", currentUserType.getUsername());
       if (USE_BPMNIO_MODELER) {
         param.put("bpmnioLib", BPMNIO_MODELER_JS);
       } else {
@@ -227,6 +231,7 @@ public class BPMNEditorController extends BaseController implements Composer<Com
       PortalPlugin simulatePortalPlugin = mainC.getPortalPluginMap().get(PluginCatalog.PLUGIN_SIMULATE_MODEL);
       param.put("availableSimulateModelPlugin", simulatePortalPlugin != null &&
               simulatePortalPlugin.getAvailability() == PortalPlugin.Availability.AVAILABLE);
+      param.put("isPublished", isProcessPublished());
       Executions.getCurrent().pushArg(param);
 
     } catch (Exception e) {
@@ -379,15 +384,29 @@ public class BPMNEditorController extends BaseController implements Composer<Com
     throw new RuntimeException("Unsupported class of event data: " + event.getData());
   }
 
+  private boolean isProcessPublished() {
+    if (process == null) {
+      return false;
+    }
+    ProcessPublishService processPublishService = (ProcessPublishService) SpringUtil.getBean("processPublishService");
+    ProcessPublish publishDetails = processPublishService.getPublishDetails(process.getId());
+    return publishDetails != null && publishDetails.isPublished();
+  }
+
   private void openViewLink() {
     if (isViewLink) {
       String publishId = Executions.getCurrent().getParameter("publishId");
       ProcessPublishService processPublishService = (ProcessPublishService) SpringUtil.getBean("processPublishService");
       ProcessService processService = (ProcessService) SpringUtil.getBean("processService");
 
-      //Check if link is published. If not, throw an error.
+      //Check if link is published. If not, show an error.
       if (!processPublishService.isPublished(publishId)) {
-        throw new AssertionError("This link is inactive");
+        try {
+          Executions.forward("./macros/invalidLink.zul");
+          return;
+        } catch (IOException e) {
+          throw new AssertionError("This link is inactive");
+        }
       }
 
       //Get process from publish id
@@ -419,10 +438,11 @@ public class BPMNEditorController extends BaseController implements Composer<Com
     param.put("plugins", editorPlugins);
     param.put("availableSimulateModelPlugin", false);
     param.put("bpmnioLib", BPMNIO_MODELER_JS);
+    param.put("isPublished", true);
     param.put("viewOnly", true);
     param.put("langTag", getLanguageTag());
     param.put("doAutoLayout", "false");
-
+    param.put("username", currentUserType.getUsername());
     Executions.getCurrent().pushArg(param);
   }
 
